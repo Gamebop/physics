@@ -36,10 +36,10 @@ export const SHAPE_BOX = 0;
 export const SHAPE_CAPSULE = 1;
 export const SHAPE_CYLINDER = 2;
 export const SHAPE_SPHERE = 3;
-export const SHAPE_CONE = 4;
-export const SHAPE_MESH = 5;
-export const SHAPE_CONVEX_HULL = 6;
-export const SHAPE_STATIC_COMPOUND = 7;
+export const SHAPE_MESH = 4;
+export const SHAPE_CONVEX_HULL = 5;
+export const SHAPE_STATIC_COMPOUND = 6;
+export const SHAPE_HEIGHTFIELD = 7;
 
 export const VEHICLE_TYPE_WHEEL = 0;
 export const VEHICLE_TYPE_TRACK = 1;

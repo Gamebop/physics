@@ -69,6 +69,42 @@ class ShapeComponent extends pc.EventHandler {
     // Offset center of mass in local space of the body. Does not move the shape.
     _massOffset = pc.Vec3.ZERO;
 
+    _hfSamples = null;
+
+    _hfSampleCount = 0;
+
+    // The HeightField is divided in blocks of hfBlockSize * hfBlockSize * 2 triangles and the
+    // acceleration structure culls blocks only, bigger block sizes reduce memory consumption
+    // but also reduce query performance. Sensible values are [2, 8], does not need to be a
+    // power of 2. Note that at run-time Jolt performs one more grid subdivision, so the effective
+    // block size is half of what is provided here.
+    _hfBlockSize = 2;
+
+    // How many bits per sample to use to compress the HeightField. Can be in the range [1, 8].
+    // Note that each sample is compressed relative to the min/max value of its block of
+    // hfBlockSize * hfBlockSize pixels so the effective precision is higher. Also note that
+    // increasing hfBlockSize saves more memory than reducing the amount of bits per sample.
+    _hfBitsPerSample = 8;
+
+    // Cosine of the threshold angle (if the angle between the two triangles in HeightField is
+    // bigger than this, the edge is active, note that a concave edge is always inactive). Setting
+    // this value too small can cause ghost collisions with edges, setting it too big can cause
+    // depenetration artifacts (objects not depenetrating quickly). Valid ranges are between
+    // cos(0 degrees) and cos(90 degrees). The default value is cos(5 degrees).
+    _hfActiveEdgeCosThresholdAngle = 0.996195;
+
+    _hfScale = pc.Vec3.ONE;
+
+    // The height field is a surface defined by: hfOffset + hfScale * (x, hfHeightSamples[y * hfSampleCount + x], y).
+    // where x and y are integers in the range x and y e [0, hfSampleCount - 1].
+    _hfOffset = pc.Vec3.ZERO;
+
+    // If true, each height value in hfSamples array has a subsequent value to indicate if it is a hole (1 for true, 0 for false).
+    // Example:
+    //  with holes       [66, 0, 66, 0, 66, 1] = third vertex is a hole (value 66 is ignored).
+    //  without holes:   [66, 66, 66] = each value is a vertex height
+    _hfHasHoles = false;
+
     // The ComponentSystem used to create this Component.
     system;
 
@@ -131,7 +167,7 @@ class ShapeComponent extends pc.EventHandler {
         return true;
     }    
 
-    static addBuffers(meshes, cb) {
+    static addMeshes(meshes, cb) {
         for (let i = 0; i < meshes.length; i++) {
             const mesh = meshes[i];
             const vb = mesh.vertexBuffer;
@@ -172,8 +208,6 @@ class ShapeComponent extends pc.EventHandler {
             cb.write(byteOffset, BUFFER_WRITE_UINT32, false);
             cb.addBuffer(isView ? storage.buffer : storage);
         }
-
-        return true;
     }
     
     onSetEnabled(name, oldValue, newValue) {

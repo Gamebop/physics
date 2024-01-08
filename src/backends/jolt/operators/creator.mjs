@@ -13,7 +13,7 @@ import {
     CONSTRAINT_TYPE_HINGE, CONSTRAINT_TYPE_POINT, CONSTRAINT_TYPE_SIX_DOF, CONSTRAINT_TYPE_SLIDER,
     CONSTRAINT_TYPE_SWING_TWIST, SHAPE_BOX, SHAPE_CAPSULE,
     SHAPE_CONVEX_HULL,
-    SHAPE_CYLINDER, SHAPE_MESH, SHAPE_SPHERE, SHAPE_STATIC_COMPOUND,
+    SHAPE_CYLINDER, SHAPE_HEIGHTFIELD, SHAPE_MESH, SHAPE_SPHERE, SHAPE_STATIC_COMPOUND,
     SPRING_MODE_FREQUENCY,
     VEHICLE_CAST_TYPE_CYLINDER,
     VEHICLE_CAST_TYPE_RAY,
@@ -58,7 +58,7 @@ class Creator {
                 break;
 
             case CMD_CREATE_SHAPE:
-                ok = this._createShape(cb);
+                ok = this._createShape(cb, meshBuffers);
                 break;
 
             case CMD_CREATE_VEHICLE:
@@ -705,15 +705,19 @@ class Creator {
                 break;
 
             case SHAPE_MESH:
-                settings = this._createMeshShape(cb, meshBuffers, false /* isConvex */);
+                settings = this._createMeshShapeSettings(cb, meshBuffers, false /* isConvex */);
                 break;
 
             case SHAPE_CONVEX_HULL:
-                settings = this._createMeshShape(cb, meshBuffers, true /* isConvex */);
+                settings = this._createMeshShapeSettings(cb, meshBuffers, true /* isConvex */);
                 break;
 
             case SHAPE_STATIC_COMPOUND:
-                settings = this._createStaticCompoundShape(cb, meshBuffers);
+                settings = this._createStaticCompoundShapeSettings(cb, meshBuffers);
+                break;
+
+            case SHAPE_HEIGHTFIELD:
+                settings = this._createHeightFieldSettings(cb, meshBuffers);
                 break;
 
             default:
@@ -777,7 +781,7 @@ class Creator {
         return settings;
     }
 
-    _createStaticCompoundShape(cb, meshBuffers) {
+    _createStaticCompoundShapeSettings(cb, meshBuffers) {
         const childrenCount = cb.read(BUFFER_READ_UINT32);
         const children = [];
 
@@ -804,7 +808,7 @@ class Creator {
         return children;
     }
 
-    _createMeshShape(cb, meshBuffers, isConvex) {
+    _createMeshShapeSettings(cb, meshBuffers, isConvex) {
         const base = cb.read(BUFFER_READ_UINT8);
         const offset = cb.read(BUFFER_READ_UINT32);
         const stride = cb.read(BUFFER_READ_UINT8);
@@ -817,7 +821,7 @@ class Creator {
             ok = ok && Debug.checkUint(offset, `Invalid positions buffer offset to generate mesh/hull: ${ offset }`);
             ok = ok && Debug.checkUint(stride, `Invalid positions buffer stride to generate mesh/hull: ${ stride }`);
             ok = ok && Debug.checkUint(numIndices, `Invalid indices count to generate mesh/hull: ${ numIndices }`);
-            ok = ok && Debug.assert(meshBuffers, `No mesh buffers to generate a mesh/hull: ${ meshBuffers }`);
+            ok = ok && Debug.assert(!!meshBuffers, `No mesh buffers to generate a mesh/hull: ${ meshBuffers }`);
             ok = ok && Debug.assert(meshBuffers.length > 1, `Invalid buffers to generate mesh/hull: ${ meshBuffers }`);
             if (!ok) {
                 return null;
@@ -884,6 +888,49 @@ class Creator {
             settings = new Jolt.MeshShapeSettings(triangles);
         }
         
+        return settings;
+    }
+
+    _createHeightFieldSettings(cb, meshBuffers) {
+        if (Debug.dev) {
+            let ok = Debug.assert(!!meshBuffers, `Missing buffers to generate a HeightField shape: ${ meshBuffers }`);
+            ok = ok && Debug.assert(meshBuffers.length > 0, `Invalid buffers to generate HeightField shape: ${ meshBuffers }`);
+            if (!ok) {
+                return null;
+            }
+        }
+
+        const jv = this._joltVec3;
+        const buffer = meshBuffers.shift();
+        const samples = new Uint8ClampedArray(buffer);
+        const hasHoles = cb.read(BUFFER_READ_BOOL);
+        const size = hasHoles ? samples.length * 0.5 : samples.length;
+
+        const settings = new Jolt.HeightFieldShapeSettings();
+        settings.mOffset = jv.FromBuffer(cb);
+        settings.mScale = jv.FromBuffer(cb);
+        settings.mSampleCount = cb.read(BUFFER_READ_UINT32);
+        settings.mBlockSize = cb.read(BUFFER_READ_UINT8);
+        settings.mBitsPerSample = cb.read(BUFFER_READ_UINT8);
+        settings.mActiveEdgeCosThresholdAngle = cb.read(BUFFER_READ_FLOAT32);
+        settings.mHeightSamples.resize(size);
+
+        // Convert the height samples into a Float32Array
+        const heightSamples = new Float32Array(Jolt.HEAPF32.buffer, Jolt.getPointer(settings.mHeightSamples.data()), size);
+
+        if (hasHoles) {
+            for (let i = 0, s = 0, end = heightSamples.length; i < end; i++, s+=2) {
+                heightSamples[i] = samples[s];
+                if (samples[s + 1]) {
+                    heightSamples[i] = Jolt.HeightFieldShapeConstantValues.prototype.cNoCollisionValue;
+                }
+            }
+        } else {
+            for (let i = 0, end = heightSamples.length; i < end; i++) {
+                heightSamples[i] = samples[i];
+            }
+        }
+
         return settings;
     }
 

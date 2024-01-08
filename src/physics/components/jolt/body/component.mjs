@@ -15,6 +15,7 @@ import {
     CMD_USE_MOTION_STATE,
     OPERATOR_CLEANER, OPERATOR_MODIFIER,
     SHAPE_CONVEX_HULL,
+    SHAPE_HEIGHTFIELD,
     SHAPE_MESH
 } from "../constants.mjs";
 import { ShapeComponentSystem } from "../system.mjs";
@@ -457,7 +458,8 @@ class BodyComponent extends ShapeComponent {
 
         this._index = system.getIndex(this.entity);
 
-        if ((shape === SHAPE_MESH || shape === SHAPE_CONVEX_HULL) && this._renderAsset && !this._meshes) {
+        if ((shape === SHAPE_MESH || shape === SHAPE_CONVEX_HULL || shape === SHAPE_HEIGHTFIELD) && 
+            this._renderAsset && !this._meshes) {
             this._addMeshes();
         } else if (!isCompoundChild) {
             system.createBody(this);
@@ -537,3 +539,4 @@ class BodyComponent extends ShapeComponent {
 }
 
 export { BodyComponent };
+

@@ -3,12 +3,9 @@ import { IndexedCache } from "../../indexed-cache.mjs";
 import { ShapeComponent } from "./component.mjs";
 
 import {
-    BUFFER_READ_BOOL,
-    BUFFER_READ_FLOAT32,
-    BUFFER_READ_UINT32,
-    BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT32,
+    BUFFER_READ_FLOAT32, BUFFER_READ_UINT32, BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT32,
     BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32, FLOAT32_SIZE, OBJECT_LAYER_MOVING, OBJECT_LAYER_NON_MOVING, SHAPE_BOX, SHAPE_CAPSULE,
-    SHAPE_CONE, SHAPE_CONVEX_HULL, SHAPE_CYLINDER, SHAPE_MESH, SHAPE_SPHERE,
+    SHAPE_CONVEX_HULL, SHAPE_CYLINDER, SHAPE_HEIGHTFIELD, SHAPE_MESH, SHAPE_SPHERE,
     SHAPE_STATIC_COMPOUND, VEHICLE_CAST_TYPE_CYLINDER, VEHICLE_CAST_TYPE_RAY, VEHICLE_CAST_TYPE_SPHERE, VEHICLE_TYPE_MOTORCYCLE, VEHICLE_TYPE_TRACK, VEHICLE_TYPE_WHEEL
 } from "./constants.mjs";
 
@@ -33,6 +30,51 @@ function getColor(type, config) {
 }
 
 class ShapeComponentSystem extends pc.ComponentSystem {
+    constructor(app, manager) {
+        super();
+
+        this.app = app;
+
+        // The store where all ComponentData objects are kept
+        this.store = {};
+        this.schema = [
+            // component
+            'enabled',
+            'index',
+            'trackDynamic',
+            'renderAsset',
+            'meshes',
+            'isCompoundChild',
+            'useEntityScale',
+            'useMotionState',
+            'debugDraw',
+
+            // Jolt shape
+            'shape',
+            'halfExtent',
+            'radius',
+            'convexRadius',
+            'halfHeight',
+            'density',
+            'shapePosition',
+            'shapeRotation',
+            'massOffset',
+            'hfScale',
+            'hfOffset',
+            'hfSamples',
+            'hfSampleCount',
+            'hfBlockSize',
+            'hfBitsPerSample',
+            'hfActiveEdgeCosThresholdAngle',
+            'hfHasHoles'
+        ];
+
+        this._manager = manager;
+
+        this.entityMap = entityMap;
+
+        this._exposeConstants();
+    }
 
     static updateDynamic(cb) {
         const index = cb.read(BUFFER_READ_UINT32);
@@ -99,8 +141,10 @@ class ShapeComponentSystem extends pc.ComponentSystem {
                 );
             }
         }
-    } 
-    
+    }
+
+    // TODO
+    // move to ShapeComponent    
     static writeShapeData(cb, props, forceWriteRotation = false) {
         const shape = props.shape;
         cb.write(shape, BUFFER_WRITE_UINT8, false);
@@ -151,7 +195,18 @@ class ShapeComponentSystem extends pc.ComponentSystem {
             // intentional fall-through
             case SHAPE_CONVEX_HULL:
             case SHAPE_MESH:
-                ok = ShapeComponent.addBuffers(props.meshes, cb);
+                ShapeComponent.addMeshes(props.meshes, cb);
+                break;
+            
+            case SHAPE_HEIGHTFIELD:
+                cb.write(props.hfHasHoles, BUFFER_WRITE_BOOL, false);
+                cb.write(props.hfOffset, BUFFER_WRITE_VEC32, false);
+                cb.write(props.hfScale, BUFFER_WRITE_VEC32, false);
+                cb.write(props.hfSampleCount, BUFFER_WRITE_UINT32, false);
+                cb.write(props.hfBlockSize, BUFFER_WRITE_UINT8, false);
+                cb.write(props.hfBitsPerSample, BUFFER_WRITE_UINT8, false);
+                cb.write(props.hfActiveEdgeCosThresholdAngle, BUFFER_WRITE_FLOAT32, false);
+                cb.addBuffer(props.hfSamples.buffer);
                 break;
     
             default:
@@ -229,44 +284,6 @@ class ShapeComponentSystem extends pc.ComponentSystem {
                 app.drawLine(v3, v1, color, useDepth, layer);
             }
         }
-    }   
-
-    constructor(app, manager) {
-        super();
-
-        this.app = app;
-
-        // The store where all ComponentData objects are kept
-        this.store = {};
-        this.schema = [
-            // component
-            'enabled',
-            'index',
-            'trackDynamic',
-            'renderAsset',
-            'meshes',
-            'isCompoundChild',
-            'useEntityScale',
-            'useMotionState',
-            'debugDraw',
-
-            // Jolt shape
-            'shape',
-            'halfExtent',
-            'radius',
-            'convexRadius',
-            'halfHeight',
-            'density',
-            'shapePosition',
-            'shapeRotation',
-            'massOffset'
-        ];
-
-        this._manager = manager;
-
-        this.entityMap = entityMap;
-
-        this._exposeConstants();
     }
 
     addCommand() {
@@ -334,9 +351,9 @@ class ShapeComponentSystem extends pc.ComponentSystem {
             pc.JOLT_SHAPE_CYLINDER = SHAPE_CYLINDER;
             pc.JOLT_SHAPE_SPHERE = SHAPE_SPHERE;
             pc.JOLT_SHAPE_MESH = SHAPE_MESH;
-            pc.JOLT_SHAPE_CONE = SHAPE_CONE;
             pc.JOLT_SHAPE_CONVEX_HULL = SHAPE_CONVEX_HULL;
             pc.JOLT_SHAPE_STATIC_COMPOUND = SHAPE_STATIC_COMPOUND;
+            pc.JOLT_SHAPE_HEIGHTFIELD = SHAPE_HEIGHTFIELD;
             pc.JOLT_OBJECT_LAYER_NON_MOVING = OBJECT_LAYER_NON_MOVING;
             pc.JOLT_OBJECT_LAYER_MOVING = OBJECT_LAYER_MOVING;
             pc.JOLT_VEHICLE_TYPE_WHEEL = VEHICLE_TYPE_WHEEL;
