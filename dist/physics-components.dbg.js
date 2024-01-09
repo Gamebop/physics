@@ -317,7 +317,7 @@ module.exports = JSON.parse('{"name":"jolt-physics","version":"0.13.0","descript
   \**********************/
 /***/ ((module) => {
 
-module.exports = JSON.parse('{"name":"jolt","version":"1.0.0","main":"index.js","license":"MIT","type":"module","scripts":{"build":"rimraf dist && webpack --mode=production && webpack --mode=development","build:dev":"rimraf dist && webpack --mode=development","build:prod":"rimraf dist && webpack --mode=production"},"dependencies":{"jolt-physics":"^0.13.0","playcanvas":"^1.66.1"},"devDependencies":{"rimraf":"^5.0.5","webpack":"^5.89.0","webpack-cli":"^5.1.4"}}');
+module.exports = JSON.parse('{"name":"jolt","version":"0.1.0","main":"index.js","license":"MIT","type":"module","scripts":{"build":"rimraf dist && webpack --mode=production && webpack --mode=development","build:dev":"rimraf dist && webpack --mode=development","build:prod":"rimraf dist && webpack --mode=production"},"dependencies":{"jolt-physics":"^0.13.0","playcanvas":"^1.66.1"},"devDependencies":{"rimraf":"^5.0.5","webpack":"^5.89.0","webpack-cli":"^5.1.4"}}');
 
 /***/ })
 
