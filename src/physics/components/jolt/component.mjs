@@ -99,12 +99,6 @@ class ShapeComponent extends pc.EventHandler {
     // where x and y are integers in the range x and y e [0, hfSampleCount - 1].
     _hfOffset = pc.Vec3.ZERO;
 
-    // If true, each height value in hfSamples array has a subsequent value to indicate if it is a hole (1 for true, 0 for false).
-    // Example:
-    //  with holes       [66, 0, 66, 0, 66, 1] = third vertex is a hole (value 66 is ignored).
-    //  without holes:   [66, 66, 66] = each value is a vertex height
-    _hfHasHoles = false;
-
     // The ComponentSystem used to create this Component.
     system;
 

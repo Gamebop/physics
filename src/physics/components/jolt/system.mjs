@@ -65,8 +65,7 @@ class ShapeComponentSystem extends pc.ComponentSystem {
             'hfSampleCount',
             'hfBlockSize',
             'hfBitsPerSample',
-            'hfActiveEdgeCosThresholdAngle',
-            'hfHasHoles'
+            'hfActiveEdgeCosThresholdAngle'
         ];
 
         this._manager = manager;
@@ -199,7 +198,6 @@ class ShapeComponentSystem extends pc.ComponentSystem {
                 break;
             
             case SHAPE_HEIGHTFIELD:
-                cb.write(props.hfHasHoles, BUFFER_WRITE_BOOL, false);
                 cb.write(props.hfOffset, BUFFER_WRITE_VEC32, false);
                 cb.write(props.hfScale, BUFFER_WRITE_VEC32, false);
                 cb.write(props.hfSampleCount, BUFFER_WRITE_UINT32, false);

@@ -33,7 +33,7 @@ const schema = [
 ];
 
 class CharComponentSystem extends ShapeComponentSystem {
-    constructor(app, manager) {
+    constructor(app, manager, id) {
         super(app, manager);
 
         this.id = 'char';
@@ -44,7 +44,7 @@ class CharComponentSystem extends ShapeComponentSystem {
 
         this._exposeConstants();
 
-        manager.systems.set(COMPONENT_SYSTEM_CHAR, this);
+        manager.systems.set(id, this);
 
         buildAccessors(this, this.schema);
     }

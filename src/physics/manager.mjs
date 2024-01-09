@@ -96,7 +96,7 @@ class PhysicsManager {
             index = this._perfCache.add(startTime);
         }
         
-        this._writeKinematicIsometry();
+        this._writeIsometry();
         this._dispatchCommands(this._frame.dt, index);
     }
 
@@ -187,9 +187,9 @@ class PhysicsManager {
         this._app[this._config.propertyName] = null;
     }
 
-    _writeKinematicIsometry() {
+    _writeIsometry() {
         this._systems.forEach(system => {
-            system.requestKinematicIsometry?.();
+            system.requestIsometry?.();
         })
     }
 

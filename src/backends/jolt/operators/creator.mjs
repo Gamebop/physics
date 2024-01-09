@@ -902,9 +902,8 @@ class Creator {
 
         const jv = this._joltVec3;
         const buffer = meshBuffers.shift();
-        const samples = new Uint8ClampedArray(buffer);
-        const hasHoles = cb.read(BUFFER_READ_BOOL);
-        const size = hasHoles ? samples.length * 0.5 : samples.length;
+        const samples = new Float32Array(buffer);
+        const size = samples.length;
 
         const settings = new Jolt.HeightFieldShapeSettings();
         settings.mOffset = jv.FromBuffer(cb);
@@ -918,17 +917,9 @@ class Creator {
         // Convert the height samples into a Float32Array
         const heightSamples = new Float32Array(Jolt.HEAPF32.buffer, Jolt.getPointer(settings.mHeightSamples.data()), size);
 
-        if (hasHoles) {
-            for (let i = 0, s = 0, end = heightSamples.length; i < end; i++, s+=2) {
-                heightSamples[i] = samples[s];
-                if (samples[s + 1]) {
-                    heightSamples[i] = Jolt.HeightFieldShapeConstantValues.prototype.cNoCollisionValue;
-                }
-            }
-        } else {
-            for (let i = 0, end = heightSamples.length; i < end; i++) {
-                heightSamples[i] = samples[i];
-            }
+        for (let i = 0, end = heightSamples.length; i < end; i++) {
+            const height = samples[i];
+            heightSamples[i] = height >=0 ? height : Jolt.HeightFieldShapeConstantValues.prototype.cNoCollisionValue;
         }
 
         return settings;

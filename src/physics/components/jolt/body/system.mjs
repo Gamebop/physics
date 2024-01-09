@@ -44,14 +44,14 @@ const schema = [
 
 class BodyComponentSystem extends ShapeComponentSystem {
 
-    constructor(app, manager) {
+    constructor(app, manager, id) {
         super(app, manager);
 
         this.id = 'body';
         this.schema = [...this.schema, ...schema];
         this.ComponentType = BodyComponent;
 
-        manager.systems.set(COMPONENT_SYSTEM_BODY, this);
+        manager.systems.set(id, this);
 
         buildAccessors(this, this.schema);
     }
@@ -117,7 +117,7 @@ class BodyComponentSystem extends ShapeComponentSystem {
         }
     }
 
-    requestKinematicIsometry() {
+    requestIsometry() {
         this.fire('write-isometry');
     }
 

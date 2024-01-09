@@ -46,14 +46,14 @@ const schema = [
 ];
 
 class VehicleComponentSystem extends BodyComponentSystem {
-    constructor(app, manager) {
+    constructor(app, manager, id) {
         super(app, manager);
 
         this.id = 'vehicle';
         this.schema = [...this.schema, ...schema];
         this.ComponentType = VehicleComponent;
 
-        manager.systems.set(COMPONENT_SYSTEM_VEHICLE, this);
+        manager.systems.set(id, this);
 
         buildAccessors(this, this.schema);
     }

@@ -1,8 +1,9 @@
 import { BodyComponentSystem } from "./components/jolt/body/system.mjs";
 import { CharComponentSystem } from "./components/jolt/char/system.mjs";
+import { VehicleComponentSystem } from "./components/jolt/vehicle/system.mjs";
 import { Debug } from "./debug.mjs";
 import { JoltManager } from "./components/jolt/manager.mjs";
-import { VehicleComponentSystem } from "./components/jolt/vehicle/system.mjs";
+import { COMPONENT_SYSTEM_BODY, COMPONENT_SYSTEM_CHAR, COMPONENT_SYSTEM_VEHICLE } from "./components/jolt/constants.mjs";
 
 
 // TODO
@@ -29,9 +30,9 @@ function init(app = pc.Application.getApplication(), opts = {}) {
             const manager = new JoltManager(app, backend, options);
             app[propertyName] = manager;
 
-            app.systems.add(new BodyComponentSystem(app, manager));
-            app.systems.add(new CharComponentSystem(app, manager));
-            app.systems.add(new VehicleComponentSystem(app, manager));
+            app.systems.add(new BodyComponentSystem(app, manager, COMPONENT_SYSTEM_BODY));
+            app.systems.add(new CharComponentSystem(app, manager, COMPONENT_SYSTEM_CHAR));
+            app.systems.add(new VehicleComponentSystem(app, manager, COMPONENT_SYSTEM_VEHICLE));
             break;
         }
 
