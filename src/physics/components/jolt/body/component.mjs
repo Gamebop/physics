@@ -18,7 +18,6 @@ import {
     SHAPE_HEIGHTFIELD,
     SHAPE_MESH
 } from "../constants.mjs";
-import { ShapeComponentSystem } from "../system.mjs";
 
 const vec3 = new pc.Vec3();
 
@@ -50,7 +49,7 @@ class BodyComponent extends ShapeComponent {
 
     // The collision group this body belongs to (determines if two objects can collide).
     // Expensive, so disabled by default.
-    _group = null;
+    _collisionGroup = null;
 
     // Sub-group (within the collision group). Expensive, so disabled by default.
     _subGroup = null;
@@ -168,7 +167,7 @@ class BodyComponent extends ShapeComponent {
         return this._motionType;
     }
 
-    get group() {
+    get collisionGroup() {
         return this._group;
     }
 
@@ -388,9 +387,10 @@ class BodyComponent extends ShapeComponent {
     }
 
     writeComponentData(cb) {
-        const ok = ShapeComponentSystem.writeShapeData(cb, this);
+        const ok = ShapeComponent.writeShapeData(cb, this);
         if (Debug.dev && !ok) {
             Debug.warn('Error creating a shape data.');
+            cb.reset();
             return;
         }
 
@@ -427,7 +427,7 @@ class BodyComponent extends ShapeComponent {
         cb.write(this._isSensor, BUFFER_WRITE_BOOL, false);
         cb.write(this._motionQuality, BUFFER_WRITE_UINT8, false);
         cb.write(this._allowSleeping, BUFFER_WRITE_BOOL, false);
-        cb.write(this._group, BUFFER_WRITE_UINT32);
+        cb.write(this._collisionGroup, BUFFER_WRITE_UINT32);
         cb.write(this._subGroup, BUFFER_WRITE_UINT32);
 
         Debug.dev && cb.write(this._debugDraw, BUFFER_WRITE_BOOL, false);
@@ -445,7 +445,7 @@ class BodyComponent extends ShapeComponent {
                 cb.write(this._overrideInertiaRotation, BUFFER_WRITE_VEC32, false);
             }
         }
-    }    
+    }
 
     resetVelocities() {
         this.system.addCommand(OPERATOR_MODIFIER, CMD_RESET_VELOCITIES, this._index);

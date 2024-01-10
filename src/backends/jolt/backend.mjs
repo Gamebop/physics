@@ -250,11 +250,6 @@ class JoltBackend {
         }
 
         const outBuffer = this._outBuffer;
-        // // reset the out buffer cursors, so we can start writing results to it
-        // outBuffer.reset();
-
-        // // get ready to collect contacts
-        // this._listener.reset();
 
         // potentially step physics system, update motion states
         ok = ok && this._stepPhysics(dt);

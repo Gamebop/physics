@@ -166,7 +166,7 @@ class CharComponent extends ShapeComponent {
     }
 
     writeComponentData(cb) {
-        const ok = ShapeComponentSystem.writeShapeData(cb, this, true /* force write rotation */);
+        const ok = ShapeComponent.writeShapeData(cb, this, true /* force write rotation */);
         if (Debug.dev && !ok) {
             Debug.warn('Error creating a shape data.');
             return false;

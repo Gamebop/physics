@@ -3,7 +3,8 @@ import { CharComponentSystem } from "./components/jolt/char/system.mjs";
 import { VehicleComponentSystem } from "./components/jolt/vehicle/system.mjs";
 import { Debug } from "./debug.mjs";
 import { JoltManager } from "./components/jolt/manager.mjs";
-import { COMPONENT_SYSTEM_BODY, COMPONENT_SYSTEM_CHAR, COMPONENT_SYSTEM_VEHICLE } from "./components/jolt/constants.mjs";
+import { COMPONENT_SYSTEM_BODY, COMPONENT_SYSTEM_CHAR, COMPONENT_SYSTEM_SOFT_BODY, COMPONENT_SYSTEM_VEHICLE } from "./components/jolt/constants.mjs";
+import { SoftBodyComponentSystem } from "./components/jolt/softbody/system.mjs";
 
 
 // TODO
@@ -33,6 +34,7 @@ function init(app = pc.Application.getApplication(), opts = {}) {
             app.systems.add(new BodyComponentSystem(app, manager, COMPONENT_SYSTEM_BODY));
             app.systems.add(new CharComponentSystem(app, manager, COMPONENT_SYSTEM_CHAR));
             app.systems.add(new VehicleComponentSystem(app, manager, COMPONENT_SYSTEM_VEHICLE));
+            app.systems.add(new SoftBodyComponentSystem(app, manager, COMPONENT_SYSTEM_SOFT_BODY));
             break;
         }
 

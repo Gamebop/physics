@@ -6,6 +6,7 @@ import {
     CMD_CREATE_CONSTRAINT,
     CMD_CREATE_GROUPS,
     CMD_CREATE_SHAPE,
+    CMD_CREATE_SOFT_BODY,
     CMD_CREATE_VEHICLE,
     CONSTRAINT_SIX_DOF_ROTATION_X, CONSTRAINT_SIX_DOF_ROTATION_Y, CONSTRAINT_SIX_DOF_ROTATION_Z,
     CONSTRAINT_SIX_DOF_TRANSLATION_X, CONSTRAINT_SIX_DOF_TRANSLATION_Y, CONSTRAINT_SIX_DOF_TRANSLATION_Z,
@@ -13,7 +14,7 @@ import {
     CONSTRAINT_TYPE_HINGE, CONSTRAINT_TYPE_POINT, CONSTRAINT_TYPE_SIX_DOF, CONSTRAINT_TYPE_SLIDER,
     CONSTRAINT_TYPE_SWING_TWIST, SHAPE_BOX, SHAPE_CAPSULE,
     SHAPE_CONVEX_HULL,
-    SHAPE_CYLINDER, SHAPE_HEIGHTFIELD, SHAPE_MESH, SHAPE_SPHERE, SHAPE_STATIC_COMPOUND,
+    SHAPE_CYLINDER, SHAPE_HEIGHTFIELD, SHAPE_MESH, SHAPE_SOFT_BODY, SHAPE_SPHERE, SHAPE_STATIC_COMPOUND,
     SPRING_MODE_FREQUENCY,
     VEHICLE_CAST_TYPE_CYLINDER,
     VEHICLE_CAST_TYPE_RAY,
@@ -43,6 +44,10 @@ class Creator {
         switch (command) {
             case CMD_CREATE_BODY:
                 ok = this._createBody(cb, meshBuffers);
+                break;
+
+            case CMD_CREATE_SOFT_BODY:
+                ok = this._createSoftBody(cb, meshBuffers);
                 break;
 
             case CMD_CREATE_GROUPS:
@@ -168,6 +173,9 @@ class Creator {
         Jolt.destroy(this._joltQuat);
     }
 
+    // TODO
+    // convert creation methods to static
+
     _createShape(cb, meshBuffers) {
         // shape number
         const num = cb.read(BUFFER_READ_UINT32);
@@ -242,10 +250,7 @@ class Creator {
         const subGroup = cb.flag ? cb.read(BUFFER_READ_UINT32) : null;
 
         // debug draw
-        let debugDraw = false;
-        if (Debug.dev) {
-            debugDraw = cb.read(BUFFER_READ_BOOL);
-        }
+        const debugDraw = Debug.dev ? cb.read(BUFFER_READ_BOOL) : false;
 
         if (group !== null && subGroup !== null) {
             const table = backend.groupFilterTables[group];
@@ -319,6 +324,97 @@ class Creator {
                 body.motionState = new MotionState(body);
             }
         }
+
+        backend.tracker.add(body, index);
+
+        return true;
+    }
+
+    _createSoftBody(cb, meshBuffers) {
+        const backend = this._backend;
+        const jv = this._joltVec3;
+        const jq = this._joltQuat;
+
+        // ------------ SHAPE PROPS ----------------
+
+        const shapeSettings = Creator.createSoftBodyShapeSettings(cb, meshBuffers);
+        if (!shapeSettings) {
+            return false;
+        }
+        
+        // ------------ BODY PROPS ----------------
+
+        // PCID
+        const index = cb.read(BUFFER_READ_UINT32);
+
+        // position
+        jv.FromBuffer(cb);
+
+        // rotation
+        jq.FromBuffer(cb);
+
+        // const objectLayer = backend.getBitValue(layer);
+        const bodyCreationSettings = new Jolt.SoftBodyCreationSettings(shapeSettings, jv, jq);
+
+        // collision group
+        const group = cb.flag ? cb.read(BUFFER_READ_UINT32) : null;
+
+        // collision sub group
+        const subGroup = cb.flag ? cb.read(BUFFER_READ_UINT32) : null;
+
+        bodyCreationSettings.mObjectLayer = cb.read(BUFFER_READ_UINT16);;
+        bodyCreationSettings.mNumIterations = cb.read(BUFFER_READ_UINT32);
+        bodyCreationSettings.mLinearDamping = cb.read(BUFFER_READ_FLOAT32);
+        bodyCreationSettings.mMaxLinearVelocity = cb.read(BUFFER_READ_FLOAT32);
+        bodyCreationSettings.mRestitution = cb.read(BUFFER_READ_FLOAT32);
+        bodyCreationSettings.mFriction = cb.read(BUFFER_READ_FLOAT32);
+        bodyCreationSettings.mPressure = cb.read(BUFFER_READ_FLOAT32);
+        bodyCreationSettings.mGravityFactor = cb.read(BUFFER_READ_FLOAT32);
+        bodyCreationSettings.mUpdatePosition = cb.read(BUFFER_READ_BOOL);
+        bodyCreationSettings.mMakeRotationIdentity = cb.read(BUFFER_READ_BOOL);
+        bodyCreationSettings.mAllowSleeping = cb.read(BUFFER_READ_BOOL);
+        
+        // debug draw
+        const debugDraw = Debug.dev ? cb.read(BUFFER_READ_BOOL) : false;
+
+        if (group !== null && subGroup !== null) {
+            const table = backend.groupFilterTables[group];
+
+            if (Debug.dev) {
+                let ok = Debug.checkUint(group, `Invalid filter group: ${ group }`);
+                ok = ok && Debug.checkUint(subGroup, `Invalid filter group: ${ subGroup }`);
+                ok = ok && Debug.assert(!!table, `Trying to set a filter group that does not exist: ${ group }`);
+                ok = ok && Debug.assert((subGroup <= table?.maxIndex), `Trying to set sub group that is over the filter group table size: ${ subGroup }`);
+                if (!ok) {
+                    return false;
+                }
+            }
+
+            const mCollisionGroup = bodyCreationSettings.mCollisionGroup;
+            mCollisionGroup.SetGroupFilter(table);
+            mCollisionGroup.SetGroupID(group);
+            mCollisionGroup.SetSubGroupID(subGroup);
+        }
+
+        if (Debug.dev) {
+            let ok = Debug.checkUint(index, `invalid body index: ${ index }`);
+            ok = ok && Debug.checkUint(layer, `invalid object layer: ${ layer }`);
+            if (!ok) {
+                return false;
+            }
+        }
+
+        const bodyInterface = backend.bodyInterface;
+        const body = bodyInterface.CreateSoftBody(bodyCreationSettings);
+        bodyInterface.AddBody(body.GetID(), Jolt.Activate);
+
+        if (Debug.dev) {
+            body.debugDraw = debugDraw;
+        }
+
+        // Destroy shape settings after body is created:
+        Jolt.destroy(shapeSettings);
+        Jolt.destroy(bodyCreationSettings);
 
         backend.tracker.add(body, index);
 
@@ -704,12 +800,10 @@ class Creator {
                 settings = this.createShapeSettings(shapeType, r);
                 break;
 
+            // intentional fall-through
             case SHAPE_MESH:
-                settings = this._createMeshShapeSettings(cb, meshBuffers, false /* isConvex */);
-                break;
-
             case SHAPE_CONVEX_HULL:
-                settings = this._createMeshShapeSettings(cb, meshBuffers, true /* isConvex */);
+                settings = Creator.createMeshShapeSettings(cb, meshBuffers, shapeType);
                 break;
 
             case SHAPE_STATIC_COMPOUND:
@@ -724,7 +818,6 @@ class Creator {
                 Debug.dev && Debug.warn('Invalid shape type', shapeType);
                 return null;
         }
-        
 
         if (!settings) {
             return null;
@@ -779,7 +872,7 @@ class Creator {
         }
 
         return settings;
-    }
+    } 
 
     _createStaticCompoundShapeSettings(cb, meshBuffers) {
         const childrenCount = cb.read(BUFFER_READ_UINT32);
@@ -806,89 +899,6 @@ class Creator {
         }
 
         return children;
-    }
-
-    _createMeshShapeSettings(cb, meshBuffers, isConvex) {
-        const base = cb.read(BUFFER_READ_UINT8);
-        const offset = cb.read(BUFFER_READ_UINT32);
-        const stride = cb.read(BUFFER_READ_UINT8);
-        const numIndices = cb.read(BUFFER_READ_UINT32);
-        const idxLength = cb.read(BUFFER_READ_UINT32);
-        const idxOffset = cb.read(BUFFER_READ_UINT32);
-
-        if (Debug.dev) {
-            let ok = Debug.checkUint(base, `Invalid buffer base to generate mesh/hull: ${ base }`);
-            ok = ok && Debug.checkUint(offset, `Invalid positions buffer offset to generate mesh/hull: ${ offset }`);
-            ok = ok && Debug.checkUint(stride, `Invalid positions buffer stride to generate mesh/hull: ${ stride }`);
-            ok = ok && Debug.checkUint(numIndices, `Invalid indices count to generate mesh/hull: ${ numIndices }`);
-            ok = ok && Debug.assert(!!meshBuffers, `No mesh buffers to generate a mesh/hull: ${ meshBuffers }`);
-            ok = ok && Debug.assert(meshBuffers.length > 1, `Invalid buffers to generate mesh/hull: ${ meshBuffers }`);
-            if (!ok) {
-                return null;
-            }
-        }
-
-        const posBuffer = meshBuffers.shift();
-        const idxBuffer = meshBuffers.shift();
-        
-        const p = new Float32Array(posBuffer, offset); // vertex positions
-        const arrayConstructor = numIndices > 65535 ? Uint32Array : Uint16Array;
-        const indices = new arrayConstructor(idxBuffer, idxOffset, idxLength);
-
-        // TODO:
-        // add support for duplicate vertices test
-        const triCount = Math.floor(numIndices / 3);
-
-        let i1, i2, i3;
-        let settings;
-
-        if (isConvex) {
-            const cache = new Set();
-            const jv = this._joltVec3;
-
-            settings = new Jolt.ConvexHullShapeSettings();
-
-            for (let i = 0; i < numIndices; i++) {
-                const index = indices[i] * stride;
-                const x = p[index];
-                const y = p[index + 1];
-                const z = p[index + 2];
-
-                // deduplicate verts
-                const str = `${x}:${y}:${z}`;
-                if (!cache.has(str)) {
-                    cache.add(str);
-                    
-                    jv.Set(x, y, z);
-                    settings.mPoints.push_back(jv);
-                }
-            }
-        } else {
-            const triangles = new Jolt.TriangleList();
-    
-            triangles.resize(triCount);
-            
-            let v1, v2, v3;
-            for (let i = 0; i < triCount; i++) {
-                i1 = indices[base + i * 3] * stride;
-                i2 = indices[base + i * 3 + 1] * stride;
-                i3 = indices[base + i * 3 + 2] * stride;
-    
-                const t = triangles.at(i);
-                
-                v1 = t.get_mV(0);
-                v2 = t.get_mV(1);
-                v3 = t.get_mV(2);
-    
-                v1.x = p[i1]; v1.y = p[i1 + 1]; v1.z = p[i1 + 2];
-                v2.x = p[i2]; v2.y = p[i2 + 1]; v2.z = p[i2 + 2];
-                v3.x = p[i3]; v3.y = p[i3 + 1]; v3.z = p[i3 + 2];
-            }
-
-            settings = new Jolt.MeshShapeSettings(triangles);
-        }
-        
-        return settings;
     }
 
     _createHeightFieldSettings(cb, meshBuffers) {
@@ -1338,6 +1348,130 @@ class Creator {
         backend.tracker.addCharacter(character, index);
 
         return true;
+    }
+
+    static createMeshShapeSettings(cb, meshBuffers, shapeType) {
+        const {
+            base, stride, numIndices, triCount, positions, indices
+        } = Creator.readMeshBuffers(cb, meshBuffers);
+
+        // TODO:
+        // add support for duplicate vertices test
+
+        const p = positions;
+        let i1, i2, i3;
+        let settings;
+
+        if (shapeType === SHAPE_CONVEX_HULL) {
+            const cache = new Set();
+            const jv = this._joltVec3;
+
+            settings = new Jolt.ConvexHullShapeSettings();
+
+            for (let i = 0; i < numIndices; i++) {
+                const index = indices[i] * stride;
+                const x = p[index];
+                const y = p[index + 1];
+                const z = p[index + 2];
+
+                // deduplicate verts
+                const str = `${x}:${y}:${z}`;
+                if (!cache.has(str)) {
+                    cache.add(str);
+                    
+                    jv.Set(x, y, z);
+                    settings.mPoints.push_back(jv);
+                }
+            }
+        } else if (shapeType === SHAPE_MESH) {
+            const triangles = new Jolt.TriangleList();
+    
+            triangles.resize(triCount);
+            
+            let v1, v2, v3;
+            for (let i = 0; i < triCount; i++) {
+                i1 = indices[base + i * 3] * stride;
+                i2 = indices[base + i * 3 + 1] * stride;
+                i3 = indices[base + i * 3 + 2] * stride;
+    
+                const t = triangles.at(i);
+                
+                v1 = t.get_mV(0);
+                v2 = t.get_mV(1);
+                v3 = t.get_mV(2);
+    
+                v1.x = p[i1]; v1.y = p[i1 + 1]; v1.z = p[i1 + 2];
+                v2.x = p[i2]; v2.y = p[i2 + 1]; v2.z = p[i2 + 2];
+                v3.x = p[i3]; v3.y = p[i3 + 1]; v3.z = p[i3 + 2];
+            }
+
+            settings = new Jolt.MeshShapeSettings(triangles);
+        }
+        
+        return settings;
+    }
+
+    static createSoftBodyShapeSettings(cb, meshBuffers) {
+        // scale
+        const useScale = cb.read(BUFFER_READ_BOOL);
+        let sx, sy, sz
+        if (useScale) {
+            sx = cb.read(BUFFER_READ_FLOAT32);
+            sy = cb.read(BUFFER_READ_FLOAT32);
+            sz = cb.read(BUFFER_READ_FLOAT32);
+            
+            if (Debug.dev) {
+                let ok = Debug.checkFloat(sx, `Invalid scale X: ${ sx }`);
+                ok = ok && Debug.checkFloat(sy, `Invalid scale Y: ${ sy }`);
+                ok = ok && Debug.checkFloat(sz, `Invalid scale Z: ${ sz }`);
+                if (!ok) {
+                    return null;
+                }
+            }
+        }
+
+        const {
+            base, stride, numIndices, triCount, positions, indices
+        } = Creator.readMeshBuffers(cb, meshBuffers);
+
+        
+
+        // TODO
+
+
+
+        return settings;
+    }    
+
+    static readMeshBuffers(cb, meshBuffers) {
+        const base = cb.read(BUFFER_READ_UINT8);
+        const offset = cb.read(BUFFER_READ_UINT32);
+        const stride = cb.read(BUFFER_READ_UINT8);
+        const numIndices = cb.read(BUFFER_READ_UINT32);
+        const idxLength = cb.read(BUFFER_READ_UINT32);
+        const idxOffset = cb.read(BUFFER_READ_UINT32);
+
+        if (Debug.dev) {
+            let ok = Debug.checkUint(base, `Invalid buffer base to generate mesh/hull: ${ base }`);
+            ok = ok && Debug.checkUint(offset, `Invalid positions buffer offset to generate mesh/hull: ${ offset }`);
+            ok = ok && Debug.checkUint(stride, `Invalid positions buffer stride to generate mesh/hull: ${ stride }`);
+            ok = ok && Debug.checkUint(numIndices, `Invalid indices count to generate mesh/hull: ${ numIndices }`);
+            ok = ok && Debug.assert(!!meshBuffers, `No mesh buffers to generate a mesh/hull: ${ meshBuffers }`);
+            ok = ok && Debug.assert(meshBuffers.length > 1, `Invalid buffers to generate mesh/hull: ${ meshBuffers }`);
+            if (!ok) {
+                return null;
+            }
+        }
+
+        const posBuffer = meshBuffers.shift();
+        const idxBuffer = meshBuffers.shift();
+        
+        const positions = new Float32Array(posBuffer, offset); // vertex positions
+        const arrayConstructor = numIndices > 65535 ? Uint32Array : Uint16Array;
+        const indices = new arrayConstructor(idxBuffer, idxOffset, idxLength);
+        const triCount = Math.floor(numIndices / 3);
+
+        return { base, stride, numIndices, triCount, positions, indices };
     }
 }
 

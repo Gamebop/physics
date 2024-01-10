@@ -8,33 +8,6 @@ import {
 } from "../constants.mjs";
 
 class VehicleComponent extends BodyComponent {
-
-    static writeCurvePoints(cb, curve) {
-        cb.write(!!curve, BUFFER_WRITE_BOOL, false);
-
-        if (curve) {
-            const keys = curve.keys;
-            const count = keys.length;
-
-            cb.write(count, BUFFER_WRITE_UINT32, false);
-
-            for (let i = 0; i < keys.length; i++) {
-                const key = keys[i];
-
-                cb.write(key[0], BUFFER_WRITE_FLOAT32, false);
-                cb.write(key[1], BUFFER_WRITE_FLOAT32, false);
-            }
-        }
-    }
-
-    static writeGears(cb, gears) {
-        const count = gears.length;
-        cb.write(count, BUFFER_WRITE_UINT32, false);
-        for (let i = 0; i < count; i++) {
-            cb.write(gears[i], BUFFER_WRITE_FLOAT32, false);
-        }
-    }
-
     // Used only when the constraint is active. Override for the number of solver 
     // velocity iterations to run, 0 means use the default in PhysicsSettings.numVelocitySteps.
     // The number of iterations to use is the max of all contacts and constraints in the island.
@@ -496,6 +469,32 @@ class VehicleComponent extends BodyComponent {
             cb.write(bar.stiffness ?? 1000, BUFFER_WRITE_FLOAT32, false);
         }
     }
+
+    static writeCurvePoints(cb, curve) {
+        cb.write(!!curve, BUFFER_WRITE_BOOL, false);
+
+        if (curve) {
+            const keys = curve.keys;
+            const count = keys.length;
+
+            cb.write(count, BUFFER_WRITE_UINT32, false);
+
+            for (let i = 0; i < keys.length; i++) {
+                const key = keys[i];
+
+                cb.write(key[0], BUFFER_WRITE_FLOAT32, false);
+                cb.write(key[1], BUFFER_WRITE_FLOAT32, false);
+            }
+        }
+    }
+
+    static writeGears(cb, gears) {
+        const count = gears.length;
+        cb.write(count, BUFFER_WRITE_UINT32, false);
+        for (let i = 0; i < count; i++) {
+            cb.write(gears[i], BUFFER_WRITE_FLOAT32, false);
+        }
+    }    
 }
 
 export { VehicleComponent };

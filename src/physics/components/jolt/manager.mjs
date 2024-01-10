@@ -1,6 +1,7 @@
 import { Debug } from "../../debug.mjs";
 import { IndexedCache } from "../../indexed-cache.mjs";
 import { PhysicsManager } from "../../manager.mjs";
+import { ShapeComponent } from "./component.mjs";
 import {
     BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT16,
     BUFFER_WRITE_UINT32, BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32,
@@ -237,7 +238,7 @@ class JoltManager extends PhysicsManager {
         cb.writeCommand(CMD_CREATE_SHAPE);
         cb.write(index, BUFFER_WRITE_UINT32, false);
 
-        ShapeComponentSystem.writeShapeData(cb, opts, true /* force write rotation */);
+        ShapeComponent.writeShapeData(cb, opts, true /* force write rotation */);
 
         return index;
     }

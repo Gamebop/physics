@@ -1,12 +1,11 @@
-import { Debug } from "../../debug.mjs";
 import { IndexedCache } from "../../indexed-cache.mjs";
-import { ShapeComponent } from "./component.mjs";
 
 import {
-    BUFFER_READ_FLOAT32, BUFFER_READ_UINT32, BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT32,
-    BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32, FLOAT32_SIZE, OBJECT_LAYER_MOVING, OBJECT_LAYER_NON_MOVING, SHAPE_BOX, SHAPE_CAPSULE,
+    BUFFER_READ_FLOAT32, BUFFER_READ_UINT32, BUFFER_WRITE_UINT32,
+    FLOAT32_SIZE, OBJECT_LAYER_MOVING, OBJECT_LAYER_NON_MOVING, SHAPE_BOX, SHAPE_CAPSULE,
     SHAPE_CONVEX_HULL, SHAPE_CYLINDER, SHAPE_HEIGHTFIELD, SHAPE_MESH, SHAPE_SPHERE,
-    SHAPE_STATIC_COMPOUND, VEHICLE_CAST_TYPE_CYLINDER, VEHICLE_CAST_TYPE_RAY, VEHICLE_CAST_TYPE_SPHERE, VEHICLE_TYPE_MOTORCYCLE, VEHICLE_TYPE_TRACK, VEHICLE_TYPE_WHEEL
+    SHAPE_STATIC_COMPOUND, VEHICLE_CAST_TYPE_CYLINDER, VEHICLE_CAST_TYPE_RAY,
+    VEHICLE_CAST_TYPE_SPHERE, VEHICLE_TYPE_MOTORCYCLE, VEHICLE_TYPE_TRACK, VEHICLE_TYPE_WHEEL
 } from "./constants.mjs";
 
 
@@ -140,105 +139,6 @@ class ShapeComponentSystem extends pc.ComponentSystem {
                 );
             }
         }
-    }
-
-    // TODO
-    // move to ShapeComponent    
-    static writeShapeData(cb, props, forceWriteRotation = false) {
-        const shape = props.shape;
-        cb.write(shape, BUFFER_WRITE_UINT8, false);
-    
-        let useEntityScale = props.useEntityScale;
-        let scale;
-        if (useEntityScale) {
-            scale = props.scale || props.entity.getLocalScale();
-            if (scale.x === 1 && scale.y === 1 && scale.z === 1) {
-                useEntityScale = false;
-            }
-        }
-
-        cb.write(useEntityScale, BUFFER_WRITE_BOOL, false);
-        if (useEntityScale || (
-            shape === SHAPE_MESH ||
-            shape === SHAPE_CONVEX_HULL)) {
-            // Potential precision loss 64 -> 32
-            cb.write(scale, BUFFER_WRITE_VEC32, false);
-        }
-    
-        let ok = true;
-        switch (shape) {
-            case SHAPE_BOX:
-                cb.write(props.halfExtent, BUFFER_WRITE_VEC32, false);
-                cb.write(props.convexRadius, BUFFER_WRITE_FLOAT32, false);
-                break;
-    
-            case SHAPE_CAPSULE:
-                cb.write(props.halfHeight, BUFFER_WRITE_FLOAT32, false);
-                cb.write(props.radius, BUFFER_WRITE_FLOAT32, false);
-                break;
-    
-            case SHAPE_CYLINDER:
-                cb.write(props.halfHeight, BUFFER_WRITE_FLOAT32, false);
-                cb.write(props.radius, BUFFER_WRITE_FLOAT32, false);
-                cb.write(props.convexRadius, BUFFER_WRITE_FLOAT32, false);
-                break;
-    
-            case SHAPE_SPHERE:
-                cb.write(props.radius, BUFFER_WRITE_FLOAT32, false);
-                break;
-    
-            case SHAPE_STATIC_COMPOUND:
-                ok = ShapeComponent.addCompoundChildren(cb, props.entity);
-                break;
-    
-            // intentional fall-through
-            case SHAPE_CONVEX_HULL:
-            case SHAPE_MESH:
-                ShapeComponent.addMeshes(props.meshes, cb);
-                break;
-            
-            case SHAPE_HEIGHTFIELD:
-                cb.write(props.hfOffset, BUFFER_WRITE_VEC32, false);
-                cb.write(props.hfScale, BUFFER_WRITE_VEC32, false);
-                cb.write(props.hfSampleCount, BUFFER_WRITE_UINT32, false);
-                cb.write(props.hfBlockSize, BUFFER_WRITE_UINT8, false);
-                cb.write(props.hfBitsPerSample, BUFFER_WRITE_UINT8, false);
-                cb.write(props.hfActiveEdgeCosThresholdAngle, BUFFER_WRITE_FLOAT32, false);
-                cb.addBuffer(props.hfSamples.buffer);
-                break;
-    
-            default:
-                Debug.dev && Debug.warn('Unsupperted shape type', shape);
-                break;
-        }
-    
-        const isCompoundChild = props.isCompoundChild;
-        cb.write(isCompoundChild, BUFFER_WRITE_BOOL, false);
-        if (!isCompoundChild) {
-            cb.write(props.density, BUFFER_WRITE_FLOAT32, false);
-        }
-    
-        const position = props.shapePosition;
-        const rotation = props.shapeRotation;
-        const massOffset = props.massOffset;
-        const hasPositionOffset = !position.equals(pc.Vec3.ZERO);
-        const hasRotationOffset = forceWriteRotation || !rotation.equals(pc.Vec3.ZERO);
-        const hasShapeOffset = hasPositionOffset || hasRotationOffset;
-        const hasMassOffset = !massOffset.equals(pc.Vec3.ZERO);
-
-        cb.write(hasShapeOffset, BUFFER_WRITE_BOOL, false);
-        if (hasShapeOffset) {
-            quat.setFromEulerAngles(rotation);
-            cb.write(position, BUFFER_WRITE_VEC32, false);
-            cb.write(quat, BUFFER_WRITE_VEC32, false);
-        }
-
-        cb.write(hasMassOffset, BUFFER_WRITE_BOOL, false);
-        if (hasMassOffset) {
-            cb.write(massOffset, BUFFER_WRITE_VEC32, false);
-        }
-
-        return ok;
     }
 
     static debugDraw(app, data, config) {

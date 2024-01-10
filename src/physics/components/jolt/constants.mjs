@@ -52,6 +52,7 @@ export const CONTACT_TYPE_REMOVED = 2;
 export const COMPONENT_SYSTEM_BODY = 0;
 export const COMPONENT_SYSTEM_CHAR = 1;
 export const COMPONENT_SYSTEM_VEHICLE = 2;
+export const COMPONENT_SYSTEM_SOFT_BODY = 3;
 
 export const FLOAT32_SIZE = Float32Array.BYTES_PER_ELEMENT;
 export const INT32_SIZE = Int32Array.BYTES_PER_ELEMENT;
@@ -83,6 +84,7 @@ export const CMD_CREATE_BODY = i++;
 export const CMD_CREATE_CHAR = i++;
 export const CMD_CREATE_SHAPE = i++;
 export const CMD_CREATE_VEHICLE = i++;
+export const CMD_CREATE_SOFT_BODY = i++;
 export const CMD_ADD_FORCE = i++;
 export const CMD_ADD_IMPULSE = i++;
 export const CMD_APPLY_BUOYANCY_IMPULSE = i++;

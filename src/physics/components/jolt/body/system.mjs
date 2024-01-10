@@ -33,7 +33,7 @@ const schema = [
     'overrideInertiaRotation',
     'motionType',
     'objectLayer',
-    'group',
+    'collisionGroup',
     'subGroup',
     'allowedDOFs',
     'allowDynamicOrKinematic',
