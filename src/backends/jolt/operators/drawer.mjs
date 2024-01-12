@@ -59,28 +59,36 @@ class Drawer {
     _writeShape(body, tracker) {
         try {
             const motionType = body.isCharacter ? Jolt.EMotionType_Kinematic : body.GetMotionType();
+            const isRigidBody = body.GetBodyType() === Jolt.EBodyType_RigidBody;
 
-            if (body.debugDrawData) {
-                const buffer = Jolt.HEAPF32.buffer;
+            const data = body.debugDrawData;
+            if (data) {
+                if (isRigidBody) {
+                    const buffer = Jolt.HEAPF32.buffer;
 
-                this._data.push(...body.debugDrawData, motionType, buffer);
-                this._buffers.push(buffer);
+                    this._data.push(...data, motionType, buffer);
+                    this._buffers.push(buffer);
 
-                return true;
+                    return true;
+                } else {
+                    // Soft body will have new vertex positions, so we need to create a new triContext
+                    Jolt.destroy(body.triContext);
+                    body.triContext = null;
+                    body.debugDrawData = null;
+                }
             }
 
             const shape = body.GetShape();
             const index = tracker.getPCID(Jolt.getPointer(body));
-            const center = shape.GetCenterOfMass();
-            const triContext = new Jolt.ShapeGetTriangles(shape, this._joltAabb, center, this._joltQuat, this._scale);
+            const triContext = new Jolt.ShapeGetTriangles(shape, Jolt.AABox.prototype.sBiggest(), shape.GetCenterOfMass(), Jolt.Quat.prototype.sIdentity(), this._scale);
             const byteOffset = triContext.GetVerticesData();
             const length = triContext.GetVerticesSize() / FLOAT32_SIZE;
             const buffer = Jolt.HEAPF32.buffer;
 
-            body.debugDrawData = [index, byteOffset, length];
+            body.debugDrawData = [index, length, byteOffset];
             body.triContext = triContext;
 
-            this._data.push(index, byteOffset, length, motionType, buffer);
+            this._data.push(index, length, byteOffset, motionType, buffer);
             this._buffers.push(buffer);
 
         } catch (e) {

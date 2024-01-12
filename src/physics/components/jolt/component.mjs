@@ -312,6 +312,7 @@ class ShapeComponent extends pc.EventHandler {
                 }
             }
 
+            cb.write(vb.numVertices, BUFFER_WRITE_UINT32, false);
             cb.write(ib.numIndices, BUFFER_WRITE_UINT32, false);
 
             // TODO

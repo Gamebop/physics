@@ -153,8 +153,8 @@ class ShapeComponentSystem extends pc.ComponentSystem {
     
         for (let d = 0, total = data.length; d < total; d += 5) {
             const index = data[d];
-            const byteOffset = data[d + 1];
-            const length = data[d + 2];
+            const length = data[d + 1];
+            const byteOffset = data[d + 2];
             const motionType = data[d + 3];
             const buffer = data[d + 4];
     

@@ -1,32 +1,41 @@
 import { Debug } from "../../../debug.mjs";
 import { BodyComponent } from "../body/component.mjs";
 import { ShapeComponent } from "../component.mjs";
-import { BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT16, BUFFER_WRITE_UINT32, BUFFER_WRITE_VEC32 } from "../constants.mjs";
+import { BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT16, BUFFER_WRITE_UINT32, BUFFER_WRITE_VEC32 } from "../constants.mjs";
 
 class SoftBodyComponent extends BodyComponent {
     // amount of substance * ideal gass constant * absolute temperature
     // n * R * T
     // see https://en.wikipedia.org/wiki/Pressure
-    pressure = 0;
+    _pressure = 0;
 
     // Update the position of the body while simulating (set to false for something
     // that is attached to the static world)
-    updatePosition = true;
+    _updatePosition = true;
 
     // Bake specified mRotation in the vertices and set the body rotation to identity (simulation is slightly more accurate if the rotation of a soft body is kept to identity)
-    makeRotationIdentity = true;
+    _makeRotationIdentity = true;
+
+    // Number of solver iterations
+    _numIterations = 5;
+
+    // Inverse of the stiffness of the spring.
+    _compliance = 0;
+
+    // Number of cells comprising a row. Think of a grid divided plane.
+    _width = 0;
+
+    // Number of cells comprising a column. Think of a grid divided plane.
+    _length = 0;
+
+    _fixedIndices = [];
 
     constructor(system, entity) {
         super(system, entity);
     }
 
     writeComponentData(cb) {
-        const ok = this._writeShapeData(cb, this);
-        if (Debug.dev && !ok) {
-            Debug.warn('Error creating a shape data.');
-            cb.reset();
-            return;
-        }
+        this._writeShapeData(cb, this);
 
         cb.write(this._index, BUFFER_WRITE_UINT32, false);
 
@@ -45,8 +54,9 @@ class SoftBodyComponent extends BodyComponent {
 
         cb.write(this._collisionGroup, BUFFER_WRITE_UINT32);
         cb.write(this._subGroup, BUFFER_WRITE_UINT32);
+
         cb.write(this._objectLayer, BUFFER_WRITE_UINT16, false);
-        cb.write(this._numIterations, BUFFER_WRITE_UINT32);
+        cb.write(this._numIterations, BUFFER_WRITE_UINT32, false);
         cb.write(this._linearDamping, BUFFER_WRITE_FLOAT32, false);
         cb.write(this._maxLinearVelocity, BUFFER_WRITE_FLOAT32, false);
         cb.write(this._restitution, BUFFER_WRITE_FLOAT32, false);
@@ -97,11 +107,17 @@ class SoftBodyComponent extends BodyComponent {
     
         ShapeComponent.addMeshes(this._meshes, cb);
 
+        cb.write(this._width, BUFFER_WRITE_UINT32, false);
+        cb.write(this._length, BUFFER_WRITE_UINT32, false);
+        cb.write(this._compliance, BUFFER_WRITE_FLOAT32, false);
 
-        // TODO
-        
+        const fixed = this._fixedIndices;
+        const count = fixed.length;
 
-        return ok;
+        cb.write(count, BUFFER_WRITE_UINT32, false);
+        for (let i = 0; i < count; i++) {
+            cb.write(fixed[i], BUFFER_WRITE_UINT32, false);
+        }
     }
 
 }

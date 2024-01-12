@@ -346,6 +346,12 @@ class Creator {
 
         // PCID
         const index = cb.read(BUFFER_READ_UINT32);
+        if (Debug.dev) {
+            let ok = Debug.checkUint(index, `invalid body index: ${ index }`);
+            if (!ok) {
+                return false;
+            }
+        }
 
         // position
         jv.FromBuffer(cb);
@@ -362,17 +368,43 @@ class Creator {
         // collision sub group
         const subGroup = cb.flag ? cb.read(BUFFER_READ_UINT32) : null;
 
-        bodyCreationSettings.mObjectLayer = cb.read(BUFFER_READ_UINT16);;
-        bodyCreationSettings.mNumIterations = cb.read(BUFFER_READ_UINT32);
-        bodyCreationSettings.mLinearDamping = cb.read(BUFFER_READ_FLOAT32);
-        bodyCreationSettings.mMaxLinearVelocity = cb.read(BUFFER_READ_FLOAT32);
-        bodyCreationSettings.mRestitution = cb.read(BUFFER_READ_FLOAT32);
-        bodyCreationSettings.mFriction = cb.read(BUFFER_READ_FLOAT32);
-        bodyCreationSettings.mPressure = cb.read(BUFFER_READ_FLOAT32);
-        bodyCreationSettings.mGravityFactor = cb.read(BUFFER_READ_FLOAT32);
-        bodyCreationSettings.mUpdatePosition = cb.read(BUFFER_READ_BOOL);
-        bodyCreationSettings.mMakeRotationIdentity = cb.read(BUFFER_READ_BOOL);
-        bodyCreationSettings.mAllowSleeping = cb.read(BUFFER_READ_BOOL);
+        if (Debug.dev) {
+            const mObjectLayer = cb.read(BUFFER_READ_UINT16);
+            const mNumIterations = cb.read(BUFFER_READ_UINT32);
+            const mLinearDamping = cb.read(BUFFER_READ_FLOAT32);
+            const mMaxLinearVelocity = cb.read(BUFFER_READ_FLOAT32);
+            const mRestitution = cb.read(BUFFER_READ_FLOAT32);
+            const mFriction = cb.read(BUFFER_READ_FLOAT32);
+            const mPressure = cb.read(BUFFER_READ_FLOAT32);
+            const mGravityFactor = cb.read(BUFFER_READ_FLOAT32);
+            const mUpdatePosition = cb.read(BUFFER_READ_BOOL);
+            const mMakeRotationIdentity = cb.read(BUFFER_READ_BOOL);
+            const mAllowSleeping = cb.read(BUFFER_READ_BOOL);
+
+            bodyCreationSettings.mObjectLayer = mObjectLayer;
+            // bodyCreationSettings.mNumIterations = mNumIterations;
+            // bodyCreationSettings.mLinearDamping = mLinearDamping;
+            // bodyCreationSettings.mMaxLinearVelocity = mMaxLinearVelocity;
+            // bodyCreationSettings.mRestitution = mRestitution;
+            // bodyCreationSettings.mFriction = mFriction;
+            // bodyCreationSettings.mPressure = mPressure;
+            // bodyCreationSettings.mGravityFactor = mGravityFactor;
+            bodyCreationSettings.mUpdatePosition = mUpdatePosition;
+            // bodyCreationSettings.mMakeRotationIdentity = mMakeRotationIdentity;
+            // bodyCreationSettings.mAllowSleeping = mAllowSleeping;
+        } else {
+            bodyCreationSettings.mObjectLayer = cb.read(BUFFER_READ_UINT16);
+            bodyCreationSettings.mNumIterations = cb.read(BUFFER_READ_UINT32);
+            bodyCreationSettings.mLinearDamping = cb.read(BUFFER_READ_FLOAT32);
+            bodyCreationSettings.mMaxLinearVelocity = cb.read(BUFFER_READ_FLOAT32);
+            bodyCreationSettings.mRestitution = cb.read(BUFFER_READ_FLOAT32);
+            bodyCreationSettings.mFriction = cb.read(BUFFER_READ_FLOAT32);
+            bodyCreationSettings.mPressure = cb.read(BUFFER_READ_FLOAT32);
+            bodyCreationSettings.mGravityFactor = cb.read(BUFFER_READ_FLOAT32);
+            bodyCreationSettings.mUpdatePosition = cb.read(BUFFER_READ_BOOL);
+            bodyCreationSettings.mMakeRotationIdentity = cb.read(BUFFER_READ_BOOL);
+            bodyCreationSettings.mAllowSleeping = cb.read(BUFFER_READ_BOOL);
+        }
         
         // debug draw
         const debugDraw = Debug.dev ? cb.read(BUFFER_READ_BOOL) : false;
@@ -396,14 +428,6 @@ class Creator {
             mCollisionGroup.SetSubGroupID(subGroup);
         }
 
-        if (Debug.dev) {
-            let ok = Debug.checkUint(index, `invalid body index: ${ index }`);
-            ok = ok && Debug.checkUint(layer, `invalid object layer: ${ layer }`);
-            if (!ok) {
-                return false;
-            }
-        }
-
         const bodyInterface = backend.bodyInterface;
         const body = bodyInterface.CreateSoftBody(bodyCreationSettings);
         bodyInterface.AddBody(body.GetID(), Jolt.Activate);
@@ -413,7 +437,6 @@ class Creator {
         }
 
         // Destroy shape settings after body is created:
-        Jolt.destroy(shapeSettings);
         Jolt.destroy(bodyCreationSettings);
 
         backend.tracker.add(body, index);
@@ -1414,7 +1437,9 @@ class Creator {
     static createSoftBodyShapeSettings(cb, meshBuffers) {
         // scale
         const useScale = cb.read(BUFFER_READ_BOOL);
-        let sx, sy, sz
+        let sx = 1;
+        let sy = 1;
+        let sz = 1;
         if (useScale) {
             sx = cb.read(BUFFER_READ_FLOAT32);
             sy = cb.read(BUFFER_READ_FLOAT32);
@@ -1431,22 +1456,99 @@ class Creator {
         }
 
         const {
-            base, stride, numIndices, triCount, positions, indices
+            base, vertexCount, triCount, positions, indices
         } = Creator.readMeshBuffers(cb, meshBuffers);
-
         
+        const settings = new Jolt.SoftBodySharedSettings();
+        
+        // Create vertices
+        const cache = new Set();
+        const jf = new Jolt.Float3();
+        const v = new Jolt.SoftBodySharedSettingsVertex();
+        for (let i = 0; i < vertexCount; i++) {
+            const i3 = i * 3;
+            const x = positions[i3];
+            const y = positions[i3 + 1];
+            const z = positions[i3 + 2];
 
-        // TODO
+            // deduplicate verts
+            const str = `${x}:${y}:${z}`;
+            if (!cache.has(str)) {
+                cache.add(str);
+                
+                jf.x = x * sx;
+                jf.y = y * sy;
+                jf.z = z * sz;
+                v.mPosition = jf;
 
+                settings.mVertices.push_back(v);
+            }
+        }
 
+        const width = cb.read(BUFFER_READ_UINT32);
+        const length = cb.read(BUFFER_READ_UINT32);
+        const compliance = cb.read(BUFFER_READ_FLOAT32);
+        const fixedCount = cb.read(BUFFER_READ_UINT32);
+        const rowVerts = width + 1;
+        const colVerts = length + 1;
+        
+        // Create edges
+        const edge = new Jolt.SoftBodySharedSettingsEdge(0, 1, compliance);
+        const constraints = settings.mEdgeConstraints;
+        let v0, v1;
+        for (let x = 0; x < rowVerts; x++) {
+            for (let y = 0; y < colVerts; y++) {
+                v0 = y + x * colVerts;
+                edge.set_mVertex(0, v0);
+
+                if (y < length) {
+                    edge.set_mVertex(1, v0 + 1);
+                    constraints.push_back(edge);
+                }
+                if (x < width) {
+                    edge.set_mVertex(1, v0 + colVerts);
+                    constraints.push_back(edge);
+                }
+                if (y < length && x < width) {
+                    v1 = v0 + colVerts + 1;
+                    edge.set_mVertex(1, v1);
+                    constraints.push_back(edge);
+                    edge.set_mVertex(0, v0 + 1);
+                    edge.set_mVertex(1, v1 - 1);
+                    constraints.push_back(edge);
+                }
+            }
+        }
+        settings.CalculateEdgeLengths();
+        Jolt.destroy(edge);
+
+        // Fixed verts
+        for (let i = 0; i < fixedCount; i++) {
+            const fixedIndex = cb.read(BUFFER_READ_UINT32);
+            settings.mVertices.at(fixedIndex).mInvMass = 0;
+        }
+
+        // Create faces
+        for (let i = 0; i < triCount; i++) {
+            const i1 = indices[base + i * 3];
+            const i2 = indices[base + i * 3 + 1];
+            const i3 = indices[base + i * 3 + 2];
+
+            settings.AddFace(new Jolt.SoftBodySharedSettingsFace(i1, i2, i3, 0));
+        }
+        settings.Optimize();
+
+        Jolt.destroy(jf);
+        Jolt.destroy(v);
 
         return settings;
-    }    
+    }
 
     static readMeshBuffers(cb, meshBuffers) {
         const base = cb.read(BUFFER_READ_UINT8);
         const offset = cb.read(BUFFER_READ_UINT32);
         const stride = cb.read(BUFFER_READ_UINT8);
+        const vertexCount = cb.read(BUFFER_READ_UINT32);
         const numIndices = cb.read(BUFFER_READ_UINT32);
         const idxLength = cb.read(BUFFER_READ_UINT32);
         const idxOffset = cb.read(BUFFER_READ_UINT32);
@@ -1471,7 +1573,7 @@ class Creator {
         const indices = new arrayConstructor(idxBuffer, idxOffset, idxLength);
         const triCount = Math.floor(numIndices / 3);
 
-        return { base, stride, numIndices, triCount, positions, indices };
+        return { base, stride, vertexCount, numIndices, triCount, positions, indices };
     }
 }
 

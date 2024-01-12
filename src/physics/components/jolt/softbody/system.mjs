@@ -29,6 +29,10 @@ const schema = [
     'allowSleeping',
 
     // Shape Data
+    'width',
+    'length',
+    'fixedIndices',
+    'compliance'
 ];
 
 class SoftBodyComponentSystem extends BodyComponentSystem {

@@ -4,8 +4,11 @@ class Tracker {
     constructor(backend) {
         this.backend = backend;
 
+        // TODO
+        // eval: get rid of _dynamic and _kinematic
         this._dynamic = new Set();
         this._kinematic = new Set();
+
         this._character = new Set();
         this._bodyMap = new Map();
         this._idxMap = new Map();
@@ -42,20 +45,23 @@ class Tracker {
     }
 
     add(body, index) {
-        const type = body.GetMotionType();
+        const motionType = body.GetMotionType();
+        const bodyType = body.GetBodyType();
 
-        switch (type) {
-            case Jolt.EMotionType_Dynamic:
-                this._dynamic.add(body);
-                break;
-            case Jolt.EMotionType_Kinematic:
-                this._kinematic.add(body);
-                break;
-            case Jolt.EMotionType_Static:
-                // no need to track statics
-                break;
-            default:
-                break;
+        if (bodyType === Jolt.EBodyType_RigidBody) {
+            switch (motionType) {
+                case Jolt.EMotionType_Dynamic:
+                    this._dynamic.add(body);
+                    break;
+                case Jolt.EMotionType_Kinematic:
+                    this._kinematic.add(body);
+                    break;
+                case Jolt.EMotionType_Static:
+                    // no need to track statics
+                    break;
+                default:
+                    break;
+            }
         }
 
         if (Debug.dev && body.debugDraw) {
@@ -65,6 +71,15 @@ class Tracker {
         this._idxMap.set(Jolt.getPointer(body), index);
         this._bodyMap.set(index, body);
     }
+
+    // addSoftBody(body, index) {
+    //     if (Debug.dev && body.debugDraw) {
+    //         this._debug.add(body);
+    //     }
+
+    //     this._idxMap.set(Jolt.getPointer(body), index);
+    //     this._bodyMap.set(index, body);
+    // }    
 
     addCharacter(char, index) {
         this._character.add(char);
