@@ -1368,7 +1368,7 @@ class Creator {
         // for shape reset
         character.originalShape = shape;
 
-        backend.tracker.addCharacter(character, index);
+        backend.tracker.add(character, index);
 
         return true;
     }
@@ -1493,34 +1493,41 @@ class Creator {
         const colVerts = length + 1;
         
         // Create edges
-        const edge = new Jolt.SoftBodySharedSettingsEdge(0, 1, compliance);
+        // const edge = new Jolt.SoftBodySharedSettingsEdge(0, 1, compliance);
         const constraints = settings.mEdgeConstraints;
         let v0, v1;
-        for (let x = 0; x < rowVerts; x++) {
-            for (let y = 0; y < colVerts; y++) {
+        for (let y = 0; y < colVerts; y++) {
+            for (let x = 0; x < rowVerts; x++) {
                 v0 = y + x * colVerts;
-                edge.set_mVertex(0, v0);
+                // edge.set_mVertex(0, v0);
 
                 if (y < length) {
-                    edge.set_mVertex(1, v0 + 1);
-                    constraints.push_back(edge);
+                    // edge.set_mVertex(1, v0 + 1);
+                    // constraints.push_back(edge);
+                    v1 = v0 + 1;
+                    settings.mEdgeConstraints.push_back(new Jolt.SoftBodySharedSettingsEdge(v0, v1, compliance));
                 }
                 if (x < width) {
-                    edge.set_mVertex(1, v0 + colVerts);
-                    constraints.push_back(edge);
+                    // edge.set_mVertex(1, v0 + colVerts);
+                    // constraints.push_back(edge);
+                    v1 = v0 + colVerts;
+                    settings.mEdgeConstraints.push_back(new Jolt.SoftBodySharedSettingsEdge(v0, v1, compliance));
                 }
                 if (y < length && x < width) {
                     v1 = v0 + colVerts + 1;
-                    edge.set_mVertex(1, v1);
-                    constraints.push_back(edge);
-                    edge.set_mVertex(0, v0 + 1);
-                    edge.set_mVertex(1, v1 - 1);
-                    constraints.push_back(edge);
+                    // edge.set_mVertex(1, v1);
+                    // constraints.push_back(edge);
+                    settings.mEdgeConstraints.push_back(new Jolt.SoftBodySharedSettingsEdge(v0, v1, compliance));
+                    // edge.set_mVertex(0, v0 + 1);
+                    // edge.set_mVertex(1, v1 - 1);
+                    // constraints.push_back(edge);
+                    v0 += 1;
+                    v1 -= 1;
+                    settings.mEdgeConstraints.push_back(new Jolt.SoftBodySharedSettingsEdge(v0, v1, compliance));
                 }
             }
         }
         settings.CalculateEdgeLengths();
-        Jolt.destroy(edge);
 
         // Fixed verts
         for (let i = 0; i < fixedCount; i++) {
@@ -1529,15 +1536,43 @@ class Creator {
         }
 
         // Create faces
-        for (let i = 0; i < triCount; i++) {
-            const i1 = indices[base + i * 3];
-            const i2 = indices[base + i * 3 + 1];
-            const i3 = indices[base + i * 3 + 2];
+        const face = new Jolt.SoftBodySharedSettingsFace(0, 1, 2, 0);
+        // for (let i = 0; i < triCount; i++) {
+        //     const v0 = indices[base + i * 3];
+        //     const v1 = indices[base + i * 3 + 1];
+        //     const v2 = indices[base + i * 3 + 2];
 
-            settings.AddFace(new Jolt.SoftBodySharedSettingsFace(i1, i2, i3, 0));
+        //     // face.set_mVertex(0, indices[base + i * 3]);
+        //     // face.set_mVertex(1, indices[base + i * 3 + 1]);
+        //     // face.set_mVertex(2, indices[base + i * 3 + 2]);
+
+        //     // settings.AddFace(face);
+
+        //     settings.AddFace(new Jolt.SoftBodySharedSettingsFace(v0, v2, v1, 0));
+
+        // }
+        for (let y = 0; y < length; y++) {
+            for (let x = 0; x < width; x++) {
+                // let v0 = vertexIndex(x, y);
+                // let v1 = vertexIndex(x, y + 1);
+                // let v2 = vertexIndex(x + 1, y + 1);
+                let v0 = y + x * colVerts;
+                let v1 = v0 + colVerts;
+                let v2 = v0 + colVerts + 1;
+                settings.AddFace(new Jolt.SoftBodySharedSettingsFace(v0, v1, v2, 0));
+
+                // v1 = vertexIndex(x + 1, y + 1);
+                // v2 = vertexIndex(x + 1, y);
+                v1 = v0 + colVerts + 1;
+                v2 = v0 + 1;
+                settings.AddFace(new Jolt.SoftBodySharedSettingsFace(v0, v1, v2, 0));
+            }
         }
+
         settings.Optimize();
 
+        // Jolt.destroy(edge);
+        // Jolt.destroy(face);
         Jolt.destroy(jf);
         Jolt.destroy(v);
 

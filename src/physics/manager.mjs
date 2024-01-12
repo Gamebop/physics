@@ -30,7 +30,9 @@ class PhysicsManager {
 
         this._createDispatcher(config);
 
+        this._systems = new Map();
         this._backend = null
+
         const msg = Object.create(null);
         msg.type = 'create-backend';
         msg.backendName = backendName;
@@ -39,8 +41,6 @@ class PhysicsManager {
 
         this._outBuffer = new CommandsBuffer(config);
         this._inBuffer = null;
-
-        this._systems = new Map();
         this._paused = false;
         this._steps = 0;
 

@@ -78,6 +78,10 @@ class Drawer {
                 }
             }
 
+            // TODO
+            // don't send the heap, create and send a view instead
+            // also, use backend's outBuffer.meshBuffers instead of local this._buffers
+
             const shape = body.GetShape();
             const index = tracker.getPCID(Jolt.getPointer(body));
             const triContext = new Jolt.ShapeGetTriangles(shape, Jolt.AABox.prototype.sBiggest(), shape.GetCenterOfMass(), Jolt.Quat.prototype.sIdentity(), this._scale);
@@ -97,10 +101,6 @@ class Drawer {
         }
 
         return true;
-    }
-
-    get views() {
-        return this._views;
     }
 }
 

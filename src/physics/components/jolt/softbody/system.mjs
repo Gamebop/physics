@@ -1,6 +1,7 @@
 import { buildAccessors } from "../../../util.mjs";
 import { BodyComponentSystem } from "../body/system.mjs";
-import { CMD_CREATE_SOFT_BODY, OPERATOR_CREATOR } from "../constants.mjs";
+import { BUFFER_READ_FLOAT32, BUFFER_READ_UINT32, CMD_CREATE_SOFT_BODY, CMD_UPDATE_TRANSFORMS, OPERATOR_CREATOR } from "../constants.mjs";
+import { ShapeComponentSystem } from "../system.mjs";
 import { SoftBodyComponent } from "./component.mjs";
 
 const schema = [
@@ -35,7 +36,13 @@ const schema = [
     'compliance'
 ];
 
+const vec = new pc.Vec3();
+const quat = new pc.Quat()
+const positions = [];
+const indices = [];
+
 class SoftBodyComponentSystem extends BodyComponentSystem {
+
     constructor(app, manager, id) {
         super(app, manager);
 
@@ -55,6 +62,61 @@ class SoftBodyComponentSystem extends BodyComponentSystem {
         cb.writeCommand(CMD_CREATE_SOFT_BODY);
 
         component.writeComponentData(cb);
+    }
+
+    processCommands(cb) {
+        const command = cb.readCommand();
+
+        switch (command) {
+            case CMD_UPDATE_TRANSFORMS:
+                this._updateVertices(cb);
+            break;
+        }
+    }
+
+    _updateVertices(cb) {
+        const index = cb.read(BUFFER_READ_UINT32);
+        const count = cb.read(BUFFER_READ_UINT32);
+
+        const entity = this.entityMap.get(index);
+
+        positions.length = 0;
+        indices.length = 0;
+
+        const component = entity?.c.softbody;
+        const mesh = component?.meshes[0];
+        if (!mesh) {
+            return;
+        }
+
+        mesh.getIndices(indices);
+
+        let sx = 1;
+        let sy = 1;
+        let sz = 1;
+        
+        if (component.useEntityScale ) {
+            const s = entity.getLocalScale();
+            sx = s.x || 1; sy = s.y || 1; sz = s.z || 1;
+        }
+
+        quat.copy(entity.getRotation()).invert();
+
+        for (let i = 0; i < count; i++) {
+            vec.set(
+                cb.read(BUFFER_READ_FLOAT32) / sx,
+                cb.read(BUFFER_READ_FLOAT32) / sy,
+                cb.read(BUFFER_READ_FLOAT32) / sz
+            );
+
+            quat.transformVector(vec, vec);
+
+            positions.push(vec.x, vec.y, vec.z);
+        }
+
+        mesh.setNormals(pc.calculateNormals(positions, indices));
+        mesh.setPositions(positions);
+        mesh.update();
     }
 }
 

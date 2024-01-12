@@ -37,7 +37,7 @@ class CharComponentSystem extends ShapeComponentSystem {
         super(app, manager);
 
         this.id = 'char';
-        this.schema = schema;
+        this.schema = [...this.schema, ...schema];
         this.ComponentType = CharComponent;
 
         this._queryMap = new IndexedCache();
@@ -55,7 +55,7 @@ class CharComponentSystem extends ShapeComponentSystem {
 
     initializeComponentData(component, data) {
         if (Debug.dev) {
-            const ok = Debug.verifyProperties(data, schema);
+            const ok = Debug.verifyProperties(data, this.schema);
             if (!ok) return;
         }
 

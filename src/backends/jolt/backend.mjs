@@ -2,9 +2,12 @@ import joltInfo from "jolt-physics/package.json";
 
 import {
     BUFFER_WRITE_BOOL,
+    BUFFER_WRITE_FLOAT32,
     BUFFER_WRITE_JOLTVEC32,
     BUFFER_WRITE_UINT32, BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32,
     CMD_UPDATE_TRANSFORMS, COMPONENT_SYSTEM_BODY, COMPONENT_SYSTEM_CHAR,
+    COMPONENT_SYSTEM_SOFT_BODY,
+    FLOAT32_SIZE,
     OPERATOR_CLEANER, OPERATOR_CREATOR, OPERATOR_MODIFIER, OPERATOR_QUERIER
 } from "../../physics/components/jolt/constants.mjs";
 import { Debug } from "../../physics/debug.mjs";
@@ -112,7 +115,7 @@ class JoltBackend {
         this._stepTime = 0;
         this._steps = 0;
 
-        this._responseMessage = { buffer: null };
+        this._responseMessage = { buffer: null, softBodies: [] };
         this._dispatcher = messenger;
         this._inBuffer = null;
         this._fatalError = false;
@@ -267,7 +270,7 @@ class JoltBackend {
         if (Debug.dev) {
             // Write debug draw data
             ok = ok && this._drawer.write(this._tracker);
-        }
+        }     
 
         // report sim results to frontend
         ok = ok && this._send();
@@ -499,74 +502,22 @@ class JoltBackend {
     }
 
     _writeIsometry(cb) {
-        // Report transforms of dynamic bodies
-        const tracker = this._tracker;
+        // Report transforms of dynamic bodies and vertex positions of soft bodies
         const system = this._physicsSystem;
-        const dynamicType = Jolt.EBodyType_RigidBody;
-        const numActiveBodies = system.GetNumActiveBodies(dynamicType);
-        if (numActiveBodies > 0) {    
-            const useMotionStates = this._config.useMotionStates;
-            const bodyList = this._bodyList;
+        const activeRigidBodiesCount = system.GetNumActiveBodies(Jolt.EBodyType_RigidBody);
+        const activeSoftBodiesCount = system.GetNumActiveBodies(Jolt.EBodyType_SoftBody);
 
-            try {
-                bodyList.clear();
-                system.GetActiveBodies(dynamicType, bodyList);
-    
-                for (let i = 0; i < numActiveBodies; i++) {
-                    const bodyID = bodyList.at(i);
-                    const body = system.GetBodyLockInterface().TryGetBody(bodyID);
-                    const pointer = Jolt.getPointer(body);
-    
-                    if (pointer === 0)
-                        continue;
-    
-                    cb.writeOperator(COMPONENT_SYSTEM_BODY);
-                    cb.writeCommand(CMD_UPDATE_TRANSFORMS);
-    
-                    const index = tracker.getPCID(Jolt.getPointer(body));
-                    cb.write(index, BUFFER_WRITE_UINT32, false);
-    
-                    const ms = body.motionState;
-                    if (useMotionStates && ms) {
-                        cb.write(ms.position, BUFFER_WRITE_VEC32, false);
-                        cb.write(ms.rotation, BUFFER_WRITE_VEC32, false);
-                    } else {
-                        cb.write(body.GetPosition(), BUFFER_WRITE_JOLTVEC32, false);
-                        cb.write(body.GetRotation(), BUFFER_WRITE_JOLTVEC32, false);
-                    }
-    
-                    cb.write(body.GetLinearVelocity(), BUFFER_WRITE_JOLTVEC32, false);
-                    cb.write(body.GetAngularVelocity(), BUFFER_WRITE_JOLTVEC32, false);
+        let ok = true;
 
-                    // If it is a vehicle, write wheels isometry as well
-                    if (body.isVehicle) {
-                        const data = tracker.constraintMap.get(index);
-                        const constraint = data.constraint;
-                        const wheelsCount = constraint.wheelsCount;
-                        const modifier = this._modifier;
-
-                        const jv1 = modifier.joltVec3_1;
-                        const jv2 = modifier.joltVec3_2;
-
-                        jv1.Set(0, 1, 0);
-                        jv2.Set(1, 0, 0);
-    
-                        for (let i = 0; i < wheelsCount; i++) {
-                            const transform = constraint.GetWheelLocalTransform(i, jv1, jv2);
-
-                            cb.write(transform.GetTranslation(), BUFFER_WRITE_JOLTVEC32, false);
-                            cb.write(transform.GetRotation().GetQuaternion(), BUFFER_WRITE_JOLTVEC32, false);
-                        }
-                    }
-                }
-
-            } catch (e) {
-                Debug.dev && Debug.error(e);
-                return false;
-            }
+        if (activeRigidBodiesCount > 0) {
+            ok = this._writeRigidBodiesIsometry(activeRigidBodiesCount, system, cb);
         }
 
-        return true;
+        if (activeSoftBodiesCount > 0) {
+            ok = ok && this._writeSoftBodiesVertices(activeSoftBodiesCount, system, cb);
+        }
+
+        return ok;
     }
 
     _writeCharacters(cb) {
@@ -732,6 +683,110 @@ class JoltBackend {
         dispatcher.respond(msg);
 
         msg.constants = null;
+    }
+
+    _writeRigidBodiesIsometry(count, system, cb) {
+        const useMotionStates = this._config.useMotionStates;
+        const bodyList = this._bodyList;
+        const tracker = this._tracker;
+
+        try {
+            bodyList.clear();
+            system.GetActiveBodies(Jolt.EBodyType_RigidBody, bodyList);
+
+            for (let i = 0; i < count; i++) {
+                const bodyID = bodyList.at(i);
+                const body = system.GetBodyLockInterface().TryGetBody(bodyID);
+                const pointer = Jolt.getPointer(body);
+                if (pointer === 0) {
+                    continue;
+                }
+
+                cb.writeOperator(COMPONENT_SYSTEM_BODY);
+                cb.writeCommand(CMD_UPDATE_TRANSFORMS);
+
+                const index = tracker.getPCID(Jolt.getPointer(body));
+                cb.write(index, BUFFER_WRITE_UINT32, false);
+
+                const ms = body.motionState;
+                if (useMotionStates && ms) {
+                    cb.write(ms.position, BUFFER_WRITE_VEC32, false);
+                    cb.write(ms.rotation, BUFFER_WRITE_VEC32, false);
+                } else {
+                    cb.write(body.GetPosition(), BUFFER_WRITE_JOLTVEC32, false);
+                    cb.write(body.GetRotation(), BUFFER_WRITE_JOLTVEC32, false);
+                }
+
+                cb.write(body.GetLinearVelocity(), BUFFER_WRITE_JOLTVEC32, false);
+                cb.write(body.GetAngularVelocity(), BUFFER_WRITE_JOLTVEC32, false);
+
+                // If it is a vehicle, write wheels isometry as well
+                if (body.isVehicle) {
+                    const data = tracker.constraintMap.get(index);
+                    const constraint = data.constraint;
+                    const wheelsCount = constraint.wheelsCount;
+                    const modifier = this._modifier;
+
+                    const jv1 = modifier.joltVec3_1;
+                    const jv2 = modifier.joltVec3_2;
+
+                    jv1.Set(0, 1, 0);
+                    jv2.Set(1, 0, 0);
+
+                    for (let i = 0; i < wheelsCount; i++) {
+                        const transform = constraint.GetWheelLocalTransform(i, jv1, jv2);
+
+                        cb.write(transform.GetTranslation(), BUFFER_WRITE_JOLTVEC32, false);
+                        cb.write(transform.GetRotation().GetQuaternion(), BUFFER_WRITE_JOLTVEC32, false);
+                    }
+                }
+            }
+
+        } catch (e) {
+            Debug.dev && Debug.error(e);
+            return false;
+        }
+
+        return true;
+    }
+
+    _writeSoftBodiesVertices(count, system, cb) {
+        // const useMotionStates = this._config.useMotionStates;
+        const bodyList = this._bodyList;
+        const tracker = this._tracker;
+
+        try {
+            bodyList.clear();
+            system.GetActiveBodies(Jolt.EBodyType_SoftBody, bodyList);
+
+            for (let i = 0; i < count; i++) {
+                const bodyID = bodyList.at(i);
+                const body = system.GetBodyLockInterface().TryGetBody(bodyID);
+                const pointer = Jolt.getPointer(body);
+                if (pointer === 0) {
+                    continue;
+                }
+
+                cb.writeOperator(COMPONENT_SYSTEM_SOFT_BODY);
+                cb.writeCommand(CMD_UPDATE_TRANSFORMS);
+
+                const index = tracker.getPCID(pointer);
+                cb.write(index, BUFFER_WRITE_UINT32, false);
+
+                const vertices = Jolt.castObject(body.GetMotionProperties(), Jolt.SoftBodyMotionProperties).GetVertices();
+                const count = vertices.size();
+
+                cb.write(count, BUFFER_WRITE_UINT32, false);
+                for (let i = 0; i < count; i++) {
+                    cb.write(vertices.at(i).mPosition, BUFFER_WRITE_JOLTVEC32, false);
+                }
+            }
+        } catch (e) {
+            Debug.dev && Debug.error(e);
+            return false;
+        }
+
+        return true;
     }
 }
 

@@ -6,7 +6,7 @@ import {
     BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT16,
     BUFFER_WRITE_UINT32, BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32,
     CMD_CAST_RAY, CMD_CAST_SHAPE, CMD_CHANGE_GRAVITY, CMD_CREATE_CONSTRAINT,
-    CMD_CREATE_GROUPS, CMD_CREATE_SHAPE, CMD_DESTROY_CONSTRAINT, CMD_DESTROY_SHAPE, CMD_SET_CONSTRAINT_ENABLED, CMD_TOGGLE_GROUP_PAIR, CONSTRAINT_TYPE_CONE,
+    CMD_CREATE_GROUPS, CMD_CREATE_SHAPE, CMD_DESTROY_CONSTRAINT, CMD_DESTROY_SHAPE, CMD_SET_CONSTRAINT_ENABLED, CMD_TOGGLE_GROUP_PAIR, COMPONENT_SYSTEM_SOFT_BODY, CONSTRAINT_TYPE_CONE,
     CONSTRAINT_TYPE_DISTANCE, CONSTRAINT_TYPE_FIXED, CONSTRAINT_TYPE_HINGE,
     CONSTRAINT_TYPE_POINT, CONSTRAINT_TYPE_SIX_DOF, CONSTRAINT_TYPE_SLIDER,
     CONSTRAINT_TYPE_SWING_TWIST, OPERATOR_CLEANER, OPERATOR_CREATOR, OPERATOR_MODIFIER, OPERATOR_QUERIER
@@ -166,8 +166,8 @@ class JoltManager extends PhysicsManager {
         }
     }
 
-    constructor(app, backendName, opts) {
-        super(app, backendName, opts);
+    constructor(app, opts) {
+        super(app, 'jolt', opts);
 
         this._queryMap = new IndexedCache();
         this._constraintMap = new IndexedCache();
@@ -230,6 +230,7 @@ class JoltManager extends PhysicsManager {
             shape: type,
             useEntityScale: false,
             isCompoundChild: false,
+            massOffset: pc.Vec3.ZERO
         };
 
         const index = this._shapeMap.add(opts);

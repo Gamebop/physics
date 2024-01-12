@@ -28,7 +28,7 @@ function init(app = pc.Application.getApplication(), opts = {}) {
                 return;
             }
 
-            const manager = new JoltManager(app, backend, options);
+            const manager = new JoltManager(app, options);
             app[propertyName] = manager;
 
             app.systems.add(new BodyComponentSystem(app, manager, COMPONENT_SYSTEM_BODY));

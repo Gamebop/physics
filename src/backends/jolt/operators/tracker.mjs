@@ -45,22 +45,26 @@ class Tracker {
     }
 
     add(body, index) {
-        const motionType = body.GetMotionType();
-        const bodyType = body.GetBodyType();
-
-        if (bodyType === Jolt.EBodyType_RigidBody) {
-            switch (motionType) {
-                case Jolt.EMotionType_Dynamic:
-                    this._dynamic.add(body);
-                    break;
-                case Jolt.EMotionType_Kinematic:
-                    this._kinematic.add(body);
-                    break;
-                case Jolt.EMotionType_Static:
-                    // no need to track statics
-                    break;
-                default:
-                    break;
+        if (body.isCharacter) {
+            this._character.add(body);
+        } else {
+            const motionType = body.GetMotionType();
+            const bodyType = body.GetBodyType();
+    
+            if (bodyType === Jolt.EBodyType_RigidBody) {
+                switch (motionType) {
+                    case Jolt.EMotionType_Dynamic:
+                        this._dynamic.add(body);
+                        break;
+                    case Jolt.EMotionType_Kinematic:
+                        this._kinematic.add(body);
+                        break;
+                    case Jolt.EMotionType_Static:
+                        // no need to track statics
+                        break;
+                    default:
+                        break;
+                }
             }
         }
 
@@ -72,24 +76,15 @@ class Tracker {
         this._bodyMap.set(index, body);
     }
 
-    // addSoftBody(body, index) {
-    //     if (Debug.dev && body.debugDraw) {
-    //         this._debug.add(body);
+    // addCharacter(char, index) {
+        
+    //     this._idxMap.set(Jolt.getPointer(char), index);
+    //     this._bodyMap.set(index, char);
+
+    //     if (Debug.dev && char.debugDraw) {
+    //         this._debug.add(char);
     //     }
-
-    //     this._idxMap.set(Jolt.getPointer(body), index);
-    //     this._bodyMap.set(index, body);
-    // }    
-
-    addCharacter(char, index) {
-        this._character.add(char);
-        this._idxMap.set(Jolt.getPointer(char), index);
-        this._bodyMap.set(index, char);
-
-        if (Debug.dev && char.debugDraw) {
-            this._debug.add(char);
-        }
-    }
+    // }
 
     addConstraint(index, constraint, body1, body2) {
         this._constraintMap.set(index, { constraint, body1, body2 });

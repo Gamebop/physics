@@ -273,7 +273,7 @@ class BodyComponent extends ShapeComponent {
         );
     }
 
-    addImpulse(impulse, offset, isOffsetLocal = false) {
+    addImpulse(impulse, offset = pc.Vec3.ZERO, isOffsetLocal = false) {
         if (Debug.dev) {
             let ok = true;
             ok = ok && Debug.checkVec(impulse, `Invalid add impulse vector:`);

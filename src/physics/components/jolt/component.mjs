@@ -17,6 +17,8 @@ import {
     SHAPE_STATIC_COMPOUND
 } from "./constants.mjs";
 
+const quat = new pc.Quat();
+
 class ShapeComponent extends pc.EventHandler {
 
     // ---- COMPONENT PROPS ----

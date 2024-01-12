@@ -8,11 +8,6 @@ import {
     VEHICLE_CAST_TYPE_SPHERE, VEHICLE_TYPE_MOTORCYCLE, VEHICLE_TYPE_TRACK, VEHICLE_TYPE_WHEEL
 } from "./constants.mjs";
 
-
-// TODO
-// convert to statics
-const entityMap = new IndexedCache();
-const quat = new pc.Quat();
 let v1, v2, v3;
 
 function getColor(type, config) {
@@ -28,7 +23,40 @@ function getColor(type, config) {
     }
 }
 
+const schema = [
+    // component
+    'enabled',
+    'index',
+    'trackDynamic',
+    'renderAsset',
+    'meshes',
+    'isCompoundChild',
+    'useEntityScale',
+    'useMotionState',
+    'debugDraw',
+
+    // Jolt shape
+    'shape',
+    'halfExtent',
+    'radius',
+    'convexRadius',
+    'halfHeight',
+    'density',
+    'shapePosition',
+    'shapeRotation',
+    'massOffset',
+    'hfScale',
+    'hfOffset',
+    'hfSamples',
+    'hfSampleCount',
+    'hfBlockSize',
+    'hfBitsPerSample',
+    'hfActiveEdgeCosThresholdAngle'
+];
+
 class ShapeComponentSystem extends pc.ComponentSystem {
+    static entityMap = new IndexedCache();
+
     constructor(app, manager) {
         super();
 
@@ -36,47 +64,97 @@ class ShapeComponentSystem extends pc.ComponentSystem {
 
         // The store where all ComponentData objects are kept
         this.store = {};
-        this.schema = [
-            // component
-            'enabled',
-            'index',
-            'trackDynamic',
-            'renderAsset',
-            'meshes',
-            'isCompoundChild',
-            'useEntityScale',
-            'useMotionState',
-            'debugDraw',
-
-            // Jolt shape
-            'shape',
-            'halfExtent',
-            'radius',
-            'convexRadius',
-            'halfHeight',
-            'density',
-            'shapePosition',
-            'shapeRotation',
-            'massOffset',
-            'hfScale',
-            'hfOffset',
-            'hfSamples',
-            'hfSampleCount',
-            'hfBlockSize',
-            'hfBitsPerSample',
-            'hfActiveEdgeCosThresholdAngle'
-        ];
+        this.schema = schema;
 
         this._manager = manager;
 
-        this.entityMap = entityMap;
+        this.entityMap = ShapeComponentSystem.entityMap;
 
         this._exposeConstants();
     }
 
+    addCommand() {
+        const cb = this._manager.commandsBuffer;
+        
+        cb.writeOperator(arguments[0]);
+        cb.writeCommand(arguments[1]);
+
+        // component index
+        cb.write(arguments[2], BUFFER_WRITE_UINT32, false);
+
+        for (let i = 3, end = arguments.length; i < end; i += 3) {
+            cb.write(arguments[i], arguments[i + 1], arguments[i + 2]);
+        }
+    }
+
+    addCommandArgs() {
+        const cb = this._manager.commandsBuffer;
+        for (let i = 0, end = arguments.length; i < end; i += 3) {
+            cb.write(arguments[i], arguments[i + 1], arguments[i + 2]);
+        }
+    }
+
+    addComponent(entity, data = {}) {
+        const component = new this.ComponentType(this, entity);
+
+        this.store[entity.getGuid()] = { entity };
+
+        entity[this.id] = component;
+        entity.c[this.id] = component;
+
+        this.initializeComponentData(component, data);
+
+        return component;
+    }
+
+    initializeComponentData(component, data) {
+        component.enabled = true;
+
+        for (const [key, value] of Object.entries(data)) {
+            component[`_${ key }`] = value;
+        }
+
+        if (component.entity.enabled && !component.isCompoundChild) {
+            component.onEnable();
+        }
+    }
+
+    freeConstraintIndex(index) {
+        this._manager.freeConstraintIndex(index);
+    }
+
+    getIndex(entity) {
+        return this.entityMap.add(entity);
+    }
+
+    setIndexFree(index) {
+        this.entityMap.free(index);
+    }
+
+    _exposeConstants() {
+        if (typeof window !== 'undefined' && window.pc) {
+            pc.JOLT_SHAPE_BOX = SHAPE_BOX;
+            pc.JOLT_SHAPE_CAPSULE = SHAPE_CAPSULE;
+            pc.JOLT_SHAPE_CYLINDER = SHAPE_CYLINDER;
+            pc.JOLT_SHAPE_SPHERE = SHAPE_SPHERE;
+            pc.JOLT_SHAPE_MESH = SHAPE_MESH;
+            pc.JOLT_SHAPE_CONVEX_HULL = SHAPE_CONVEX_HULL;
+            pc.JOLT_SHAPE_STATIC_COMPOUND = SHAPE_STATIC_COMPOUND;
+            pc.JOLT_SHAPE_HEIGHTFIELD = SHAPE_HEIGHTFIELD;
+            pc.JOLT_OBJECT_LAYER_NON_MOVING = OBJECT_LAYER_NON_MOVING;
+            pc.JOLT_OBJECT_LAYER_MOVING = OBJECT_LAYER_MOVING;
+            pc.JOLT_VEHICLE_TYPE_WHEEL = VEHICLE_TYPE_WHEEL;
+            pc.JOLT_VEHICLE_TYPE_TRACK = VEHICLE_TYPE_TRACK;
+            pc.JOLT_VEHICLE_TYPE_MOTORCYCLE = VEHICLE_TYPE_MOTORCYCLE;
+            pc.JOLT_VEHICLE_CAST_TYPE_RAY = VEHICLE_CAST_TYPE_RAY;
+            pc.JOLT_VEHICLE_CAST_TYPE_CYLINDER = VEHICLE_CAST_TYPE_CYLINDER;
+            pc.JOLT_VEHICLE_CAST_TYPE_SPHERE = VEHICLE_CAST_TYPE_SPHERE;
+        }
+    }
+
     static updateDynamic(cb) {
         const index = cb.read(BUFFER_READ_UINT32);
-        const entity = entityMap.get(index);
+        const entity = this.entityMap.get(index);
         const vehicleComponent = entity?.c.vehicle;
 
         if (!entity) {
@@ -159,7 +237,7 @@ class ShapeComponentSystem extends pc.ComponentSystem {
             const buffer = data[d + 4];
     
             const view = new Float32Array(buffer, byteOffset, length);
-            const entity = entityMap.get(index);
+            const entity = this.entityMap.get(index);
             const color = getColor(motionType, config);
     
             const p = entity.getPosition();
@@ -182,86 +260,7 @@ class ShapeComponentSystem extends pc.ComponentSystem {
                 app.drawLine(v3, v1, color, useDepth, layer);
             }
         }
-    }
-
-    addCommand() {
-        const cb = this._manager.commandsBuffer;
-        
-        cb.writeOperator(arguments[0]);
-        cb.writeCommand(arguments[1]);
-
-        // component index
-        cb.write(arguments[2], BUFFER_WRITE_UINT32, false);
-
-        for (let i = 3, end = arguments.length; i < end; i += 3) {
-            cb.write(arguments[i], arguments[i + 1], arguments[i + 2]);
-        }
-    }
-
-    addCommandArgs() {
-        const cb = this._manager.commandsBuffer;
-        for (let i = 0, end = arguments.length; i < end; i += 3) {
-            cb.write(arguments[i], arguments[i + 1], arguments[i + 2]);
-        }
-    }
-
-    addComponent(entity, data = {}) {
-        const component = new this.ComponentType(this, entity);
-
-        this.store[entity.getGuid()] = { entity };
-
-        entity[this.id] = component;
-        entity.c[this.id] = component;
-
-        this.initializeComponentData(component, data);
-
-        return component;
-    }
-
-    initializeComponentData(component, data) {
-        component.enabled = true;
-
-        for (const [key, value] of Object.entries(data)) {
-            component[`_${ key }`] = value;
-        }
-
-        if (component.entity.enabled && !component.isCompoundChild) {
-            component.onEnable();
-        }
-    }
-
-    freeConstraintIndex(index) {
-        this._manager.freeConstraintIndex(index);
-    }
-
-    getIndex(entity) {
-        return entityMap.add(entity);
-    }
-
-    setIndexFree(index) {
-        entityMap.free(index);
-    } 
-
-    _exposeConstants() {
-        if (typeof window !== 'undefined' && window.pc) {
-            pc.JOLT_SHAPE_BOX = SHAPE_BOX;
-            pc.JOLT_SHAPE_CAPSULE = SHAPE_CAPSULE;
-            pc.JOLT_SHAPE_CYLINDER = SHAPE_CYLINDER;
-            pc.JOLT_SHAPE_SPHERE = SHAPE_SPHERE;
-            pc.JOLT_SHAPE_MESH = SHAPE_MESH;
-            pc.JOLT_SHAPE_CONVEX_HULL = SHAPE_CONVEX_HULL;
-            pc.JOLT_SHAPE_STATIC_COMPOUND = SHAPE_STATIC_COMPOUND;
-            pc.JOLT_SHAPE_HEIGHTFIELD = SHAPE_HEIGHTFIELD;
-            pc.JOLT_OBJECT_LAYER_NON_MOVING = OBJECT_LAYER_NON_MOVING;
-            pc.JOLT_OBJECT_LAYER_MOVING = OBJECT_LAYER_MOVING;
-            pc.JOLT_VEHICLE_TYPE_WHEEL = VEHICLE_TYPE_WHEEL;
-            pc.JOLT_VEHICLE_TYPE_TRACK = VEHICLE_TYPE_TRACK;
-            pc.JOLT_VEHICLE_TYPE_MOTORCYCLE = VEHICLE_TYPE_MOTORCYCLE;
-            pc.JOLT_VEHICLE_CAST_TYPE_RAY = VEHICLE_CAST_TYPE_RAY;
-            pc.JOLT_VEHICLE_CAST_TYPE_CYLINDER = VEHICLE_CAST_TYPE_CYLINDER;
-            pc.JOLT_VEHICLE_CAST_TYPE_SPHERE = VEHICLE_CAST_TYPE_SPHERE;
-        }
-    }   
+    }    
 }
 
 export { ShapeComponentSystem };
