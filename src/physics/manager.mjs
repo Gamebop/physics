@@ -27,6 +27,7 @@ class PhysicsManager {
         // Make sure requested features are supported
         config.useSharedArrayBuffer = config.useSharedArrayBuffer && typeof SharedArrayBuffer !== 'undefined';
         config.useWebWorker = config.useWebWorker && typeof Worker !== 'undefined';
+        config.useSAB = config.useWebWorker && config.useSharedArrayBuffer;
 
         this._createDispatcher(config);
 
@@ -221,7 +222,11 @@ class PhysicsManager {
             stepMessage.meshBuffers = null;
         }
 
-        this._dispatcher.postMessage(stepMessage, buffers);
+        if (this._config.useSAB) {
+            this._dispatcher.postMessage(stepMessage);
+        } else {
+            this._dispatcher.postMessage(stepMessage, buffers);
+        }
 
         cb.meshBuffers.length = 0;
         cb.reset();
@@ -232,7 +237,9 @@ class PhysicsManager {
             // TODO
             // This will generate a chunk, which will not be able to be found correctly, when
             // using PlayCanvas Editor. Revisit when ESMScripts are supported.
-            // this._dispatcher = new Worker(new URL('./dispatcher.mjs', import.meta.url));
+            this._dispatcher = new Worker(
+                /* webpackChunkName: "worker" */ new URL('./dispatcher.mjs', import.meta.url
+            ));
         } else {
             this._dispatcher = new Dispatcher(this, false);
         }

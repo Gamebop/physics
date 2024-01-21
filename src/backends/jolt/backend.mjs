@@ -611,6 +611,10 @@ class JoltBackend {
             msg.time = performance.now() - this._stepTime;
         }
 
+        if (this._config.useSAB) {
+            
+        }
+
         if (debugDraw) {
             dispatcher.respond(msg, [ buffer, ...drawer.buffers ]);
             drawer.reset();
