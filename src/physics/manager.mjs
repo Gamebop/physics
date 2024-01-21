@@ -4,7 +4,7 @@ import { Debug } from "./debug.mjs";
 import { Dispatcher } from "./dispatcher.mjs";
 import { IndexedCache } from "./indexed-cache.mjs";
 
-const stepMessage = { type: 'step', buffer: null };
+const stepMessage = { type: 'step', buffer: null, origin: 'physics-manager' };
 
 class PhysicsManager {
     constructor(app, backendName, opts = {}) {
@@ -34,11 +34,74 @@ class PhysicsManager {
         this._systems = new Map();
         this._backend = null
 
+        // const asset = app.assets.find('jolt-physics.wasm-compat.js');
+        // const url = asset.getFileURL();
+        // asset.ready(loadedAsset => {
+        //     // const resp = await fetch(url);
+        //     // const buffer  = await resp.arrayBuffer();
+
+        //     console.log(loadedAsset)
+            
+        //     // const msg = Object.create(null);
+        //     // msg.type = 'create-backend';
+        //     // // msg.module = asset.getFileURL();
+        //     // msg.backendName = backendName;
+        //     // msg.config = config;
+        //     // this.sendUncompressed(msg);
+        // });
+        // app.assets.load(asset);
+        
+        // const asset = app.assets.find('jolt-physics.wasm-compat.js');
+        // asset.ready(async loadedAsset => {
+        //     const module = await import(loadedAsset.getFileUrl());
+        //     module.default().then(Jolt => {
+        //         console.log(Jolt);
+
+        //         // window.Jolt = Jolt;
+        //         const msg = Object.create(null);
+        //         msg.type = 'create-backend';
+        //         // msg.module = asset.getFileURL();
+        //         msg.backendName = backendName;
+        //         msg.config = config;
+        //         this.sendUncompressed(msg);                
+        //     });
+        // });
+        // app.assets.load(asset);
+
+        // if (window.Jolt) return;
+        // const asset = app.assets.find('jolt-physics.wasm-compat.js');
+        // async function load() {
+        //     const url = asset.getAbsoluteUrl(asset.getFileUrl());
+        //     const module = await import(url);
+        //     module.default().then(Jolt => {
+        //         window.Jolt = Jolt;
+        //         // onLoad();
+        //     });
+        // }
+        // load();
+
+        const wasmAsset = app.assets.find('jolt-physics.wasm.wasm');
+        const glueAsset = app.assets.find('jolt-physics.wasm.js');
+
         const msg = Object.create(null);
         msg.type = 'create-backend';
+        msg.glueUrl = glueAsset.getFileUrl();
+        msg.wasmUrl = wasmAsset.getFileUrl();
+        // msg.module = mod;
         msg.backendName = backendName;
         msg.config = config;
         this.sendUncompressed(msg);
+
+
+        // WebAssembly.compileStreaming(fetch(wasmAsset.getFileUrl())).then((mod) => {
+        //     const msg = Object.create(null);
+        //     msg.type = 'create-backend';
+        //     msg.glueUrl = glueAsset.getFileUrl();
+        //     msg.module = mod;
+        //     msg.backendName = backendName;
+        //     msg.config = config;
+        //     this.sendUncompressed(msg);
+        // });
 
         this._outBuffer = new CommandsBuffer(config);
         this._inBuffer = null;
@@ -239,9 +302,9 @@ class PhysicsManager {
             // using PlayCanvas Editor. Revisit when ESMScripts are supported.
             this._dispatcher = new Worker(
                 /* webpackChunkName: "worker" */ new URL('./dispatcher.mjs', import.meta.url
-            ));
+            ), { type: 'module' });
         } else {
-            this._dispatcher = new Dispatcher(this, false);
+            this._dispatcher = new Dispatcher(this);
         }
     }
 }

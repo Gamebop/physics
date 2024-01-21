@@ -6,6 +6,15 @@ import { JoltManager } from "./components/jolt/manager.mjs";
 import { COMPONENT_SYSTEM_BODY, COMPONENT_SYSTEM_CHAR, COMPONENT_SYSTEM_SOFT_BODY, COMPONENT_SYSTEM_VEHICLE } from "./components/jolt/constants.mjs";
 import { SoftBodyComponentSystem } from "./components/jolt/softbody/system.mjs";
 
+// Override chunk location in order for the engine to locate them in PlayCanvas Editor.
+const oldFn = __webpack_get_script_filename__;
+__webpack_get_script_filename__ = (chunkId) => {
+    const filename = oldFn(chunkId);
+    const app = pc.Application.getApplication();
+    const asset = app.assets.find(filename, 'script');
+    const url = asset.getFileUrl();
+    return url;
+};
 
 // TODO
 // Once we add webworker support, init should be changed to async

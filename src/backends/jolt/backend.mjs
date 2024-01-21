@@ -1,13 +1,8 @@
 import joltInfo from "jolt-physics/package.json";
 
 import {
-    BUFFER_WRITE_BOOL,
-    BUFFER_WRITE_FLOAT32,
-    BUFFER_WRITE_JOLTVEC32,
-    BUFFER_WRITE_UINT32, BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32,
-    CMD_UPDATE_TRANSFORMS, COMPONENT_SYSTEM_BODY, COMPONENT_SYSTEM_CHAR,
-    COMPONENT_SYSTEM_SOFT_BODY,
-    FLOAT32_SIZE,
+    BUFFER_WRITE_BOOL, BUFFER_WRITE_JOLTVEC32, BUFFER_WRITE_UINT32, BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32,
+    CMD_UPDATE_TRANSFORMS, COMPONENT_SYSTEM_BODY, COMPONENT_SYSTEM_CHAR, COMPONENT_SYSTEM_SOFT_BODY,
     OPERATOR_CLEANER, OPERATOR_CREATOR, OPERATOR_MODIFIER, OPERATOR_QUERIER
 } from "../../physics/components/jolt/constants.mjs";
 import { Debug } from "../../physics/debug.mjs";
@@ -22,12 +17,12 @@ import { Querier } from "./operators/querier.mjs";
 import { Tracker } from "./operators/tracker.mjs";
 
 class JoltBackend {
-    constructor(messenger, config) {
-        // TODO
-        // add webworker
-        if (!window || !window.Jolt) return;
+    constructor(messenger, data) {
+        // // TODO
+        // // add webworker
+        // if (!window || !window.Jolt) return;
 
-        config = {
+        const config = {
             // Physics Settings
             // https://jrouwe.github.io/JoltPhysics/struct_physics_settings.html
             baumgarte: 0.2,
@@ -71,10 +66,47 @@ class JoltBackend {
                 [ 0, 1 ],   // non-moving, moving
                 [ 1, 1 ]    // moving, moving
             ],
-            ...config
+            ...data.config
         };
         this._config = config;
         this._time = 0;
+
+        const loadJolt = async () => {
+            const module = await import(/* webpackIgnore: true */ data.glueUrl);
+            module.default({
+                locateFile: () => {
+                    return data.wasmUrl;
+                }
+            }).then(Jolt => {
+
+                //  TODO
+                
+                console.log(Jolt)
+                
+                // window.Jolt = Jolt;
+                // onLoad();
+            });
+
+            // WebAssembly.instantiate(data.module, {}).then((instance) => {
+            //     console.log(instance);
+            // });            
+        }
+        loadJolt();
+
+
+        // async function load() {
+        //     const module = require('./lib/jolt-physics.wasm.js')
+        //     console.log(module)
+
+        //     WebAssembly.instantiate(data.module, {}).then((instance) => {
+        //         console.log(instance);
+                
+    
+        //         // instance.exports.exported_func();
+        //     });
+        // }
+
+        // load();
 
         // Transform filters to bit values
         this._filterLayers = new Map();
@@ -611,15 +643,23 @@ class JoltBackend {
             msg.time = performance.now() - this._stepTime;
         }
 
-        if (this._config.useSAB) {
-            
-        }
+        // TODO
+        // refactor
 
-        if (debugDraw) {
-            dispatcher.respond(msg, [ buffer, ...drawer.buffers ]);
-            drawer.reset();
+        if (this._config.useSAB) {
+            if (debugDraw) {
+                dispatcher.respond(msg, [ ...drawer.buffers ]);
+                drawer.reset();
+            } else {
+                dispatcher.respond(msg);
+            }
         } else {
-            dispatcher.respond(msg, [ buffer ]);
+            if (debugDraw) {
+                dispatcher.respond(msg, [ buffer, ...drawer.buffers ]);
+                drawer.reset();
+            } else {
+                dispatcher.respond(msg, [ buffer ]);
+            }
         }
 
         return true;

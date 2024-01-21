@@ -3,10 +3,11 @@ import { Debug } from "./debug.mjs";
 
 let backend = null;
 
-function createBackend(name, messenger, config) {
-    switch (name) {
+function createBackend(messenger, data) {
+    // const { backendName, url, config } = data;
+    switch (data.backendName) {
         case 'jolt':
-            backend = new JoltBackend(messenger, config);
+            backend = new JoltBackend(messenger, data);
             break;
 
         // intentional fall-through
@@ -22,12 +23,12 @@ function createBackend(name, messenger, config) {
 }
 
 class Dispatcher {
-    constructor(manager = null, useWebWorker = false) {
-        this._useWebWorker = useWebWorker;
+    constructor(manager = null) {
+        this._useMainThread = !!manager;
         this._manager = manager;
         this._destroying = false;
 
-        if (useWebWorker) {
+        if (!manager) {
             this.postMessage = self.postMessage;
         }
     }
@@ -41,11 +42,11 @@ class Dispatcher {
 
         switch (data.type) {
             case 'step':
-                backend.step(data);
+                backend?.step(data);
                 break;
 
             case 'create-backend':
-                createBackend(data.backendName, this, data.config);
+                createBackend(this, data);
                 // If we don't use a Web Worker, expose the backend instance to main thread for dev convenience
                 if (this._manager) {
                     this._manager.backend = backend;
@@ -53,7 +54,7 @@ class Dispatcher {
                 break;
 
             case 'override-contacts':
-                backend.overrideContacts(data.listener, data.overrides);
+                backend?.overrideContacts(data.listener, data.overrides);
                 break;
 
             case 'destroy':
@@ -76,10 +77,10 @@ class Dispatcher {
 
     respond(msg) {
         msg.origin = 'physics-worker';
-        if (this._useWebWorker) {
-            self.postMessage(msg);
-        } else {
+        if (this._useMainThread) {
             this._manager.onMessage(msg);
+        } else {
+            self.postMessage(msg);
         }
     }
 }
@@ -87,8 +88,9 @@ class Dispatcher {
 let dispatcher = new Dispatcher();
 
 self.onmessage = function(event) {
-    if (event.origin !== 'physics-manager') return;
-    dispatcher.handleMessage(event);
+    const data = event.data || event;
+    if (data.origin !== 'physics-manager') return;
+    dispatcher.handleMessage(data);
 }
 
 export { Dispatcher };
