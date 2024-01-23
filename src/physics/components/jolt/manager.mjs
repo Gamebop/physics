@@ -8,11 +8,12 @@ import {
     BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT16,
     BUFFER_WRITE_UINT32, BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32,
     CMD_CAST_RAY, CMD_CAST_SHAPE, CMD_CHANGE_GRAVITY, CMD_CREATE_CONSTRAINT,
-    CMD_CREATE_GROUPS, CMD_CREATE_SHAPE, CMD_DESTROY_CONSTRAINT, CMD_DESTROY_SHAPE, CMD_SET_CONSTRAINT_ENABLED, CMD_TOGGLE_GROUP_PAIR, COMPONENT_SYSTEM_BODY, COMPONENT_SYSTEM_CHAR, COMPONENT_SYSTEM_SOFT_BODY, COMPONENT_SYSTEM_VEHICLE, CONSTRAINT_TYPE_CONE,
+    CMD_CREATE_GROUPS, CMD_CREATE_SHAPE, CMD_DESTROY_CONSTRAINT, CMD_DESTROY_SHAPE, CMD_SET_CONSTRAINT_ENABLED, CMD_TOGGLE_GROUP_PAIR, COMPONENT_SYSTEM_BODY, COMPONENT_SYSTEM_CHAR, COMPONENT_SYSTEM_MANAGER, COMPONENT_SYSTEM_SOFT_BODY, COMPONENT_SYSTEM_VEHICLE, CONSTRAINT_TYPE_CONE,
     CONSTRAINT_TYPE_DISTANCE, CONSTRAINT_TYPE_FIXED, CONSTRAINT_TYPE_HINGE,
     CONSTRAINT_TYPE_POINT, CONSTRAINT_TYPE_SIX_DOF, CONSTRAINT_TYPE_SLIDER,
     CONSTRAINT_TYPE_SWING_TWIST, OPERATOR_CLEANER, OPERATOR_CREATOR, OPERATOR_MODIFIER, OPERATOR_QUERIER
 } from "./constants.mjs";
+import { ResponseHandler } from "./response-handler.mjs";
 import { SoftBodyComponentSystem } from "./softbody/system.mjs";
 import { ShapeComponentSystem } from "./system.mjs";
 import { VehicleComponentSystem } from "./vehicle/system.mjs";
@@ -36,6 +37,8 @@ class JoltManager extends PhysicsManager {
         this._gravity = new pc.Vec3(0, -9.81, 0);
 
         this._resolve = resolve;
+
+        this._systems.set(COMPONENT_SYSTEM_MANAGER, this);
     }
 
     set gravity(gravity) {
@@ -77,6 +80,17 @@ class JoltManager extends PhysicsManager {
             ShapeComponentSystem.debugDraw(this._app, data.drawViews, this._config);
         }
     }
+
+    processCommands(cb) {
+        const command = cb.readCommand();
+
+        switch (command) {
+            case CMD_CAST_RAY:
+            case CMD_CAST_SHAPE:
+                ResponseHandler.handleQuery(cb, this._queryMap);
+                break;
+        }
+    }    
 
     createShape(type, options = {}) {
         const cb = this._outBuffer;
@@ -190,9 +204,10 @@ class JoltManager extends PhysicsManager {
         cb.write(opts?.treatConvexAsSolid, BUFFER_WRITE_BOOL);
     }
 
-    castShape(shape, pos, rot, dir, callback, opts) {
+    castShape(shapeIndex, pos, rot, dir, callback, opts) {
         if (Debug.dev) {
-            let ok = Debug.checkVec(pos, `Invalid cast shape position vector`);
+            let ok = Debug.checkInt(shapeIndex, `Invalid shape index`);
+            ok = ok && Debug.checkVec(pos, `Invalid cast shape position vector`);
             ok = ok && Debug.checkVec(dir, `Invalid cast shape direction vector`);
             ok = ok && Debug.checkQuat(rot, `Invalid cast shape rotation`);
             if (!ok)
@@ -205,7 +220,6 @@ class JoltManager extends PhysicsManager {
         cb.writeOperator(OPERATOR_QUERIER);
         cb.writeCommand(CMD_CAST_SHAPE);
         cb.write(queryIndex, BUFFER_WRITE_UINT32, false);
-        cb.write(shape, BUFFER_WRITE_UINT8, false);
         cb.write(pos, BUFFER_WRITE_VEC32, false);
         cb.write(rot, BUFFER_WRITE_VEC32, false);
         cb.write(dir, BUFFER_WRITE_VEC32, false);
@@ -217,32 +231,33 @@ class JoltManager extends PhysicsManager {
         cb.write(opts?.returnDeepestPoint, BUFFER_WRITE_BOOL);
         cb.write(opts?.firstOnly, BUFFER_WRITE_BOOL);
         cb.write(opts?.calculateNormal, BUFFER_WRITE_BOOL);
+        cb.write(shapeIndex, BUFFER_WRITE_UINT32, false);
 
-        switch (shape) {
-            case SHAPE_SPHERE:
-                cb.write(opts?.radius, BUFFER_WRITE_FLOAT32);
-                break;
+        // switch (shape) {
+        //     case SHAPE_SPHERE:
+        //         cb.write(opts?.radius, BUFFER_WRITE_FLOAT32);
+        //         break;
 
-            case SHAPE_BOX:
-                cb.write(opts?.halfExtent, BUFFER_WRITE_VEC32);
-                cb.write(opts?.convexRadius, BUFFER_WRITE_FLOAT32);
-                break;
+        //     case SHAPE_BOX:
+        //         cb.write(opts?.halfExtent, BUFFER_WRITE_VEC32);
+        //         cb.write(opts?.convexRadius, BUFFER_WRITE_FLOAT32);
+        //         break;
 
-            case SHAPE_CAPSULE:
-                cb.write(opts?.halfHeight, BUFFER_WRITE_FLOAT32);
-                cb.write(opts?.radius, BUFFER_WRITE_FLOAT32);
-                break;
+        //     case SHAPE_CAPSULE:
+        //         cb.write(opts?.halfHeight, BUFFER_WRITE_FLOAT32);
+        //         cb.write(opts?.radius, BUFFER_WRITE_FLOAT32);
+        //         break;
 
-            case SHAPE_CYLINDER:
-                cb.write(opts?.halfHeight, BUFFER_WRITE_FLOAT32);
-                cb.write(opts?.radius, BUFFER_WRITE_FLOAT32);
-                cb.write(opts?.convexRadius, BUFFER_WRITE_VEC32);
-                break;
+        //     case SHAPE_CYLINDER:
+        //         cb.write(opts?.halfHeight, BUFFER_WRITE_FLOAT32);
+        //         cb.write(opts?.radius, BUFFER_WRITE_FLOAT32);
+        //         cb.write(opts?.convexRadius, BUFFER_WRITE_VEC32);
+        //         break;
 
-            default:
-                Debug.dev && Debug.warnOnce(`Invalid shape for casting: ${ shape }`);
-                break;
-        }
+        //     default:
+        //         Debug.dev && Debug.warnOnce(`Invalid shape for casting: ${ shape }`);
+        //         break;
+        // }
     }    
 
     createConstraint(type, entity1, entity2, opts = {}) {

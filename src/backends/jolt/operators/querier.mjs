@@ -2,7 +2,7 @@ import {
     BUFFER_READ_FLOAT32, BUFFER_READ_UINT8, CMD_CAST_RAY, CMD_CAST_SHAPE,
     BUFFER_READ_BOOL, BUFFER_READ_UINT32, BUFFER_WRITE_JOLTVEC32,
     BUFFER_WRITE_UINT16, BUFFER_WRITE_UINT32, SHAPE_BOX, SHAPE_CAPSULE,
-    SHAPE_CYLINDER, SHAPE_SPHERE
+    SHAPE_CYLINDER, SHAPE_SPHERE, COMPONENT_SYSTEM_MANAGER
 } from "../../../physics/components/jolt/constants.mjs";
 import { Debug } from "../../../physics/debug.mjs";
 
@@ -192,7 +192,7 @@ class Querier {
     }
 
     _castShape(cb) {
-        const buffer = this._commandsBuffer;
+        const buffer = this._backend.outBuffer;
         const tempVectors = this._tempVectors;
         const scale = tempVectors[1];
         const direction = tempVectors[2];
@@ -202,13 +202,13 @@ class Querier {
         const backend = this._backend;
         const castSettings = this._shapeCastSettings;
         const tracker = backend.tracker;
-        const creator = backend.creator;
+        // const creator = backend.creator;
         const system = backend.physicsSystem;
         const Jolt = backend.Jolt;
 
         const queryIndex = cb.read(BUFFER_READ_UINT32);
-        const shapeType = cb.read(BUFFER_READ_UINT8);
 
+        buffer.writeOperator(COMPONENT_SYSTEM_MANAGER);
         buffer.writeCommand(CMD_CAST_SHAPE);
         buffer.write(queryIndex, BUFFER_WRITE_UINT16, false);
         
@@ -226,64 +226,71 @@ class Querier {
             const firstOnly = cb.flag ? cb.read(BUFFER_READ_BOOL) : true;
             const calculateNormal = cb.flag ? cb.read(BUFFER_READ_BOOL) : false;
             const collector = firstOnly ? this._collectorShapeFirst : this._collectorShapeAll;
+            const shapeIndex = cb.read(BUFFER_READ_UINT32);
             
             params.length = 0;
 
-            let shape, str;
-            switch (shapeType) {
-                case SHAPE_SPHERE: {
-                    const radius = cb.flag ? cb.read(BUFFER_READ_FLOAT32) : 0.5;
-                    str = `${ shapeType }:${ radius }`;
-                    shape = this._shapeCache.get(str);
-                    if (!shape) params.push(radius)
-                    break;
-                }
+            // let shape, str;
+            // switch (shapeType) {
+            //     case SHAPE_SPHERE: {
+            //         const radius = cb.flag ? cb.read(BUFFER_READ_FLOAT32) : 0.5;
+            //         str = `${ shapeType }:${ radius }`;
+            //         shape = this._shapeCache.get(str);
+            //         if (!shape) params.push(radius)
+            //         break;
+            //     }
 
-                case SHAPE_BOX: {
-                    let x, y, z;
-                    if (cb.flag) {
-                        x = cb.read(BUFFER_READ_FLOAT32);
-                        y = cb.read(BUFFER_READ_FLOAT32);
-                        z = cb.read(BUFFER_READ_FLOAT32);
-                    } else {
-                        x = 0.5; y = 0.5; z = 0.5;
-                    }
-                    const halfExtent = tempVectors[5];
-                    halfExtent.Set(x, y, z);
-                    const cr = cb.flag ? cb.read(BUFFER_READ_FLOAT32) : 0.05;
-                    str = `${ shapeType }:${ x }:${ y }:${ z }:${ cr }`;
-                    shape = this._shapeCache.get(str);
-                    if (!shape) params.push(halfExtent, cr);
-                    break;
-                }
+            //     case SHAPE_BOX: {
+            //         let x, y, z;
+            //         if (cb.flag) {
+            //             x = cb.read(BUFFER_READ_FLOAT32);
+            //             y = cb.read(BUFFER_READ_FLOAT32);
+            //             z = cb.read(BUFFER_READ_FLOAT32);
+            //         } else {
+            //             x = 0.5; y = 0.5; z = 0.5;
+            //         }
+            //         const halfExtent = tempVectors[5];
+            //         halfExtent.Set(x, y, z);
+            //         const cr = cb.flag ? cb.read(BUFFER_READ_FLOAT32) : 0.05;
+            //         str = `${ shapeType }:${ x }:${ y }:${ z }:${ cr }`;
+            //         shape = this._shapeCache.get(str);
+            //         if (!shape) params.push(halfExtent, cr);
+            //         break;
+            //     }
 
-                case SHAPE_CAPSULE: {
-                    const halfHeight = cb.flag ? cb.read(BUFFER_READ_FLOAT32) : 0.5;
-                    const radius = cb.flag ? cb.read(BUFFER_READ_FLOAT32) : 0.5;
-                    str = `${ shapeType }:${ halfHeight }:${ radius }`;
-                    shape = this._shapeCache.get(str);
-                    if (!shape) params.push(halfHeight, radius);
-                    break;
-                }
+            //     case SHAPE_CAPSULE: {
+            //         const halfHeight = cb.flag ? cb.read(BUFFER_READ_FLOAT32) : 0.5;
+            //         const radius = cb.flag ? cb.read(BUFFER_READ_FLOAT32) : 0.5;
+            //         str = `${ shapeType }:${ halfHeight }:${ radius }`;
+            //         shape = this._shapeCache.get(str);
+            //         if (!shape) params.push(halfHeight, radius);
+            //         break;
+            //     }
 
-                case SHAPE_CYLINDER: {
-                    const halfHeight = cb.flag ? cb.read(BUFFER_READ_FLOAT32) : 0.5;
-                    const radius = cb.flag ? cb.read(BUFFER_READ_FLOAT32) : 0.5;
-                    const convexRadius = cb.flag ? cb.read(BUFFER_READ_FLOAT32) : 0.05;
-                    str = `${ shapeType }:${ halfHeight }:${ radius }:${ convexRadius }`;
-                    if (!shape) params.push(halfHeight, radius, convexRadius);
-                    break;
-                }
+            //     case SHAPE_CYLINDER: {
+            //         const halfHeight = cb.flag ? cb.read(BUFFER_READ_FLOAT32) : 0.5;
+            //         const radius = cb.flag ? cb.read(BUFFER_READ_FLOAT32) : 0.5;
+            //         const convexRadius = cb.flag ? cb.read(BUFFER_READ_FLOAT32) : 0.05;
+            //         str = `${ shapeType }:${ halfHeight }:${ radius }:${ convexRadius }`;
+            //         if (!shape) params.push(halfHeight, radius, convexRadius);
+            //         break;
+            //     }
                 
-                default:
-                    Debug.dev && Debug.error(`Shape type in cast not supported: ${ shapeType }`);
-                    return false;
-            }
+            //     default:
+            //         Debug.dev && Debug.error(`Shape type in cast not supported: ${ shapeType }`);
+            //         return false;
+            // }
 
-            if (!shape) {
-                const settings = creator.createShapeSettings(shapeType, ...params);
-                shape = settings.Create().Get();
-                this._shapeCache.set(str, shape);
+            // if (!shape) {
+            //     const settings = creator.createShapeSettings(shapeType, ...params);
+            //     shape = settings.Create().Get();
+            //     this._shapeCache.set(str, shape);
+            // }
+
+            const shape = tracker.shapeMap.get(shapeIndex);
+            if (Debug.dev && !shape) {
+                Debug.warn(`Unable to locate shape for shape cast: ${ shapeIndex }`);
+                return false;
             }
 
             const transform = Jolt.Mat44.prototype.sRotationTranslation(rotation, position);

@@ -4,6 +4,7 @@ import {
     BUFFER_READ_BOOL, BUFFER_READ_FLOAT32, BUFFER_READ_UINT16,
     BUFFER_READ_UINT32, BUFFER_READ_UINT8, FLOAT32_SIZE, UINT8_SIZE
 } from "./constants.mjs";
+import { ShapeComponentSystem } from "./system.mjs";
 
 class ContactResult {
     constructor(entity, normal, depth, point = null, offset = null, points1 = null, points2 = null) {
@@ -159,7 +160,7 @@ class ResponseHandler {
         }
     }
 
-    static handleQuery(buffer, entityMap, queryMap) {
+    static handleQuery(buffer, queryMap) {
         const results = [];
 
         const queryIndex = buffer.read(BUFFER_READ_UINT16);
@@ -183,7 +184,7 @@ class ResponseHandler {
                 );
             }
 
-            const entity = entityMap.get(bodyIndex);
+            const entity = ShapeComponentSystem.entityMap.get(bodyIndex);
             if (!entity) {
                 // Entity could have been deleted by the time the raycast result arrived.
                 // We just ignore this result then.

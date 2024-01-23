@@ -621,7 +621,7 @@ class JoltBackend {
         const useSAB = this._config.useSAB;
 
         outBuffer.reset();
-        this._querier.reset();
+        // this._querier.reset();
         this._listener.reset();
 
         if (debugDraw) {
