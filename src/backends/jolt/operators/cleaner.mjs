@@ -31,6 +31,7 @@ class Cleaner {
     _destroyBody(cb) {
         const index = cb.read(BUFFER_READ_UINT32);
         const backend = this._backend;
+        const Jolt = backend.Jolt;
         const tracker = backend.tracker;
         const bodyInterface = backend.bodyInterface;
         const physicsSystem = backend.physicsSystem;
@@ -96,7 +97,9 @@ class Cleaner {
     }
 
     _destroyShape(cb) {
-        const tracker = this._backend.tracker;
+        const backend = this._backend;
+        const Jolt = backend.Jolt;
+        const tracker = backend.tracker;
         const shapeNumber = cb.read(BUFFER_READ_UINT32);
         const shape = tracker.shapeMap.get(shapeNumber);
 

@@ -1,7 +1,7 @@
 import { Debug } from "./debug.mjs";
 import { BUFFER_READ_FLOAT32 } from "./components/jolt/constants.mjs";
 
-function extendMath() {
+function extendPCMath() {
     pc.Vec3.fromBuffer = function(buffer) {
         return new pc.Vec3(
             buffer.read(BUFFER_READ_FLOAT32),
@@ -9,7 +9,9 @@ function extendMath() {
             buffer.read(BUFFER_READ_FLOAT32)
         );
     };
+}
 
+function extendJoltMath(Jolt) {
     Jolt.Vec3.prototype.FromBuffer = function(buffer, isPositive) {
         if (Debug.dev) {
             const x = buffer.read(BUFFER_READ_FLOAT32);
@@ -80,4 +82,4 @@ function extendMath() {
     };
 }
 
-export { extendMath };
+export { extendJoltMath, extendPCMath };

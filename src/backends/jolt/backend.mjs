@@ -6,7 +6,7 @@ import {
     OPERATOR_CLEANER, OPERATOR_CREATOR, OPERATOR_MODIFIER, OPERATOR_QUERIER
 } from "../../physics/components/jolt/constants.mjs";
 import { Debug } from "../../physics/debug.mjs";
-import { extendMath } from "../../physics/math.mjs";
+import { extendJoltMath } from "../../physics/math.mjs";
 import { CommandsBuffer } from "./commands-buffer.mjs";
 import { Cleaner } from "./operators/cleaner.mjs";
 import { Creator } from "./operators/creator.mjs";
@@ -71,48 +71,12 @@ class JoltBackend {
         this._config = config;
         this._time = 0;
 
-        const loadJolt = async () => {
-            const module = await import(/* webpackIgnore: true */ data.glueUrl);
-            module.default({
-                locateFile: () => {
-                    return data.wasmUrl;
-                }
-            }).then(Jolt => {
-
-                //  TODO
-                
-                console.log(Jolt)
-                
-                // window.Jolt = Jolt;
-                // onLoad();
-            });
-
-            // WebAssembly.instantiate(data.module, {}).then((instance) => {
-            //     console.log(instance);
-            // });            
-        }
-        loadJolt();
-
-
-        // async function load() {
-        //     const module = require('./lib/jolt-physics.wasm.js')
-        //     console.log(module)
-
-        //     WebAssembly.instantiate(data.module, {}).then((instance) => {
-        //         console.log(instance);
-                
-    
-        //         // instance.exports.exported_func();
-        //     });
-        // }
-
-        // load();
-
         // Transform filters to bit values
         this._filterLayers = new Map();
         this._filterToBits(config);
 
-        // Jolt specific
+        // Jolt data
+        this.Jolt = null;
         this._joltInterface = null;
         this._physicsSystem = null;
         this._bodyInterface = null;
@@ -123,40 +87,58 @@ class JoltBackend {
         this._bodyList = null;
         this._groupFilterTables = [];
 
-        // Physics operators
-        this._creator = new Creator(this);
-        this._modifier = new Modifier(this);
-        this._cleaner = new Cleaner(this);
-        this._querier = new Querier(this);
-        this._tracker = new Tracker(this);
-        this._drawer = new Drawer();
-        
-        const listener = new Listener(this);
+        const loadJolt = async () => {
+            const module = await import(/* webpackIgnore: true */ data.glueUrl);
+            module.default({
+                locateFile: () => {
+                    return data.wasmUrl;
+                }
+            }).then(Jolt => {
+                this.Jolt = Jolt;
 
-        if (config.contactEventsEnabled) {
-            listener.initEvents(config);
+                // Util
+                extendJoltMath(Jolt);
+
+                // Physics operators
+                this._creator = new Creator(this);
+                this._modifier = new Modifier(this);
+                this._cleaner = new Cleaner(this);
+                this._querier = new Querier(this);
+                this._tracker = new Tracker(Jolt);
+                this._drawer = new Drawer(Jolt);
+                
+                const listener = new Listener(this);
+
+                if (config.contactEventsEnabled) {
+                    listener.initEvents(config);
+                }
+
+                this._listener = listener;
+
+                this._outBuffer = new CommandsBuffer({ ...this._config, commandsBufferSize: 2000 });
+
+                this._stepTime = 0;
+                this._steps = 0;
+
+                this._responseMessage = {
+                    buffer: null,
+                    inBuffer: null,
+                    softBodies: [],
+                    origin: 'physics-worker'
+                };
+
+                this._dispatcher = messenger;
+                this._inBuffer = null;
+                this._fatalError = false;
+
+                if (Debug.dev) {
+                    this._perfIndex = null;
+                }
+
+                this._exposeConstants();
+            });
         }
-
-        this._listener = listener;
-
-        this._outBuffer = new CommandsBuffer({ ...this._config, commandsBufferSize: 2000 });
-
-        // Util
-        extendMath();
-
-        this._stepTime = 0;
-        this._steps = 0;
-
-        this._responseMessage = { buffer: null, softBodies: [] };
-        this._dispatcher = messenger;
-        this._inBuffer = null;
-        this._fatalError = false;
-
-        if (Debug.dev) {
-            this._perfIndex = null;
-        }
-
-        this._exposeConstants();
+        loadJolt();
     }
 
     set joltInterface(joltInterface) {
@@ -260,14 +242,20 @@ class JoltBackend {
         }
         
         const { buffer, meshBuffers, dt } = data;
+        const outBuffer = this._outBuffer;
         let inBuffer = this._inBuffer;
+
+        if (data.inBuffer) {
+            outBuffer.buffer = data.inBuffer;
+        }
 
         let ok = true;
         if (buffer) {
             if (!inBuffer) {
                 inBuffer = this._inBuffer = new CommandsBuffer();
-                inBuffer.buffer = buffer;
             }
+            
+            inBuffer.buffer = buffer;
 
             // If commands buffer is provided, then execute commands, before stepping
             try {
@@ -283,8 +271,6 @@ class JoltBackend {
             // so nothing to report and no reason to step the physics.
             return;
         }
-
-        const outBuffer = this._outBuffer;
 
         // potentially step physics system, update motion states
         ok = ok && this._stepPhysics(dt);
@@ -328,6 +314,8 @@ class JoltBackend {
     }
 
     destroy() {
+        const Jolt = this.Jolt;
+
         this._creator.destroy();
         this._creator = null;
 
@@ -373,6 +361,8 @@ class JoltBackend {
 
         this._outBuffer?.destroy();
         this._outBuffer = null;
+
+        this.Jolt = null;
     }
 
     _stepPhysics(dt) {
@@ -413,6 +403,7 @@ class JoltBackend {
     }
 
     _updateMotionStates(alpha, stepped) {
+        const Jolt = this.Jolt;
         const tracker = this._tracker;
         const system = this._physicsSystem;
         const characters = tracker.character;
@@ -454,6 +445,7 @@ class JoltBackend {
     }
 
     _updateCharacters(fixedStep) {
+        const Jolt = this.Jolt;
         const characters = this._tracker.character;
         if (characters.size === 0) return true;
 
@@ -535,6 +527,7 @@ class JoltBackend {
 
     _writeIsometry(cb) {
         // Report transforms of dynamic bodies and vertex positions of soft bodies
+        const Jolt = this.Jolt;
         const system = this._physicsSystem;
         const activeRigidBodiesCount = system.GetNumActiveBodies(Jolt.EBodyType_RigidBody);
         const activeSoftBodiesCount = system.GetNumActiveBodies(Jolt.EBodyType_SoftBody);
@@ -553,6 +546,7 @@ class JoltBackend {
     }
 
     _writeCharacters(cb) {
+        const Jolt = this.Jolt;
         const tracker = this._tracker;
         const characters = tracker.character;
         const count = characters.size;
@@ -624,6 +618,7 @@ class JoltBackend {
         const buffer = outBuffer.buffer;
         const drawer = this._drawer;
         const debugDraw = !!(drawer && drawer.dirty);
+        const useSAB = this._config.useSAB;
 
         outBuffer.reset();
         this._querier.reset();
@@ -635,31 +630,46 @@ class JoltBackend {
             msg.drawViews = null;
         }
 
-        msg.buffer = buffer;
+        msg.buffer = buffer.byteLength > 0 ? buffer : null;
         msg.steps = this._steps;
+
+        // TODO
+        // refactor
+
+        const buffers = [];
+
+        // If we are in a web worker, we need to detach the incoming buffer,
+        // so it is available for write in main thread
+        if (typeof importScripts === 'function') {
+            const inBuffer = this._inBuffer;
+            const ib = inBuffer.buffer;
+            if (ib.byteLength > 0) {
+                msg.inBuffer = ib;
+                if (!useSAB) {
+                    buffers.push(ib);
+                }
+            } else {
+                msg.inBuffer = null;
+            }
+        }
 
         if (Debug.dev) {
             msg.perfIndex = this._perfIndex;
             msg.time = performance.now() - this._stepTime;
         }
 
-        // TODO
-        // refactor
+        if (debugDraw) {
+            buffers.push(...drawer.buffers);
+        }
 
-        if (this._config.useSAB) {
-            if (debugDraw) {
-                dispatcher.respond(msg, [ ...drawer.buffers ]);
-                drawer.reset();
-            } else {
-                dispatcher.respond(msg);
-            }
-        } else {
-            if (debugDraw) {
-                dispatcher.respond(msg, [ buffer, ...drawer.buffers ]);
-                drawer.reset();
-            } else {
-                dispatcher.respond(msg, [ buffer ]);
-            }
+        if (!useSAB && buffer.byteLength > 0) {
+            buffers.push(buffer);
+        }
+        
+        dispatcher.respond(msg, buffers);
+        
+        if (debugDraw) {
+            drawer.reset();
         }
 
         return true;
@@ -683,6 +693,7 @@ class JoltBackend {
     }
 
     _exposeConstants() {
+        const Jolt = this.Jolt;
         const dispatcher = this._dispatcher;
         const msg = this._responseMessage;
 
@@ -724,12 +735,13 @@ class JoltBackend {
             'JOLT_SPRING_MODE_STIFFNESS', Jolt.ESpringMode_StiffnessAndDamping,
         ];
 
-        dispatcher.respond(msg);
+        dispatcher.respond(msg, []);
 
         msg.constants = null;
     }
 
     _writeRigidBodiesIsometry(count, system, cb) {
+        const Jolt = this.Jolt;
         const useMotionStates = this._config.useMotionStates;
         const bodyList = this._bodyList;
         const tracker = this._tracker;
@@ -795,7 +807,7 @@ class JoltBackend {
     }
 
     _writeSoftBodiesVertices(count, system, cb) {
-        // const useMotionStates = this._config.useMotionStates;
+        const Jolt = this.Jolt;
         const bodyList = this._bodyList;
         const tracker = this._tracker;
 

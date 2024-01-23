@@ -4,8 +4,6 @@ import { Debug } from "./debug.mjs";
 import { Dispatcher } from "./dispatcher.mjs";
 import { IndexedCache } from "./indexed-cache.mjs";
 
-const stepMessage = { type: 'step', buffer: null, origin: 'physics-manager' };
-
 class PhysicsManager {
     constructor(app, backendName, opts = {}) {
         const config = {
@@ -34,52 +32,6 @@ class PhysicsManager {
         this._systems = new Map();
         this._backend = null
 
-        // const asset = app.assets.find('jolt-physics.wasm-compat.js');
-        // const url = asset.getFileURL();
-        // asset.ready(loadedAsset => {
-        //     // const resp = await fetch(url);
-        //     // const buffer  = await resp.arrayBuffer();
-
-        //     console.log(loadedAsset)
-            
-        //     // const msg = Object.create(null);
-        //     // msg.type = 'create-backend';
-        //     // // msg.module = asset.getFileURL();
-        //     // msg.backendName = backendName;
-        //     // msg.config = config;
-        //     // this.sendUncompressed(msg);
-        // });
-        // app.assets.load(asset);
-        
-        // const asset = app.assets.find('jolt-physics.wasm-compat.js');
-        // asset.ready(async loadedAsset => {
-        //     const module = await import(loadedAsset.getFileUrl());
-        //     module.default().then(Jolt => {
-        //         console.log(Jolt);
-
-        //         // window.Jolt = Jolt;
-        //         const msg = Object.create(null);
-        //         msg.type = 'create-backend';
-        //         // msg.module = asset.getFileURL();
-        //         msg.backendName = backendName;
-        //         msg.config = config;
-        //         this.sendUncompressed(msg);                
-        //     });
-        // });
-        // app.assets.load(asset);
-
-        // if (window.Jolt) return;
-        // const asset = app.assets.find('jolt-physics.wasm-compat.js');
-        // async function load() {
-        //     const url = asset.getAbsoluteUrl(asset.getFileUrl());
-        //     const module = await import(url);
-        //     module.default().then(Jolt => {
-        //         window.Jolt = Jolt;
-        //         // onLoad();
-        //     });
-        // }
-        // load();
-
         const wasmAsset = app.assets.find('jolt-physics.wasm.wasm');
         const glueAsset = app.assets.find('jolt-physics.wasm.js');
 
@@ -87,33 +39,25 @@ class PhysicsManager {
         msg.type = 'create-backend';
         msg.glueUrl = glueAsset.getFileUrl();
         msg.wasmUrl = wasmAsset.getFileUrl();
-        // msg.module = mod;
         msg.backendName = backendName;
         msg.config = config;
         this.sendUncompressed(msg);
 
-
-        // WebAssembly.compileStreaming(fetch(wasmAsset.getFileUrl())).then((mod) => {
-        //     const msg = Object.create(null);
-        //     msg.type = 'create-backend';
-        //     msg.glueUrl = glueAsset.getFileUrl();
-        //     msg.module = mod;
-        //     msg.backendName = backendName;
-        //     msg.config = config;
-        //     this.sendUncompressed(msg);
-        // });
-
         this._outBuffer = new CommandsBuffer(config);
+        this._outBuffers = [];
         this._inBuffer = null;
+        this._updateEvent = null;
         this._paused = false;
         this._steps = 0;
+        this._stepMessage = {
+            type: 'step', buffer: null, inBuffer: null, origin: 'physics-manager'
+        };
 
         if (Debug.dev) {
             this._perfCache = new IndexedCache();
         }
 
         this._frame = app.stats.frame;
-        this._updateEvent = app.systems.on('postUpdate', this.onUpdate, this);
 
         this.version = info.version;
 
@@ -160,6 +104,12 @@ class PhysicsManager {
             index = this._perfCache.add(startTime);
         }
         
+        // If the buffer has been sent to the web worker,
+        // it might not yet be available this frame, so we exit early.
+        if (this._outBuffer.buffer.byteLength === 0) {
+            return;
+        }
+
         this._writeIsometry();
         this._dispatchCommands(this._frame.dt, index);
     }
@@ -183,6 +133,9 @@ class PhysicsManager {
             // Make sure to use the incoming buffer, as the old one could
             // have been destroyed during resize.
             inBuffer.buffer = msg.buffer;
+            if (msg.inBuffer) {
+                this._outBuffer.buffer = msg.inBuffer;
+            }
 
             const count = inBuffer.commandsCount;
             for (let i = 0; i < count; i++) {
@@ -213,6 +166,8 @@ class PhysicsManager {
 
                 window.pc[key] = value;
             }
+
+            this._updateEvent = this._app.systems.on('postUpdate', this.onUpdate, this);
         }
 
         if (Debug.dev) {
@@ -225,7 +180,7 @@ class PhysicsManager {
             
             cache.free(perfIndex);
             frame.physicsTime = performance.now() - startTime + msg.time;
-        }        
+        }
     }
 
     destroy() {
@@ -259,36 +214,53 @@ class PhysicsManager {
 
     _dispatchCommands(dt, perfIndex) {
         const cb = this._outBuffer;
+        const inBuffer = this._inBuffer;
+        const msg = this._stepMessage;
 
-        stepMessage.dt = dt;
+        msg.dt = dt;
 
         if (!cb.dirty) {
-            stepMessage.buffer = null;
-            this._dispatcher.postMessage(stepMessage);
+            msg.buffer = null;
+            if (inBuffer && inBuffer.buffer.byteLength > 0) {
+                const ib = inBuffer.buffer;
+                msg.inBuffer = ib;
+                this._dispatcher.postMessage(msg, [ ib ]);
+            } else {
+                msg.inBuffer = null;
+                this._dispatcher.postMessage(msg);
+            }
             return;
         }
 
         const buffer = cb.buffer;
-        const buffers = [ buffer ];
-        stepMessage.buffer = buffer;
+        const buffers = this._outBuffers;
+
+        msg.buffer = buffer;
+        buffers.length = 0;
 
         if (Debug.dev) {
-            stepMessage.perfIndex = perfIndex;
+            msg.perfIndex = perfIndex;
         }
 
         // Also add any potential mesh and convex hull shapes buffers
         const meshBuffers = cb.meshBuffers;
         if (meshBuffers.length > 0) {
-            stepMessage.meshBuffers = meshBuffers;
+            msg.meshBuffers = meshBuffers;
             buffers.push(...meshBuffers);
         } else {
-            stepMessage.meshBuffers = null;
+            msg.meshBuffers = null;
         }
 
         if (this._config.useSAB) {
-            this._dispatcher.postMessage(stepMessage);
+            this._dispatcher.postMessage(msg);
         } else {
-            this._dispatcher.postMessage(stepMessage, buffers);
+            buffers.push(buffer);
+            if (inBuffer) {
+                const ib = inBuffer.buffer;
+                msg.inBuffer = ib;
+                buffers.push(ib);
+            }
+            this._dispatcher.postMessage(msg, buffers);
         }
 
         cb.meshBuffers.length = 0;
@@ -296,16 +268,19 @@ class PhysicsManager {
     }
 
     _createDispatcher(config) {
-        if (config.useWebWorker) {
-            // TODO
-            // This will generate a chunk, which will not be able to be found correctly, when
-            // using PlayCanvas Editor. Revisit when ESMScripts are supported.
-            this._dispatcher = new Worker(
-                /* webpackChunkName: "worker" */ new URL('./dispatcher.mjs', import.meta.url
-            ), { type: 'module' });
-        } else {
-            this._dispatcher = new Dispatcher(this);
-        }
+        // TODO
+        // buffers detaching needs some work, before we can enable workers
+
+        // if (config.useWebWorker) {
+        //     this._dispatcher = new Worker(
+        //         /* webpackChunkName: "worker" */ new URL('./dispatcher.mjs', import.meta.url
+        //     ));
+        //     this._dispatcher.onmessage = this.onMessage.bind(this);
+        // } else {
+        //     this._dispatcher = new Dispatcher(this);
+        // }
+
+        this._dispatcher = new Dispatcher(this);
     }
 }
 

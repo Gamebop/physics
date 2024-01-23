@@ -30,10 +30,12 @@ class Listener {
     // Contact Events
 
     onContactValidate(body1, body2, baseOffset, collideShapeResult) {
-        return Jolt.ValidateResult_AcceptAllContactsForThisBodyPair;
+        return this._backend.Jolt.ValidateResult_AcceptAllContactsForThisBodyPair;
     }
 
     initEvents(config) {
+        const Jolt = this._backend.Jolt;
+
         const listener = new Jolt.ContactListenerJS();
         listener.OnContactValidate = this.onContactValidate.bind(this);
         
@@ -77,8 +79,11 @@ class Listener {
     }
 
     onContactRemoved(subShapePairPointer) {
+        const backend = this._backend;
+        const Jolt = backend.Jolt;
+
         const subShapePair = Jolt.wrapPointer(subShapePairPointer, Jolt.SubShapeIDPair);
-        const bodyLockInterface = this._backend.physicsSystem.GetBodyLockInterface();
+        const bodyLockInterface = backend.physicsSystem.GetBodyLockInterface();
 
         let body1 = bodyLockInterface.TryGetBody(subShapePair.GetBody1ID());
         let body2 = bodyLockInterface.TryGetBody(subShapePair.GetBody2ID());
@@ -96,6 +101,7 @@ class Listener {
     }
 
     onContactAdded(b1Pointer, b2Pointer, manifoldPointer, settingsPointer) {
+        const Jolt = this._backend.Jolt;
         const data = this._contactsData;
         const { contactPoints, contactPointsAveraged } = this._backend.config;
         const manifold = Jolt.wrapPointer(manifoldPointer, Jolt.ContactManifold);
@@ -139,6 +145,8 @@ class Listener {
     // Character contact events
 
     initCharacterEvents() {
+        const Jolt = this._backend.Jolt;
+
         const listener = new Jolt.CharacterContactListenerJS();
 
         listener.OnAdjustBodyVelocity = () => {};
@@ -156,13 +164,16 @@ class Listener {
     }
 
     onCharContactSolve(character, bodyID2, subShapeID2, cp, cn, cv, contactMaterial, characterVelocity, nv) {
+        const backend = this._backend;
+        const Jolt = backend.Jolt;
+        const tracker = backend.tracker;
+
         character = Jolt.wrapPointer(character, Jolt.CharacterVirtual);
         cp = Jolt.wrapPointer(cp, Jolt.Vec3);
         cn = Jolt.wrapPointer(cn, Jolt.Vec3);
         cv = Jolt.wrapPointer(cv, Jolt.Vec3);
         nv = Jolt.wrapPointer(nv, Jolt.Vec3);
 
-        const tracker = this._backend.tracker;
         const data = this._charContactsData;
         const index = tracker.getPCID(Jolt.getPointer(character));
         
@@ -211,6 +222,7 @@ class Listener {
     }
 
     initVehicleEvents(constraint) {
+        const Jolt = this._backend.Jolt;
         const listener = Jolt.VehicleConstraintCallbacksJS();
 
         listener.GetCombinedFriction = (wheelIndex, tireFrictionDirection, tireFriction, body2, subShapeID2) => {
@@ -239,6 +251,8 @@ class Listener {
     }
 
     destroy() {
+        const Jolt = this._backend.Jolt;
+
         if (this._listener) {
             Jolt.destroy(this._listener);
             this._listener = null;
@@ -372,6 +386,7 @@ class Listener {
     }
 
     _wrapAndWrite(b1Pointer, b2Pointer, type, ignoreCache) {
+        const Jolt = this._backend.Jolt;
         const Body = Jolt.Body;
 
         const body1 = Jolt.wrapPointer(b1Pointer, Body);
@@ -381,8 +396,10 @@ class Listener {
     }
 
     _writeContactPair(body1, body2, type, ignoreCache) {
-        const tracker = this._backend.tracker;
+        const backend = this._backend;
         const data = this._contactsData;
+        const Jolt = backend.Jolt;
+        const tracker = backend.tracker;
 
         let idx1 = null;
         if (body1 !== null) {

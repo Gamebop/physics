@@ -1,26 +1,15 @@
 import {
     BUFFER_READ_BOOL, BUFFER_READ_FLOAT32, BUFFER_READ_INT32, BUFFER_READ_UINT16,
-    BUFFER_READ_UINT32, BUFFER_READ_UINT8,
-    CMD_CREATE_BODY,
-    CMD_CREATE_CHAR,
-    CMD_CREATE_CONSTRAINT,
-    CMD_CREATE_GROUPS,
-    CMD_CREATE_SHAPE,
-    CMD_CREATE_SOFT_BODY,
-    CMD_CREATE_VEHICLE,
-    CONSTRAINT_SIX_DOF_ROTATION_X, CONSTRAINT_SIX_DOF_ROTATION_Y, CONSTRAINT_SIX_DOF_ROTATION_Z,
-    CONSTRAINT_SIX_DOF_TRANSLATION_X, CONSTRAINT_SIX_DOF_TRANSLATION_Y, CONSTRAINT_SIX_DOF_TRANSLATION_Z,
-    CONSTRAINT_SPACE_WORLD, CONSTRAINT_TYPE_CONE, CONSTRAINT_TYPE_DISTANCE, CONSTRAINT_TYPE_FIXED,
-    CONSTRAINT_TYPE_HINGE, CONSTRAINT_TYPE_POINT, CONSTRAINT_TYPE_SIX_DOF, CONSTRAINT_TYPE_SLIDER,
-    CONSTRAINT_TYPE_SWING_TWIST, SHAPE_BOX, SHAPE_CAPSULE,
-    SHAPE_CONVEX_HULL,
-    SHAPE_CYLINDER, SHAPE_HEIGHTFIELD, SHAPE_MESH, SHAPE_SOFT_BODY, SHAPE_SPHERE, SHAPE_STATIC_COMPOUND,
-    SPRING_MODE_FREQUENCY,
-    VEHICLE_CAST_TYPE_CYLINDER,
-    VEHICLE_CAST_TYPE_RAY,
-    VEHICLE_CAST_TYPE_SPHERE,
-    VEHICLE_TYPE_MOTORCYCLE,
-    VEHICLE_TYPE_WHEEL
+    BUFFER_READ_UINT32, BUFFER_READ_UINT8, CMD_CREATE_BODY, CMD_CREATE_CHAR,
+    CMD_CREATE_CONSTRAINT, CMD_CREATE_GROUPS, CMD_CREATE_SHAPE, CMD_CREATE_SOFT_BODY,
+    CMD_CREATE_VEHICLE, CONSTRAINT_SIX_DOF_ROTATION_X, CONSTRAINT_SIX_DOF_ROTATION_Y, 
+    CONSTRAINT_SIX_DOF_ROTATION_Z, CONSTRAINT_SIX_DOF_TRANSLATION_X, CONSTRAINT_SIX_DOF_TRANSLATION_Y,
+    CONSTRAINT_SIX_DOF_TRANSLATION_Z, CONSTRAINT_SPACE_WORLD, CONSTRAINT_TYPE_CONE, CONSTRAINT_TYPE_DISTANCE,
+    CONSTRAINT_TYPE_FIXED, CONSTRAINT_TYPE_HINGE, CONSTRAINT_TYPE_POINT, CONSTRAINT_TYPE_SIX_DOF,
+    CONSTRAINT_TYPE_SLIDER, CONSTRAINT_TYPE_SWING_TWIST, SHAPE_BOX, SHAPE_CAPSULE, SHAPE_CONVEX_HULL,
+    SHAPE_CYLINDER, SHAPE_HEIGHTFIELD, SHAPE_MESH, SHAPE_SPHERE, SHAPE_STATIC_COMPOUND, 
+    SPRING_MODE_FREQUENCY, VEHICLE_CAST_TYPE_CYLINDER, VEHICLE_CAST_TYPE_RAY, VEHICLE_CAST_TYPE_SPHERE,
+    VEHICLE_TYPE_MOTORCYCLE, VEHICLE_TYPE_WHEEL
 } from "../../../physics/components/jolt/constants.mjs";
 import { Debug } from "../../../physics/debug.mjs";
 import { MotionState } from "../motion-state.mjs";
@@ -30,10 +19,6 @@ class Creator {
         this._backend = backend;
 
         this.createPhysicsSystem();
-
-        this._joltVec3 = new Jolt.Vec3();
-        this._joltVec3_2 = new Jolt.Vec3();
-        this._joltQuat = new Jolt.Quat();
     }
 
     create(meshBuffers) {
@@ -84,6 +69,11 @@ class Creator {
         const layerPairs = config.layerPairs;
         const layers = config.layers;
         const layersCount = layers.length;
+        const Jolt = backend.Jolt;
+
+        this._joltVec3 = new Jolt.Vec3();
+        this._joltVec3_2 = new Jolt.Vec3();
+        this._joltQuat = new Jolt.Quat();
 
         const objectFilter = new Jolt.ObjectLayerPairFilterTable(layersCount);
         for (let i = 0; i < layersCount; i++) {
@@ -149,6 +139,8 @@ class Creator {
     }
 
     createShapeSettings(shape, ...attr) {
+        const Jolt = this._backend.Jolt;
+
         switch (shape) {
             case SHAPE_BOX:
                 return new Jolt.BoxShapeSettings(attr[0] /* half extent */, attr[1] /* convex radius */);
@@ -195,6 +187,7 @@ class Creator {
         const backend = this._backend;
         const jv = this._joltVec3;
         const jq = this._joltQuat;
+        const Jolt = backend.Jolt;
 
         // ------------ SHAPE PROPS ----------------
 
@@ -332,12 +325,13 @@ class Creator {
 
     _createSoftBody(cb, meshBuffers) {
         const backend = this._backend;
+        const Jolt = backend.Jolt;
         const jv = this._joltVec3;
         const jq = this._joltQuat;
 
         // ------------ SHAPE PROPS ----------------
 
-        const shapeSettings = Creator.createSoftBodyShapeSettings(cb, meshBuffers);
+        const shapeSettings = Creator.createSoftBodyShapeSettings(cb, meshBuffers, Jolt);
         if (!shapeSettings) {
             return false;
         }
@@ -368,43 +362,17 @@ class Creator {
         // collision sub group
         const subGroup = cb.flag ? cb.read(BUFFER_READ_UINT32) : null;
 
-        if (Debug.dev) {
-            const mObjectLayer = cb.read(BUFFER_READ_UINT16);
-            const mNumIterations = cb.read(BUFFER_READ_UINT32);
-            const mLinearDamping = cb.read(BUFFER_READ_FLOAT32);
-            const mMaxLinearVelocity = cb.read(BUFFER_READ_FLOAT32);
-            const mRestitution = cb.read(BUFFER_READ_FLOAT32);
-            const mFriction = cb.read(BUFFER_READ_FLOAT32);
-            const mPressure = cb.read(BUFFER_READ_FLOAT32);
-            const mGravityFactor = cb.read(BUFFER_READ_FLOAT32);
-            const mUpdatePosition = cb.read(BUFFER_READ_BOOL);
-            const mMakeRotationIdentity = cb.read(BUFFER_READ_BOOL);
-            const mAllowSleeping = cb.read(BUFFER_READ_BOOL);
-
-            bodyCreationSettings.mObjectLayer = mObjectLayer;
-            // bodyCreationSettings.mNumIterations = mNumIterations;
-            // bodyCreationSettings.mLinearDamping = mLinearDamping;
-            // bodyCreationSettings.mMaxLinearVelocity = mMaxLinearVelocity;
-            // bodyCreationSettings.mRestitution = mRestitution;
-            // bodyCreationSettings.mFriction = mFriction;
-            // bodyCreationSettings.mPressure = mPressure;
-            // bodyCreationSettings.mGravityFactor = mGravityFactor;
-            bodyCreationSettings.mUpdatePosition = mUpdatePosition;
-            // bodyCreationSettings.mMakeRotationIdentity = mMakeRotationIdentity;
-            // bodyCreationSettings.mAllowSleeping = mAllowSleeping;
-        } else {
-            bodyCreationSettings.mObjectLayer = cb.read(BUFFER_READ_UINT16);
-            bodyCreationSettings.mNumIterations = cb.read(BUFFER_READ_UINT32);
-            bodyCreationSettings.mLinearDamping = cb.read(BUFFER_READ_FLOAT32);
-            bodyCreationSettings.mMaxLinearVelocity = cb.read(BUFFER_READ_FLOAT32);
-            bodyCreationSettings.mRestitution = cb.read(BUFFER_READ_FLOAT32);
-            bodyCreationSettings.mFriction = cb.read(BUFFER_READ_FLOAT32);
-            bodyCreationSettings.mPressure = cb.read(BUFFER_READ_FLOAT32);
-            bodyCreationSettings.mGravityFactor = cb.read(BUFFER_READ_FLOAT32);
-            bodyCreationSettings.mUpdatePosition = cb.read(BUFFER_READ_BOOL);
-            bodyCreationSettings.mMakeRotationIdentity = cb.read(BUFFER_READ_BOOL);
-            bodyCreationSettings.mAllowSleeping = cb.read(BUFFER_READ_BOOL);
-        }
+        bodyCreationSettings.mObjectLayer = cb.read(BUFFER_READ_UINT16);
+        bodyCreationSettings.mNumIterations = cb.read(BUFFER_READ_UINT32);
+        bodyCreationSettings.mLinearDamping = cb.read(BUFFER_READ_FLOAT32);
+        bodyCreationSettings.mMaxLinearVelocity = cb.read(BUFFER_READ_FLOAT32);
+        bodyCreationSettings.mRestitution = cb.read(BUFFER_READ_FLOAT32);
+        bodyCreationSettings.mFriction = cb.read(BUFFER_READ_FLOAT32);
+        bodyCreationSettings.mPressure = cb.read(BUFFER_READ_FLOAT32);
+        bodyCreationSettings.mGravityFactor = cb.read(BUFFER_READ_FLOAT32);
+        bodyCreationSettings.mUpdatePosition = cb.read(BUFFER_READ_BOOL);
+        bodyCreationSettings.mMakeRotationIdentity = cb.read(BUFFER_READ_BOOL);
+        bodyCreationSettings.mAllowSleeping = cb.read(BUFFER_READ_BOOL);
         
         // debug draw
         const debugDraw = Debug.dev ? cb.read(BUFFER_READ_BOOL) : false;
@@ -446,6 +414,7 @@ class Creator {
 
     _createVehicle(cb) {
         const backend = this._backend;
+        const Jolt = backend.Jolt;
         const tracker = backend.tracker;
         const physicsSystem = backend.physicsSystem;
         const jv = this._joltVec3;
@@ -714,6 +683,7 @@ class Creator {
 
     _createGroups(cb) {
         const backend = this._backend;
+        const Jolt = backend.Jolt;
         const groupsCount = cb.read(BUFFER_READ_UINT32);
         if (Debug.dev) {
             let ok = Debug.checkUint(groupsCount, `Invalid filter groups count: ${ groupsCount }`);
@@ -739,6 +709,7 @@ class Creator {
     }
 
     _createShapeSettings(cb, meshBuffers) {
+        const Jolt = this._backend.Jolt;
         const jv = this._joltVec3;
         const jq = this._joltQuat;
         const shapeType = cb.read(BUFFER_READ_UINT8);
@@ -933,6 +904,7 @@ class Creator {
             }
         }
 
+        const Jolt = this._backend.Jolt;
         const jv = this._joltVec3;
         const buffer = meshBuffers.shift();
         const samples = new Float32Array(buffer);
@@ -961,6 +933,7 @@ class Creator {
     _createConstraint(cb) {
         const jv = this._joltVec3;
         const backend = this._backend;
+        const Jolt = backend.Jolt;
         const tracker = backend.tracker;
         const physicsSystem = backend.physicsSystem;
 
@@ -1010,7 +983,7 @@ class Creator {
                 if (cb.flag) settings.mMinDistance = cb.read(BUFFER_READ_FLOAT32);
                 if (cb.flag) settings.mMaxDistance = cb.read(BUFFER_READ_FLOAT32);
                 if (cb.read(BUFFER_READ_BOOL)) {
-                    const springSettings = this._createSpringSettings(cb);
+                    const springSettings = this._createSpringSettings(cb, Jolt);
                     settings.mLimitsSpringSettings = springSettings;
                     Jolt.destroy(springSettings);
                 }
@@ -1028,12 +1001,12 @@ class Creator {
                 if (cb.flag) settings.mLimitsMax = cb.read(BUFFER_READ_FLOAT32);
                 if (cb.flag) settings.mMaxFrictionTorque = cb.read(BUFFER_READ_FLOAT32);
                 if (cb.read(BUFFER_READ_BOOL)) {
-                    const springSettings = this._createSpringSettings(cb);
+                    const springSettings = this._createSpringSettings(cb, Jolt);
                     settings.mLimitsSpringSettings = springSettings;
                     Jolt.destroy(springSettings);
                 }
                 if (cb.read(BUFFER_READ_BOOL)) {
-                    const motorSettings = this._createMotorSettings(cb);
+                    const motorSettings = this._createMotorSettings(cb, Jolt);
                     settings.mMotorSettings = motorSettings;
                     Jolt.destroy(motorSettings);
                 }
@@ -1054,12 +1027,12 @@ class Creator {
                 if (cb.flag) settings.mLimitsMax = cb.read(BUFFER_READ_FLOAT32);
                 if (cb.flag) settings.mMaxFrictionForce = cb.read(BUFFER_READ_FLOAT32);
                 if (cb.read(BUFFER_READ_BOOL)) {
-                    const springSettings = this._createSpringSettings(cb);
+                    const springSettings = this._createSpringSettings(cb, Jolt);
                     settings.mLimitsSpringSettings = springSettings;
                     Jolt.destroy(springSettings);
                 }
                 if (cb.read(BUFFER_READ_BOOL)) {
-                    const motorSettings = this._createMotorSettings(cb);
+                    const motorSettings = this._createMotorSettings(cb, Jolt);
                     settings.mMotorSettings = motorSettings;
                     Jolt.destroy(motorSettings);
                 }
@@ -1088,12 +1061,12 @@ class Creator {
                 if (cb.flag) settings.mTwistMaxAngle = cb.read(BUFFER_READ_FLOAT32);
                 if (cb.flag) settings.mMaxFrictionTorque = cb.read(BUFFER_READ_FLOAT32);
                 if (cb.read(BUFFER_READ_BOOL)) {
-                    const swingMotorSettings = this._createMotorSettings(cb);
+                    const swingMotorSettings = this._createMotorSettings(cb, Jolt);
                     settings.mSwingMotorSettings = swingMotorSettings;
                     Jolt.destroy(swingMotorSettings);
                 }
                 if (cb.read(BUFFER_READ_BOOL)) {
-                    const twistMotorSettings = this._createMotorSettings(cb);
+                    const twistMotorSettings = this._createMotorSettings(cb, Jolt);
                     settings.mTwistMotorSettings = twistMotorSettings;
                     Jolt.destroy(twistMotorSettings);
                 }
@@ -1221,12 +1194,12 @@ class Creator {
                 if (cb.flag) settings.mLimitMin = cb.read(BUFFER_READ_FLOAT32);
                 if (cb.flag) settings.mLimitMax = cb.read(BUFFER_READ_FLOAT32);
                 if (cb.read(BUFFER_READ_BOOL)) {
-                    const springSettings = this._createSpringSettings(cb);
+                    const springSettings = this._createSpringSettings(cb, Jolt);
                     settings.mLimitsSpringSettings = springSettings;
                     Jolt.destroy(springSettings);
                 }
                 if (cb.read(BUFFER_READ_BOOL)) {
-                    const motorSettings = this._createMotorSettings(cb);
+                    const motorSettings = this._createMotorSettings(cb, Jolt);
                     settings.mMotorSettings = motorSettings;
                     Jolt.destroy(motorSettings);
                 }
@@ -1269,7 +1242,7 @@ class Creator {
         return true;
     }
 
-    _createSpringSettings(cb) {
+    _createSpringSettings(cb, Jolt) {
         const springSettings = new Jolt.SpringSettings();
         const mode = cb.flag ? cb.read(BUFFER_READ_UINT8) : SPRING_MODE_FREQUENCY;
         springSettings.mMode = (mode === SPRING_MODE_FREQUENCY) ? 
@@ -1280,10 +1253,10 @@ class Creator {
         return springSettings;
     }
 
-    _createMotorSettings(cb) {
+    _createMotorSettings(cb, Jolt) {
         const motorSettings = new Jolt.MotorSettings();
         if (cb.read(BUFFER_READ_BOOL)) {
-            const springsSettings = this._createSpringSettings(cb);
+            const springsSettings = this._createSpringSettings(cb, Jolt);
             motorSettings.mSpringSettings = springsSettings;
             Jolt.destroy(springsSettings);
         }
@@ -1297,6 +1270,7 @@ class Creator {
 
     _createCharacter(cb) {
         const backend = this._backend;
+        const Jolt = backend.Jolt;
         const listener = backend.listener;
         const charEvents = backend.config.charContactEventsEnabled;
         const jv = this._joltVec3;
@@ -1374,6 +1348,7 @@ class Creator {
     }
 
     static createMeshShapeSettings(cb, meshBuffers, shapeType) {
+        const Jolt = this._backend.Jolt;
         const {
             base, stride, numIndices, triCount, positions, indices
         } = Creator.readMeshBuffers(cb, meshBuffers);
@@ -1434,7 +1409,7 @@ class Creator {
         return settings;
     }
 
-    static createSoftBodyShapeSettings(cb, meshBuffers) {
+    static createSoftBodyShapeSettings(cb, meshBuffers, Jolt) {
         // scale
         const useScale = cb.read(BUFFER_READ_BOOL);
         let sx = 1;
@@ -1456,7 +1431,7 @@ class Creator {
         }
 
         const {
-            base, stride, vertexCount, triCount, positions, indices
+            base, vertexCount, triCount, positions, indices
         } = Creator.readMeshBuffers(cb, meshBuffers);
         
         const settings = new Jolt.SoftBodySharedSettings();

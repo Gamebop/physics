@@ -1,8 +1,8 @@
 import { Debug } from "../../../physics/debug.mjs";
 
 class Tracker {
-    constructor(backend) {
-        this.backend = backend;
+    constructor(Jolt) {
+        this._Jolt = Jolt;
 
         // TODO
         // eval: get rid of _dynamic and _kinematic
@@ -45,6 +45,8 @@ class Tracker {
     }
 
     add(body, index) {
+        const Jolt = this._Jolt;
+
         if (body.isCharacter) {
             this._character.add(body);
         } else {
@@ -75,16 +77,6 @@ class Tracker {
         this._idxMap.set(Jolt.getPointer(body), index);
         this._bodyMap.set(index, body);
     }
-
-    // addCharacter(char, index) {
-        
-    //     this._idxMap.set(Jolt.getPointer(char), index);
-    //     this._bodyMap.set(index, char);
-
-    //     if (Debug.dev && char.debugDraw) {
-    //         this._debug.add(char);
-    //     }
-    // }
 
     addConstraint(index, constraint, body1, body2) {
         this._constraintMap.set(index, { constraint, body1, body2 });
@@ -120,6 +112,8 @@ class Tracker {
     }
 
     destroy() {
+        const Jolt = this._Jolt;
+
         this._dynamic.clear();
         this._kinematic.clear();
 
@@ -136,6 +130,8 @@ class Tracker {
         if (Debug.dev) {
             this._debug.clear();
         }
+
+        this._Jolt = null;
     }
 }
 

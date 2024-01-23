@@ -9,41 +9,10 @@ import { Debug } from "../../../physics/debug.mjs";
 const params = [];
 
 class Querier {
-    static writeRayHit(buffer, system, tracker, cast, calculateNormal, hit) {
-        const body = system.GetBodyLockInterfaceNoLock().TryGetBody(hit.mBodyID);
-        const point = cast.GetPointOnRay(hit.mFraction);
-        const normal = calculateNormal ? body.GetWorldSpaceSurfaceNormal(hit.mSubShapeID2, point) : null;
-
-        const index = tracker.getPCID(Jolt.getPointer(body));
-        buffer.write(index, BUFFER_WRITE_UINT32, false);
-        buffer.write(point, BUFFER_WRITE_JOLTVEC32, false);
-        buffer.write(normal, BUFFER_WRITE_JOLTVEC32);
-
-        Jolt.destroy(point);
-    }
-
-    static writeShapeHit(buffer, system, tracker, cast, calculateNormal, hit) {
-        const body = system.GetBodyLockInterfaceNoLock().TryGetBody(hit.mBodyID2);
-        const transform = cast.mCenterOfMassStart;
-        const point = transform.GetTranslation();
-        const dir = cast.mDirection;
-
-        dir.Mul(hit.mFraction);
-        point.Add(dir);
-
-        const normal = calculateNormal ? body.GetWorldSpaceSurfaceNormal(hit.mSubShapeID2, point) : null;
-
-        const index = tracker.getPCID(Jolt.getPointer(body));
-        buffer.write(index, BUFFER_WRITE_UINT32, false);
-        buffer.write(point, BUFFER_WRITE_JOLTVEC32, false);
-        buffer.write(normal, BUFFER_WRITE_JOLTVEC32);
-
-        Jolt.destroy(point);
-        if (normal) Jolt.destroy(normal);
-    }    
-
     constructor(backend) {
         this._backend = backend;
+        
+        const Jolt = backend.Jolt;
 
         // TODO
         // refactor to lazy allocate
@@ -56,7 +25,6 @@ class Querier {
         ];
 
         this._shapeCastSettings = new Jolt.ShapeCastSettings();
-
 
         this._collectorRayFirst = new Jolt.CastRayClosestHitCollisionCollector();
         this._collectorRayAll = new Jolt.CastRayAllHitCollisionCollector();
@@ -161,14 +129,16 @@ class Querier {
     }
 
     _castRay(cb) {
-        const tracker = this._backend.tracker;
+        const backend = this._backend;
         const buffer = this._commandsBuffer;
         const castSettings = this._rayCastSettings;
         const jv = this._tempVectors[1];
         const cast = this._rayCast;
-        const system = this._backend.physicsSystem;
-
         const cache = this._bodies;
+        const tracker = backend.tracker;
+        const system = backend.physicsSystem;
+        const Jolt = backend.Jolt;
+
         cache.length = 0;
 
         buffer.writeCommand(CMD_CAST_RAY);
@@ -198,7 +168,7 @@ class Querier {
             if (firstOnly) {
                 if (collector.HadHit()) {
                     buffer.write(1, BUFFER_WRITE_UINT16, false); // hits count
-                    Querier.writeRayHit(buffer, system, tracker, cast, calculateNormal, collector.mHit);
+                    Querier.writeRayHit(buffer, system, tracke, cast, calculateNormal, collector.mHit, Jolt);
                     this._dirty = true;
                 }
             } else {
@@ -206,7 +176,7 @@ class Querier {
                 const count = hits.size();
                 buffer.write(count, BUFFER_WRITE_UINT16, false); // hits count
                 for (let i = 0; i < count; i++) {
-                    Querier.writeRayHit(buffer, system, tracker, cast, calculateNormal, hits.at(i));
+                    Querier.writeRayHit(buffer, system, tracker, cast, calculateNormal, hits.at(i), Jolt);
                     this._dirty = true;
                 }
             }
@@ -234,6 +204,7 @@ class Querier {
         const tracker = backend.tracker;
         const creator = backend.creator;
         const system = backend.physicsSystem;
+        const Jolt = backend.Jolt;
 
         const queryIndex = cb.read(BUFFER_READ_UINT32);
         const shapeType = cb.read(BUFFER_READ_UINT8);
@@ -347,6 +318,40 @@ class Querier {
         }
 
         return true;
+    }
+
+    static writeRayHit(buffer, system, tracker, cast, calculateNormal, hit, Jolt) {
+        const body = system.GetBodyLockInterfaceNoLock().TryGetBody(hit.mBodyID);
+        const point = cast.GetPointOnRay(hit.mFraction);
+        const normal = calculateNormal ? body.GetWorldSpaceSurfaceNormal(hit.mSubShapeID2, point) : null;
+
+        const index = tracker.getPCID(Jolt.getPointer(body));
+        buffer.write(index, BUFFER_WRITE_UINT32, false);
+        buffer.write(point, BUFFER_WRITE_JOLTVEC32, false);
+        buffer.write(normal, BUFFER_WRITE_JOLTVEC32);
+
+        Jolt.destroy(point);
+        if (normal) Jolt.destroy(normal);
+    }
+
+    static writeShapeHit(buffer, system, tracker, cast, calculateNormal, hit, Jolt) {
+        const body = system.GetBodyLockInterfaceNoLock().TryGetBody(hit.mBodyID2);
+        const transform = cast.mCenterOfMassStart;
+        const point = transform.GetTranslation();
+        const dir = cast.mDirection;
+
+        dir.Mul(hit.mFraction);
+        point.Add(dir);
+
+        const normal = calculateNormal ? body.GetWorldSpaceSurfaceNormal(hit.mSubShapeID2, point) : null;
+
+        const index = tracker.getPCID(Jolt.getPointer(body));
+        buffer.write(index, BUFFER_WRITE_UINT32, false);
+        buffer.write(point, BUFFER_WRITE_JOLTVEC32, false);
+        buffer.write(normal, BUFFER_WRITE_JOLTVEC32);
+
+        Jolt.destroy(point);
+        if (normal) Jolt.destroy(normal);
     }
 }
 

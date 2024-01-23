@@ -27,6 +27,8 @@ class Modifier {
     constructor(backend) {
         this._backend = backend;
 
+        const Jolt = backend.Jolt;
+
         this._joltVec3_1 = new Jolt.Vec3();
         this._joltVec3_2 = new Jolt.Vec3();
         this._joltVec3_3 = new Jolt.Vec3();
@@ -124,10 +126,17 @@ class Modifier {
     }
 
     destroy() {
+        const Jolt = this._backend.Jolt;
+
         Jolt.destroy(this._joltVec3_1);
         Jolt.destroy(this._joltVec3_2);
         Jolt.destroy(this._joltVec3_3);
         Jolt.destroy(this._joltQuat_1);
+
+        this._joltVec3_1 = null;
+        this._joltVec3_2 = null;
+        this._joltVec3_3 = null;
+        this._joltQuat_1 = null;        
     }
 
     _changeGravity(cb) {
@@ -321,6 +330,7 @@ class Modifier {
 
     _setConstraintEnabled(cb) {
         const backend = this._backend;
+        const Jolt = backend.Jolt;
 
         const index = cb.read(BUFFER_READ_UINT32);
         const enabled = cb.read(BUFFER_READ_BOOL);
@@ -375,6 +385,7 @@ class Modifier {
 
     _moveBody(cb) {
         const backend = this._backend;
+        const Jolt = backend.Jolt;
         const jv = this._joltVec3_1;
         const jq = this._joltQuat_1;
         const body = this._getBody(cb);
@@ -457,6 +468,7 @@ class Modifier {
 
     _setMotionType(cb) {
         const backend = this._backend;
+        const Jolt = backend.Jolt;
         const tracker = backend.tracker;
         const bodyInterface = backend.bodyInterface;
         const index = cb.read(BUFFER_READ_UINT16);

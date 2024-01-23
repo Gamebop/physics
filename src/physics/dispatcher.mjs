@@ -75,12 +75,11 @@ class Dispatcher {
         dispatcher = null;
     }
 
-    respond(msg) {
-        msg.origin = 'physics-worker';
+    respond(msg, buffers) {
         if (this._useMainThread) {
             this._manager.onMessage(msg);
         } else {
-            self.postMessage(msg);
+            self.postMessage(msg, buffers);
         }
     }
 }
@@ -88,8 +87,8 @@ class Dispatcher {
 let dispatcher = new Dispatcher();
 
 self.onmessage = function(event) {
-    const data = event.data || event;
-    if (data.origin !== 'physics-manager') return;
+    const data = event.data;
+    if (data?.origin !== 'physics-manager') return;
     dispatcher.handleMessage(data);
 }
 

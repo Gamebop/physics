@@ -1,3 +1,3 @@
 import { init } from "./physics/init.mjs";
 
-export { init };
+export default { init };

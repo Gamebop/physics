@@ -1,27 +1,30 @@
-// const path = require('path');
 import path from 'path';
 import { fileURLToPath } from 'url';
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
 
-// TODO
-// https://github.com/agoldis/webpack-require-from
-
 const config = {
     entry: './src/index.mjs',
     output: {
         filename: 'physics-components.js',
         path: path.resolve(dirname, 'dist'),
-        library: 'PhysicsComponents'
+        library: 'PhysicsComponents',
+        libraryTarget: 'umd',
+        libraryExport: 'default',
+
+        // TODO
+        // a bug? without it, the path to worker chunk becomes:
+        // https://playcanvas.com/static/platform/js/onetrust/
+        workerPublicPath: 'https://launch.playcanvas.com'
     }
 };
 
 export default (env, argv) => {
     if (argv.mode === 'development') {
         config.mode = 'development';
-        config.devtool = 'eval-cheap-source-map';
-        config.devtool = false;
+        // config.devtool = 'eval-cheap-source-map';
+        config.devtool = 'eval-source-map';
         config.output.filename = 'physics-components.dbg.js';
     }
 

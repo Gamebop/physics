@@ -2,7 +2,8 @@ import { FLOAT32_SIZE } from "../../../physics/components/jolt/constants.mjs";
 import { Debug } from "../../../physics/debug.mjs";
 
 class Drawer {
-    constructor() {
+    constructor(Jolt) {
+        this._Jolt = Jolt;
         this._joltAabb = Jolt.AABox.prototype.sBiggest();
         this._joltQuat = Jolt.Quat.prototype.sIdentity();
         this._scale = new Jolt.Vec3(1, 1, 1);
@@ -44,6 +45,8 @@ class Drawer {
     }
 
     destroy() {
+        const Jolt = this._Jolt;
+
         this.reset();
 
         Jolt.destroy(this._joltAabb);
@@ -54,9 +57,13 @@ class Drawer {
 
         Jolt.destroy(this._scale);
         this._scale = null;
+
+        this._Jolt = null;
     }
 
     _writeShape(body, tracker) {
+        const Jolt = this._Jolt;
+        
         try {
             const motionType = body.isCharacter ? Jolt.EMotionType_Kinematic : body.GetMotionType();
             const isRigidBody = body.GetBodyType() === Jolt.EBodyType_RigidBody;
