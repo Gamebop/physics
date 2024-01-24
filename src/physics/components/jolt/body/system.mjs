@@ -54,6 +54,8 @@ class BodyComponentSystem extends ShapeComponentSystem {
         manager.systems.set(id, this);
 
         buildAccessors(this, this.schema);
+
+        this.on('beforeremove', this.onBeforeRemove, this);
     }
 
     overrideContacts(callbacks = {}) {
@@ -129,6 +131,12 @@ class BodyComponentSystem extends ShapeComponentSystem {
         }
 
         super.initializeComponentData(component, data);
+    }
+
+    onBeforeRemove(entity, component) {
+        if (component.enabled) {
+            component.enabled = false;
+        }
     }
 }
 

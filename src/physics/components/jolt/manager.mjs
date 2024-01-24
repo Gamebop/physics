@@ -217,6 +217,9 @@ class JoltManager extends PhysicsManager {
         const cb = this._outBuffer;
         const queryIndex = this._queryMap.add(callback);
 
+        // TODO
+        // get rid of flags
+
         cb.writeOperator(OPERATOR_QUERIER);
         cb.writeCommand(CMD_CAST_SHAPE);
         cb.write(queryIndex, BUFFER_WRITE_UINT32, false);
@@ -229,36 +232,14 @@ class JoltManager extends PhysicsManager {
         cb.write(opts?.backFaceModeConvex, BUFFER_WRITE_UINT8);
         cb.write(opts?.useShrunkenShapeAndConvexRadius, BUFFER_WRITE_BOOL);
         cb.write(opts?.returnDeepestPoint, BUFFER_WRITE_BOOL);
+        // TODO
+        // separate a cast into [single result / multiple results] commands
+        // so we don't allocate new array for a single result query
+        // after we get back from the backend
         cb.write(opts?.firstOnly, BUFFER_WRITE_BOOL);
         cb.write(opts?.calculateNormal, BUFFER_WRITE_BOOL);
         cb.write(shapeIndex, BUFFER_WRITE_UINT32, false);
-
-        // switch (shape) {
-        //     case SHAPE_SPHERE:
-        //         cb.write(opts?.radius, BUFFER_WRITE_FLOAT32);
-        //         break;
-
-        //     case SHAPE_BOX:
-        //         cb.write(opts?.halfExtent, BUFFER_WRITE_VEC32);
-        //         cb.write(opts?.convexRadius, BUFFER_WRITE_FLOAT32);
-        //         break;
-
-        //     case SHAPE_CAPSULE:
-        //         cb.write(opts?.halfHeight, BUFFER_WRITE_FLOAT32);
-        //         cb.write(opts?.radius, BUFFER_WRITE_FLOAT32);
-        //         break;
-
-        //     case SHAPE_CYLINDER:
-        //         cb.write(opts?.halfHeight, BUFFER_WRITE_FLOAT32);
-        //         cb.write(opts?.radius, BUFFER_WRITE_FLOAT32);
-        //         cb.write(opts?.convexRadius, BUFFER_WRITE_VEC32);
-        //         break;
-
-        //     default:
-        //         Debug.dev && Debug.warnOnce(`Invalid shape for casting: ${ shape }`);
-        //         break;
-        // }
-    }    
+    }
 
     createConstraint(type, entity1, entity2, opts = {}) {
         if (Debug.dev) {

@@ -99,12 +99,12 @@ class Tracker {
         this._dynamic.delete(body);
         this._kinematic.delete(body);
         this._character.delete(body);
-
+        
         if (Debug.dev) {
             this._debug.delete(body);
         }
-
-        const jid = Jolt.getPointer(body);
+        
+        const jid = this._Jolt.getPointer(body);
         const idx = this._idxMap.get(jid);
 
         this._bodyMap.delete(idx);

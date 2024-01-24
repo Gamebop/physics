@@ -411,7 +411,7 @@ class BodyComponent extends ShapeComponent {
 
         cb.write(this._motionType, BUFFER_WRITE_UINT8, false);
         cb.write(this._useMotionState, BUFFER_WRITE_BOOL, false);
-        cb.write(this._objectLayer, BUFFER_WRITE_UINT16, false);
+        cb.write(this._objectLayer, BUFFER_WRITE_UINT32, false);
         cb.write(this._linearVelocity, BUFFER_WRITE_VEC32, false);
         cb.write(this._angularVelocity, BUFFER_WRITE_VEC32, false);
         cb.write(this._maxLinearVelocity, BUFFER_WRITE_FLOAT32, false);

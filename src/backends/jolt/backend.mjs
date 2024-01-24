@@ -1,8 +1,12 @@
 import joltInfo from "jolt-physics/package.json";
 
 import {
+    BP_LAYER_MOVING,
+    BP_LAYER_NON_MOVING,
     BUFFER_WRITE_BOOL, BUFFER_WRITE_JOLTVEC32, BUFFER_WRITE_UINT32, BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32,
     CMD_UPDATE_TRANSFORMS, COMPONENT_SYSTEM_BODY, COMPONENT_SYSTEM_CHAR, COMPONENT_SYSTEM_SOFT_BODY,
+    OBJ_LAYER_MOVING,
+    OBJ_LAYER_NON_MOVING,
     OPERATOR_CLEANER, OPERATOR_CREATOR, OPERATOR_MODIFIER, OPERATOR_QUERIER
 } from "../../physics/components/jolt/constants.mjs";
 import { Debug } from "../../physics/debug.mjs";
@@ -61,11 +65,17 @@ class JoltBackend {
             contactRemovedEventsEnabled: true,
             contactPoints: true,
             contactPointsAveraged: true,
-            // object layers
-            layerPairs: [
-                [ 0, 1 ],   // non-moving, moving
-                [ 1, 1 ]    // moving, moving
+            broadPhaseLayers: [ BP_LAYER_NON_MOVING, BP_LAYER_MOVING ],
+            // object layer vs object layer
+            objectLayerPairs: [
+                [ OBJ_LAYER_NON_MOVING, OBJ_LAYER_MOVING ],
+                [ OBJ_LAYER_MOVING, OBJ_LAYER_MOVING ]
             ],
+            // which object layer should collide with what broad phase layers
+            mapObjectToBroadPhaseLayer: {
+                OBJ_LAYER_NON_MOVING: [ BP_LAYER_MOVING ],
+                OBJ_LAYER_MOVING: [ BP_LAYER_NON_MOVING, BP_LAYER_MOVING ]
+            },
             ...data.config
         };
         this._config = config;
@@ -73,7 +83,7 @@ class JoltBackend {
 
         // Transform filters to bit values
         this._filterLayers = new Map();
-        this._filterToBits(config);
+        // this._filterToBits(config);
 
         // Jolt data
         this.Jolt = null;
@@ -675,22 +685,24 @@ class JoltBackend {
         return true;
     }
 
-    _filterToBits(config) {
-        const filterLayers = this._filterLayers;
-        const pairs = config.layerPairs;
-        for (let i = 0, end = pairs.length; i < end; i++) {
-            const pair = pairs[i];
-            pair[0] = this.getBitValue(pair[0]);
-            pair[1] = this.getBitValue(pair[1]);
-        }
+    
 
-        const layers = [];
-        filterLayers.forEach(key => {
-            layers.push(key);
-        });
+    // _filterToBits(config) {
+    //     const filterLayers = this._filterLayers;
+    //     const pairs = config.layerPairs;
+    //     for (let i = 0, end = pairs.length; i < end; i++) {
+    //         const pair = pairs[i];
+    //         pair[0] = this.getBitValue(pair[0]);
+    //         pair[1] = this.getBitValue(pair[1]);
+    //     }
 
-        config.layers = layers;
-    }
+    //     const layers = [];
+    //     filterLayers.forEach(key => {
+    //         layers.push(key);
+    //     });
+
+    //     config.layers = layers;
+    // }
 
     _exposeConstants() {
         const Jolt = this.Jolt;

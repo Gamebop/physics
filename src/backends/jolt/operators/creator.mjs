@@ -66,32 +66,53 @@ class Creator {
     createPhysicsSystem() {
         const backend = this._backend;
         const config = backend.config;
-        const layerPairs = config.layerPairs;
-        const layers = config.layers;
-        const layersCount = layers.length;
+        // const layerPairs = config.layerPairs;
+        // const layers = config.layers;
+        // const layers = config.objectLayers;
+        // const layersCount = layers.length;
         const Jolt = backend.Jolt;
 
         this._joltVec3 = new Jolt.Vec3();
         this._joltVec3_2 = new Jolt.Vec3();
         this._joltQuat = new Jolt.Quat();
 
-        const objectFilter = new Jolt.ObjectLayerPairFilterTable(layersCount);
-        for (let i = 0; i < layersCount; i++) {
-            const pair = layerPairs[i];
+        const bpMap = new Map();
+
+        const pairs = config.objectLayerPairs;
+        const pairsCount = pairs.length;
+        const objectFilter = new Jolt.ObjectLayerPairFilterTable(pairsCount);
+        for (let i = 0; i < pairsCount; i++) {
+            const pair = pairs[i];
             objectFilter.EnableCollision(pair[0], pair[1]);
         }
 
-        const bpInterface = new Jolt.BroadPhaseLayerInterfaceTable(layersCount, layersCount);
-        for (let i = 0; i < layersCount; i++) {
-            const objLayer = layers[i];
-            const bpLayer = new Jolt.BroadPhaseLayer(objLayer);
-            bpInterface.MapObjectToBroadPhaseLayer(objLayer, bpLayer);
+        const bpLayers = config.broadPhaseLayers;
+        const bpLayerCount = bpLayers.length;
+        const bpInterface = new Jolt.BroadPhaseLayerInterfaceTable(pairsCount, bpLayerCount);
+        for (let i = 0; i < bpLayerCount; i++) {
+            const id = bpLayers[i];
+            const bpLayer = new Jolt.BroadPhaseLayer(id);
+            bpMap.set(id, bpLayer);
         }
+
+        // Map object layers to broadphase layers
+        let objLayerCount = 0;
+        for (const [objLayer, bpLayers] of Object.entries(config.mapObjectToBroadPhaseLayer)) {
+            objLayerCount++;
+            for (let i = 0; i < bpLayers.length; i++) {
+                bpInterface.MapObjectToBroadPhaseLayer(objLayer, bpMap.get(bpLayers[i]));
+            }
+        }
+        // Broadphase layers have been copied to the bpInterface, so we can destroy those
+        bpMap.forEach(bpLayer => {
+            Jolt.destroy(bpLayer);
+        });
+        bpMap.clear();
 
         const settings = new Jolt.JoltSettings();
         settings.mObjectLayerPairFilter = objectFilter;
         settings.mBroadPhaseLayerInterface = bpInterface;
-        settings.mObjectVsBroadPhaseLayerFilter = new Jolt.ObjectVsBroadPhaseLayerFilterTable(settings.mBroadPhaseLayerInterface, layersCount, settings.mObjectLayerPairFilter, layersCount);
+        settings.mObjectVsBroadPhaseLayerFilter = new Jolt.ObjectVsBroadPhaseLayerFilterTable(settings.mBroadPhaseLayerInterface, bpLayerCount, settings.mObjectLayerPairFilter, objLayerCount);
         const joltInterface = new Jolt.JoltInterface(settings);
         Jolt.destroy(settings);
 
@@ -216,8 +237,9 @@ class Creator {
         const useMotionState = cb.read(BUFFER_READ_BOOL);
 
         // object layer
-        const layer = cb.read(BUFFER_READ_UINT16);
-        const objectLayer = backend.getBitValue(layer);
+        // const layer = cb.read(BUFFER_READ_UINT16);
+        // const objectLayer = backend.getBitValue(layer);
+        const objectLayer = cb.read(BUFFER_READ_UINT32);
         const bodyCreationSettings = new Jolt.BodyCreationSettings(shape, jv, jq, motionType, objectLayer);
 
         bodyCreationSettings.mLinearVelocity = jv.FromBuffer(cb);
@@ -249,9 +271,7 @@ class Creator {
             const table = backend.groupFilterTables[group];
 
             if (Debug.dev) {
-                let ok = Debug.checkUint(group, `Invalid filter group: ${ group }`);
-                ok = ok && Debug.checkUint(subGroup, `Invalid filter group: ${ subGroup }`);
-                ok = ok && Debug.assert(!!table, `Trying to set a filter group that does not exist: ${ group }`);
+                let ok = Debug.assert(!!table, `Trying to set a filter group that does not exist: ${ group }`);
                 ok = ok && Debug.assert((subGroup <= table?.maxIndex), `Trying to set sub group that is over the filter group table size: ${ subGroup }`);
                 if (!ok) {
                     return false;
@@ -264,22 +284,8 @@ class Creator {
             mCollisionGroup.SetSubGroupID(subGroup);
         }
 
-        if (Debug.dev) {
-            let ok = Debug.checkUint(index, `invalid body index: ${ index }`);
-            ok = ok && Debug.checkUint(layer, `invalid object layer: ${ layer }`);
-            ok = ok && Debug.checkUint(motionType, `invalid motion type: ${ motionType }`);
-            if (!ok) {
-                return false;
-            }
-        }
-
         // override mass properties
         const selectedMethod = cb.read(BUFFER_READ_UINT8);
-        if (Debug.dev) {
-            const ok = Debug.checkUint(selectedMethod, `invalid mass override method: ${ selectedMethod }`);
-            if (!ok) return false;
-        }
-        
         if (selectedMethod !== Jolt.EOverrideMassProperties_CalculateMassAndInertia) {
             bodyCreationSettings.mOverrideMassProperties = selectedMethod;
 

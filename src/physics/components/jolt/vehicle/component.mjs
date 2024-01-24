@@ -3,7 +3,8 @@ import { BodyComponent } from "../body/component.mjs";
 import {
     BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_INT32, BUFFER_WRITE_UINT16,
     BUFFER_WRITE_UINT32, BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32, CMD_SET_DRIVER_INPUT,
-    OBJECT_LAYER_MOVING, OPERATOR_MODIFIER, VEHICLE_CAST_TYPE_CYLINDER, VEHICLE_CAST_TYPE_RAY,
+    OBJ_LAYER_MOVING,
+    OPERATOR_MODIFIER, VEHICLE_CAST_TYPE_CYLINDER, VEHICLE_CAST_TYPE_RAY,
     VEHICLE_CAST_TYPE_SPHERE, VEHICLE_TYPE_MOTORCYCLE, VEHICLE_TYPE_WHEEL
 } from "../constants.mjs";
 
@@ -107,7 +108,7 @@ class VehicleComponent extends BodyComponent {
     _castType = VEHICLE_CAST_TYPE_RAY;
 
     // Object layer to test collision with.
-    _castObjectLayer = OBJECT_LAYER_MOVING;
+    _castObjectLayer = OBJ_LAYER_MOVING;
 
     // World space up vector, used to avoid colliding with vertical walls.
     _castUp = pc.Vec3.UP;

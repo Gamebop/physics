@@ -29,8 +29,11 @@ export const VEHICLE_CAST_TYPE_RAY = 0;
 export const VEHICLE_CAST_TYPE_SPHERE = 1;
 export const VEHICLE_CAST_TYPE_CYLINDER = 2;
 
-export const OBJECT_LAYER_NON_MOVING = 0;
-export const OBJECT_LAYER_MOVING = 1;
+export const OBJ_LAYER_NON_MOVING = 0;
+export const OBJ_LAYER_MOVING = 1;
+
+export const BP_LAYER_NON_MOVING = 0;
+export const BP_LAYER_MOVING = 1;
 
 export const SHAPE_BOX = 0;
 export const SHAPE_CAPSULE = 1;
