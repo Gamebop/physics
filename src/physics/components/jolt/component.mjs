@@ -49,7 +49,9 @@ class ShapeComponent extends pc.EventHandler {
     _useEntityScale = true;
 
     // Read-only. Constraint indices applied on this body.
-    _constraints = new Map();    
+    // TODO
+    // remove default Map
+    _constraints = new Map();
 
     // Debug draw
     _debugDraw = false;
