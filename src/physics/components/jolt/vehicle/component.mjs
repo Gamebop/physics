@@ -55,7 +55,7 @@ class VehicleComponent extends BodyComponent {
     _inertia = 0.5;
 
     // Angular damping factor of the wheel: dw/dt = -c * w.
-    _angularDamping = 0.2;
+    _wheelAngularDamping = 0.2;
 
     // Curve that describes a ratio of the max torque the engine can produce vs the fraction of the max RPM of the engine.
     _normalizedTorque = new pc.Curve([0, 0.8, 0, 0.8]);
@@ -165,7 +165,7 @@ class VehicleComponent extends BodyComponent {
         cb.write(this._minRPM, BUFFER_WRITE_FLOAT32, false);
         cb.write(this._maxRPM, BUFFER_WRITE_FLOAT32, false);
         cb.write(this._inertia, BUFFER_WRITE_FLOAT32, false);
-        cb.write(this._angularDamping, BUFFER_WRITE_FLOAT32, false);
+        cb.write(this._wheelAngularDamping, BUFFER_WRITE_FLOAT32, false);
         VehicleComponent.writeCurvePoints(cb, this._normalizedTorque);
 
         // transmission data

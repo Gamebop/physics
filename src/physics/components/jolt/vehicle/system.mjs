@@ -5,7 +5,6 @@ import { VehicleComponent } from "./component.mjs";
 
 const schema = [
     'antiRollBars',
-    'angularDamping',
     'castFraction',
     'castMaxSlopeAngle',
     'castObjectLayer',
@@ -40,9 +39,9 @@ const schema = [
     'switchTime',
     'tracks',
     'type',
-    'wheels',
-    'up'
-
+    'up',
+    'wheelAngularDamping',
+    'wheels'
 ];
 
 class VehicleComponentSystem extends BodyComponentSystem {

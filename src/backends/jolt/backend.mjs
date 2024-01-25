@@ -74,7 +74,8 @@ class JoltBackend {
             // which object layer should collide with what broad phase layers
             mapObjectToBroadPhaseLayer: {
                 OBJ_LAYER_NON_MOVING: [ BP_LAYER_MOVING ],
-                OBJ_LAYER_MOVING: [ BP_LAYER_NON_MOVING, BP_LAYER_MOVING ]
+                OBJ_LAYER_MOVING: [ BP_LAYER_NON_MOVING, BP_LAYER_MOVING ],
+                2: [ BP_LAYER_NON_MOVING ]
             },
             ...data.config
         };

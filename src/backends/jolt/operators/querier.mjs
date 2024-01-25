@@ -218,6 +218,8 @@ class Querier {
             collector.Reset();
 
             Jolt.destroy(shapeCast);
+            Jolt.destroy(bpFilter);
+            Jolt.destroy(objFilter);
 
         } catch (e) {
             Debug.dev && Debug.error(e);
