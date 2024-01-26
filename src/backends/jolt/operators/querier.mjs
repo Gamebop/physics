@@ -96,6 +96,7 @@ class Querier {
         const tracker = backend.tracker;
         const system = backend.physicsSystem;
         const Jolt = backend.Jolt;
+        const joltInterface = backend.joltInterface;
 
         buffer.writeCommand(CMD_CAST_RAY);
         
@@ -114,10 +115,17 @@ class Querier {
             const ignoreBackFaces = cb.flag ? cb.read(BUFFER_READ_BOOL) : true;
             const solidConvex = cb.flag ? cb.read(BUFFER_READ_BOOL) : true;
             const collector = firstOnly ? this._collectorRayFirst : this._collectorRayAll;
-            const { bpFilter, objFilter, bodyFilter, shapeFilter } = this._backend;
+            const { bodyFilter, shapeFilter } = this._backend;
     
             castSettings.mBackFaceMode = ignoreBackFaces ? Jolt.EBackFaceMode_IgnoreBackFaces : Jolt.EBackFaceMode_CollideWithBackFaces;
             castSettings.mTreatConvexAsSolid = solidConvex;
+
+            
+            const customBPFilter = cb.flag;
+            const bpFilter = customBPFilter ? new Jolt.DefaultBroadPhaseLayerFilter(joltInterface.GetObjectVsBroadPhaseLayerFilter(), cb.read(BUFFER_READ_UINT32)) : backend.bpFilter;
+
+            const customObjFilter = cb.flag;
+            const objFilter = customObjFilter ? new Jolt.DefaultObjectLayerFilter(joltInterface.GetObjectLayerPairFilter(), cb.read(BUFFER_READ_UINT32)) : backend.objFilter;
 
             system.GetNarrowPhaseQuery().CastRay(cast, castSettings, collector, bpFilter, objFilter, bodyFilter, shapeFilter);
 
@@ -138,6 +146,9 @@ class Querier {
             }
     
             collector.Reset();
+
+            Jolt.destroy(bpFilter);
+            Jolt.destroy(objFilter);
             
         } catch (e) {
             Debug.dev && Debug.error(e);
@@ -160,6 +171,7 @@ class Querier {
         const tracker = backend.tracker;
         const system = backend.physicsSystem;
         const Jolt = backend.Jolt;
+        const joltInterface = backend.joltInterface;
 
         const queryIndex = cb.read(BUFFER_READ_UINT32);
 
@@ -193,10 +205,14 @@ class Querier {
 
             const transform = Jolt.Mat44.prototype.sRotationTranslation(rotation, position);
             const shapeCast = new Jolt.RShapeCast(shape, scale, transform, direction);
-            // const { bpFilter, objFilter, bodyFilter, shapeFilter } = backend;
             const { bodyFilter, shapeFilter } = backend;
-            const bpFilter = new Jolt.DefaultBroadPhaseLayerFilter(backend.joltInterface.GetObjectVsBroadPhaseLayerFilter(), 0);
-            const objFilter = new Jolt.DefaultObjectLayerFilter(backend.joltInterface.GetObjectLayerPairFilter(), 2);
+
+            const customBPFilter = cb.flag;
+            const bpFilter = customBPFilter ? new Jolt.DefaultBroadPhaseLayerFilter(joltInterface.GetObjectVsBroadPhaseLayerFilter(), cb.read(BUFFER_READ_UINT32)) : backend.bpFilter;
+
+            const customObjFilter = cb.flag;
+            const objFilter = customObjFilter ? new Jolt.DefaultObjectLayerFilter(joltInterface.GetObjectLayerPairFilter(), cb.read(BUFFER_READ_UINT32)) : backend.objFilter;
+
             system.GetNarrowPhaseQuery().CastShape(shapeCast, castSettings, offset, collector, bpFilter, objFilter, bodyFilter, shapeFilter);
             
             if (firstOnly) {
@@ -218,8 +234,14 @@ class Querier {
             collector.Reset();
 
             Jolt.destroy(shapeCast);
-            Jolt.destroy(bpFilter);
-            Jolt.destroy(objFilter);
+            
+            if (customBPFilter) {
+                Jolt.destroy(bpFilter);
+            }
+
+            if (customObjFilter) {
+                Jolt.destroy(objFilter);
+            }
 
         } catch (e) {
             Debug.dev && Debug.error(e);

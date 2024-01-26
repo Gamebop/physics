@@ -58,7 +58,7 @@ class VehicleComponent extends BodyComponent {
     _wheelAngularDamping = 0.2;
 
     // Curve that describes a ratio of the max torque the engine can produce vs the fraction of the max RPM of the engine.
-    _normalizedTorque = new pc.Curve([0, 0.8, 0, 0.8]);
+    _normalizedTorque = new pc.Curve([0, 0.8]);
 
     // How to switch gears.
     _mode = pc.JOLT_TRANSMISSION_AUTO;
@@ -122,6 +122,8 @@ class VehicleComponent extends BodyComponent {
 
     // Fraction of half the wheel width (or wheel radius if it is smaller) that is used as the convex radius
     _castFraction = 0.1;
+
+    // Bike Lean:
 
     // How far we're willing to make the bike lean over in turns (in radians)
     _maxLeanAngle = 45;
@@ -297,6 +299,9 @@ class VehicleComponent extends BodyComponent {
         const wheels = this._wheels;
         const count = wheels.length;
 
+        // TODO
+        // consider making wheel as its own component
+
         cb.write(count, BUFFER_WRITE_UINT32, false);
 
         for (let i = 0; i < count; i++) {
@@ -319,6 +324,17 @@ class VehicleComponent extends BodyComponent {
                 if (!ok)
                     return;
             }
+
+            // Read-only. Velocity difference between ground and wheel relative to ground velocity.
+            desc.longitudinalSlip = 0;
+            // Read-only. Angular difference (in radians) between ground and wheel relative to ground velocity.
+            desc.lateralSlip = 0;
+            // Read-only. Combined friction coefficient in longitudinal direction (combines terrain and tires)
+            desc.combinedLongitudinalFriction = 0;
+            // Read-only. Combined friction coefficient in lateral direction (combines terrain and tires)
+            desc.combinedLateralFriction = 0;
+            // Ready-only. Amount of impulse that the brakes can apply to the floor (excluding friction)
+            desc.brakeImpulse = 0;
 
             // Attachment point of wheel suspension in local space of the body.
             cb.write(desc.position, BUFFER_WRITE_VEC32, false);
@@ -379,14 +395,16 @@ class VehicleComponent extends BodyComponent {
             // Slip ratio here is a ratio of wheel spinning relative to the floor. At 0 the wheel has full
             // traction and is rolling perfectly in sync with the ground. At 1 the wheel is locked and
             // is sliding over the ground.
-            VehicleComponent.writeCurvePoints(cb, desc.longitudinalFriction);
+            // Default curve keys: [[0, 0], [0.06, 1.2], [0.2, 1]]
+            VehicleComponent.writeCurvePoints(cb, desc.longitudinalFrictionCurve);
 
             // Friction in sideway direction of tire as a function of the slip angle (degrees):
             // angle between relative contact velocity and vehicle direction.
             // If tire forward matches the vehicle direction, then the angle is 0 degrees. If the 
             // vehicle is sliding sideways, e.g. on ice, then the angle is 90 degrees. Example curve keys could
             // be: [[0, 1], [90, 0.3]] - full friction at zero degrees, and 0.3 friction at 90.
-            VehicleComponent.writeCurvePoints(cb, desc.lateralFriction);
+            // Default curve keys: [[0, 0], [3, 1.2], [20, 1]]
+            VehicleComponent.writeCurvePoints(cb, desc.lateralFrictionCurve);
 
             const type = this._type;
             if (type === VEHICLE_TYPE_WHEEL || type === VEHICLE_TYPE_MOTORCYCLE) {

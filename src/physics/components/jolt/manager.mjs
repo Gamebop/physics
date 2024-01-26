@@ -202,6 +202,8 @@ class JoltManager extends PhysicsManager {
         cb.write(opts?.calculateNormal, BUFFER_WRITE_BOOL);
         cb.write(opts?.ignoreBackFaces, BUFFER_WRITE_BOOL);
         cb.write(opts?.treatConvexAsSolid, BUFFER_WRITE_BOOL);
+        cb.write(opts?.bpFilterLayer, BUFFER_WRITE_UINT32);
+        cb.write(opts?.objFilterLayer, BUFFER_WRITE_UINT32);
     }
 
     castShape(shapeIndex, pos, rot, dir, callback, opts) {
@@ -239,6 +241,8 @@ class JoltManager extends PhysicsManager {
         cb.write(opts?.firstOnly, BUFFER_WRITE_BOOL);
         cb.write(opts?.calculateNormal, BUFFER_WRITE_BOOL);
         cb.write(shapeIndex, BUFFER_WRITE_UINT32, false);
+        cb.write(opts?.bpFilterLayer, BUFFER_WRITE_UINT32);
+        cb.write(opts?.objFilterLayer, BUFFER_WRITE_UINT32);
     }
 
     createConstraint(type, entity1, entity2, opts = {}) {

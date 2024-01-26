@@ -3,7 +3,7 @@ import joltInfo from "jolt-physics/package.json";
 import {
     BP_LAYER_MOVING,
     BP_LAYER_NON_MOVING,
-    BUFFER_WRITE_BOOL, BUFFER_WRITE_JOLTVEC32, BUFFER_WRITE_UINT32, BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32,
+    BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_JOLTVEC32, BUFFER_WRITE_UINT32, BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32,
     CMD_UPDATE_TRANSFORMS, COMPONENT_SYSTEM_BODY, COMPONENT_SYSTEM_CHAR, COMPONENT_SYSTEM_SOFT_BODY,
     OBJ_LAYER_MOVING,
     OBJ_LAYER_NON_MOVING,
@@ -74,7 +74,7 @@ class JoltBackend {
             // which object layer should collide with what broad phase layers
             mapObjectToBroadPhaseLayer: {
                 OBJ_LAYER_NON_MOVING: [ BP_LAYER_MOVING ],
-                OBJ_LAYER_MOVING: [ BP_LAYER_NON_MOVING, BP_LAYER_MOVING ],
+                OBJ_LAYER_MOVING: [ BP_LAYER_MOVING ],
                 2: [ BP_LAYER_NON_MOVING ]
             },
             ...data.config
@@ -803,8 +803,14 @@ class JoltBackend {
                     jv2.Set(1, 0, 0);
 
                     for (let i = 0; i < wheelsCount; i++) {
-                        const transform = constraint.GetWheelLocalTransform(i, jv1, jv2);
+                        const transform = constraint.GetWheelLocalTransform(i, jv1, jv2);                        
+                        const wheel = Jolt.castObject(constraint.GetWheel(i), Jolt.WheelWV);
 
+                        cb.write(wheel.mLongitudinalSlip, BUFFER_WRITE_FLOAT32, false);
+                        cb.write(wheel.mLateralSlip, BUFFER_WRITE_FLOAT32, false);
+                        cb.write(wheel.mCombinedLongitudinalFriction, BUFFER_WRITE_FLOAT32, false);
+                        cb.write(wheel.mCombinedLateralFriction, BUFFER_WRITE_FLOAT32, false);
+                        cb.write(wheel.mBrakeImpulse, BUFFER_WRITE_FLOAT32, false);
                         cb.write(transform.GetTranslation(), BUFFER_WRITE_JOLTVEC32, false);
                         cb.write(transform.GetRotation().GetQuaternion(), BUFFER_WRITE_JOLTVEC32, false);
                     }

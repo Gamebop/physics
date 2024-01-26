@@ -430,8 +430,6 @@ class BodyComponent extends ShapeComponent {
         cb.write(this._collisionGroup, BUFFER_WRITE_UINT32);
         cb.write(this._subGroup, BUFFER_WRITE_UINT32);
 
-        Debug.dev && cb.write(this._debugDraw, BUFFER_WRITE_BOOL, false);
-
         const massProps = this._overrideMassProperties;
         cb.write(massProps, BUFFER_WRITE_UINT8, false);
 
@@ -445,6 +443,8 @@ class BodyComponent extends ShapeComponent {
                 cb.write(this._overrideInertiaRotation, BUFFER_WRITE_VEC32, false);
             }
         }
+
+        Debug.dev && cb.write(this._debugDraw, BUFFER_WRITE_BOOL, false);
     }
 
     resetVelocities() {

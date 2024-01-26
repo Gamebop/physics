@@ -264,9 +264,6 @@ class Creator {
         // collision sub group
         const subGroup = cb.flag ? cb.read(BUFFER_READ_UINT32) : null;
 
-        // debug draw
-        const debugDraw = Debug.dev ? cb.read(BUFFER_READ_BOOL) : false;
-
         if (group !== null && subGroup !== null) {
             const table = backend.groupFilterTables[group];
 
@@ -311,7 +308,7 @@ class Creator {
         bodyInterface.AddBody(body.GetID(), Jolt.Activate);
 
         if (Debug.dev) {
-            body.debugDraw = debugDraw;
+            body.debugDraw = cb.read(BUFFER_READ_BOOL);
         }
 
         // Destroy shape settings after body is created:
@@ -439,10 +436,14 @@ class Creator {
                 curve.Clear();
                 const count = cb.read(BUFFER_READ_UINT32);
                 for (let i = 0; i < count; i++) {
-                    curve.AddPoint(
-                        cb.read(BUFFER_READ_FLOAT32),
-                        cb.read(BUFFER_READ_FLOAT32)
-                    );
+                    const key = cb.read(BUFFER_READ_FLOAT32);
+                    const val = cb.read(BUFFER_READ_FLOAT32);
+                    curve.AddPoint(key, val);
+
+                    // curve.AddPoint(
+                    //     cb.read(BUFFER_READ_FLOAT32),
+                    //     cb.read(BUFFER_READ_FLOAT32)
+                    // );
                 }
             };
 

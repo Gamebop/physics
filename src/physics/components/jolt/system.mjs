@@ -205,6 +205,12 @@ class ShapeComponentSystem extends pc.ComponentSystem {
                     continue;
                 }
 
+                wheel.longitudinalSlip = cb.read(BUFFER_READ_FLOAT32);
+                wheel.lateralSlip = cb.read(BUFFER_READ_FLOAT32);
+                wheel.combinedLongitudinalFriction = cb.read(BUFFER_READ_FLOAT32);
+                wheel.combinedLateralFriction = cb.read(BUFFER_READ_FLOAT32);
+                wheel.brakeImpulse = cb.read(BUFFER_READ_FLOAT32);
+
                 entity.setLocalPosition(
                     cb.read(BUFFER_READ_FLOAT32),
                     cb.read(BUFFER_READ_FLOAT32),
