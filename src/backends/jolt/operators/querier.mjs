@@ -1,6 +1,7 @@
 import {
     BUFFER_READ_BOOL, BUFFER_READ_UINT32,
     BUFFER_READ_UINT8,
+    BUFFER_WRITE_BOOL,
     BUFFER_WRITE_JOLTVEC32,
     BUFFER_WRITE_UINT16, BUFFER_WRITE_UINT32,
     CMD_CAST_RAY, CMD_CAST_SHAPE,
@@ -89,15 +90,16 @@ class Querier {
 
     _castRay(cb) {
         const backend = this._backend;
-        const buffer = this._commandsBuffer;
         const castSettings = this._rayCastSettings;
         const jv = this._tempVectors[1];
         const cast = this._rayCast;
+        const buffer = backend.outBuffer;
         const tracker = backend.tracker;
         const system = backend.physicsSystem;
         const Jolt = backend.Jolt;
         const joltInterface = backend.joltInterface;
 
+        buffer.writeOperator(COMPONENT_SYSTEM_MANAGER);
         buffer.writeCommand(CMD_CAST_RAY);
         
         const queryIndex = cb.read(BUFFER_READ_UINT32);
@@ -116,10 +118,11 @@ class Querier {
             const solidConvex = cb.flag ? cb.read(BUFFER_READ_BOOL) : true;
             const collector = firstOnly ? this._collectorRayFirst : this._collectorRayAll;
             const { bodyFilter, shapeFilter } = this._backend;
+
+            buffer.write(firstOnly, BUFFER_WRITE_BOOL, false);
     
             castSettings.mBackFaceMode = ignoreBackFaces ? Jolt.EBackFaceMode_IgnoreBackFaces : Jolt.EBackFaceMode_CollideWithBackFaces;
             castSettings.mTreatConvexAsSolid = solidConvex;
-
             
             const customBPFilter = cb.flag;
             const bpFilter = customBPFilter ? new Jolt.DefaultBroadPhaseLayerFilter(joltInterface.GetObjectVsBroadPhaseLayerFilter(), cb.read(BUFFER_READ_UINT32)) : backend.bpFilter;
@@ -194,6 +197,8 @@ class Querier {
             const calculateNormal = cb.flag ? cb.read(BUFFER_READ_BOOL) : false;
             const collector = firstOnly ? this._collectorShapeFirst : this._collectorShapeAll;
             const shapeIndex = cb.read(BUFFER_READ_UINT32);
+
+            buffer.write(firstOnly, BUFFER_WRITE_BOOL, false);
             
             params.length = 0;
 

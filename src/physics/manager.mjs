@@ -49,6 +49,7 @@ class PhysicsManager {
         this._updateEvent = null;
         this._paused = false;
         this._steps = 0;
+        this._fixedStep = config.fixedStep;
         this._stepMessage = {
             type: 'step', buffer: null, inBuffer: null, origin: 'physics-manager'
         };
@@ -93,6 +94,10 @@ class PhysicsManager {
 
     get steps() {
         return this._steps;
+    }
+
+    get fixedStep() {
+        return this._fixedStep;
     }
 
     onUpdate() {

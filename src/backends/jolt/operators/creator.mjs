@@ -8,7 +8,7 @@ import {
     CONSTRAINT_TYPE_FIXED, CONSTRAINT_TYPE_HINGE, CONSTRAINT_TYPE_POINT, CONSTRAINT_TYPE_SIX_DOF,
     CONSTRAINT_TYPE_SLIDER, CONSTRAINT_TYPE_SWING_TWIST, SHAPE_BOX, SHAPE_CAPSULE, SHAPE_CONVEX_HULL,
     SHAPE_CYLINDER, SHAPE_HEIGHTFIELD, SHAPE_MESH, SHAPE_SPHERE, SHAPE_STATIC_COMPOUND, 
-    SPRING_MODE_FREQUENCY, VEHICLE_CAST_TYPE_CYLINDER, VEHICLE_CAST_TYPE_RAY, VEHICLE_CAST_TYPE_SPHERE,
+    SPRING_MODE_FREQUENCY, UINT16_SIZE, UINT32_SIZE, VEHICLE_CAST_TYPE_CYLINDER, VEHICLE_CAST_TYPE_RAY, VEHICLE_CAST_TYPE_SPHERE,
     VEHICLE_TYPE_MOTORCYCLE, VEHICLE_TYPE_WHEEL
 } from "../../../physics/components/jolt/constants.mjs";
 import { Debug } from "../../../physics/debug.mjs";
@@ -804,7 +804,7 @@ class Creator {
             // intentional fall-through
             case SHAPE_MESH:
             case SHAPE_CONVEX_HULL:
-                settings = Creator.createMeshShapeSettings(cb, meshBuffers, shapeType);
+                settings = this._createMeshShapeSettings(cb, meshBuffers, shapeType);
                 break;
 
             case SHAPE_STATIC_COMPOUND:
@@ -1354,11 +1354,13 @@ class Creator {
         return true;
     }
 
-    static createMeshShapeSettings(cb, meshBuffers, shapeType) {
-        const Jolt = this._backend.Jolt;
+    _createMeshShapeSettings(cb, meshBuffers, shapeType) {
         const {
             base, stride, numIndices, triCount, positions, indices
         } = Creator.readMeshBuffers(cb, meshBuffers);
+
+        const Jolt = this._backend.Jolt;
+        const jv = this._joltVec3;
 
         // TODO:
         // add support for duplicate vertices test
@@ -1369,7 +1371,6 @@ class Creator {
 
         if (shapeType === SHAPE_CONVEX_HULL) {
             const cache = new Set();
-            const jv = this._joltVec3;
 
             settings = new Jolt.ConvexHullShapeSettings();
 
@@ -1539,7 +1540,6 @@ class Creator {
         const stride = cb.read(BUFFER_READ_UINT8);
         const vertexCount = cb.read(BUFFER_READ_UINT32);
         const numIndices = cb.read(BUFFER_READ_UINT32);
-        const idxLength = cb.read(BUFFER_READ_UINT32);
         const idxOffset = cb.read(BUFFER_READ_UINT32);
 
         if (Debug.dev) {
@@ -1559,7 +1559,7 @@ class Creator {
         
         const positions = new Float32Array(posBuffer, offset); // vertex positions
         const arrayConstructor = numIndices > 65535 ? Uint32Array : Uint16Array;
-        const indices = new arrayConstructor(idxBuffer, idxOffset, idxLength);
+        const indices = new arrayConstructor(idxBuffer, idxOffset, numIndices);
         const triCount = Math.floor(numIndices / 3);
 
         return { base, stride, vertexCount, numIndices, triCount, positions, indices };

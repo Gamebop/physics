@@ -66,7 +66,7 @@ class Drawer {
         
         try {
             const motionType = body.isCharacter ? Jolt.EMotionType_Kinematic : body.GetMotionType();
-            const isRigidBody = body.GetBodyType() === Jolt.EBodyType_RigidBody;
+            const isRigidBody = body.isCharacter ? true : (body.GetBodyType() === Jolt.EBodyType_RigidBody);
 
             const data = body.debugDrawData;
             if (data) {

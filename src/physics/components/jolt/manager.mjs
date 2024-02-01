@@ -193,6 +193,9 @@ class JoltManager extends PhysicsManager {
         const cb = this._outBuffer;
         const callbackIndex = this._queryMap.add(callback);
 
+        // TODO
+        // get rid of flags
+
         cb.writeOperator(OPERATOR_QUERIER);
         cb.writeCommand(CMD_CAST_RAY);
         cb.write(callbackIndex, BUFFER_WRITE_UINT32, false);

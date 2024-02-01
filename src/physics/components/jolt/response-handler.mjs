@@ -164,7 +164,10 @@ class ResponseHandler {
         const results = [];
 
         const queryIndex = buffer.read(BUFFER_READ_UINT16);
+        const firstOnly = buffer.read(BUFFER_READ_BOOL);
         const hitsCount = buffer.read(BUFFER_READ_UINT16);
+
+        let result = firstOnly ? null : [];
 
         for (let i = 0; i < hitsCount; i++) {
             const bodyIndex = buffer.read(BUFFER_READ_UINT32);
@@ -191,12 +194,18 @@ class ResponseHandler {
                 continue;
             }
 
-            results.push(new RaycastResult(entity, point, normal));
+            const r = new RaycastResult(entity, point, normal);
+
+            if (firstOnly) {
+                result = r;
+            } else {
+                result.push(r);
+            }
         }
 
         const callback = queryMap.get(queryIndex);
         queryMap.free(queryIndex);
-        callback?.(results);
+        callback?.(result);
     }
 
     static handleCharSetShape(cb, queryMap) {

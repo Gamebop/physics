@@ -70,7 +70,7 @@ class Listener {
         const listener = listenerType === 'contacts' ? this._listener : this._charListener;
 
         for (const [method, funcStr] of Object.entries(overrides)) {
-            listener[method] = eval('(' + funcStr + ')');
+            listener[method] = eval('(' + funcStr + ')').bind(this);
         }
     }
 
@@ -146,7 +146,6 @@ class Listener {
 
     initCharacterEvents() {
         const Jolt = this._backend.Jolt;
-
         const listener = new Jolt.CharacterContactListenerJS();
 
         listener.OnAdjustBodyVelocity = () => {};
@@ -177,7 +176,7 @@ class Listener {
         const data = this._charContactsData;
         const index = tracker.getPCID(Jolt.getPointer(character));
         
-        const bodyLockInterface = this._backend.physicsSystem.GetBodyLockInterface();
+        const bodyLockInterface = backend.physicsSystem.GetBodyLockInterface();
 
         let body2 = bodyLockInterface.TryGetBody(bodyID2);
         if (Jolt.getPointer(body2) === 0) {

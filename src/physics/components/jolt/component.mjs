@@ -76,7 +76,7 @@ class ShapeComponent extends pc.EventHandler {
     // Shape local position offset
     _shapePosition = pc.Vec3.ZERO;
 
-    // Shape local rotation offset
+    // Shape local rotation offset (vec3, Eulers)
     _shapeRotation = pc.Vec3.ZERO;
 
     // Offset center of mass in local space of the body. Does not move the shape.
@@ -169,20 +169,18 @@ class ShapeComponent extends pc.EventHandler {
     static writeShapeData(cb, props, forceWriteRotation = false) {
         const shape = props.shape;
         cb.write(shape, BUFFER_WRITE_UINT8, false);
-    
-        let useEntityScale = props.useEntityScale;
-        let scale;
-        if (useEntityScale) {
-            scale = props.scale || props.entity.getLocalScale();
-            if (scale.x === 1 && scale.y === 1 && scale.z === 1) {
-                useEntityScale = false;
-            }
-        }
 
+        const scale = props.scale || props.entity.getLocalScale();
+        let useEntityScale = props.useEntityScale;
+        
+        if (useEntityScale && scale.x === 1 && scale.y === 1 && scale.z === 1 && 
+            shape !== SHAPE_MESH && shape !== SHAPE_CONVEX_HULL) {
+            useEntityScale = false;
+        }
+        
+        useEntityScale = useEntityScale || (shape === SHAPE_MESH || shape === SHAPE_CONVEX_HULL);
         cb.write(useEntityScale, BUFFER_WRITE_BOOL, false);
-        if (useEntityScale || (
-            shape === SHAPE_MESH ||
-            shape === SHAPE_CONVEX_HULL)) {
+        if (useEntityScale) {
             // Potential precision loss 64 -> 32
             cb.write(scale, BUFFER_WRITE_VEC32, false);
         }
@@ -329,14 +327,14 @@ class ShapeComponent extends pc.EventHandler {
 
             let byteLength, byteOffset;
             if (isView) {
-                byteLength = storage.byteLength;
+                // byteLength = storage.byteLength;
                 byteOffset = storage.byteOffset;
             } else {
-                byteLength = storage.byteLength / ib.bytesPerIndex;
-                byteOffset = 0;
+                // byteLength = storage.byteLength / ib.bytesPerIndex;
+                byteOffset = storage.buffer.byteOffset;
             }
 
-            cb.write(byteLength, BUFFER_WRITE_UINT32, false);
+            // cb.write(byteLength, BUFFER_WRITE_UINT32, false);
             cb.write(byteOffset, BUFFER_WRITE_UINT32, false);
             cb.addBuffer(isView ? storage.buffer : storage);
         }
