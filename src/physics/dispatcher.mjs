@@ -79,7 +79,14 @@ class Dispatcher {
         if (this._useMainThread) {
             this._manager.onMessage(msg);
         } else {
-            self.postMessage(msg, buffers);
+
+            console.log(`worker >> ${ msg.perfIndex }`);
+
+            if (buffers) {
+                self.postMessage(msg, buffers);
+            } else {
+                self.postMessage(msg);
+            }
         }
     }
 }

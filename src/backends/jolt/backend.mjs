@@ -98,6 +98,8 @@ class JoltBackend {
         this._bodyList = null;
         this._groupFilterTables = [];
 
+        this._lastStamp = 0;
+
         const loadJolt = async () => {
             const module = await import(/* webpackIgnore: true */ data.glueUrl);
             module.default({
@@ -131,6 +133,8 @@ class JoltBackend {
                 this._stepTime = 0;
                 this._steps = 0;
 
+                // TODO
+                // remove softBodies default array
                 this._responseMessage = {
                     buffer: null,
                     inBuffer: null,
@@ -250,6 +254,8 @@ class JoltBackend {
         if (Debug.dev) {
             this._stepTime = performance.now();
             this._perfIndex = data.perfIndex;
+
+            console.log(`worker << ${ data.perfIndex }`);
         }
         
         const { buffer, meshBuffers, dt } = data;
@@ -259,6 +265,10 @@ class JoltBackend {
         if (data.inBuffer) {
             outBuffer.buffer = data.inBuffer;
         }
+
+        if (outBuffer.buffer.byteLength === 0) {
+            debugger;
+        }        
 
         let ok = true;
         if (buffer) {
@@ -386,13 +396,22 @@ class JoltBackend {
         let stepped = false;
         let ok = true;
 
-        time += dt;
+        if (this._lastStamp !== 0) {
+            dt = (performance.now() - this._lastStamp) * 0.001;
+        }
 
+        console.log(`worker: adding ${ dt.toFixed(4) } ms`);
+        
+        time += dt;
+        
         while (ok && time >= fixedStep) {
             try {
                 // update characters before stepping
                 ok = this._updateCharacters(fixedStep);
                 // step the physics world
+                
+                console.log(`worker: stepping with ${ fixedStep.toFixed(4) } ms`);
+
                 ok && jolt.Step(fixedStep, subSteps);
                 this._steps++;
                 stepped = true;
@@ -409,6 +428,8 @@ class JoltBackend {
         }
 
         this._time = time;
+
+        this._lastStamp = performance.now();
 
         return ok;
     }
@@ -748,7 +769,7 @@ class JoltBackend {
             'JOLT_SPRING_MODE_STIFFNESS', Jolt.ESpringMode_StiffnessAndDamping,
         ];
 
-        dispatcher.respond(msg, []);
+        dispatcher.respond(msg, null);
 
         msg.constants = null;
     }

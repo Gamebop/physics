@@ -50,6 +50,7 @@ class PhysicsManager {
         this._paused = false;
         this._steps = 0;
         this._fixedStep = config.fixedStep;
+        this._canDispatch = true;
         this._stepMessage = {
             type: 'step', buffer: null, inBuffer: null, origin: 'physics-manager'
         };
@@ -103,17 +104,27 @@ class PhysicsManager {
     onUpdate() {
         if (this._paused) return;
 
+        if (!this._canDispatch) {
+            this._skipped = true;
+            return;
+        }        
+
         let index;
         if (Debug.dev) {
             const startTime = performance.now();
             index = this._perfCache.add(startTime);
+
+            console.log(`------- ${ index } -------`);
+
+            this._lastIndex = index;
+
+            if (index > 50) {
+                this._paused = true;
+            }
         }
-        
-        // If the buffer has been sent to the web worker,
-        // it might not yet be available this frame, so we exit early.
-        if (this._outBuffer.buffer.byteLength === 0) {
-            return;
-        }
+
+        this._canDispatch = false;
+        this._skipped = false;
 
         this._writeIsometry();
         this._dispatchCommands(this._frame.dt, index);
@@ -126,6 +137,15 @@ class PhysicsManager {
 
     onMessage(msg) {
         if (this._paused || msg.origin !== 'physics-worker') return;
+
+        if (this._skipped) {
+            this._canDispatch = false;
+            this._skipped = false;
+            this._writeIsometry();
+            this._dispatchCommands(this._frame.dt, this._lastIndex);
+        }
+
+        this._canDispatch = true;
 
         const systems = this._systems;
         let inBuffer = this._inBuffer;
@@ -177,14 +197,17 @@ class PhysicsManager {
 
         if (Debug.dev) {
             const perfIndex = msg.perfIndex;
+            
             if (perfIndex == null) return;
-
+            
             const cache = this._perfCache;
             const startTime = cache.get(perfIndex);
             const frame = this._app.stats.frame;
             
             cache.free(perfIndex);
             frame.physicsTime = performance.now() - startTime + msg.time;
+
+            console.log(`main << ${ perfIndex }: ${ frame.physicsTime.toFixed(4) } ms`);
         }
     }
 
@@ -224,6 +247,12 @@ class PhysicsManager {
 
         msg.dt = dt;
 
+        if (Debug.dev) {
+            msg.perfIndex = perfIndex;
+        }        
+
+        console.log(`main >> ${ perfIndex }: ${ dt.toFixed(4) } ms`);
+
         if (!cb.dirty) {
             msg.buffer = null;
             if (inBuffer && inBuffer.buffer.byteLength > 0) {
@@ -242,10 +271,6 @@ class PhysicsManager {
 
         msg.buffer = buffer;
         buffers.length = 0;
-
-        if (Debug.dev) {
-            msg.perfIndex = perfIndex;
-        }
 
         // Also add any potential mesh and convex hull shapes buffers
         const meshBuffers = cb.meshBuffers;
@@ -276,16 +301,16 @@ class PhysicsManager {
         // TODO
         // buffers detaching needs some work, before we can enable workers
 
-        // if (config.useWebWorker) {
-        //     this._dispatcher = new Worker(
-        //         /* webpackChunkName: "worker" */ new URL('./dispatcher.mjs', import.meta.url
-        //     ));
-        //     this._dispatcher.onmessage = this.onMessage.bind(this);
-        // } else {
-        //     this._dispatcher = new Dispatcher(this);
-        // }
+        if (config.useWebWorker) {
+            this._dispatcher = new Worker(
+                /* webpackChunkName: "worker" */ new URL('./dispatcher.mjs', import.meta.url
+            ));
+            this._dispatcher.onmessage = this.onMessage.bind(this);
+        } else {
+            this._dispatcher = new Dispatcher(this);
+        }
 
-        this._dispatcher = new Dispatcher(this);
+        // this._dispatcher = new Dispatcher(this);
     }
 }
 

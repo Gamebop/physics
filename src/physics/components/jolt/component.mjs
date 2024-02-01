@@ -30,6 +30,8 @@ class ShapeComponent extends pc.EventHandler {
     _enabled = true;
 
     // Automatically moves dynamic bodies, when the position is set on entity.
+    // TODO
+    // Make it work with web workers
     _trackDynamic = true;
 
     // Unique body index. This can change during entity lifecycle, e.g. every time entity is enabled, a new
