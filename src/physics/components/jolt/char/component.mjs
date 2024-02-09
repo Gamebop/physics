@@ -12,7 +12,9 @@ import {
     BUFFER_WRITE_VEC32,
     CMD_CHAR_SET_LIN_VEL,
     CMD_CHAR_SET_SHAPE,
+    CMD_DESTROY_BODY,
     CMD_SET_USER_DATA,
+    OPERATOR_CLEANER,
     OPERATOR_MODIFIER,
     SHAPE_CAPSULE
 } from "../constants.mjs";
@@ -256,6 +258,17 @@ class CharComponent extends ShapeComponent {
 
         system.createCharacter(this);
     }
+
+    onDisable() {
+        super.onDisable();
+
+        const system = this.system;
+        const componentIndex = this._index;
+
+        system.setIndexFree(componentIndex);
+
+        system.addCommand(OPERATOR_CLEANER, CMD_DESTROY_BODY, componentIndex);
+    }    
 
     _writeCallback(callback) {
         if (callback) {
