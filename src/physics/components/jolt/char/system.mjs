@@ -125,11 +125,9 @@ class CharComponentSystem extends ShapeComponentSystem {
 
         for (let i = 0; i < charsCount; i++) {
             const index = cb.read(BUFFER_READ_UINT32);
-
             const entity = this.entityMap.get(index);
-            if (!entity) continue;
 
-            entity.char.updateTransforms(cb, this.entityMap);
+            entity?.char?.updateTransforms(cb, this.entityMap);
         }
     }
 }
