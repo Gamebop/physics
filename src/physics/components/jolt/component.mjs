@@ -29,6 +29,10 @@ class ShapeComponent extends pc.EventHandler {
     // Enable / disable component
     _enabled = true;
 
+
+    // TODO
+    // get rid of trackDynamic, it doesn't work well with workers and in some parent/child edge cases
+
     // Automatically moves dynamic bodies, when the position is set on entity.
     _trackDynamic = true;
 

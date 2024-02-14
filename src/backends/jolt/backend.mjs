@@ -68,15 +68,15 @@ class JoltBackend {
             broadPhaseLayers: [ BP_LAYER_NON_MOVING, BP_LAYER_MOVING ],
             // object layer vs object layer
             objectLayerPairs: [
-                [ OBJ_LAYER_NON_MOVING, OBJ_LAYER_MOVING ],
-                [ OBJ_LAYER_MOVING, OBJ_LAYER_MOVING ]
+                OBJ_LAYER_NON_MOVING, OBJ_LAYER_MOVING,
+                OBJ_LAYER_MOVING, OBJ_LAYER_MOVING
             ],
-            // which object layer should collide with what broad phase layers
-            mapObjectToBroadPhaseLayer: {
-                OBJ_LAYER_NON_MOVING: [ BP_LAYER_MOVING ],
-                OBJ_LAYER_MOVING: [ BP_LAYER_MOVING ],
-                2: [ BP_LAYER_NON_MOVING ]
-            },
+            // object layer to broadphase layer map
+            mapObjectToBroadPhaseLayer: [
+                0, BP_LAYER_NON_MOVING,
+                1, BP_LAYER_MOVING,
+                2, BP_LAYER_NON_MOVING
+            ],
             ...data.config
         };
         this._config = config;
@@ -457,6 +457,7 @@ class JoltBackend {
 
     _updateCharacters(fixedStep) {
         const Jolt = this.Jolt;
+        const joltInterface = this._joltInterface;
         const characters = this._tracker.character;
         if (characters.size === 0) return true;
 
@@ -470,7 +471,13 @@ class JoltBackend {
             if (!updateSettings) {
                 updateSettings = this._charUpdateSettings = new Jolt.ExtendedUpdateSettings();
             }
-            const allocator = this._joltInterface.GetTempAllocator();
+            const allocator = joltInterface.GetTempAllocator();
+
+            const objectVsBroadPhaseLayerFilter = joltInterface.GetObjectVsBroadPhaseLayerFilter();
+			const objectLayerPairFilter = joltInterface.GetObjectLayerPairFilter();
+
+			const movingBPFilter = new Jolt.DefaultBroadPhaseLayerFilter(objectVsBroadPhaseLayerFilter, BP_LAYER_MOVING);
+			const movingLayerFilter = new Jolt.DefaultObjectLayerFilter(objectLayerPairFilter, 2);
     
             characters.forEach(char => {
                 char.ExtendedUpdate(
@@ -485,6 +492,9 @@ class JoltBackend {
                 );
                 char.UpdateGroundVelocity();
             });
+
+            Jolt.destroy(movingBPFilter);
+            Jolt.destroy(movingLayerFilter);
         } catch (e) {
             Debug.dev && Debug.error(e);
             return false;

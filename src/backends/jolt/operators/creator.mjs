@@ -79,11 +79,11 @@ class Creator {
         const bpMap = new Map();
 
         const pairs = config.objectLayerPairs;
-        const pairsCount = pairs.length;
+        const pairsCount = pairs.length * 0.5;
         const objectFilter = new Jolt.ObjectLayerPairFilterTable(pairsCount);
-        for (let i = 0; i < pairsCount; i++) {
-            const pair = pairs[i];
-            objectFilter.EnableCollision(pair[0], pair[1]);
+        for (let i = 0; i < pairsCount * 2; i += 2) {
+            // const pair = pairs[i];
+            objectFilter.EnableCollision(pairs[i], pairs[i + 1]);
         }
 
         const bpLayers = config.broadPhaseLayers;
@@ -97,11 +97,13 @@ class Creator {
 
         // Map object layers to broadphase layers
         let objLayerCount = 0;
-        for (const [objLayer, bpLayers] of Object.entries(config.mapObjectToBroadPhaseLayer)) {
+        // for (const [objLayer, bpLayers] of Object.entries(config.mapObjectToBroadPhaseLayer)) {
+        const objLayers = config.mapObjectToBroadPhaseLayer;
+        for (let i = 0; i < objLayers.length; i += 2) {
             objLayerCount++;
-            for (let i = 0; i < bpLayers.length; i++) {
-                bpInterface.MapObjectToBroadPhaseLayer(objLayer, bpMap.get(bpLayers[i]));
-            }
+            // for (let i = 0; i < bpLayers.length; i += 2) {
+            bpInterface.MapObjectToBroadPhaseLayer(objLayers[i], bpMap.get(objLayers[i + 1]));
+            // }
         }
         // Broadphase layers have been copied to the bpInterface, so we can destroy those
         bpMap.forEach(bpLayer => {
