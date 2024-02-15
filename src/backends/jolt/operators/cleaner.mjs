@@ -91,7 +91,7 @@ class Cleaner {
 
         if (body.isCharacter) {
             if (body.bodyFilter) {
-                Jolt.destroy(bodyFilter);
+                Jolt.destroy(body.bodyFilter);
             }
 
             Jolt.destroy(body);
