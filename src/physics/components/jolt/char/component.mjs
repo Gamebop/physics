@@ -251,7 +251,7 @@ class CharComponent extends ShapeComponent {
 
         const pe = this._pairedEntity;
         if (pe) {
-            pe.setPosition(px, py, pz);
+            pe.setPosition(px, py + this._shapeOffset.y + this._shapePosition.y, pz);
             pe.setRotation(0, 0, 0, 1); // char never rotates
         }
 

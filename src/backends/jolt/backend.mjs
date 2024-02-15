@@ -496,7 +496,11 @@ class JoltBackend {
 
                 const pairedBody = char.pairedBody;
                 if (pairedBody) {
-                    bodyInterface.MoveKinematic(pairedBody.GetID(), char.GetPosition(), Jolt.Quat.prototype.sIdentity(), fixedStep);
+                    const yOffset = char.GetShape().GetCenterOfMass().GetY();
+                    const pos = char.GetPosition();
+                    const y = pos.GetY() + yOffset;
+                    pos.SetY(y);
+                    bodyInterface.MoveKinematic(pairedBody.GetID(), pos, Jolt.Quat.prototype.sIdentity(), fixedStep);
                 }
             });
 
