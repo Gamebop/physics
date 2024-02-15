@@ -53,8 +53,6 @@ class VehicleComponentSystem extends BodyComponentSystem {
         this.ComponentType = VehicleComponent;
 
         manager.systems.set(id, this);
-
-        buildAccessors(this, this.schema);
     }
 
     createVehicle(component) {

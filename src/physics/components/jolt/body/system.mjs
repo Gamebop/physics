@@ -53,8 +53,6 @@ class BodyComponentSystem extends ShapeComponentSystem {
 
         manager.systems.set(id, this);
 
-        buildAccessors(this, this.schema);
-
         this.on('beforeremove', this.onBeforeRemove, this);
     }
 

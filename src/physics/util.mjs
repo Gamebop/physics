@@ -4,7 +4,7 @@ function buildAccessors(obj, schema) {
         const property = schema[i];
 
         // Don't override existing getters/setters
-        const etter = Object.getOwnPropertyDescriptor(obj, property);
+        const etter = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(obj), property);
         if (etter != null) continue;
 
         Object.defineProperty(obj, property, {

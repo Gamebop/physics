@@ -29,7 +29,8 @@ const schema = [
     'groundEntity',
     'groundNormal',
     'groundVelocity',
-    'state'
+    'state',
+    'pairedEntity',
 ];
 
 class CharComponentSystem extends ShapeComponentSystem {
@@ -45,8 +46,6 @@ class CharComponentSystem extends ShapeComponentSystem {
         this._exposeConstants();
 
         manager.systems.set(id, this);
-
-        buildAccessors(this, this.schema);
     }
 
     getCallbackIndex(callback) {

@@ -99,6 +99,7 @@ export const CMD_CAST_SHAPE = i++;
 export const CMD_DESTROY_BODY = i++;
 export const CMD_DESTROY_SHAPE = i++;
 export const CMD_MOVE_BODY = i++;
+export const CMD_MOVE_KINEMATIC = i++;
 export const CMD_SET_LIN_VEL = i++;
 export const CMD_SET_ANG_VEL = i++;
 export const CMD_SET_MOTION_TYPE = i++;
@@ -114,6 +115,7 @@ export const CMD_USE_MOTION_STATE = i++;
 export const CMD_SET_CONSTRAINT_ENABLED = i++;
 export const CMD_DESTROY_CONSTRAINT = i++;
 export const CMD_SET_DRIVER_INPUT = i++;
+export const CMD_PAIR_BODY = i++;
 // backend -> frontend
 export const CMD_UPDATE_TRANSFORMS = i++;
 export const CMD_REPORT_CONTACTS = i++;
