@@ -476,19 +476,21 @@ class JoltBackend {
 
             // TODO
             // make it customizable, like the raycast
-            const objectVsBroadPhaseLayerFilter = joltInterface.GetObjectVsBroadPhaseLayerFilter();
-			const objectLayerPairFilter = joltInterface.GetObjectLayerPairFilter();
-			const movingBPFilter = new Jolt.DefaultBroadPhaseLayerFilter(objectVsBroadPhaseLayerFilter, BP_LAYER_MOVING);
-			const movingLayerFilter = new Jolt.DefaultObjectLayerFilter(objectLayerPairFilter, 2);
+            // const objectVsBroadPhaseLayerFilter = joltInterface.GetObjectVsBroadPhaseLayerFilter();
+			// const objectLayerPairFilter = joltInterface.GetObjectLayerPairFilter();
+			// const movingBPFilter = new Jolt.DefaultBroadPhaseLayerFilter(objectVsBroadPhaseLayerFilter, BP_LAYER_MOVING);
+			// const movingLayerFilter = new Jolt.DefaultObjectLayerFilter(objectLayerPairFilter, 2);
     
             characters.forEach(char => {
+                const bFilter = char.bodyFilter || bodyFilter;
+
                 char.ExtendedUpdate(
                     fixedStep,
                     char.GetUp(),
                     updateSettings,
                     movingBPFilter,
                     movingLayerFilter,
-                    bodyFilter,
+                    bFilter,
                     shapeFilter,
                     allocator
                 );
@@ -504,8 +506,8 @@ class JoltBackend {
                 }
             });
 
-            Jolt.destroy(movingBPFilter);
-            Jolt.destroy(movingLayerFilter);
+            // Jolt.destroy(movingBPFilter);
+            // Jolt.destroy(movingLayerFilter);
         } catch (e) {
             Debug.dev && Debug.error(e);
             return false;

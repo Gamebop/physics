@@ -90,6 +90,10 @@ class Cleaner {
         }
 
         if (body.isCharacter) {
+            if (body.bodyFilter) {
+                Jolt.destroy(bodyFilter);
+            }
+
             Jolt.destroy(body);
         } else {
             const id = body.GetID();

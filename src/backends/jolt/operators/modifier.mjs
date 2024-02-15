@@ -423,11 +423,30 @@ class Modifier {
     }
 
     _pairBody(cb) {
+        const Jolt = this._backend.Jolt;
         const char = this._getBody(cb);
         const body = this._getBody(cb);
 
         char.pairedBody = body;
         body.isCharPaired = true;
+
+        const bodyFilter = new Jolt.BodyFilterJS();
+
+        bodyFilter.ShouldCollide = (inBodyID) => {
+            if (body.GetID() === Jolt.wrapPointer(inBodyID, Jolt.BodyID)) {
+                return false;
+            }
+            return true;
+        };
+
+        bodyFilter.ShouldCollideLocked = (inBody) => {
+            if (body === Jolt.wrapPointer(inBody, Jolt.Body)) {
+                return false;
+            }
+            return true;
+        };        
+
+        char.bodyFilter = bodyFilter;
 
         return true;
     }
