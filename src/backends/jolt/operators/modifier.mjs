@@ -439,12 +439,9 @@ class Modifier {
             return true;
         };
 
-        bodyFilter.ShouldCollideLocked = (inBody) => {
-            if (body === Jolt.wrapPointer(inBody, Jolt.Body)) {
-                return false;
-            }
+        bodyFilter.ShouldCollideLocked = () => {
             return true;
-        };        
+        };
 
         char.bodyFilter = bodyFilter;
 
