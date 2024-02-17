@@ -384,10 +384,6 @@ class JoltBackend {
 
         if (this._lastStamp !== 0) {
             dt = (performance.now() - this._lastStamp) * 0.001;
-
-            // if (dt > maxStepSize) {
-            //     dt = maxStepSize;
-            // }
         }
 
         time += dt;
