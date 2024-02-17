@@ -9,6 +9,8 @@ import {
     CMD_CHAR_SET_LIN_VEL,
     CMD_CHAR_SET_SHAPE,
     CMD_MOVE_BODY,
+    CMD_MOVE_KINEMATIC,
+    CMD_PAIR_BODY,
     CMD_REPORT_SET_SHAPE,
     CMD_RESET_VELOCITIES,
     CMD_SET_ANG_VEL,
@@ -75,6 +77,14 @@ class Modifier {
 
             case CMD_MOVE_BODY:
                 ok = this._moveBody(cb);
+                break;
+            
+            case CMD_MOVE_KINEMATIC:
+                ok = this._moveKinematic(cb);
+                break;
+
+            case CMD_PAIR_BODY:
+                ok  = this._pairBody(cb);
                 break;
 
             case CMD_SET_LIN_VEL:
@@ -411,6 +421,63 @@ class Modifier {
 
         return true;
     }
+
+    _pairBody(cb) {
+        const Jolt = this._backend.Jolt;
+        const char = this._getBody(cb);
+        const body = this._getBody(cb);
+
+        char.pairedBody = body;
+        body.isCharPaired = true;
+
+        const bodyFilter = new Jolt.BodyFilterJS();
+
+        bodyFilter.ShouldCollide = (inBodyID) => {
+            if (body.GetID() === Jolt.wrapPointer(inBodyID, Jolt.BodyID)) {
+                return false;
+            }
+            return true;
+        };
+
+        bodyFilter.ShouldCollideLocked = () => {
+            return true;
+        };
+
+        char.bodyFilter = bodyFilter;
+
+        return true;
+    }
+
+    _moveKinematic(cb) {
+        const backend = this._backend;
+        const Jolt = backend.Jolt;
+        const jv = this._joltVec3_1;
+        const jq = this._joltQuat_1;
+        const body = this._getBody(cb);
+
+        try {
+            jv.FromBuffer(cb);
+            jq.FromBuffer(cb);
+
+            const dt = cb.read(BUFFER_READ_FLOAT32) || backend.config.fixedStep;
+
+            if (Debug.dev) {
+                const type = body.GetMotionType();
+                if (type === Jolt.EMotionType_Dynamic || type === Jolt.EMotionType_Kinematic) {
+                    backend.bodyInterface.MoveKinematic(body.GetID(), jv, jq, dt);
+                } else {
+                    Debug.warnOnce('Trying to move a static body.');
+                }
+            } else {
+                backend.bodyInterface.SetPositionAndRotation(body.GetID(), jv, jq, dt);
+            }
+        } catch (e) {
+            Debug.dev && Debug.error(e);
+            return false;
+        }
+
+        return true;
+    }    
 
     _setDriverInput(cb) {
         const backend = this._backend;

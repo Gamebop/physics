@@ -51,8 +51,6 @@ class SoftBodyComponentSystem extends BodyComponentSystem {
         this.ComponentType = SoftBodyComponent;
 
         manager.systems.set(id, this);
-
-        buildAccessors(this, this.schema);
     }
 
     createBody(component) {

@@ -29,7 +29,8 @@ const schema = [
     'groundEntity',
     'groundNormal',
     'groundVelocity',
-    'state'
+    'state',
+    'pairedEntity',
 ];
 
 class CharComponentSystem extends ShapeComponentSystem {
@@ -45,8 +46,6 @@ class CharComponentSystem extends ShapeComponentSystem {
         this._exposeConstants();
 
         manager.systems.set(id, this);
-
-        buildAccessors(this, this.schema);
     }
 
     getCallbackIndex(callback) {
@@ -125,11 +124,9 @@ class CharComponentSystem extends ShapeComponentSystem {
 
         for (let i = 0; i < charsCount; i++) {
             const index = cb.read(BUFFER_READ_UINT32);
-
             const entity = this.entityMap.get(index);
-            if (!entity) continue;
 
-            entity.char.updateTransforms(cb, this.entityMap);
+            entity?.char?.updateTransforms(cb, this.entityMap);
         }
     }
 }

@@ -12,7 +12,10 @@ import {
     BUFFER_WRITE_VEC32,
     CMD_CHAR_SET_LIN_VEL,
     CMD_CHAR_SET_SHAPE,
+    CMD_DESTROY_BODY,
+    CMD_PAIR_BODY,
     CMD_SET_USER_DATA,
+    OPERATOR_CLEANER,
     OPERATOR_MODIFIER,
     SHAPE_CAPSULE
 } from "../constants.mjs";
@@ -116,6 +119,10 @@ class CharComponent extends ShapeComponent {
     // User data to be associated with a shape.
     _userData = null;
 
+    // An entity with a kinemaitc or dynamic body, that will be paired with this character to enable
+    // a world presence (allow raycasts and collisions detection vs character)
+    _pairedEntity = null;
+
     constructor(system, entity) {
         super(system, entity);
     }
@@ -149,6 +156,25 @@ class CharComponent extends ShapeComponent {
             OPERATOR_MODIFIER, CMD_SET_USER_DATA, this._index,
             num, BUFFER_WRITE_FLOAT32, false
         );        
+    }
+
+    get pairedEntity() {
+        return this._pairedEntity;
+    }
+
+    set pairedEntity(entity) {
+        if (Debug.dev) {
+            let ok = Debug.assert(!!entity.body, `Invalid entity to pair. Needs to have a "body" component.`, entity);
+            if (!ok)
+                return;
+        }
+
+        this._pairedEntity = entity;
+
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_PAIR_BODY, this._index,
+            entity.body.index, BUFFER_WRITE_UINT32, false
+        );
     }
 
     setShape(shapeIndex = null, callback = null) {
@@ -205,11 +231,10 @@ class CharComponent extends ShapeComponent {
     updateTransforms(cb, map) {
         const entity = this.entity;
 
-        entity.setPosition(
-            cb.read(BUFFER_READ_FLOAT32),
-            cb.read(BUFFER_READ_FLOAT32),
-            cb.read(BUFFER_READ_FLOAT32)
-        );
+        const px = cb.read(BUFFER_READ_FLOAT32);
+        const py = cb.read(BUFFER_READ_FLOAT32);
+        const pz = cb.read(BUFFER_READ_FLOAT32);
+        entity.setPosition(px, py, pz);
 
         entity.setRotation(
             cb.read(BUFFER_READ_FLOAT32),
@@ -223,6 +248,12 @@ class CharComponent extends ShapeComponent {
             cb.read(BUFFER_READ_FLOAT32),
             cb.read(BUFFER_READ_FLOAT32)
         );
+
+        const pe = this._pairedEntity;
+        if (pe) {
+            pe.setPosition(px, py + this._shapeOffset.y + this._shapePosition.y, pz);
+            pe.setRotation(0, 0, 0, 1); // char never rotates
+        }
 
         const isSupported = cb.read(BUFFER_READ_BOOL);
         this._isSupported = isSupported;
@@ -256,6 +287,17 @@ class CharComponent extends ShapeComponent {
 
         system.createCharacter(this);
     }
+
+    onDisable() {
+        super.onDisable();
+
+        const system = this.system;
+        const componentIndex = this._index;
+
+        system.setIndexFree(componentIndex);
+
+        system.addCommand(OPERATOR_CLEANER, CMD_DESTROY_BODY, componentIndex);
+    }    
 
     _writeCallback(callback) {
         if (callback) {

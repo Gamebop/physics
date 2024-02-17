@@ -68,15 +68,15 @@ class JoltBackend {
             broadPhaseLayers: [ BP_LAYER_NON_MOVING, BP_LAYER_MOVING ],
             // object layer vs object layer
             objectLayerPairs: [
-                [ OBJ_LAYER_NON_MOVING, OBJ_LAYER_MOVING ],
-                [ OBJ_LAYER_MOVING, OBJ_LAYER_MOVING ]
+                OBJ_LAYER_NON_MOVING, OBJ_LAYER_MOVING,
+                OBJ_LAYER_MOVING, OBJ_LAYER_MOVING
             ],
-            // which object layer should collide with what broad phase layers
-            mapObjectToBroadPhaseLayer: {
-                OBJ_LAYER_NON_MOVING: [ BP_LAYER_MOVING ],
-                OBJ_LAYER_MOVING: [ BP_LAYER_MOVING ],
-                2: [ BP_LAYER_NON_MOVING ]
-            },
+            // object layer to broadphase layer map
+            mapObjectToBroadPhaseLayer: [
+                0, BP_LAYER_NON_MOVING,
+                1, BP_LAYER_MOVING,
+                2, BP_LAYER_NON_MOVING
+            ],
             ...data.config
         };
         this._config = config;
@@ -407,7 +407,7 @@ class JoltBackend {
         while (ok && time >= fixedStep) {
             try {
                 // update characters before stepping
-                ok = this._updateCharacters(fixedStep);
+                ok = this._stepCharacters(fixedStep);
                 // step the physics world
                 
                 console.log(`worker: stepping with ${ fixedStep.toFixed(4) } ms`);
@@ -452,7 +452,7 @@ class JoltBackend {
             for (let i = 0; i < numActiveBodies; i++) {
                 const bodyID = bodyList.at(i);
                 const body = system.GetBodyLockInterface().TryGetBody(bodyID);
-                if (Jolt.getPointer(body) === 0) {
+                if (Jolt.getPointer(body) === 0 || body.isCharPaired) {
                     continue;
                 }
 
@@ -476,8 +476,10 @@ class JoltBackend {
         return true;
     }
 
-    _updateCharacters(fixedStep) {
+    _stepCharacters(fixedStep) {
         const Jolt = this.Jolt;
+        const joltInterface = this._joltInterface;
+        const bodyInterface = this._bodyInterface;
         const characters = this._tracker.character;
         if (characters.size === 0) return true;
 
@@ -491,21 +493,42 @@ class JoltBackend {
             if (!updateSettings) {
                 updateSettings = this._charUpdateSettings = new Jolt.ExtendedUpdateSettings();
             }
-            const allocator = this._joltInterface.GetTempAllocator();
+            const allocator = joltInterface.GetTempAllocator();
+
+            // TODO
+            // make it customizable, like the raycast
+            // const objectVsBroadPhaseLayerFilter = joltInterface.GetObjectVsBroadPhaseLayerFilter();
+			// const objectLayerPairFilter = joltInterface.GetObjectLayerPairFilter();
+			// const movingBPFilter = new Jolt.DefaultBroadPhaseLayerFilter(objectVsBroadPhaseLayerFilter, BP_LAYER_MOVING);
+			// const movingLayerFilter = new Jolt.DefaultObjectLayerFilter(objectLayerPairFilter, 2);
     
             characters.forEach(char => {
+                const bFilter = char.bodyFilter || bodyFilter;
+
                 char.ExtendedUpdate(
                     fixedStep,
                     char.GetUp(),
                     updateSettings,
                     movingBPFilter,
                     movingLayerFilter,
-                    bodyFilter,
+                    bFilter,
                     shapeFilter,
                     allocator
                 );
                 char.UpdateGroundVelocity();
+
+                const pairedBody = char.pairedBody;
+                if (pairedBody) {
+                    const yOffset = char.GetShape().GetCenterOfMass().GetY();
+                    const pos = char.GetPosition();
+                    const y = pos.GetY() + yOffset;
+                    pos.SetY(y);
+                    bodyInterface.MoveKinematic(pairedBody.GetID(), pos, Jolt.Quat.prototype.sIdentity(), fixedStep);
+                }
             });
+
+            // Jolt.destroy(movingBPFilter);
+            // Jolt.destroy(movingLayerFilter);
         } catch (e) {
             Debug.dev && Debug.error(e);
             return false;
@@ -788,7 +811,7 @@ class JoltBackend {
                 const bodyID = bodyList.at(i);
                 const body = system.GetBodyLockInterface().TryGetBody(bodyID);
                 const pointer = Jolt.getPointer(body);
-                if (pointer === 0) {
+                if (pointer === 0 || body.isCharPaired) {
                     continue;
                 }
 

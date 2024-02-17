@@ -89,9 +89,17 @@ class Cleaner {
             body.linked = null;
         }
 
-        const id = body.GetID();
-        bodyInterface.RemoveBody(id);
-        bodyInterface.DestroyBody(id);
+        if (body.isCharacter) {
+            if (body.bodyFilter) {
+                Jolt.destroy(body.bodyFilter);
+            }
+
+            Jolt.destroy(body);
+        } else {
+            const id = body.GetID();
+            bodyInterface.RemoveBody(id);
+            bodyInterface.DestroyBody(id);
+        }
 
         return true;
     }

@@ -1,4 +1,5 @@
 import { Debug } from "../../../debug.mjs";
+import { buildAccessors } from "../../../util.mjs";
 import { ShapeComponent } from "../component.mjs";
 import {
     BUFFER_WRITE_BOOL,
@@ -9,7 +10,7 @@ import {
     CMD_ADD_FORCE, CMD_ADD_IMPULSE,
     CMD_APPLY_BUOYANCY_IMPULSE,
     CMD_DESTROY_BODY,
-    CMD_MOVE_BODY, CMD_RESET_VELOCITIES, CMD_SET_ANG_VEL,
+    CMD_MOVE_BODY, CMD_MOVE_KINEMATIC, CMD_RESET_VELOCITIES, CMD_SET_ANG_VEL,
     CMD_SET_LIN_VEL, CMD_SET_MOTION_TYPE,
     CMD_SET_USER_DATA,
     CMD_USE_MOTION_STATE,
@@ -384,6 +385,15 @@ class BodyComponent extends ShapeComponent {
                 this.resetVelocities();
             }
         }
+    }
+
+    moveKinematic(pos, rot, dt = 0) {
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_MOVE_KINEMATIC, this._index,
+            pos, BUFFER_WRITE_VEC32, false,
+            rot, BUFFER_WRITE_VEC32, false,
+            dt, BUFFER_WRITE_FLOAT32, false
+        );
     }
 
     writeComponentData(cb) {

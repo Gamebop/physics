@@ -2,13 +2,13 @@ import {
     BUFFER_READ_BOOL, BUFFER_READ_FLOAT32, BUFFER_READ_INT32, BUFFER_READ_UINT16,
     BUFFER_READ_UINT32, BUFFER_READ_UINT8, CMD_CREATE_BODY, CMD_CREATE_CHAR,
     CMD_CREATE_CONSTRAINT, CMD_CREATE_GROUPS, CMD_CREATE_SHAPE, CMD_CREATE_SOFT_BODY,
-    CMD_CREATE_VEHICLE, CONSTRAINT_SIX_DOF_ROTATION_X, CONSTRAINT_SIX_DOF_ROTATION_Y, 
+    CMD_CREATE_VEHICLE, CONSTRAINT_SIX_DOF_ROTATION_X, CONSTRAINT_SIX_DOF_ROTATION_Y,
     CONSTRAINT_SIX_DOF_ROTATION_Z, CONSTRAINT_SIX_DOF_TRANSLATION_X, CONSTRAINT_SIX_DOF_TRANSLATION_Y,
     CONSTRAINT_SIX_DOF_TRANSLATION_Z, CONSTRAINT_SPACE_WORLD, CONSTRAINT_TYPE_CONE, CONSTRAINT_TYPE_DISTANCE,
     CONSTRAINT_TYPE_FIXED, CONSTRAINT_TYPE_HINGE, CONSTRAINT_TYPE_POINT, CONSTRAINT_TYPE_SIX_DOF,
     CONSTRAINT_TYPE_SLIDER, CONSTRAINT_TYPE_SWING_TWIST, SHAPE_BOX, SHAPE_CAPSULE, SHAPE_CONVEX_HULL,
-    SHAPE_CYLINDER, SHAPE_HEIGHTFIELD, SHAPE_MESH, SHAPE_SPHERE, SHAPE_STATIC_COMPOUND, 
-    SPRING_MODE_FREQUENCY, UINT16_SIZE, UINT32_SIZE, VEHICLE_CAST_TYPE_CYLINDER, VEHICLE_CAST_TYPE_RAY, VEHICLE_CAST_TYPE_SPHERE,
+    SHAPE_CYLINDER, SHAPE_HEIGHTFIELD, SHAPE_MESH, SHAPE_SPHERE, SHAPE_STATIC_COMPOUND,
+    SPRING_MODE_FREQUENCY, VEHICLE_CAST_TYPE_CYLINDER, VEHICLE_CAST_TYPE_RAY, VEHICLE_CAST_TYPE_SPHERE,
     VEHICLE_TYPE_MOTORCYCLE, VEHICLE_TYPE_WHEEL
 } from "../../../physics/components/jolt/constants.mjs";
 import { Debug } from "../../../physics/debug.mjs";
@@ -79,11 +79,11 @@ class Creator {
         const bpMap = new Map();
 
         const pairs = config.objectLayerPairs;
-        const pairsCount = pairs.length;
+        const pairsCount = pairs.length * 0.5;
         const objectFilter = new Jolt.ObjectLayerPairFilterTable(pairsCount);
-        for (let i = 0; i < pairsCount; i++) {
-            const pair = pairs[i];
-            objectFilter.EnableCollision(pair[0], pair[1]);
+        for (let i = 0; i < pairsCount * 2; i += 2) {
+            // const pair = pairs[i];
+            objectFilter.EnableCollision(pairs[i], pairs[i + 1]);
         }
 
         const bpLayers = config.broadPhaseLayers;
@@ -97,11 +97,13 @@ class Creator {
 
         // Map object layers to broadphase layers
         let objLayerCount = 0;
-        for (const [objLayer, bpLayers] of Object.entries(config.mapObjectToBroadPhaseLayer)) {
+        // for (const [objLayer, bpLayers] of Object.entries(config.mapObjectToBroadPhaseLayer)) {
+        const objLayers = config.mapObjectToBroadPhaseLayer;
+        for (let i = 0; i < objLayers.length; i += 2) {
             objLayerCount++;
-            for (let i = 0; i < bpLayers.length; i++) {
-                bpInterface.MapObjectToBroadPhaseLayer(objLayer, bpMap.get(bpLayers[i]));
-            }
+            // for (let i = 0; i < bpLayers.length; i += 2) {
+            bpInterface.MapObjectToBroadPhaseLayer(objLayers[i], bpMap.get(objLayers[i + 1]));
+            // }
         }
         // Broadphase layers have been copied to the bpInterface, so we can destroy those
         bpMap.forEach(bpLayer => {

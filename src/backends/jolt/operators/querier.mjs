@@ -150,8 +150,13 @@ class Querier {
     
             collector.Reset();
 
-            Jolt.destroy(bpFilter);
-            Jolt.destroy(objFilter);
+            if (customBPFilter) {
+                Jolt.destroy(bpFilter);
+            }
+
+            if (customObjFilter) {
+                Jolt.destroy(objFilter);
+            }
             
         } catch (e) {
             Debug.dev && Debug.error(e);
