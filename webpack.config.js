@@ -12,11 +12,14 @@ const config = {
         library: 'PhysicsComponents',
         libraryTarget: 'umd',
         libraryExport: 'default',
-
+        
         // TODO
         // a bug? without it, the path to worker chunk becomes:
         // https://playcanvas.com/static/platform/js/onetrust/
         workerPublicPath: 'https://launch.playcanvas.com'
+    },
+    optimization: {
+        chunkIds: 'named'
     }
 };
 

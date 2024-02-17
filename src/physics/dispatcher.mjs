@@ -4,7 +4,6 @@ import { Debug } from "./debug.mjs";
 let backend = null;
 
 function createBackend(messenger, data) {
-    // const { backendName, url, config } = data;
     switch (data.backendName) {
         case 'jolt':
             backend = new JoltBackend(messenger, data);
@@ -79,9 +78,6 @@ class Dispatcher {
         if (this._useMainThread) {
             this._manager.onMessage(msg);
         } else {
-
-            console.log(`worker >> ${ msg.perfIndex }`);
-
             if (buffers) {
                 self.postMessage(msg, buffers);
             } else {

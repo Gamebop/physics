@@ -107,14 +107,12 @@ class PhysicsManager {
         if (!this._canDispatch) {
             this._skipped = true;
             return;
-        }        
+        }
 
         let index;
         if (Debug.dev) {
             const startTime = performance.now();
             index = this._perfCache.add(startTime);
-
-            console.log(`------- ${ index } -------`);
 
             this._lastIndex = index;
 
@@ -137,13 +135,6 @@ class PhysicsManager {
 
     onMessage(msg) {
         if (this._paused || msg.origin !== 'physics-worker') return;
-
-        if (this._skipped) {
-            this._canDispatch = false;
-            this._skipped = false;
-            this._writeIsometry();
-            this._dispatchCommands(this._frame.dt, this._lastIndex);
-        }
 
         this._canDispatch = true;
 
@@ -206,9 +197,14 @@ class PhysicsManager {
             
             cache.free(perfIndex);
             frame.physicsTime = performance.now() - startTime + msg.time;
-
-            console.log(`main << ${ perfIndex }: ${ frame.physicsTime.toFixed(4) } ms`);
         }
+
+        if (this._skipped) {
+            this._canDispatch = false;
+            this._skipped = false;
+            this._writeIsometry();
+            this._dispatchCommands(this._frame.dt, this._lastIndex);
+        }        
     }
 
     destroy() {
@@ -249,9 +245,7 @@ class PhysicsManager {
 
         if (Debug.dev) {
             msg.perfIndex = perfIndex;
-        }        
-
-        console.log(`main >> ${ perfIndex }: ${ dt.toFixed(4) } ms`);
+        }
 
         if (!cb.dirty) {
             msg.buffer = null;
@@ -298,9 +292,6 @@ class PhysicsManager {
     }
 
     _createDispatcher(config) {
-        // TODO
-        // buffers detaching needs some work, before we can enable workers
-
         if (config.useWebWorker) {
             this._dispatcher = new Worker(
                 /* webpackChunkName: "worker" */ new URL('./dispatcher.mjs', import.meta.url
@@ -309,8 +300,6 @@ class PhysicsManager {
         } else {
             this._dispatcher = new Dispatcher(this);
         }
-
-        // this._dispatcher = new Dispatcher(this);
     }
 }
 

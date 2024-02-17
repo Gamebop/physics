@@ -1,10 +1,8 @@
 import { Debug } from "../../../debug.mjs";
-import { buildAccessors } from "../../../util.mjs";
 import { ShapeComponent } from "../component.mjs";
 import {
     BUFFER_WRITE_BOOL,
     BUFFER_WRITE_FLOAT32,
-    BUFFER_WRITE_UINT16,
     BUFFER_WRITE_UINT32,
     BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32,
     CMD_ADD_FORCE, CMD_ADD_IMPULSE,
@@ -370,7 +368,12 @@ class BodyComponent extends ShapeComponent {
     }
 
     writeIsometry() {
+        if (this._motionType === pc.JOLT_MOTION_TYPE_DYNAMIC) {
+            return;
+        }
+
         const entity = this.entity;
+
         if (entity._dirtyWorld) {
             const position = entity.getPosition();
             const rotation = entity.getRotation();
@@ -381,10 +384,52 @@ class BodyComponent extends ShapeComponent {
                 rotation, BUFFER_WRITE_VEC32, false
             );
 
-            if (this._motionType === pc.JOLT_MOTION_TYPE_DYNAMIC) {
-                this.resetVelocities();
+            // if (this._motionType === pc.JOLT_MOTION_TYPE_DYNAMIC) {
+            //     this.resetVelocities();
+            // }
+        }
+    }
+
+    teleport(position, rotation = pc.Quat.IDENTITY) {
+        if (Debug.dev) {
+            let ok = Debug.checkVec(position, `Invalid position vector`, position);
+            ok = ok && Debug.checkQuat(rotation, `Invalid rotation quat`, rotation);
+            if (!ok) {
+                return;
             }
         }
+
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_MOVE_BODY, this._index,
+            position, BUFFER_WRITE_VEC32, false,
+            rotation, BUFFER_WRITE_VEC32, false
+        );
+    }
+
+    teleportScalars(px, py, pz, rx = 0, ry = 0, rz = 0, rw = 1) {
+        if (Debug.dev) {
+            let ok = Debug.checkFloat(px, `Invalid position X component`, px);
+            ok = ok && Debug.checkFloat(py, `Invalid position Y component`, py);
+            ok = ok && Debug.checkFloat(pz, `Invalid position Z component`, pz);
+            ok = ok && Debug.checkFloat(rx, `Invalid rotation X component`, rx);
+            ok = ok && Debug.checkFloat(ry, `Invalid rotation Y component`, ry);
+            ok = ok && Debug.checkFloat(rz, `Invalid rotation Z component`, rz);
+            ok = ok && Debug.checkFloat(rw, `Invalid rotation W component`, rw);
+            if (!ok) {
+                return;
+            }
+        }
+
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_MOVE_BODY, this._index,
+            px, BUFFER_WRITE_FLOAT32, false,
+            py, BUFFER_WRITE_FLOAT32, false,
+            pz, BUFFER_WRITE_FLOAT32, false,
+            rx, BUFFER_WRITE_FLOAT32, false,
+            ry, BUFFER_WRITE_FLOAT32, false,
+            rz, BUFFER_WRITE_FLOAT32, false,
+            rw, BUFFER_WRITE_FLOAT32, false,
+        );
     }
 
     moveKinematic(pos, rot, dt = 0) {

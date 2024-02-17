@@ -30,6 +30,7 @@ class JoltBackend {
             // Physics Settings
             // https://jrouwe.github.io/JoltPhysics/struct_physics_settings.html
             baumgarte: 0.2,
+            maxSkippedSteps: 5,
             bodyPairCacheCosMaxDeltaRotationDiv2: 0.9998476951563912,
             bodyPairCacheMaxDeltaPositionSq: Math.sqrt(0.001),
             contactNormalCosMaxDeltaRotation: 0.9961946980917455,
@@ -254,8 +255,6 @@ class JoltBackend {
         if (Debug.dev) {
             this._stepTime = performance.now();
             this._perfIndex = data.perfIndex;
-
-            console.log(`worker << ${ data.perfIndex }`);
         }
         
         const { buffer, meshBuffers, dt } = data;
@@ -264,11 +263,7 @@ class JoltBackend {
 
         if (data.inBuffer) {
             outBuffer.buffer = data.inBuffer;
-        }
-
-        if (outBuffer.buffer.byteLength === 0) {
-            debugger;
-        }        
+        }  
 
         let ok = true;
         if (buffer) {
@@ -322,16 +317,6 @@ class JoltBackend {
 
     overrideContacts(listener, overrides) {
         this._listener.overrideContacts(listener, overrides);
-    }
-
-    getBitValue(name) {
-        const layers = this._filterLayers;
-
-        if (!layers.has(name)) {
-            layers.set(name, layers.size ? 1 << layers.size - 1 : 0);
-        }
-
-        return layers.get(name);
     }
 
     destroy() {
@@ -391,6 +376,7 @@ class JoltBackend {
         const fixedStep = config.fixedStep;
         const subSteps = config.subSteps;
         const jolt = this._joltInterface;
+        const maxStepSize = fixedStep * config.maxSkippedSteps;
 
         let time = this._time;
         let stepped = false;
@@ -398,10 +384,12 @@ class JoltBackend {
 
         if (this._lastStamp !== 0) {
             dt = (performance.now() - this._lastStamp) * 0.001;
+
+            // if (dt > maxStepSize) {
+            //     dt = maxStepSize;
+            // }
         }
 
-        console.log(`worker: adding ${ dt.toFixed(4) } ms`);
-        
         time += dt;
         
         while (ok && time >= fixedStep) {
@@ -410,8 +398,6 @@ class JoltBackend {
                 ok = this._stepCharacters(fixedStep);
                 // step the physics world
                 
-                console.log(`worker: stepping with ${ fixedStep.toFixed(4) } ms`);
-
                 ok && jolt.Step(fixedStep, subSteps);
                 this._steps++;
                 stepped = true;
