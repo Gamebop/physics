@@ -1,12 +1,5 @@
-import { BodyComponentSystem } from "./components/jolt/body/system.mjs";
-import { CharComponentSystem } from "./components/jolt/char/system.mjs";
-import { VehicleComponentSystem } from "./components/jolt/vehicle/system.mjs";
 import { Debug } from "./debug.mjs";
 import { JoltManager } from "./components/jolt/manager.mjs";
-import { 
-    COMPONENT_SYSTEM_BODY, COMPONENT_SYSTEM_CHAR, COMPONENT_SYSTEM_SOFT_BODY, COMPONENT_SYSTEM_VEHICLE
-} from "./components/jolt/constants.mjs";
-import { SoftBodyComponentSystem } from "./components/jolt/softbody/system.mjs";
 import { extendPCMath } from "./math.mjs";
 
 // Override chunk location in order for the engine to locate them in PlayCanvas Editor.

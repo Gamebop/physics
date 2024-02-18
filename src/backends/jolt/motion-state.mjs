@@ -1,8 +1,6 @@
 import { Debug } from "../../physics/debug.mjs";
 
 const v1 = { x: 0, y: 0, z: 0 };
-const q1 = { x: 0, y: 0, z: 0, w: 1 };
-const q2 = { x: 0, y: 0, z: 0, w: 1 };
 
 class MotionState {
     constructor(body) {

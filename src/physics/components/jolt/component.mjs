@@ -1,21 +1,5 @@
 import { Debug } from "../../debug.mjs";
 import { buildAccessors } from "../../util.mjs";
-import {
-    BUFFER_WRITE_BOOL,
-    BUFFER_WRITE_FLOAT32,
-    BUFFER_WRITE_UINT32,
-    BUFFER_WRITE_UINT8,
-    BUFFER_WRITE_VEC32,
-    FLOAT32_SIZE,
-    SHAPE_BOX,
-    SHAPE_CAPSULE,
-    SHAPE_CONVEX_HULL,
-    SHAPE_CYLINDER,
-    SHAPE_HEIGHTFIELD,
-    SHAPE_MESH,
-    SHAPE_SPHERE,
-    SHAPE_STATIC_COMPOUND
-} from "./constants.mjs";
 
 const quat = new pc.Quat();
 

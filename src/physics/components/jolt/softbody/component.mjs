@@ -1,7 +1,6 @@
 import { Debug } from "../../../debug.mjs";
 import { BodyComponent } from "../body/component.mjs";
 import { ShapeComponent } from "../component.mjs";
-import { BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT16, BUFFER_WRITE_UINT32, BUFFER_WRITE_VEC32 } from "../constants.mjs";
 
 class SoftBodyComponent extends BodyComponent {
     // amount of substance * ideal gass constant * absolute temperature

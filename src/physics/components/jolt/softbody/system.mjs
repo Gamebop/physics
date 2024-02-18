@@ -1,7 +1,4 @@
-import { buildAccessors } from "../../../util.mjs";
 import { BodyComponentSystem } from "../body/system.mjs";
-import { BUFFER_READ_FLOAT32, BUFFER_READ_UINT32, CMD_CREATE_SOFT_BODY, CMD_UPDATE_TRANSFORMS, OPERATOR_CREATOR } from "../constants.mjs";
-import { ShapeComponentSystem } from "../system.mjs";
 import { SoftBodyComponent } from "./component.mjs";
 
 const schema = [

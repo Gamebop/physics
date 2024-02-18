@@ -1,122 +1,126 @@
-export const OPERATOR_CREATOR = 0;
-export const OPERATOR_MODIFIER = 1;
-export const OPERATOR_QUERIER = 2;
-export const OPERATOR_CLEANER = 3;
-
-export const CONSTRAINT_TYPE_FIXED = 0;
-export const CONSTRAINT_TYPE_POINT = 1;
-export const CONSTRAINT_TYPE_DISTANCE = 2;
-export const CONSTRAINT_TYPE_HINGE = 3;
-export const CONSTRAINT_TYPE_SLIDER = 4;
-export const CONSTRAINT_TYPE_CONE = 5;
-export const CONSTRAINT_TYPE_SWING_TWIST = 6;
-export const CONSTRAINT_TYPE_SIX_DOF = 7;
-
-export const CONSTRAINT_SIX_DOF_TRANSLATION_X = 0;
-export const CONSTRAINT_SIX_DOF_TRANSLATION_Y = 1;
-export const CONSTRAINT_SIX_DOF_TRANSLATION_Z = 2;
-export const CONSTRAINT_SIX_DOF_ROTATION_X = 3;
-export const CONSTRAINT_SIX_DOF_ROTATION_Y = 4;
-export const CONSTRAINT_SIX_DOF_ROTATION_Z = 5;
-
-export const CONSTRAINT_SPACE_LOCAL = 0;
-export const CONSTRAINT_SPACE_WORLD = 1;
-
-export const SPRING_MODE_FREQUENCY = 0;
-export const SPRING_MODE_STIFFNESS = 1;
-
-export const VEHICLE_CAST_TYPE_RAY = 0;
-export const VEHICLE_CAST_TYPE_SPHERE = 1;
-export const VEHICLE_CAST_TYPE_CYLINDER = 2;
-
-export const OBJ_LAYER_NON_MOVING = 0;
-export const OBJ_LAYER_MOVING = 1;
-
-export const BP_LAYER_NON_MOVING = 0;
-export const BP_LAYER_MOVING = 1;
-
-export const SHAPE_BOX = 0;
-export const SHAPE_CAPSULE = 1;
-export const SHAPE_CYLINDER = 2;
-export const SHAPE_SPHERE = 3;
-export const SHAPE_MESH = 4;
-export const SHAPE_CONVEX_HULL = 5;
-export const SHAPE_STATIC_COMPOUND = 6;
-export const SHAPE_HEIGHTFIELD = 7;
-
-export const VEHICLE_TYPE_WHEEL = 0;
-export const VEHICLE_TYPE_TRACK = 1;
-export const VEHICLE_TYPE_MOTORCYCLE = 2;
-
-export const CONTACT_TYPE_ADDED = 0;
-export const CONTACT_TYPE_PERSISTED = 1;
-export const CONTACT_TYPE_REMOVED = 2;
-
-export const COMPONENT_SYSTEM_MANAGER = 0;
-export const COMPONENT_SYSTEM_BODY = 1;
-export const COMPONENT_SYSTEM_CHAR = 2;
-export const COMPONENT_SYSTEM_VEHICLE = 3;
-export const COMPONENT_SYSTEM_SOFT_BODY = 4;
-
-export const FLOAT32_SIZE = Float32Array.BYTES_PER_ELEMENT;
-export const INT32_SIZE = Int32Array.BYTES_PER_ELEMENT;
-export const UINT32_SIZE = Uint32Array.BYTES_PER_ELEMENT;
-export const UINT16_SIZE = Uint16Array.BYTES_PER_ELEMENT;
-export const UINT8_SIZE = Uint8Array.BYTES_PER_ELEMENT;
-
-export const BUFFER_WRITE_UINT8 = 'writeUint8';
-export const BUFFER_WRITE_UINT16 = 'writeUint16';
-export const BUFFER_WRITE_UINT32 = 'writeUint32';
-export const BUFFER_WRITE_INT32 = 'writeInt32';
-export const BUFFER_WRITE_VEC32 = 'writeVector32';
-export const BUFFER_WRITE_FLOAT32 = 'writeFloat32';
-export const BUFFER_WRITE_BOOL = 'writeBool';
-export const BUFFER_WRITE_PLANE = 'writePlane';
-export const BUFFER_WRITE_JOLTVEC32 = 'writeJoltVec32';
-
-export const BUFFER_READ_UINT8 = 'readUint8';
-export const BUFFER_READ_UINT16 = 'readUint16';
-export const BUFFER_READ_UINT32 = 'readUint32';
-export const BUFFER_READ_INT32 = 'readInt32';
-export const BUFFER_READ_FLOAT32 = 'readFloat32';
-export const BUFFER_READ_BOOL = 'readBool';
-
+// TODO
+// Currently, the constants are exposed to webpack.config.js,
+// so that it can inline replace the values in code at compile time.
+// Couldn't find a more elegant way to inline those :/
 
 let i = 0;
-// frontend -> backend
-export const CMD_CREATE_BODY = i++;
-export const CMD_CREATE_CHAR = i++;
-export const CMD_CREATE_SHAPE = i++;
-export const CMD_CREATE_VEHICLE = i++;
-export const CMD_CREATE_SOFT_BODY = i++;
-export const CMD_ADD_FORCE = i++;
-export const CMD_ADD_IMPULSE = i++;
-export const CMD_APPLY_BUOYANCY_IMPULSE = i++;
-export const CMD_ADD_ANGULAR_IMPULSE = i++;
-export const CMD_ADD_TORQUE = i++;
-export const CMD_CAST_RAY = i++;
-export const CMD_CAST_SHAPE = i++;
-export const CMD_DESTROY_BODY = i++;
-export const CMD_DESTROY_SHAPE = i++;
-export const CMD_MOVE_BODY = i++;
-export const CMD_MOVE_KINEMATIC = i++;
-export const CMD_SET_LIN_VEL = i++;
-export const CMD_SET_ANG_VEL = i++;
-export const CMD_SET_MOTION_TYPE = i++;
-export const CMD_RESET_VELOCITIES = i++;
-export const CMD_TOGGLE_GROUP_PAIR = i++;
-export const CMD_CREATE_GROUPS = i++;
-export const CMD_CREATE_CONSTRAINT = i++;
-export const CMD_CHANGE_GRAVITY = i++;
-export const CMD_CHAR_SET_LIN_VEL = i++;
-export const CMD_CHAR_SET_SHAPE = i++;
-export const CMD_SET_USER_DATA = i++;
-export const CMD_USE_MOTION_STATE = i++;
-export const CMD_SET_CONSTRAINT_ENABLED = i++;
-export const CMD_DESTROY_CONSTRAINT = i++;
-export const CMD_SET_DRIVER_INPUT = i++;
-export const CMD_PAIR_BODY = i++;
-// backend -> frontend
-export const CMD_UPDATE_TRANSFORMS = i++;
-export const CMD_REPORT_CONTACTS = i++;
-export const CMD_REPORT_SET_SHAPE = i++;
+export const constants = {
+    OPERATOR_CREATOR: 0,
+    OPERATOR_MODIFIER: 1,
+    OPERATOR_QUERIER: 2,
+    OPERATOR_CLEANER: 3,
+
+    CONSTRAINT_TYPE_FIXED: 0,
+    CONSTRAINT_TYPE_POINT: 1,
+    CONSTRAINT_TYPE_DISTANCE: 2,
+    CONSTRAINT_TYPE_HINGE: 3,
+    CONSTRAINT_TYPE_SLIDER: 4,
+    CONSTRAINT_TYPE_CONE: 5,
+    CONSTRAINT_TYPE_SWING_TWIST: 6,
+    CONSTRAINT_TYPE_SIX_DOF: 7,
+    CONSTRAINT_SIX_DOF_TRANSLATION_X: 0,
+    CONSTRAINT_SIX_DOF_TRANSLATION_Y: 1,
+    CONSTRAINT_SIX_DOF_TRANSLATION_Z: 2,
+    CONSTRAINT_SIX_DOF_ROTATION_X: 3,
+    CONSTRAINT_SIX_DOF_ROTATION_Y: 4,
+    CONSTRAINT_SIX_DOF_ROTATION_Z: 5,
+
+    CONSTRAINT_SPACE_LOCAL: 0,
+    CONSTRAINT_SPACE_WORLD: 1,
+
+    SPRING_MODE_FREQUENCY: 0,
+    SPRING_MODE_STIFFNESS: 1,
+
+    VEHICLE_CAST_TYPE_RAY: 0,
+    VEHICLE_CAST_TYPE_SPHERE: 1,
+    VEHICLE_CAST_TYPE_CYLINDER: 2,
+
+    OBJ_LAYER_NON_MOVING: 0,
+    OBJ_LAYER_MOVING: 1,
+
+    BP_LAYER_NON_MOVING: 0,
+    BP_LAYER_MOVING: 1,
+
+    SHAPE_BOX: 0,
+    SHAPE_CAPSULE: 1,
+    SHAPE_CYLINDER: 2,
+    SHAPE_SPHERE: 3,
+    SHAPE_MESH: 4,
+    SHAPE_CONVEX_HULL: 5,
+    SHAPE_STATIC_COMPOUND: 6,
+    SHAPE_HEIGHTFIELD: 7,
+
+    VEHICLE_TYPE_WHEEL: 0,
+    VEHICLE_TYPE_TRACK: 1,
+    VEHICLE_TYPE_MOTORCYCLE: 2,
+    CONTACT_TYPE_ADDED: 0,
+    CONTACT_TYPE_PERSISTED: 1,
+    CONTACT_TYPE_REMOVED: 2,
+
+    COMPONENT_SYSTEM_MANAGER: 0,
+    COMPONENT_SYSTEM_BODY: 1,
+    COMPONENT_SYSTEM_CHAR: 2,
+    COMPONENT_SYSTEM_VEHICLE: 3,
+    COMPONENT_SYSTEM_SOFT_BODY: 4,
+
+    FLOAT32_SIZE: Float32Array.BYTES_PER_ELEMENT,
+    INT32_SIZE: Int32Array.BYTES_PER_ELEMENT,
+    UINT32_SIZE: Uint32Array.BYTES_PER_ELEMENT,
+    UINT16_SIZE: Uint16Array.BYTES_PER_ELEMENT,
+    UINT8_SIZE: Uint8Array.BYTES_PER_ELEMENT,
+
+    BUFFER_WRITE_UINT8: JSON.stringify('writeUint8'),
+    BUFFER_WRITE_UINT16: JSON.stringify('writeUint16'),
+    BUFFER_WRITE_UINT32: JSON.stringify('writeUint32'),
+    BUFFER_WRITE_INT32: JSON.stringify('writeInt32'),
+    BUFFER_WRITE_VEC32: JSON.stringify('writeVector32'),
+    BUFFER_WRITE_FLOAT32: JSON.stringify('writeFloat32'),
+    BUFFER_WRITE_BOOL: JSON.stringify('writeBool'),
+    BUFFER_WRITE_PLANE: JSON.stringify('writePlane'),
+    BUFFER_WRITE_JOLTVEC32: JSON.stringify('writeJoltVec32'),
+    BUFFER_READ_UINT8: JSON.stringify('readUint8'),
+    BUFFER_READ_UINT16: JSON.stringify('readUint16'),
+    BUFFER_READ_UINT32: JSON.stringify('readUint32'),
+    BUFFER_READ_INT32: JSON.stringify('readInt32'),
+    BUFFER_READ_FLOAT32: JSON.stringify('readFloat32'),
+    BUFFER_READ_BOOL: JSON.stringify('readBool'),
+
+    // frontend -> backend
+    CMD_CREATE_BODY: i++,
+    CMD_CREATE_CHAR: i++,
+    CMD_CREATE_SHAPE: i++,
+    CMD_CREATE_VEHICLE: i++,
+    CMD_CREATE_SOFT_BODY: i++,
+    CMD_ADD_FORCE: i++,
+    CMD_ADD_IMPULSE: i++,
+    CMD_APPLY_BUOYANCY_IMPULSE: i++,
+    CMD_ADD_ANGULAR_IMPULSE: i++,
+    CMD_ADD_TORQUE: i++,
+    CMD_CAST_RAY: i++,
+    CMD_CAST_SHAPE: i++,
+    CMD_DESTROY_BODY: i++,
+    CMD_DESTROY_SHAPE: i++,
+    CMD_MOVE_BODY: i++,
+    CMD_MOVE_KINEMATIC: i++,
+    CMD_SET_LIN_VEL: i++,
+    CMD_SET_ANG_VEL: i++,
+    CMD_SET_MOTION_TYPE: i++,
+    CMD_RESET_VELOCITIES: i++,
+    CMD_TOGGLE_GROUP_PAIR: i++,
+    CMD_CREATE_GROUPS: i++,
+    CMD_CREATE_CONSTRAINT: i++,
+    CMD_CHANGE_GRAVITY: i++,
+    CMD_CHAR_SET_LIN_VEL: i++,
+    CMD_CHAR_SET_SHAPE: i++,
+    CMD_SET_USER_DATA: i++,
+    CMD_USE_MOTION_STATE: i++,
+    CMD_SET_CONSTRAINT_ENABLED: i++,
+    CMD_DESTROY_CONSTRAINT: i++,
+    CMD_SET_DRIVER_INPUT: i++,
+    CMD_PAIR_BODY: i++,
+
+    // backend -> frontend
+    CMD_UPDATE_TRANSFORMS: i++,
+    CMD_REPORT_CONTACTS: i++,
+    CMD_REPORT_SET_SHAPE: i++,
+};

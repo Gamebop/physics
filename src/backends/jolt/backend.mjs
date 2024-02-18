@@ -1,14 +1,4 @@
 import joltInfo from "jolt-physics/package.json";
-
-import {
-    BP_LAYER_MOVING,
-    BP_LAYER_NON_MOVING,
-    BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_JOLTVEC32, BUFFER_WRITE_UINT32, BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32,
-    CMD_UPDATE_TRANSFORMS, COMPONENT_SYSTEM_BODY, COMPONENT_SYSTEM_CHAR, COMPONENT_SYSTEM_SOFT_BODY,
-    OBJ_LAYER_MOVING,
-    OBJ_LAYER_NON_MOVING,
-    OPERATOR_CLEANER, OPERATOR_CREATOR, OPERATOR_MODIFIER, OPERATOR_QUERIER
-} from "../../physics/components/jolt/constants.mjs";
 import { Debug } from "../../physics/debug.mjs";
 import { extendJoltMath } from "../../physics/math.mjs";
 import { CommandsBuffer } from "./commands-buffer.mjs";
@@ -22,10 +12,6 @@ import { Tracker } from "./operators/tracker.mjs";
 
 class JoltBackend {
     constructor(messenger, data) {
-        // // TODO
-        // // add webworker
-        // if (!window || !window.Jolt) return;
-
         const config = {
             // Physics Settings
             // https://jrouwe.github.io/JoltPhysics/struct_physics_settings.html
@@ -155,6 +141,10 @@ class JoltBackend {
                 }
 
                 this._exposeConstants();
+
+                if (Debug.dev) {
+                    console.log('Jolt Physics:', joltInfo.version);
+                }
             });
         }
         loadJolt();
@@ -740,8 +730,6 @@ class JoltBackend {
         const msg = this._responseMessage;
 
         msg.constants = [
-            'JOLT_VERSION', joltInfo.version,
-
             'JOLT_MOTION_TYPE_STATIC', Jolt.EMotionType_Static,
             'JOLT_MOTION_TYPE_DYNAMIC', Jolt.EMotionType_Dynamic,
             'JOLT_MOTION_TYPE_KINEMATIC', Jolt.EMotionType_Kinematic,

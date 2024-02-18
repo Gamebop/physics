@@ -1,6 +1,4 @@
-import { buildAccessors } from "../../../util.mjs";
 import { BodyComponentSystem } from "../body/system.mjs";
-import { CMD_CREATE_VEHICLE, COMPONENT_SYSTEM_VEHICLE, OPERATOR_CREATOR } from "../constants.mjs";
 import { VehicleComponent } from "./component.mjs";
 
 const schema = [

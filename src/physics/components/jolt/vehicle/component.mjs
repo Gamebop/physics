@@ -1,12 +1,5 @@
 import { Debug } from "../../../debug.mjs";
 import { BodyComponent } from "../body/component.mjs";
-import {
-    BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_INT32, BUFFER_WRITE_UINT16,
-    BUFFER_WRITE_UINT32, BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32, CMD_SET_DRIVER_INPUT,
-    OBJ_LAYER_MOVING,
-    OPERATOR_MODIFIER, VEHICLE_CAST_TYPE_CYLINDER, VEHICLE_CAST_TYPE_RAY,
-    VEHICLE_CAST_TYPE_SPHERE, VEHICLE_TYPE_MOTORCYCLE, VEHICLE_TYPE_WHEEL
-} from "../constants.mjs";
 
 class VehicleComponent extends BodyComponent {
     // Used only when the constraint is active. Override for the number of solver 

@@ -1,5 +1,4 @@
 import { Debug } from "./debug.mjs";
-import { BUFFER_READ_FLOAT32 } from "./components/jolt/constants.mjs";
 
 function extendPCMath() {
     pc.Vec3.fromBuffer = function(buffer) {

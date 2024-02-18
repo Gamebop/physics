@@ -1,4 +1,3 @@
-import { FLOAT32_SIZE } from "../../../physics/components/jolt/constants.mjs";
 import { Debug } from "../../../physics/debug.mjs";
 
 class Drawer {

@@ -1,25 +1,5 @@
 import { Debug } from "../../../debug.mjs";
 import { ShapeComponent } from "../component.mjs";
-import {
-    BUFFER_READ_BOOL, BUFFER_READ_FLOAT32,
-    BUFFER_READ_UINT32,
-    BUFFER_READ_UINT8,
-    BUFFER_WRITE_BOOL,
-    BUFFER_WRITE_FLOAT32,
-    BUFFER_WRITE_PLANE,
-    BUFFER_WRITE_UINT32,
-    BUFFER_WRITE_UINT8,
-    BUFFER_WRITE_VEC32,
-    CMD_CHAR_SET_LIN_VEL,
-    CMD_CHAR_SET_SHAPE,
-    CMD_DESTROY_BODY,
-    CMD_PAIR_BODY,
-    CMD_SET_USER_DATA,
-    OPERATOR_CLEANER,
-    OPERATOR_MODIFIER,
-    SHAPE_CAPSULE
-} from "../constants.mjs";
-import { ShapeComponentSystem } from "../system.mjs";
 
 class CharComponent extends ShapeComponent {
     // ---- SHAPE PROPS ----

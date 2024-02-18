@@ -1,4 +1,3 @@
-import { BUFFER_READ_UINT32, CMD_DESTROY_BODY, CMD_DESTROY_SHAPE } from "../../../physics/components/jolt/constants.mjs";
 import { Debug } from "../../../physics/debug.mjs";
 
 class Cleaner {

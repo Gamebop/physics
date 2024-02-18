@@ -1,11 +1,3 @@
-import {
-    BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32,
-    BUFFER_WRITE_UINT32, BUFFER_WRITE_UINT8, CMD_REPORT_CONTACTS,
-    COMPONENT_SYSTEM_BODY, COMPONENT_SYSTEM_CHAR, CONTACT_TYPE_ADDED, CONTACT_TYPE_PERSISTED,
-    CONTACT_TYPE_REMOVED
-} from "../../../physics/components/jolt/constants.mjs";
-import { Debug } from "../../../physics/debug.mjs";
-
 class Listener {
     constructor(backend) {
         this._listener = null;

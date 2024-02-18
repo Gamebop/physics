@@ -1,6 +1,13 @@
 import path from 'path';
 import { fileURLToPath } from 'url';
+import pkg from 'webpack';
 
+// TODO
+// do we have another way to inline imported values, without
+// importing backend specific constants here?
+import { constants } from './src/physics/components/jolt/constants.mjs';
+
+const { DefinePlugin } = pkg;
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
 
@@ -11,22 +18,17 @@ const config = {
         path: path.resolve(dirname, 'dist'),
         library: 'PhysicsComponents',
         libraryTarget: 'umd',
-        libraryExport: 'default',
-        
-        // TODO
-        // a bug? without it, the path to worker chunk becomes:
-        // https://playcanvas.com/static/platform/js/onetrust/
-        workerPublicPath: 'https://launch.playcanvas.com'
+        libraryExport: 'default'
     },
     optimization: {
         chunkIds: 'named'
-    }
+    },
+    plugins: [ new DefinePlugin(constants) ]
 };
 
 export default (env, argv) => {
     if (argv.mode === 'development') {
         config.mode = 'development';
-        // config.devtool = 'eval-cheap-source-map';
         config.devtool = 'eval-source-map';
         config.output.filename = 'physics-components.dbg.js';
     }
