@@ -119,7 +119,10 @@ class JoltBackend {
                 this._cleaner = new Cleaner(this);
                 this._querier = new Querier(this);
                 this._tracker = new Tracker(Jolt);
-                this._drawer = new Drawer(Jolt);
+
+                if (Debug.dev) {
+                    this._drawer = new Drawer(Jolt);
+                }
                 
                 const listener = new Listener(this);
 
@@ -301,7 +304,7 @@ class JoltBackend {
         ok = ok && this._writeCharacters(outBuffer);
 
         // write debug draw data
-        if (Debug.dev) {
+        if (Debug.dev && !this._config.useWebWorker) {
             // Write debug draw data
             ok = ok && this._drawer.write(this._tracker);
         }     

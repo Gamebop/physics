@@ -310,7 +310,7 @@ class Creator {
         bodyInterface.AddBody(body.GetID(), Jolt.Activate);
 
         if (Debug.dev) {
-            body.debugDraw = cb.read(BUFFER_READ_BOOL);
+            this._addDebugDraw(cb.read(BUFFER_READ_BOOL), body);
         }
 
         // Destroy shape settings after body is created:
@@ -379,9 +379,6 @@ class Creator {
         bodyCreationSettings.mMakeRotationIdentity = cb.read(BUFFER_READ_BOOL);
         bodyCreationSettings.mAllowSleeping = cb.read(BUFFER_READ_BOOL);
         
-        // debug draw
-        const debugDraw = Debug.dev ? cb.read(BUFFER_READ_BOOL) : false;
-
         if (group !== null && subGroup !== null) {
             const table = backend.groupFilterTables[group];
 
@@ -406,8 +403,8 @@ class Creator {
         bodyInterface.AddBody(body.GetID(), Jolt.Activate);
 
         if (Debug.dev) {
-            body.debugDraw = debugDraw;
-        }
+            this._addDebugDraw(cb.read(BUFFER_READ_BOOL), body);
+        } 
 
         // Destroy shape settings after body is created:
         Jolt.destroy(bodyCreationSettings);
@@ -1281,7 +1278,8 @@ class Creator {
         const backend = this._backend;
         const Jolt = backend.Jolt;
         const listener = backend.listener;
-        const charEvents = backend.config.charContactEventsEnabled;
+        const config = backend.config;
+        const charEvents = config.charContactEventsEnabled;
         const jv = this._joltVec3;
         const jq = this._joltQuat;
         const settings = new Jolt.CharacterVirtualSettings();
@@ -1334,8 +1332,8 @@ class Creator {
         const character = new Jolt.CharacterVirtual(settings, jv, jq, backend.physicsSystem);
 
         if (Debug.dev) {
-            character.debugDraw = cb.read(BUFFER_READ_BOOL);
-        }        
+            this._addDebugDraw(cb.read(BUFFER_READ_BOOL), character);
+        }
 
         if (backend.config.useMotionStates && useMotionState) {
             character.motionState = new MotionState(character);
@@ -1417,6 +1415,16 @@ class Creator {
         }
         
         return settings;
+    }
+
+    _addDebugDraw(requested, body) {
+        const isWorker = this._backend.config.useWebWorker;
+        if (requested && isWorker) {
+            Debug.warn('Debug draw was requested, but it is not supported, when running in WebWorker. Disable WebWorker (useWebWorker option) when you need to debug draw.');
+            body.debugDraw = false;
+        } else {
+            body.debugDraw = requested;
+        }
     }
 
     static createSoftBodyShapeSettings(cb, meshBuffers, Jolt) {

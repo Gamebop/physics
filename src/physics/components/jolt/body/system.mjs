@@ -1,12 +1,10 @@
 import { Debug } from "../../../debug.mjs";
-import { buildAccessors } from "../../../util.mjs";
 import {
     CMD_CAST_RAY,
     CMD_CAST_SHAPE,
     CMD_CREATE_BODY,
     CMD_REPORT_CONTACTS,
     CMD_UPDATE_TRANSFORMS,
-    COMPONENT_SYSTEM_BODY,
     OPERATOR_CREATOR
 } from "../constants.mjs";
 import { ResponseHandler } from "../response-handler.mjs";
