@@ -1065,6 +1065,17 @@ class Creator {
                 }
                 break;
             
+            case CONSTRAINT_TYPE_PULLEY:
+                settings = new Jolt.PulleyConstraintSettings();
+                settings.mBodyPoint1 = jv.FromBuffer(cb);
+                settings.mBodyPoint2 = jv.FromBuffer(cb);
+                settings.mFixedPoint1 = jv.FromBuffer(cb);
+                settings.mFixedPoint2 = jv.FromBuffer(cb);
+                settings.mRatio = cb.read(BUFFER_READ_FLOAT32);
+                settings.mMinLength = cb.read(BUFFER_READ_FLOAT32);
+                settings.mMaxLength = cb.read(BUFFER_READ_FLOAT32);
+                break;
+            
             case CONSTRAINT_TYPE_SIX_DOF:
                 settings = new Jolt.SixDOFConstraintSettings();
                 if (cb.read(BUFFER_READ_UINT8)) {

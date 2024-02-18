@@ -18,6 +18,10 @@ class Cleaner {
             case CMD_DESTROY_SHAPE:
                 ok = this._destroyShape(cb);
                 break;
+
+            case CMD_DESTROY_CONSTRAINT:
+                ok = this._destroyConstraint(cb);
+                break;
         }
 
         return ok;
@@ -99,6 +103,49 @@ class Cleaner {
             bodyInterface.RemoveBody(id);
             bodyInterface.DestroyBody(id);
         }
+
+        return true;
+    }
+
+    _destroyConstraint(cb) {
+        const backend = this._backend;
+        const tracker = backend.tracker;
+        const bodyInterface = backend.bodyInterface;
+        const Jolt = backend.Jolt;
+        const map = tracker.constraintMap;
+
+        const index = cb.read(BUFFER_READ_UINT32);
+        const data = map.get(index);
+        if (!data) {
+            return true;
+        }
+
+        const { constraint, body1, body2 } = data;
+
+        const clearIndex = list => {
+            const idx = list?.findIndex(e => e === index);
+            if (idx >= 0) {
+                list.splice(idx, 1);
+            }
+        }
+
+        const activate = body => {
+            if (Jolt.getPointer(body) !== 0) {
+                bodyInterface.ActivateBody(body.GetID());
+            }
+        }
+
+        clearIndex(body1.constraints);
+        clearIndex(body2.constraints);
+
+        activate(body1);
+        activate(body2);
+
+        if (Jolt.getPointer(constraint) !== 0) {
+            backend.physicsSystem.RemoveConstraint(constraint);
+            Jolt.destroy(constraint);
+        }
+        map.delete(index);
 
         return true;
     }

@@ -293,6 +293,10 @@ class JoltManager extends PhysicsManager {
                 JoltManager.writeSixDofConstraint(cb, opts);
                 break;
 
+            case CONSTRAINT_TYPE_PULLEY:
+                JoltManager.writePulleyConstraint(cb, opts);
+                break;
+
             default:
                 Debug.dev && Debug.error(`Unrecognized constraint type: ${ type }`);
                 return;
@@ -452,6 +456,17 @@ class JoltManager extends PhysicsManager {
 
         JoltManager.writeSpringSettings(cb, opts.springSettings);
         JoltManager.writeMotorSettings(cb, opts.motorSettings);
+    }
+
+    // https://jrouwe.github.io/JoltPhysics/class_pulley_constraint_settings.html
+    static writePulleyConstraint(cb, opts) {
+        cb.write(opts.bodyPoint1 || pc.Vec3.ZERO, BUFFER_WRITE_VEC32, false);
+        cb.write(opts.bodyPoint2 || pc.Vec3.ZERO, BUFFER_WRITE_VEC32, false);
+        cb.write(opts.fixedPoint1 || pc.Vec3.ZERO, BUFFER_WRITE_VEC32, false);
+        cb.write(opts.fixedPoint2 || pc.Vec3.ZERO, BUFFER_WRITE_VEC32, false);
+        cb.write(opts.ratio ?? 1, BUFFER_WRITE_FLOAT32, false);
+        cb.write(opts.minLength ?? 0, BUFFER_WRITE_FLOAT32, false);
+        cb.write(opts.maxLength ?? -1, BUFFER_WRITE_FLOAT32, false);
     }
 
     static writeAxes(cb, axes, limits) {
