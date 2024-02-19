@@ -1,0 +1,53 @@
+{
+    "compilerOptions": {
+        "baseUrl": ".",
+        "outDir": "types",
+        "allowJs": true,
+        "checkJs": false,
+        "module": "es6",
+        "target": "es6",
+        "moduleResolution": "node",
+        "noImplicitReturns": true,
+        "noImplicitThis": true,
+        "noUnusedLocals": true,
+        "strictNullChecks": true,
+        "strictPropertyInitialization": true,
+        "typeRoots": [ "./node_modules/@types" ]
+    },
+    "typedocOptions": {
+        "compilerOptions": {
+            "allowSyntheticDefaultImports": true,
+            "checkJs": false,
+            "typeRoots": [ "./node_modules/@types" ]
+        },
+        "entryPoints": [
+            "src/index.mjs",
+        ],
+        "excludeNotDocumented": true,
+        "excludeNotDocumentedKinds": [
+            "Module",
+            "Namespace",
+            "Enum",
+            "Variable",
+            "Function",
+            "Class",
+            // "Interface",
+            "Constructor",
+            "Property",
+            "Method",
+            "CallSignature",
+            "IndexSignature",
+            "ConstructorSignature",
+            "Accessor",
+            // "GetSignature",
+            "SetSignature",
+            "TypeAlias",
+            "Reference"
+        ],
+        "githubPages": false,
+        "name": "Physics Components",
+        "out": "docs",
+        "readme": "none"
+    },
+    "include": [ "src/**/*.mjs" ]
+}

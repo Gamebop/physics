@@ -32,8 +32,12 @@ const schema = [
     'allowSleeping',
 ];
 
+/**
+ * Body Component System description.
+ * 
+ * @category Body Component
+ */
 class BodyComponentSystem extends ShapeComponentSystem {
-
     constructor(app, manager, id) {
         super(app, manager);
 

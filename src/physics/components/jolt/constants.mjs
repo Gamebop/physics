@@ -1,6 +1,7 @@
 // TODO
 // Currently, the constants are exposed to webpack.config.js,
 // so that it can inline replace the values in code at compile time.
+// Also intellisense from TS highlights them as errors in code.
 // Couldn't find a more elegant way to inline those :/
 
 let i = 0;

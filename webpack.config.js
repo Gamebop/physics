@@ -3,8 +3,8 @@ import { fileURLToPath } from 'url';
 import pkg from 'webpack';
 
 // TODO
-// do we have another way to inline imported values, without
-// importing backend specific constants here?
+// do we have another way to inline constants (without
+// importing backend specific stuff here)?
 import { constants } from './src/physics/components/jolt/constants.mjs';
 
 const { DefinePlugin } = pkg;

@@ -125,10 +125,13 @@ class ShapeComponent extends pc.EventHandler {
         this.on('set_enabled', this.onSetEnabled, this);
     }
 
-
     get constraints() {
         return this._constraints;
     }
+
+    get index() {
+        return this._index;
+    }    
     
     onSetEnabled(name, oldValue, newValue) {
         if (oldValue !== newValue) {
