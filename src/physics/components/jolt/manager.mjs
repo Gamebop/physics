@@ -33,7 +33,7 @@ class JoltManager extends PhysicsManager {
     }
 
     set gravity(gravity) {
-        if (Debug.dev) {
+        if (DEBUG) {
             const ok = Debug.checkVec(gravity, `Invalid gravity vector`, gravity);
             if (!ok)
                 return;
@@ -119,7 +119,7 @@ class JoltManager extends PhysicsManager {
     }
 
     destroyShape(index) {
-        if (Debug.dev) {
+        if (DEBUG) {
             const ok = Debug.checkUint(index, `Invalid shape number: ${ num }`);
             if (!ok)
                 return;
@@ -149,7 +149,7 @@ class JoltManager extends PhysicsManager {
     }
 
     toggleGroupPair(group, subGroup1, subGroup2, enable) {
-        if (Debug.dev) {
+        if (DEBUG) {
             let ok = Debug.checkUint(group, `Invalid group 1: ${ group }`);
             ok = ok && Debug.checkUint(subGroup1, `Invalid group 1: ${ subGroup1 }`);
             ok = ok && Debug.checkUint(subGroup2, `Invalid group 2: ${ subGroup2 }`);
@@ -169,7 +169,7 @@ class JoltManager extends PhysicsManager {
     }    
 
     castRay(origin, dir, callback, opts) {
-        if (Debug.dev) {
+        if (DEBUG) {
             let ok = Debug.checkVec(origin,`Invalid origin vector`);
             ok = ok && Debug.checkVec(dir, `Invalid direction vector`);
             ok = ok && Debug.assert(callback, 'castRay requires a callback function castRay(origin, dir, callback, opts)');
@@ -201,7 +201,7 @@ class JoltManager extends PhysicsManager {
     }
 
     castShape(shapeIndex, pos, rot, dir, callback, opts) {
-        if (Debug.dev) {
+        if (DEBUG) {
             let ok = Debug.checkInt(shapeIndex, `Invalid shape index`);
             ok = ok && Debug.checkVec(pos, `Invalid cast shape position vector`);
             ok = ok && Debug.checkVec(dir, `Invalid cast shape direction vector`);
@@ -240,7 +240,7 @@ class JoltManager extends PhysicsManager {
     }
 
     createConstraint(type, entity1, entity2, opts = {}) {
-        if (Debug.dev) {
+        if (DEBUG) {
             let ok = Debug.assert(!!entity1.c.body, `Entity has no Body Component. Cannot create constraint.`, entity1);
             ok = ok && Debug.assert(!!entity2.c.body, `Entity has no Body Component. Cannot create constraint.`, entity2);
             if (!ok) return;
@@ -298,7 +298,7 @@ class JoltManager extends PhysicsManager {
                 break;
 
             default:
-                Debug.dev && Debug.error(`Unrecognized constraint type: ${ type }`);
+                DEBUG && Debug.error(`Unrecognized constraint type: ${ type }`);
                 return;
         }
 
@@ -310,7 +310,7 @@ class JoltManager extends PhysicsManager {
     }
 
     destroyConstraint(index) {
-        if (Debug.dev) {
+        if (DEBUG) {
             const ok = Debug.checkUint(index, `Invalid index of a constraint trying to destroy: ${ index }`);
             if (!ok)
                 return;
@@ -330,7 +330,7 @@ class JoltManager extends PhysicsManager {
     }
 
     setConstraintEnabled(index, enabled, activate = true) {
-        if (Debug.dev) {
+        if (DEBUG) {
             let ok = Debug.checkUint(index, `Invalid constraint index: ${ index }`);
             ok = ok && Debug.checkBool(enabled, `Invalid constraint enable bool: ${ enabled }`);
             ok = ok && Debug.checkBool(enabled, `Invalid activate bool: ${ enabled }`);

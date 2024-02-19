@@ -44,7 +44,7 @@ class Querier {
                 break;
 
             default:
-                Debug.dev && Debug.error(`Invalid querier command: ${ command }`);
+                DEBUG && Debug.error(`Invalid querier command: ${ command }`);
                 return false;
         }
 
@@ -150,7 +150,7 @@ class Querier {
             }
             
         } catch (e) {
-            Debug.dev && Debug.error(e);
+            DEBUG && Debug.error(e);
             return false;
         }
 
@@ -199,7 +199,7 @@ class Querier {
             params.length = 0;
 
             const shape = tracker.shapeMap.get(shapeIndex);
-            if (Debug.dev && !shape) {
+            if (DEBUG && !shape) {
                 Debug.warn(`Unable to locate shape for shape cast: ${ shapeIndex }`);
                 return false;
             }
@@ -245,7 +245,7 @@ class Querier {
             }
 
         } catch (e) {
-            Debug.dev && Debug.error(e);
+            DEBUG && Debug.error(e);
             return false;
         }
 

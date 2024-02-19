@@ -12,7 +12,7 @@ function extendPCMath() {
 
 function extendJoltMath(Jolt) {
     Jolt.Vec3.prototype.FromBuffer = function(buffer, isPositive) {
-        if (Debug.dev) {
+        if (DEBUG) {
             const x = buffer.read(BUFFER_READ_FLOAT32);
             const y = buffer.read(BUFFER_READ_FLOAT32);
             const z = buffer.read(BUFFER_READ_FLOAT32);
@@ -46,7 +46,7 @@ function extendJoltMath(Jolt) {
     };
 
     Jolt.Quat.prototype.FromBuffer = function(buffer) {
-        if (Debug.dev) {
+        if (DEBUG) {
             const x = buffer.read(BUFFER_READ_FLOAT32);
             const y = buffer.read(BUFFER_READ_FLOAT32);
             const z = buffer.read(BUFFER_READ_FLOAT32);

@@ -112,7 +112,7 @@ class CharComponent extends ShapeComponent {
     }
 
     set linearVelocity(vel) {
-        Debug.dev && Debug.checkVec(vel, `Invalid character linear velocity`, vel);
+        DEBUG && Debug.checkVec(vel, `Invalid character linear velocity`, vel);
         this.system.addCommand(
             OPERATOR_MODIFIER, CMD_CHAR_SET_LIN_VEL, this._index,
             vel, BUFFER_WRITE_VEC32, false
@@ -124,7 +124,7 @@ class CharComponent extends ShapeComponent {
     }
 
     set userData(num) {
-        if (Debug.dev) {
+        if (DEBUG) {
             let ok = Debug.checkFloat(num, `Invalid user data value. Should be a number: ${ num }`);
             if (!ok)
                 return;
@@ -143,7 +143,7 @@ class CharComponent extends ShapeComponent {
     }
 
     set pairedEntity(entity) {
-        if (Debug.dev) {
+        if (DEBUG) {
             let ok = Debug.assert(!!entity.body, `Invalid entity to pair. Needs to have a "body" component.`, entity);
             if (!ok)
                 return;
@@ -173,7 +173,7 @@ class CharComponent extends ShapeComponent {
 
     writeComponentData(cb) {
         const ok = ShapeComponent.writeShapeData(cb, this, true /* force write rotation */);
-        if (Debug.dev && !ok) {
+        if (DEBUG && !ok) {
             Debug.warn('Error creating a shape data.');
             return false;
         }
@@ -205,7 +205,7 @@ class CharComponent extends ShapeComponent {
         cb.write(pos, BUFFER_WRITE_VEC32, false);
         cb.write(rot, BUFFER_WRITE_VEC32, false);
 
-        Debug.dev && cb.write(this._debugDraw, BUFFER_WRITE_BOOL, false);
+        DEBUG && cb.write(this._debugDraw, BUFFER_WRITE_BOOL, false);
     }
 
     updateTransforms(cb, map) {

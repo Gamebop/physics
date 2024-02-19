@@ -47,7 +47,7 @@ class BodyComponentSystem extends ShapeComponentSystem {
     }
 
     overrideContacts(callbacks = {}) {
-        if (Debug.dev) {
+        if (DEBUG) {
             !!callbacks.OnContactValidate && Debug.assert(typeof callbacks.OnContactValidate === 'function', 'OnContactValidate must be a function', callbacks);
             !!callbacks.OnContactAdded && Debug.assert(typeof callbacks.OnContactAdded === 'function', 'OnContactAdded must be a function', callbacks);
             !!callbacks.OnContactPersisted && Debug.assert(typeof callbacks.OnContactPersisted === 'function', 'OnContactPersisted must be a function', callbacks);
@@ -112,7 +112,7 @@ class BodyComponentSystem extends ShapeComponentSystem {
     }
 
     initializeComponentData(component, data) {
-        if (Debug.dev) {
+        if (DEBUG) {
             const ok = Debug.verifyProperties(data, this.schema);
             if (!ok)
                 return;

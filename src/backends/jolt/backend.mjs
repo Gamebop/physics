@@ -106,7 +106,7 @@ class JoltBackend {
                 this._querier = new Querier(this);
                 this._tracker = new Tracker(Jolt);
 
-                if (Debug.dev) {
+                if (DEBUG) {
                     this._drawer = new Drawer(Jolt);
                 }
                 
@@ -136,13 +136,13 @@ class JoltBackend {
                 this._inBuffer = null;
                 this._fatalError = false;
 
-                if (Debug.dev) {
+                if (DEBUG) {
                     this._perfIndex = null;
                 }
 
                 this._exposeConstants();
 
-                if (Debug.dev) {
+                if (DEBUG) {
                     console.log('Jolt Physics:', joltInfo.version);
                 }
             });
@@ -245,7 +245,7 @@ class JoltBackend {
     step(data) {
         if (this._fatalError) return;
         
-        if (Debug.dev) {
+        if (DEBUG) {
             this._stepTime = performance.now();
             this._perfIndex = data.perfIndex;
         }
@@ -270,7 +270,7 @@ class JoltBackend {
             try {
                 ok = ok && this._executeCommands(meshBuffers);
             } catch (e) {
-                Debug.dev && Debug.error(e);
+                DEBUG && Debug.error(e);
                 ok = false;
             }
         }
@@ -294,7 +294,7 @@ class JoltBackend {
         ok = ok && this._writeCharacters(outBuffer);
 
         // write debug draw data
-        if (Debug.dev && !this._config.useWebWorker) {
+        if (DEBUG && !this._config.useWebWorker) {
             // Write debug draw data
             ok = ok && this._drawer.write(this._tracker);
         }     
@@ -303,7 +303,7 @@ class JoltBackend {
         ok = ok && this._send();
 
         if (!ok) {
-            Debug.dev && Debug.error('Backend fatal error :(');
+            DEBUG && Debug.error('Backend fatal error :(');
             this._fatalError = true;
         }
     }
@@ -391,7 +391,7 @@ class JoltBackend {
                 this._steps++;
                 stepped = true;
             } catch (e) {
-                Debug.dev && Debug.error(e);
+                DEBUG && Debug.error(e);
                 ok = false;
             }
 
@@ -442,7 +442,7 @@ class JoltBackend {
             const ms = char.motionState;
             if (ms) {
                 const ok = ms.compute(alpha, stepped);
-                if (Debug.dev && !ok) {
+                if (DEBUG && !ok) {
                     return false;
                 }
             }
@@ -505,7 +505,7 @@ class JoltBackend {
             // Jolt.destroy(movingBPFilter);
             // Jolt.destroy(movingLayerFilter);
         } catch (e) {
-            Debug.dev && Debug.error(e);
+            DEBUG && Debug.error(e);
             return false;
         }
 
@@ -543,7 +543,7 @@ class JoltBackend {
                     break;
 
                 default:
-                    Debug.dev && Debug.error(`Invalid operator: ${ operator }`);
+                    DEBUG && Debug.error(`Invalid operator: ${ operator }`);
                     return false;
             }
         }
@@ -634,7 +634,7 @@ class JoltBackend {
                 }
             });
         } catch (e) {
-            Debug.dev && Debug.error(e);
+            DEBUG && Debug.error(e);
             return false;
         }
 
@@ -683,7 +683,7 @@ class JoltBackend {
             }
         }
 
-        if (Debug.dev) {
+        if (DEBUG) {
             msg.perfIndex = this._perfIndex;
             msg.time = performance.now() - this._stepTime;
         }
@@ -835,7 +835,7 @@ class JoltBackend {
             }
 
         } catch (e) {
-            Debug.dev && Debug.error(e);
+            DEBUG && Debug.error(e);
             return false;
         }
 
@@ -874,7 +874,7 @@ class JoltBackend {
                 }
             }
         } catch (e) {
-            Debug.dev && Debug.error(e);
+            DEBUG && Debug.error(e);
             return false;
         }
 

@@ -15,7 +15,7 @@ class Tracker {
         this._shapeMap = new Map();
         this._constraintMap = new Map();
 
-        if (Debug.dev) {
+        if (DEBUG) {
             this._debug = new Set();
 
             Object.defineProperty(this, 'debug', {
@@ -70,7 +70,7 @@ class Tracker {
             }
         }
 
-        if (Debug.dev && body.debugDraw) {
+        if (DEBUG && body.debugDraw) {
             this._debug.add(body);
         }
 
@@ -100,7 +100,7 @@ class Tracker {
         this._kinematic.delete(body);
         this._character.delete(body);
         
-        if (Debug.dev) {
+        if (DEBUG) {
             this._debug.delete(body);
         }
         
@@ -127,7 +127,7 @@ class Tracker {
         });
         this._bodyMap.clear();
 
-        if (Debug.dev) {
+        if (DEBUG) {
             this._debug.clear();
         }
 

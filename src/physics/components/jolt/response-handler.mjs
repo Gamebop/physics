@@ -207,7 +207,7 @@ class ResponseHandler {
         const cbIndex = cb.read(BUFFER_READ_UINT32);
         const callback = queryMap.get(cbIndex);
 
-        if (Debug.dev && !callback) {
+        if (DEBUG && !callback) {
             Debug.warn(`Unable to locate callback with index: ${ cbIndex }`);
             return;
         }

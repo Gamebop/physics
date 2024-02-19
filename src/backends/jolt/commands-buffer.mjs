@@ -90,7 +90,7 @@ class CommandsBuffer {
     }
 
     read(method) {
-        Debug.dev && Debug.assert(
+        DEBUG && Debug.assert(
             method === BUFFER_READ_BOOL ||
             method === BUFFER_READ_FLOAT32 ||
             method === BUFFER_READ_UINT8 ||
@@ -107,7 +107,7 @@ class CommandsBuffer {
      * Writes value to buffer. Skips flag for uint8 values.
      */
     write(value, method, addFlag = true) {
-        if (Debug.dev) {
+        if (DEBUG) {
             Debug.assert(
                 method === BUFFER_WRITE_BOOL || 
                 method === BUFFER_WRITE_FLOAT32 ||
@@ -162,12 +162,12 @@ class CommandsBuffer {
     }
 
     readFloat32() {
-        if (Debug.dev && this._isOutsideBounds(FLOAT32_SIZE)) {
+        if (DEBUG && this._isOutsideBounds(FLOAT32_SIZE)) {
             Debug.warnOnce('Commands Buffer: Aborting read outside buffer bounds.');
             return 0;
         }
         const value = this._view.getFloat32(this._bytesOffset);
-        Debug.dev && Debug.checkFloat(value, `Got invalid value from buffer: ${ value }`);
+        DEBUG && Debug.checkFloat(value, `Got invalid value from buffer: ${ value }`);
         this._bytesOffset += FLOAT32_SIZE;
         return value;
     }
@@ -178,23 +178,23 @@ class CommandsBuffer {
      */
     writeFloat32(value, offset) {
         if (!this._canWrite(FLOAT32_SIZE)) return;
-        Debug.dev && Debug.checkFloat(value, `Trying to write invalid value to buffer: ${ value }`);
+        DEBUG && Debug.checkFloat(value, `Trying to write invalid value to buffer: ${ value }`);
         if (offset == null) {
             this._view.setFloat32(this._bytesOffset, value);
             this._bytesOffset += FLOAT32_SIZE;
         } else {
-            Debug.dev && Debug.assert(this._buffer.byteLength >= (offset + FLOAT32_SIZE), 'Trying to write outside of buffer bounds.');
+            DEBUG && Debug.assert(this._buffer.byteLength >= (offset + FLOAT32_SIZE), 'Trying to write outside of buffer bounds.');
             this._view.setFloat32(offset, value);
         }
     }
 
     readUint8() {
-        if (Debug.dev && this._isOutsideBounds(UINT8_SIZE)) {
+        if (DEBUG && this._isOutsideBounds(UINT8_SIZE)) {
             Debug.warnOnce('Commands Buffer: Aborting read outside buffer bounds.');
             return 0;
         }
         const value = this._view.getUint8(this._bytesOffset);
-        Debug.dev && Debug.checkUint(value, `Got invalid value from buffer: ${ value }`);
+        DEBUG && Debug.checkUint(value, `Got invalid value from buffer: ${ value }`);
         this._bytesOffset += UINT8_SIZE;
         return value;
     }
@@ -205,23 +205,23 @@ class CommandsBuffer {
      */
     writeUint8(value, offset) {
         if (!this._canWrite(UINT8_SIZE)) return;
-        Debug.dev && Debug.checkUint(value, `Trying to write invalid value to buffer: ${ value }`);
+        DEBUG && Debug.checkUint(value, `Trying to write invalid value to buffer: ${ value }`);
         if (offset == null) {
             this._view.setUint8(this._bytesOffset, value);
             this._bytesOffset += UINT8_SIZE;
         } else {
-            Debug.dev && Debug.assert(this._buffer.byteLength >= (offset + UINT8_SIZE), 'Trying to write outside of buffer bounds.');
+            DEBUG && Debug.assert(this._buffer.byteLength >= (offset + UINT8_SIZE), 'Trying to write outside of buffer bounds.');
             this._view.setUint8(offset, value);
         }
     }
 
     readUint16() {
-        if (Debug.dev && this._isOutsideBounds(UINT16_SIZE)) {
+        if (DEBUG && this._isOutsideBounds(UINT16_SIZE)) {
             Debug.warnOnce('Commands Buffer: Aborting read outside buffer bounds.');
             return 0;
         }
         const value = this._view.getUint16(this._bytesOffset);
-        Debug.dev && Debug.checkUint(value, `Got invalid value from buffer: ${ value }`);
+        DEBUG && Debug.checkUint(value, `Got invalid value from buffer: ${ value }`);
         this._bytesOffset += UINT16_SIZE;
         return value;
     }
@@ -232,58 +232,58 @@ class CommandsBuffer {
      */
     writeUint16(value, offset) {
         if (!this._canWrite(UINT16_SIZE)) return;
-        Debug.dev && Debug.checkUint(value, `Trying to write invalid value to buffer: ${ value }`);
+        DEBUG && Debug.checkUint(value, `Trying to write invalid value to buffer: ${ value }`);
         if (offset == null) {
             this._view.setUint16(this._bytesOffset, value);
             this._bytesOffset += UINT16_SIZE;
         } else {
-            Debug.dev && Debug.assert(this._buffer.byteLength >= (offset + UINT16_SIZE), 'Trying to write outside of buffer bounds.');
+            DEBUG && Debug.assert(this._buffer.byteLength >= (offset + UINT16_SIZE), 'Trying to write outside of buffer bounds.');
             this._view.setUint16(offset, value);
         }
     }
 
     readUint32() {
-        if (Debug.dev && this._isOutsideBounds(UINT32_SIZE)) {
+        if (DEBUG && this._isOutsideBounds(UINT32_SIZE)) {
             Debug.warnOnce('Commands Buffer: Aborting read outside buffer bounds.');
             return 0;
         }
         const value = this._view.getUint32(this._bytesOffset);
-        Debug.dev && Debug.checkUint(value, `Got invalid value from buffer: ${ value }`);
+        DEBUG && Debug.checkUint(value, `Got invalid value from buffer: ${ value }`);
         this._bytesOffset += UINT32_SIZE;
         return value;
     }
 
     writeUint32(value, offset) {
-        Debug.dev && Debug.checkUint(value, `Trying to write invalid value to buffer: ${ value }`);
+        DEBUG && Debug.checkUint(value, `Trying to write invalid value to buffer: ${ value }`);
         if (offset == null) {
             if (!this._canWrite(UINT32_SIZE)) return;
             this._view.setUint32(this._bytesOffset, value);
             this._bytesOffset += UINT32_SIZE;
         } else {
-            Debug.dev && Debug.assert(this._buffer.byteLength >= (offset + UINT32_SIZE), 'Trying to write outside of buffer bounds.');
+            DEBUG && Debug.assert(this._buffer.byteLength >= (offset + UINT32_SIZE), 'Trying to write outside of buffer bounds.');
             this._view.setUint32(offset, value);
         }
     }
 
     readInt32() {
-        if (Debug.dev && this._isOutsideBounds(INT32_SIZE)) {
+        if (DEBUG && this._isOutsideBounds(INT32_SIZE)) {
             Debug.warnOnce('Commands Buffer: Aborting read outside buffer bounds.');
             return null;
         }
         const value = this._view.getInt32(this._bytesOffset);
-        Debug.dev && Debug.checkInt(value, `Got invalid value from buffer: ${ value }`);
+        DEBUG && Debug.checkInt(value, `Got invalid value from buffer: ${ value }`);
         this._bytesOffset += INT32_SIZE;
         return value;
     }
 
     writeInt32(value, offset) {
-        Debug.dev && Debug.checkInt(value, `Trying to write invalid value to buffer: ${ value }`);
+        DEBUG && Debug.checkInt(value, `Trying to write invalid value to buffer: ${ value }`);
         if (offset == null) {
             if (!this._canWrite(INT32_SIZE)) return;
             this._view.setInt32(this._bytesOffset, value);
             this._bytesOffset += INT32_SIZE;
         } else {
-            Debug.dev && Debug.assert(this._buffer.byteLength >= (offset + INT32_SIZE), 'Trying to write outside of buffer bounds.');
+            DEBUG && Debug.assert(this._buffer.byteLength >= (offset + INT32_SIZE), 'Trying to write outside of buffer bounds.');
             this._view.setInt32(offset, value);
         }
     }    
@@ -333,7 +333,7 @@ class CommandsBuffer {
             if (this._allowGrowth) {
                 this._resize();
             } else {
-                Debug.dev && Debug.warnOnce('Commands Buffer: reached capacity limits. Not allowed to grow.' +
+                DEBUG && Debug.warnOnce('Commands Buffer: reached capacity limits. Not allowed to grow.' +
                     ' Consider using "allowCommandsBufferResize" option or allocate a larger buffer' +
                     ' using "commandsBufferSize". Current buffer' +
                     ' size (bytes):', this._buffer.byteLength);

@@ -218,7 +218,7 @@ class ShapeComponent extends pc.EventHandler {
                 break;
     
             default:
-                Debug.dev && Debug.warn('Unsupperted shape type', shape);
+                DEBUG && Debug.warn('Unsupperted shape type', shape);
                 return false;
         }
     
@@ -256,7 +256,7 @@ class ShapeComponent extends pc.EventHandler {
         const count = components.length;
         const childrenCount = count - 1; // -1 to exclude the parent
 
-        if (Debug.dev && childrenCount === 0) {
+        if (DEBUG && childrenCount === 0) {
             Debug.warn('Trying to create a static (immutable) compound body without children shapes. Aborting.');
             return false;
         }

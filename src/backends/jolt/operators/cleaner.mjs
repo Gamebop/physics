@@ -156,7 +156,7 @@ class Cleaner {
         const shapeNumber = cb.read(BUFFER_READ_UINT32);
         const shape = tracker.shapeMap.get(shapeNumber);
 
-        if (Debug.dev && !shape) {
+        if (DEBUG && !shape) {
             Debug.warn('Trying to destroy a shape that has already been destroyed');
             return false;
         }

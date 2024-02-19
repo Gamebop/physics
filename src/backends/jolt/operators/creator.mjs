@@ -43,7 +43,7 @@ class Creator {
                 break;
 
             default:
-                Debug.dev && Debug.error(`Invalid command: ${ command }`);
+                DEBUG && Debug.error(`Invalid command: ${ command }`);
                 return false;
         }
 
@@ -165,7 +165,7 @@ class Creator {
                 return new Jolt.CylinderShapeSettings(attr[0] /* half height */, attr[1] /* radius */, attr[2] /* convex radius */);
 
             default:
-                Debug.dev && Debug.warnOnce(`Unrecognized shape: ${ shape }`);
+                DEBUG && Debug.warnOnce(`Unrecognized shape: ${ shape }`);
                 return null;
         }
     }
@@ -256,7 +256,7 @@ class Creator {
         if (group !== null && subGroup !== null) {
             const table = backend.groupFilterTables[group];
 
-            if (Debug.dev) {
+            if (DEBUG) {
                 let ok = Debug.assert(!!table, `Trying to set a filter group that does not exist: ${ group }`);
                 ok = ok && Debug.assert((subGroup <= table?.maxIndex), `Trying to set sub group that is over the filter group table size: ${ subGroup }`);
                 if (!ok) {
@@ -276,7 +276,7 @@ class Creator {
             bodyCreationSettings.mOverrideMassProperties = selectedMethod;
 
             const mass = cb.read(BUFFER_READ_FLOAT32);
-            if (Debug.dev) {
+            if (DEBUG) {
                 const ok = Debug.checkFloatPositive(mass, `invalid mass: ${ mass }`);
                 if (!ok) return false;
             }
@@ -296,7 +296,7 @@ class Creator {
         const body = bodyInterface.CreateBody(bodyCreationSettings);
         bodyInterface.AddBody(body.GetID(), Jolt.Activate);
 
-        if (Debug.dev) {
+        if (DEBUG) {
             this._addDebugDraw(cb.read(BUFFER_READ_BOOL), body);
         }
 
@@ -332,7 +332,7 @@ class Creator {
 
         // PCID
         const index = cb.read(BUFFER_READ_UINT32);
-        if (Debug.dev) {
+        if (DEBUG) {
             let ok = Debug.checkUint(index, `invalid body index: ${ index }`);
             if (!ok) {
                 return false;
@@ -369,7 +369,7 @@ class Creator {
         if (group !== null && subGroup !== null) {
             const table = backend.groupFilterTables[group];
 
-            if (Debug.dev) {
+            if (DEBUG) {
                 let ok = Debug.checkUint(group, `Invalid filter group: ${ group }`);
                 ok = ok && Debug.checkUint(subGroup, `Invalid filter group: ${ subGroup }`);
                 ok = ok && Debug.assert(!!table, `Trying to set a filter group that does not exist: ${ group }`);
@@ -389,7 +389,7 @@ class Creator {
         const body = bodyInterface.CreateSoftBody(bodyCreationSettings);
         bodyInterface.AddBody(body.GetID(), Jolt.Activate);
 
-        if (Debug.dev) {
+        if (DEBUG) {
             this._addDebugDraw(cb.read(BUFFER_READ_BOOL), body);
         } 
 
@@ -631,7 +631,7 @@ class Creator {
                     break;
                 }
                 default:
-                    Debug.dev && Debug.error(`Unrecognized cast type: ${ castType }`);
+                    DEBUG && Debug.error(`Unrecognized cast type: ${ castType }`);
                     return false;
             }
             constraint.SetVehicleCollisionTester(tester);
@@ -667,7 +667,7 @@ class Creator {
             destroySettings(bars);
 
         } catch (e) {
-            Debug.dev && Debug.error(e);
+            DEBUG && Debug.error(e);
             return false;
         }
 
@@ -678,7 +678,7 @@ class Creator {
         const backend = this._backend;
         const Jolt = backend.Jolt;
         const groupsCount = cb.read(BUFFER_READ_UINT32);
-        if (Debug.dev) {
+        if (DEBUG) {
             let ok = Debug.checkUint(groupsCount, `Invalid filter groups count: ${ groupsCount }`);
             ok = ok && Debug.assert(groupsCount > 0, `Invalid filter groups count: ${ groupsCount }`);
             if (!ok)
@@ -690,7 +690,7 @@ class Creator {
             const table = new Jolt.GroupFilterTable(subGroupsCount);
             backend.groupFilterTables.push(table);
 
-            if (Debug.dev) {
+            if (DEBUG) {
                 const ok = Debug.checkUint(subGroupsCount, `Invalid sub group count: ${ subGroupsCount }`);
                 if (!ok)
                     return false;
@@ -715,7 +715,7 @@ class Creator {
             sy = cb.read(BUFFER_READ_FLOAT32);
             sz = cb.read(BUFFER_READ_FLOAT32);
             
-            if (Debug.dev) {
+            if (DEBUG) {
                 let ok = Debug.checkFloat(sx, `Invalid scale X: ${ sx }`);
                 ok = ok && Debug.checkFloat(sy, `Invalid scale Y: ${ sy }`);
                 ok = ok && Debug.checkFloat(sz, `Invalid scale Z: ${ sz }`);
@@ -730,7 +730,7 @@ class Creator {
             case SHAPE_BOX:
                 jv.FromBuffer(cb, true);
                 cr = cb.read(BUFFER_READ_FLOAT32);
-                if (Debug.dev) {
+                if (DEBUG) {
                     const ok = Debug.checkFloatPositive(cr, `invalid convex radius: ${ cr }`);
                     if (!ok) {
                         return null;
@@ -742,7 +742,7 @@ class Creator {
             case SHAPE_CAPSULE:
                 hh = cb.read(BUFFER_READ_FLOAT32);
                 r = cb.read(BUFFER_READ_FLOAT32);
-                if (Debug.dev) {
+                if (DEBUG) {
                     let ok = Debug.checkFloatPositive(hh, `invalid half height: ${ hh }`);
                     ok = ok && Debug.checkFloatPositive(r, `invalid radius: ${ r }`);
                     if (useScale) {
@@ -759,7 +759,7 @@ class Creator {
                 hh = cb.read(BUFFER_READ_FLOAT32);
                 r = cb.read(BUFFER_READ_FLOAT32);
                 cr = cb.read(BUFFER_READ_FLOAT32);
-                if (Debug.dev) {
+                if (DEBUG) {
                     let ok = Debug.checkFloatPositive(hh, `invalid half height: ${ hh }`);
                     ok = ok && Debug.checkFloatPositive(r, `invalid radius: ${ r }`);
                     ok = ok && Debug.checkFloatPositive(cr, `invalid convex radius: ${ cr }`);
@@ -775,7 +775,7 @@ class Creator {
 
             case SHAPE_SPHERE:
                 r = cb.read(BUFFER_READ_FLOAT32);
-                if (Debug.dev) {
+                if (DEBUG) {
                     let ok = Debug.checkFloatPositive(r, `invalid radius: ${ r }`);
                     if (useScale) {
                         ok = ok && Debug.assert((sx === sy) && (sy === sz), `Sphere shape scale must be uniform: ${ sx }, ${ sy }, ${ sz }`);
@@ -802,7 +802,7 @@ class Creator {
                 break;
 
             default:
-                Debug.dev && Debug.warn('Invalid shape type', shapeType);
+                DEBUG && Debug.warn('Invalid shape type', shapeType);
                 return null;
         }
 
@@ -830,7 +830,7 @@ class Creator {
         const isCompoundChild = cb.read(BUFFER_READ_BOOL);
         if (!isCompoundChild) {
             const density = cb.read(BUFFER_READ_FLOAT32);
-            if (Debug.dev) {
+            if (DEBUG) {
                 const ok = Debug.checkFloatPositive(density, `Invalid density value: ${ density }`);
                 if (!ok)
                     return null;
@@ -875,7 +875,7 @@ class Creator {
             cb.readVec(pos);
             cb.readQuat(rot);
 
-            if (Debug.dev) {
+            if (DEBUG) {
                 let ok = true;
                 ok = ok && Debug.checkVec(pos, `Invalid static compound child position vector`);
                 ok = ok && Debug.checkQuat(rot, `Invalid static compound child quaternion`);
@@ -889,7 +889,7 @@ class Creator {
     }
 
     _createHeightFieldSettings(cb, meshBuffers) {
-        if (Debug.dev) {
+        if (DEBUG) {
             let ok = Debug.assert(!!meshBuffers, `Missing buffers to generate a HeightField shape: ${ meshBuffers }`);
             ok = ok && Debug.assert(meshBuffers.length > 0, `Invalid buffers to generate HeightField shape: ${ meshBuffers }`);
             if (!ok) {
@@ -938,7 +938,7 @@ class Creator {
         const body1 = tracker.getBodyByPCID(idx1);
         const body2 = tracker.getBodyByPCID(idx2);
 
-        if (Debug.dev) {
+        if (DEBUG) {
             let ok = true;
             ok = ok && Debug.assert(!!body1, `Unable to locate body to add constraint to: ${ idx1 }`);
             ok = ok && Debug.assert(!!body2, `Unable to locate body to add constraint to: ${ idx2 }`);
@@ -1109,7 +1109,7 @@ class Creator {
                                 break;
                             
                             default:
-                                Debug.dev && Debug.error(`Unrecognized six dof constraint axis setting: ${ axis }`);
+                                DEBUG && Debug.error(`Unrecognized six dof constraint axis setting: ${ axis }`);
                                 return false;
                         }
                     }
@@ -1145,7 +1145,7 @@ class Creator {
                                 break;
                             
                             default:
-                                Debug.dev && Debug.error(`Unrecognized six dof constraint axis setting: ${ axis }`);
+                                DEBUG && Debug.error(`Unrecognized six dof constraint axis setting: ${ axis }`);
                                 return false;
                         }
                     }
@@ -1183,7 +1183,7 @@ class Creator {
                                 break;
                             
                             default:
-                                Debug.dev && Debug.error(`Unrecognized six dof constraint axis setting: ${ axis }`);
+                                DEBUG && Debug.error(`Unrecognized six dof constraint axis setting: ${ axis }`);
                                 return false;
                         }
                     }
@@ -1210,7 +1210,7 @@ class Creator {
                 break;
 
             default:
-                Debug.dev && Debug.error(`Unrecognized constraint type: ${ type }`);
+                DEBUG && Debug.error(`Unrecognized constraint type: ${ type }`);
                 return false;
         }
 
@@ -1329,7 +1329,7 @@ class Creator {
 
         const character = new Jolt.CharacterVirtual(settings, jv, jq, backend.physicsSystem);
 
-        if (Debug.dev) {
+        if (DEBUG) {
             this._addDebugDraw(cb.read(BUFFER_READ_BOOL), character);
         }
 
@@ -1436,7 +1436,7 @@ class Creator {
             sy = cb.read(BUFFER_READ_FLOAT32);
             sz = cb.read(BUFFER_READ_FLOAT32);
             
-            if (Debug.dev) {
+            if (DEBUG) {
                 let ok = Debug.checkFloat(sx, `Invalid scale X: ${ sx }`);
                 ok = ok && Debug.checkFloat(sy, `Invalid scale Y: ${ sy }`);
                 ok = ok && Debug.checkFloat(sz, `Invalid scale Z: ${ sz }`);
@@ -1550,7 +1550,7 @@ class Creator {
         const numIndices = cb.read(BUFFER_READ_UINT32);
         const idxOffset = cb.read(BUFFER_READ_UINT32);
 
-        if (Debug.dev) {
+        if (DEBUG) {
             let ok = Debug.checkUint(base, `Invalid buffer base to generate mesh/hull: ${ base }`);
             ok = ok && Debug.checkUint(offset, `Invalid positions buffer offset to generate mesh/hull: ${ offset }`);
             ok = ok && Debug.checkUint(stride, `Invalid positions buffer stride to generate mesh/hull: ${ stride }`);

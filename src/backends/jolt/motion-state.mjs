@@ -81,7 +81,7 @@ class MotionState {
                 }
             }
         } catch (e) {
-            Debug.dev && Debug.error(e);
+            DEBUG && Debug.error(e);
             return false;
         }
 

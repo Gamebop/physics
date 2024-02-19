@@ -133,7 +133,7 @@ class Modifier {
         try {
             this._backend.system.SetGravity(jv);
         } catch (e) {
-            Debug.dev && Debug.error(e);
+            DEBUG && Debug.error(e);
             return false;
         }
 
@@ -160,7 +160,7 @@ class Modifier {
             }
             this._backend.bodyInterface.ActivateBody(body.GetID());
         } catch (e) {
-            Debug.dev && Debug.error(e);
+            DEBUG && Debug.error(e);
             return false;
         }
 
@@ -175,7 +175,7 @@ class Modifier {
         const shapeIndex = cb.flag ? cb.read(BUFFER_READ_UINT32) : null;
 
         const char = tracker.getBodyByPCID(pcid);
-        if (Debug.dev && !char) {
+        if (DEBUG && !char) {
             Debug.warn(`Unable to locate character under id: ${ pcid }`);
             return false;
         }
@@ -183,7 +183,7 @@ class Modifier {
         let shape;
         if (shapeIndex != null) {
             shape = tracker.shapeMap.get(shapeIndex);
-            if (Debug.dev && !shape) {
+            if (DEBUG && !shape) {
                 Debug.warn(`Unable to locate shape: ${ shapeIndex }`);
                 return false;
             }
@@ -255,7 +255,7 @@ class Modifier {
             const value = cb.read(BUFFER_READ_FLOAT32);
             shape.SetUserData(value);
         } catch (e) {
-            Debug.dev && Debug.error(e);
+            DEBUG && Debug.error(e);
             return false;
         }
 
@@ -283,7 +283,7 @@ class Modifier {
             jv.FromBuffer(cb);
             char.SetLinearVelocity(jv);
         } catch (e) {
-            Debug.dev && Debug.error(e);
+            DEBUG && Debug.error(e);
             return false;
         }        
     }
@@ -307,7 +307,7 @@ class Modifier {
 
             body.ApplyBuoyancyImpulse(waterSurfacePosition, surfaceNormal, buoyancy, linearDrag, angularDrag, fluidVelocity, gravity, deltaTime);
         } catch (e) {
-            Debug.dev && Debug.error(e);
+            DEBUG && Debug.error(e);
             return false;
         }
 
@@ -326,7 +326,7 @@ class Modifier {
         
         // An index could be old and constraint might have been already destroyed.
         if (!data) {
-            Debug.dev && Debug.warn(`Trying to enable/disable a constraint that has already been destroyed: ${ index }`);
+            DEBUG && Debug.warn(`Trying to enable/disable a constraint that has already been destroyed: ${ index }`);
             return true;
         }
 
@@ -345,7 +345,7 @@ class Modifier {
                 }
             }
         } catch (e) {
-            Debug.dev && Debug.error(e);
+            DEBUG && Debug.error(e);
             return false;
         }
         
@@ -362,7 +362,7 @@ class Modifier {
             body.SetLinearVelocity(jv1);
             body.SetAngularVelocity(jv1);
         } catch (e) {
-            Debug.dev && Debug.error(e);
+            DEBUG && Debug.error(e);
             return false;
         }
 
@@ -380,7 +380,7 @@ class Modifier {
             jv.FromBuffer(cb);
             jq.FromBuffer(cb);
 
-            if (Debug.dev) {
+            if (DEBUG) {
                 const type = body.GetMotionType();
                 if (type === Jolt.EMotionType_Dynamic || type === Jolt.EMotionType_Kinematic) {
                     backend.bodyInterface.SetPositionAndRotation(body.GetID(), jv, jq, Jolt.Activate);
@@ -391,7 +391,7 @@ class Modifier {
                 backend.bodyInterface.SetPositionAndRotation(body.GetID(), jv, jq, Jolt.Activate);
             }
         } catch (e) {
-            Debug.dev && Debug.error(e);
+            DEBUG && Debug.error(e);
             return false;
         }
 
@@ -437,7 +437,7 @@ class Modifier {
 
             const dt = cb.read(BUFFER_READ_FLOAT32) || backend.config.fixedStep;
 
-            if (Debug.dev) {
+            if (DEBUG) {
                 const type = body.GetMotionType();
                 if (type === Jolt.EMotionType_Dynamic || type === Jolt.EMotionType_Kinematic) {
                     backend.bodyInterface.MoveKinematic(body.GetID(), jv, jq, dt);
@@ -448,7 +448,7 @@ class Modifier {
                 backend.bodyInterface.SetPositionAndRotation(body.GetID(), jv, jq, dt);
             }
         } catch (e) {
-            Debug.dev && Debug.error(e);
+            DEBUG && Debug.error(e);
             return false;
         }
 
@@ -488,7 +488,7 @@ class Modifier {
         try {
             const filter = backend.groupFilterTables[group];
 
-            if (Debug.dev) {
+            if (DEBUG) {
                 let ok = true;
                 ok = ok && Debug.assert(!!filter, `Unable to locate filter group: ${ group }`);
                 ok = ok && Debug.assert(subGroup1 <= filter.maxIndex, `Sub group number is over the filter table size: ${ subGroup1 }`);
@@ -502,7 +502,7 @@ class Modifier {
                 filter.DisableCollision(subGroup1, subGroup2);
             }
         } catch (e) {
-            Debug.dev && Debug.error(e);
+            DEBUG && Debug.error(e);
             return false;
         }
 
@@ -518,13 +518,13 @@ class Modifier {
         const body = tracker.getBodyByPCID(index);
         const type = cb.read(BUFFER_READ_UINT8);
 
-        Debug.dev && Debug.checkUint(type);
+        DEBUG && Debug.checkUint(type);
 
         try {
             bodyInterface.SetMotionType(body.GetID(), type, Jolt.Activate);
             tracker.update(body, index);
         } catch (e) {
-            Debug.dev && Debug.error(e);
+            DEBUG && Debug.error(e);
             return false;
         }
 

@@ -29,7 +29,7 @@ function init(app = pc.Application.getApplication(), opts = {}) {
 
     if (backend === 'jolt') {
         if (app[propertyName]) {
-            Debug.dev && Debug.warn(`Unable to initialize Physics Manager. Application has an existing property name that conflicts. ` + 
+            DEBUG && Debug.warn(`Unable to initialize Physics Manager. Application has an existing property name that conflicts. ` + 
                 `Tried to use "app.${ propertyName }". Use { propertyName: string } in init options to use a custom property name. Aborting.`);
             return;
         }

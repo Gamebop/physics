@@ -99,7 +99,7 @@ class BodyComponent extends ShapeComponent {
     }
 
     set linearVelocity(vec) {
-        if (Debug.dev) {
+        if (DEBUG) {
             const ok = Debug.checkVec(vec, `Invalid linear velocity vector`);
             if (!ok) return;
         }
@@ -118,7 +118,7 @@ class BodyComponent extends ShapeComponent {
     }
 
     set angularVelocity(vec) {
-        if (Debug.dev) {
+        if (DEBUG) {
             const ok = Debug.checkVec(vec, `Invalid angular velocity vector`);
             if (!ok) return;
         }
@@ -137,7 +137,7 @@ class BodyComponent extends ShapeComponent {
     }
 
     set motionType(type) {
-        Debug.dev && Debug.checkUint(type, `Invalid motion type: ${ type }`);
+        DEBUG && Debug.checkUint(type, `Invalid motion type: ${ type }`);
         this._motionType = type;
         this.system.addCommand(
             OPERATOR_MODIFIER, CMD_SET_MOTION_TYPE, this._index,
@@ -166,7 +166,7 @@ class BodyComponent extends ShapeComponent {
     }
 
     set userData(num) {
-        if (Debug.dev) {
+        if (DEBUG) {
             let ok = Debug.checkFloat(num, `Invalid user data value. Should be a number: ${ num }`);
             if (!ok)
                 return;
@@ -185,7 +185,7 @@ class BodyComponent extends ShapeComponent {
     }
 
     set useMotionState(bool) {
-        if (Debug.dev) {
+        if (DEBUG) {
             const ok = Debug.checkBool(bool, `Invalid bool value for useMotionState property: ${ bool }`);
             if (!ok)
                 return;
@@ -198,7 +198,7 @@ class BodyComponent extends ShapeComponent {
     }
 
     addForce(force, offset, isOffsetLocal = false) {
-        if (Debug.dev) {
+        if (DEBUG) {
             let ok = true;
             ok = ok && Debug.checkVec(force, `Invalid add force vector`);
             ok = ok && Debug.checkVec(offset, `Invalid add force offset`);
@@ -224,7 +224,7 @@ class BodyComponent extends ShapeComponent {
     }
 
     addForceScalars(forceX, forceY, forceZ, offsetX = 0, offsetY = 0, offsetZ = 0, isOffsetLocal = false) {
-        if (Debug.dev) {
+        if (DEBUG) {
             let ok = true;
             ok = ok && Debug.checkFloat(forceX, `Invalid add impulse X component: ${ forceX }`);
             ok = ok && Debug.checkFloat(forceY, `Invalid add impulse Y component: ${ forceY }`);
@@ -256,7 +256,7 @@ class BodyComponent extends ShapeComponent {
     }
 
     addImpulse(impulse, offset = pc.Vec3.ZERO, isOffsetLocal = false) {
-        if (Debug.dev) {
+        if (DEBUG) {
             let ok = true;
             ok = ok && Debug.checkVec(impulse, `Invalid add impulse vector:`);
             ok = ok && Debug.checkVec(offset, `Invalid add impulse offset:`);
@@ -282,7 +282,7 @@ class BodyComponent extends ShapeComponent {
     }
 
     addImpulseScalars(impulseX, impulseY, impulseZ, offsetX = 0, offsetY = 0, offsetZ = 0, isOffsetLocal = false) {
-        if (Debug.dev) {
+        if (DEBUG) {
             let ok = true;
             ok = ok && Debug.checkFloat(impulseX, `Invalid add impulse X component: ${ impulseX }`);
             ok = ok && Debug.checkFloat(impulseY, `Invalid add impulse Y component: ${ impulseY }`);
@@ -314,7 +314,7 @@ class BodyComponent extends ShapeComponent {
     }
 
     applyBuoyancyImpulse(waterSurfacePosition, surfaceNormal, buoyancy, linearDrag, angularDrag, fluidVelocity) {
-        if (Debug.dev) {
+        if (DEBUG) {
             let ok = true;
             ok = ok && Debug.checkVec(waterSurfacePosition, `Invalid water surface position vector`);
             ok = ok && Debug.checkVec(surfaceNormal, `Invalid surface normal`);
@@ -374,7 +374,7 @@ class BodyComponent extends ShapeComponent {
     }
 
     teleport(position, rotation = pc.Quat.IDENTITY) {
-        if (Debug.dev) {
+        if (DEBUG) {
             let ok = Debug.checkVec(position, `Invalid position vector`, position);
             ok = ok && Debug.checkQuat(rotation, `Invalid rotation quat`, rotation);
             if (!ok) {
@@ -390,7 +390,7 @@ class BodyComponent extends ShapeComponent {
     }
 
     teleportScalars(px, py, pz, rx = 0, ry = 0, rz = 0, rw = 1) {
-        if (Debug.dev) {
+        if (DEBUG) {
             let ok = Debug.checkFloat(px, `Invalid position X component`, px);
             ok = ok && Debug.checkFloat(py, `Invalid position Y component`, py);
             ok = ok && Debug.checkFloat(pz, `Invalid position Z component`, pz);
@@ -426,7 +426,7 @@ class BodyComponent extends ShapeComponent {
 
     writeComponentData(cb) {
         const ok = ShapeComponent.writeShapeData(cb, this);
-        if (Debug.dev && !ok) {
+        if (DEBUG && !ok) {
             Debug.warn('Error creating a shape data.');
             cb.reset();
             return;
@@ -482,7 +482,7 @@ class BodyComponent extends ShapeComponent {
             }
         }
 
-        Debug.dev && cb.write(this._debugDraw, BUFFER_WRITE_BOOL, false);
+        DEBUG && cb.write(this._debugDraw, BUFFER_WRITE_BOOL, false);
     }
 
     resetVelocities() {

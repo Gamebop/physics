@@ -23,7 +23,10 @@ const config = {
     optimization: {
         chunkIds: 'named'
     },
-    plugins: [ new DefinePlugin(constants) ]
+    plugins: [new DefinePlugin({
+        DEBUG: process.env.NODE_ENV === 'development',
+        ...constants
+    })]
 };
 
 export default (env, argv) => {

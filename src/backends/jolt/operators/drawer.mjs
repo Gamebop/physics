@@ -98,7 +98,7 @@ class Drawer {
             this._buffers.push(buffer);
 
         } catch (e) {
-            Debug.dev && Debug.error(e);
+            DEBUG && Debug.error(e);
             return false;
         }
 

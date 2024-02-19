@@ -231,7 +231,7 @@ class VehicleComponent extends BodyComponent {
     //      input2 - Value between -1 and 1 indicating an extra multiplier to the rotation rate of the right track (used for steering)
     //      input3 - Value between 0 and 1 indicating how strong the brake pedal is pressed
     setDriverInput(input0, input1, input2, input3) {
-        if (Debug.dev) {
+        if (DEBUG) {
             let ok = Debug.checkRange(input0, -1, 1, `Invalid driver input for forward (input0). Expected a number in [-1:1] range. Received: ${ input0 }`);
             if (this._type === VEHICLE_TYPE_WHEEL || this._type === VEHICLE_TYPE_MOTORCYCLE) {
                 ok = ok && Debug.checkRange(input1, -1, 1, `Invalid driver input for right (input1). Expected a number in [-1:1] range. Received: ${ input1 }`);
@@ -267,7 +267,7 @@ class VehicleComponent extends BodyComponent {
         const tracks = this._tracks;
         const count = tracks.length;
 
-        if (Debug.dev && count === 0) {
+        if (DEBUG && count === 0) {
             Debug.warn('Invalid tracks data. Need at least one track.', tracks);
             return;
         }
@@ -300,7 +300,7 @@ class VehicleComponent extends BodyComponent {
         for (let i = 0; i < count; i++) {
             const desc = wheels[i];
 
-            if (Debug.dev) {
+            if (DEBUG) {
                 let ok = Debug.assert(desc.position, 
                     'A wheel description requires an attachment position of wheel' +
                     'suspension in local space of the vehicle', desc);
@@ -426,7 +426,7 @@ class VehicleComponent extends BodyComponent {
         const differentials = this._differentials;
         const count = differentials.length;
 
-        if (Debug.dev && count === 0) {
+        if (DEBUG && count === 0) {
             Debug.warnOnce('Vehicle component is missing wheels differentials.' +
                 'Default values will make a vehicle without wheels.');
         }

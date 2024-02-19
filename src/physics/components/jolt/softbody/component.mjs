@@ -66,11 +66,11 @@ class SoftBodyComponent extends BodyComponent {
         cb.write(this._makeRotationIdentity, BUFFER_WRITE_BOOL, false);
         cb.write(this._allowSleeping, BUFFER_WRITE_BOOL, false);
 
-        Debug.dev && cb.write(this._debugDraw, BUFFER_WRITE_BOOL, false);
+        DEBUG && cb.write(this._debugDraw, BUFFER_WRITE_BOOL, false);
     }
 
     onEnable() {
-        if (Debug.dev) {
+        if (DEBUG) {
             if (!this._renderAsset && !this._meshes) {
                 Debug.warn('Unable to locate mesh data for a soft body', this);
                 return;

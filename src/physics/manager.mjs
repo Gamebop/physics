@@ -55,7 +55,7 @@ class PhysicsManager {
             type: 'step', buffer: null, inBuffer: null, origin: 'physics-manager'
         };
 
-        if (Debug.dev) {
+        if (DEBUG) {
             this._perfCache = new IndexedCache();
         }
 
@@ -110,7 +110,7 @@ class PhysicsManager {
         }
 
         let index;
-        if (Debug.dev) {
+        if (DEBUG) {
             const startTime = performance.now();
             index = this._perfCache.add(startTime);
 
@@ -156,7 +156,7 @@ class PhysicsManager {
             const count = inBuffer.commandsCount;
             for (let i = 0; i < count; i++) {
                 const operator = inBuffer.readOperator();
-                if (Debug.dev) {
+                if (DEBUG) {
                     const ok = Debug.assert(!!systems.get(operator), `Invalid component system: ${ operator }`);
                     if (!ok) {
                         this._updateEvent.off();
@@ -186,7 +186,7 @@ class PhysicsManager {
             this._updateEvent = this._app.systems.on('postUpdate', this.onUpdate, this);
         }
 
-        if (Debug.dev) {
+        if (DEBUG) {
             const perfIndex = msg.perfIndex;
             
             if (perfIndex == null) return;
@@ -243,7 +243,7 @@ class PhysicsManager {
 
         msg.dt = dt;
 
-        if (Debug.dev) {
+        if (DEBUG) {
             msg.perfIndex = perfIndex;
         }
 
