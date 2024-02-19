@@ -1,7 +1,7 @@
 class Debug {
     static _logged = new Set();
 
-    static dev = (process.env.NODE_ENV !== 'development');
+    static dev = (process.env.NODE_ENV === 'development');
 
     static log(...attr) {
         console.log(...attr);
