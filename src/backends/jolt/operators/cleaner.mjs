@@ -143,7 +143,6 @@ class Cleaner {
 
         if (Jolt.getPointer(constraint) !== 0) {
             backend.physicsSystem.RemoveConstraint(constraint);
-            Jolt.destroy(constraint);
         }
         map.delete(index);
 
