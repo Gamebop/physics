@@ -594,10 +594,10 @@ jest-worker@^27.4.5:
     merge-stream "^2.0.0"
     supports-color "^8.0.0"
 
-jolt-physics@^0.17.0:
-  version "0.17.0"
-  resolved "https://registry.yarnpkg.com/jolt-physics/-/jolt-physics-0.17.0.tgz#5c0e6d7ecf9997ae39e9a050cfa9ce8f2d37eaf9"
-  integrity sha512-J3/iiOoIqEcsVR8qvL8WnglkGP6+nLd2pPm1BmxdbJuHu3CV/XjRydKAlOeQm0+5vMRiNAFFsVoieCPx/ITuMQ==
+jolt-physics@^0.18.0:
+  version "0.18.0"
+  resolved "https://registry.yarnpkg.com/jolt-physics/-/jolt-physics-0.18.0.tgz#c68f48fa815057890de3b9f0d8b4ee76a5d83ff6"
+  integrity sha512-MKyc+IS1xdWm3r3afDh5h35876FD+AGAJTXQduMzJCt5Io+s08cJmWWPXdj4Z8HUhIyABebwbv5KoQ0Goux7UQ==
 
 json-parse-even-better-errors@^2.3.1:
   version "2.3.1"
