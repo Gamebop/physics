@@ -186,7 +186,12 @@ class Creator {
         if (!shapeSettings)
             return false;
 
-        const shape = shapeSettings.Create().Get();
+        const shapeResult = shapeSettings.Create();
+        if (shapeResult.HasError()) {
+            DEBUG && Debug.error(`Failed to create shape: ${ shapeResult.GetError().c_str() }`);
+            return false;
+        }
+        const shape = shapeResult.Get();
 
         this._backend.tracker.shapeMap.set(num, shape);
 
@@ -206,7 +211,13 @@ class Creator {
             return false;
         }
         
-        const shape = shapeSettings.Create().Get();
+        const shapeResult = shapeSettings.Create();
+        if (shapeResult.HasError()) {
+            DEBUG && Debug.error(`Failed to create shape: ${ shapeResult.GetError().c_str() }`);
+            return false;
+        }
+
+        const shape = shapeResult.Get();
 
         // ------------ BODY PROPS ----------------
 
@@ -1287,7 +1298,13 @@ class Creator {
             return false;
         }
 
-        const shape = shapeSettings.Create().Get();
+        const shapeResult = shapeSettings.Create();
+        if (shapeResult.HasError()) {
+            DEBUG && Debug.error(`Failed to create shape: ${ shapeResult.GetError().c_str() }`);
+            return false;
+        }
+
+        const shape = shapeResult.Get();
         
         settings.mShape = shape;
 

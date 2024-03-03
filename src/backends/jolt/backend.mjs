@@ -278,6 +278,7 @@ class JoltBackend {
         if (!inBuffer) {
             // The physics world is empty, as no commands were ever received yet,
             // so nothing to report and no reason to step the physics.
+            this._dispatcher.respond(this._responseMessage);
             return;
         }
 

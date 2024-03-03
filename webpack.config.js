@@ -22,11 +22,7 @@ const config = {
     },
     optimization: {
         chunkIds: 'named'
-    },
-    plugins: [new DefinePlugin({
-        DEBUG: process.env.NODE_ENV === 'development',
-        ...constants
-    })]
+    }
 };
 
 export default (env, argv) => {
@@ -34,11 +30,13 @@ export default (env, argv) => {
         config.mode = 'development';
         config.devtool = 'eval-source-map';
         config.output.filename = 'physics-components.dbg.js';
+        config.plugins = [ new DefinePlugin({ DEBUG: true, ...constants }) ];
     }
 
     if (argv.mode === 'production') {
         config.mode = 'production';
         config.output.filename = 'physics-components.min.js';
+        config.plugins = [ new DefinePlugin({ DEBUG: false, ...constants }) ];
     }
 
     return config;
