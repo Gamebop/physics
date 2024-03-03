@@ -163,7 +163,7 @@ class ShapeComponentSystem extends pc.ComponentSystem {
 
     static updateDynamic(cb) {
         const index = cb.read(BUFFER_READ_UINT32);
-        const entity = this.entityMap.get(index);
+        const entity = ShapeComponentSystem.entityMap.get(index);
         const vehicleComponent = entity?.c.vehicle;
 
         if (!entity) {
@@ -234,6 +234,8 @@ class ShapeComponentSystem extends pc.ComponentSystem {
         }
     }
 
+    // TODO
+    // refactor to receive the Float32Array instead of Wasm heap.
     static debugDraw(app, data, config) {
         const useDepth = config.debugDrawDepth;
         const layer = app.scene.layers.getLayerById(config.debugDrawLayerId);
@@ -252,7 +254,7 @@ class ShapeComponentSystem extends pc.ComponentSystem {
             const buffer = data[d + 4];
     
             const view = new Float32Array(buffer, byteOffset, length);
-            const entity = this.entityMap.get(index);
+            const entity = ShapeComponentSystem.entityMap.get(index);
             const color = getColor(motionType, config);
     
             const p = entity.getPosition();
