@@ -890,7 +890,9 @@ class Creator {
                 let ok = true;
                 ok = ok && Debug.checkVec(pos, `Invalid static compound child position vector`);
                 ok = ok && Debug.checkQuat(rot, `Invalid static compound child quaternion`);
-                return null;
+                if (!ok) {
+                    return null;
+                }
             }
 
             children.push(settings, pos, rot);
