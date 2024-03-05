@@ -278,7 +278,12 @@ class JoltBackend {
         if (!inBuffer) {
             // The physics world is empty, as no commands were ever received yet,
             // so nothing to report and no reason to step the physics.
-            this._dispatcher.respond(this._responseMessage);
+            const msg = this._responseMessage;
+            if (DEBUG) {
+                msg.perfIndex = this._perfIndex;
+                msg.time = performance.now() - this._stepTime;
+            }
+            this._dispatcher.respond(msg);
             return;
         }
 
@@ -785,7 +790,7 @@ class JoltBackend {
                 const bodyID = bodyList.at(i);
                 const body = system.GetBodyLockInterface().TryGetBody(bodyID);
                 const pointer = Jolt.getPointer(body);
-                if (pointer === 0 || body.isCharPaired) {
+                if (pointer === 0 || body.isCharPaired || body.GetMotionType() !== Jolt.EMotionType_Dynamic) {
                     continue;
                 }
 
