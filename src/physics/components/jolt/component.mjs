@@ -1,8 +1,6 @@
 import { Debug } from "../../debug.mjs";
 import { buildAccessors } from "../../util.mjs";
 
-const quat = new pc.Quat();
-
 class ShapeComponent extends pc.EventHandler {
 
     // ---- COMPONENT PROPS ----
@@ -159,6 +157,8 @@ class ShapeComponent extends pc.EventHandler {
 
     onPostStateChange() {}
 
+    static quat = new pc.Quat();
+
     static writeShapeData(cb, props, forceWriteRotation = false) {
         const shape = props.shape;
         cb.write(shape, BUFFER_WRITE_UINT8, false);
@@ -241,6 +241,7 @@ class ShapeComponent extends pc.EventHandler {
 
         cb.write(hasShapeOffset, BUFFER_WRITE_BOOL, false);
         if (hasShapeOffset) {
+            const quat = ShapeComponent.quat;
             quat.setFromEulerAngles(rotation);
             cb.write(position, BUFFER_WRITE_VEC32, false);
             cb.write(quat, BUFFER_WRITE_VEC32, false);

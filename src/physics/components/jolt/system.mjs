@@ -1,7 +1,5 @@
 import { IndexedCache } from "../../indexed-cache.mjs";
 
-let v1, v2, v3;
-
 function getColor(type, config) {
     switch (type) {
         case pc.JOLT_MOTION_TYPE_STATIC:
@@ -48,6 +46,8 @@ const schema = [
 
 class ShapeComponentSystem extends pc.ComponentSystem {
     static entityMap = new IndexedCache();
+
+    static tempVectors = [];
 
     constructor(app, manager) {
         super(app);
@@ -234,19 +234,22 @@ class ShapeComponentSystem extends pc.ComponentSystem {
         }
     }
 
-    // TODO
-    // refactor to receive the Float32Array instead of Wasm heap.
     static debugDraw(app, data, config) {
         const useDepth = config.debugDrawDepth;
         const layer = app.scene.layers.getLayerById(config.debugDrawLayerId);
+        const tempVectors = ShapeComponentSystem.tempVectors;
 
-        if (!v1) {
-            v1 = new pc.Vec3();
-            v2 = new pc.Vec3();
-            v3 = new pc.Vec3();
+        if (tempVectors.length === 0) {
+            tempVectors.push( new pc.Vec3(), new pc.Vec3(), new pc.Vec3(), new pc.Vec3(), new pc.Quat() );
         }
+
+        const v1 = tempVectors[0];
+        const v2 = tempVectors[1];
+        const v3 = tempVectors[2];
+        const v4 = tempVectors[3];
+        const q1 = tempVectors[4];
     
-        for (let d = 0, total = data.length; d < total; d += 5) {
+        for (let d = 0, total = data.length; d < total; d += 12) {
             const index = data[d];
             const length = data[d + 1];
             const byteOffset = data[d + 2];
@@ -256,9 +259,9 @@ class ShapeComponentSystem extends pc.ComponentSystem {
             const view = new Float32Array(buffer, byteOffset, length);
             const entity = ShapeComponentSystem.entityMap.get(index);
             const color = getColor(motionType, config);
-    
-            const p = entity.getPosition();
-            const r = entity.getRotation();
+
+            const p = v4.set(data[d + 5], data[d + 6], data[d + 7]);
+            const r = q1.set(data[d + 8], data[d + 9], data[d + 10], data[d + 11]);
     
             for (let i = 0, end = view.length; i < end; i += 9) {
                 v1.set(view[i], view[i + 1], view[i + 2]);

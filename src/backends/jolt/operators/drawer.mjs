@@ -66,13 +66,19 @@ class Drawer {
         try {
             const motionType = body.isCharacter ? Jolt.EMotionType_Kinematic : body.GetMotionType();
             const isRigidBody = body.isCharacter ? true : (body.GetBodyType() === Jolt.EBodyType_RigidBody);
+            const pos = body.GetPosition();
+            const rot = body.GetRotation();
 
             const data = body.debugDrawData;
             if (data) {
                 if (isRigidBody) {
                     const buffer = Jolt.HEAPF32.buffer;
 
-                    this._data.push(...data, motionType, buffer);
+                    this._data.push(
+                        ...data, motionType, buffer,
+                        pos.GetX(), pos.GetY(), pos.GetZ(),
+                        rot.GetX(), rot.GetY(), rot.GetZ(), rot.GetW()
+                    );
                     this._buffers.push(buffer);
 
                     return true;
@@ -83,9 +89,9 @@ class Drawer {
                     body.debugDrawData = null;
                 }
             }
-
-            const shape = body.GetShape();
+            
             const index = tracker.getPCID(Jolt.getPointer(body));
+            const shape = body.GetShape();            
             const triContext = new Jolt.ShapeGetTriangles(shape, Jolt.AABox.prototype.sBiggest(), shape.GetCenterOfMass(), Jolt.Quat.prototype.sIdentity(), this._scale);
             const byteOffset = triContext.GetVerticesData();
             const length = triContext.GetVerticesSize() / FLOAT32_SIZE;
@@ -94,7 +100,11 @@ class Drawer {
             body.debugDrawData = [index, length, byteOffset];
             body.triContext = triContext;
 
-            this._data.push(index, length, byteOffset, motionType, buffer);
+            this._data.push(
+                index, length, byteOffset, motionType, buffer,
+                pos.GetX(), pos.GetY(), pos.GetZ(),
+                rot.GetX(), rot.GetY(), rot.GetZ(), rot.GetW()
+            );
             this._buffers.push(buffer);
 
         } catch (e) {

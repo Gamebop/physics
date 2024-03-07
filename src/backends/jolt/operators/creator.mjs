@@ -187,8 +187,8 @@ class Creator {
             return false;
 
         const shapeResult = shapeSettings.Create();
-        if (shapeResult.HasError()) {
-            DEBUG && Debug.error(`Failed to create shape: ${ shapeResult.GetError().c_str() }`);
+        if (DEBUG && shapeResult.HasError()) {
+            Debug.error(`Failed to create shape: ${ shapeResult.GetError().c_str() }`);
             return false;
         }
         const shape = shapeResult.Get();
@@ -212,8 +212,8 @@ class Creator {
         }
         
         const shapeResult = shapeSettings.Create();
-        if (shapeResult.HasError()) {
-            DEBUG && Debug.error(`Failed to create shape: ${ shapeResult.GetError().c_str() }`);
+        if (DEBUG && shapeResult.HasError()) {
+            Debug.error(`Failed to create shape: ${ shapeResult.GetError().c_str() }`);
             return false;
         }
 
@@ -1301,8 +1301,8 @@ class Creator {
         }
 
         const shapeResult = shapeSettings.Create();
-        if (shapeResult.HasError()) {
-            DEBUG && Debug.error(`Failed to create shape: ${ shapeResult.GetError().c_str() }`);
+        if (DEBUG && shapeResult.HasError()) {
+            Debug.error(`Failed to create shape: ${ shapeResult.GetError().c_str() }`);
             return false;
         }
 
