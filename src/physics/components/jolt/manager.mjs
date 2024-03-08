@@ -502,7 +502,7 @@ class JoltManager extends PhysicsManager {
     static writeMotorSettings(cb, motorSettings) {
         cb.write(!!motorSettings, BUFFER_WRITE_BOOL, false);
         if (motorSettings != null) {
-            this._writeSpringSettings(cb, motorSettings.springSettings);
+            JoltManager.writeSpringSettings(cb, motorSettings.springSettings);
             cb.write(motorSettings.minForceLimit, BUFFER_WRITE_FLOAT32);
             cb.write(motorSettings.maxForceLimit, BUFFER_WRITE_FLOAT32);
             cb.write(motorSettings.minTorqueLimit, BUFFER_WRITE_FLOAT32);

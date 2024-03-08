@@ -711,25 +711,6 @@ class JoltBackend {
         return true;
     }
 
-    
-
-    // _filterToBits(config) {
-    //     const filterLayers = this._filterLayers;
-    //     const pairs = config.layerPairs;
-    //     for (let i = 0, end = pairs.length; i < end; i++) {
-    //         const pair = pairs[i];
-    //         pair[0] = this.getBitValue(pair[0]);
-    //         pair[1] = this.getBitValue(pair[1]);
-    //     }
-
-    //     const layers = [];
-    //     filterLayers.forEach(key => {
-    //         layers.push(key);
-    //     });
-
-    //     config.layers = layers;
-    // }
-
     _exposeConstants() {
         const Jolt = this.Jolt;
         const dispatcher = this._dispatcher;
@@ -793,13 +774,19 @@ class JoltBackend {
                 if (pointer === 0 || body.isCharPaired || body.GetMotionType() !== Jolt.EMotionType_Dynamic) {
                     continue;
                 }
+                
+                // If body was added by user using Jolt API directly, then backend is not aware of it.
+                // We skip it, assuming user handles its tracking himself.
+                const index = tracker.getPCID(Jolt.getPointer(body));
+                if (index == null) {
+                    continue;
+                }
+
+                cb.write(index, BUFFER_WRITE_UINT32, false);
 
                 cb.writeOperator(COMPONENT_SYSTEM_BODY);
                 cb.writeCommand(CMD_UPDATE_TRANSFORMS);
-
-                const index = tracker.getPCID(Jolt.getPointer(body));
-                cb.write(index, BUFFER_WRITE_UINT32, false);
-
+                
                 const ms = body.motionState;
                 if (useMotionStates && ms) {
                     cb.write(ms.position, BUFFER_WRITE_VEC32, false);

@@ -160,13 +160,19 @@ class Listener {
         const tracker = backend.tracker;
 
         character = Jolt.wrapPointer(character, Jolt.CharacterVirtual);
+
+        const index = tracker.getPCID(Jolt.getPointer(character));
+
+        // Ignore contact, if the character was created by user via Jolt API directly.
+        if (index == null) {
+            return;
+        }
+
+        const data = this._charContactsData;
         cp = Jolt.wrapPointer(cp, Jolt.Vec3);
         cn = Jolt.wrapPointer(cn, Jolt.Vec3);
         cv = Jolt.wrapPointer(cv, Jolt.Vec3);
-        nv = Jolt.wrapPointer(nv, Jolt.Vec3);
-
-        const data = this._charContactsData;
-        const index = tracker.getPCID(Jolt.getPointer(character));
+        nv = Jolt.wrapPointer(nv, Jolt.Vec3);        
         
         const bodyLockInterface = backend.physicsSystem.GetBodyLockInterface();
 
@@ -344,11 +350,13 @@ class Listener {
         // Skip writing contact events, if there are none
         let skip = true;
         data.forEach(contacts => {
-            if (contacts[0] > 0)
+            if (contacts[0] > 0) {
                 skip = false;
+            }
         });
-        if (skip)
+        if (skip) {
             return;
+        }
 
         cb.writeOperator(COMPONENT_SYSTEM_CHAR);
         cb.writeCommand(CMD_REPORT_CONTACTS);
@@ -400,6 +408,11 @@ class Listener {
         let idx2 = null;
         if (body2 !== null) {
             idx2 = tracker.getPCID(Jolt.getPointer(body2)) ?? null;
+        }
+
+        // Ignore user-created bodies using Jolt API directly.
+        if (idx1 == null || idx2 === null) {
+            return;
         }
 
         // Persisted contacts will be called once per substep, which may 
