@@ -837,7 +837,7 @@ class Creator {
 
             settings = compoundSettings;
         }
-        
+
         const isCompoundChild = cb.read(BUFFER_READ_BOOL);
         if (!isCompoundChild) {
             const density = cb.read(BUFFER_READ_FLOAT32);
@@ -847,21 +847,26 @@ class Creator {
                     return null;
             }
             settings.mDensity = density;
-        }
 
-        // shape offset
-        if (cb.read(BUFFER_READ_BOOL)) {
-            jv.FromBuffer(cb);
-            jq.FromBuffer(cb);
+            // When creating a compound shape, we should prefer setting the position/rotation
+            // directly on adding a shape - compoundSettings.AddShape(vec, quat, childSettings).
+            // Using a RotatedTranslatedShape would be a waste of CPU cycles, as Jolt would
+            // transform the shape twice then, even the first one is an identity transform.
 
-            settings = new Jolt.RotatedTranslatedShapeSettings(jv, jq, settings);
-        }
+            // shape offset
+            if (cb.read(BUFFER_READ_BOOL)) {
+                jv.FromBuffer(cb);
+                jq.FromBuffer(cb);
 
-        // center of mass offset
-        if (cb.read(BUFFER_READ_BOOL)) {
-            jv.FromBuffer(cb);
+                settings = new Jolt.RotatedTranslatedShapeSettings(jv, jq, settings);
+            }
 
-            settings = new Jolt.OffsetCenterOfMassShapeSettings(jv, settings);
+            // center of mass offset
+            if (cb.read(BUFFER_READ_BOOL)) {
+                jv.FromBuffer(cb);
+
+                settings = new Jolt.OffsetCenterOfMassShapeSettings(jv, settings);
+            }            
         }
 
         if (useScale) {

@@ -64,8 +64,8 @@ class ShapeComponent extends pc.EventHandler {
     // Shape local position offset
     _shapePosition = pc.Vec3.ZERO;
 
-    // Shape local rotation offset (vec3, Eulers)
-    _shapeRotation = pc.Vec3.ZERO;
+    // Shape local rotation offset
+    _shapeRotation = pc.Quat.IDENTITY;
 
     // Offset center of mass in local space of the body. Does not move the shape.
     _massOffset = pc.Vec3.ZERO;
@@ -229,27 +229,25 @@ class ShapeComponent extends pc.EventHandler {
         cb.write(isCompoundChild, BUFFER_WRITE_BOOL, false);
         if (!isCompoundChild) {
             cb.write(props.density, BUFFER_WRITE_FLOAT32, false);
-        }
+
+            const position = props.shapePosition;
+            const rotation = props.shapeRotation;
+            const massOffset = props.massOffset;
+            const hasPositionOffset = !position.equals(pc.Vec3.ZERO);
+            const hasRotationOffset = forceWriteRotation || !rotation.equals(pc.Quat.IDENTITY);
+            const hasShapeOffset = hasPositionOffset || hasRotationOffset;
+            const hasMassOffset = !massOffset.equals(pc.Vec3.ZERO);
     
-        const position = props.shapePosition;
-        const rotation = props.shapeRotation;
-        const massOffset = props.massOffset;
-        const hasPositionOffset = !position.equals(pc.Vec3.ZERO);
-        const hasRotationOffset = forceWriteRotation || !rotation.equals(pc.Vec3.ZERO);
-        const hasShapeOffset = hasPositionOffset || hasRotationOffset;
-        const hasMassOffset = !massOffset.equals(pc.Vec3.ZERO);
-
-        cb.write(hasShapeOffset, BUFFER_WRITE_BOOL, false);
-        if (hasShapeOffset) {
-            const quat = ShapeComponent.quat;
-            quat.setFromEulerAngles(rotation);
-            cb.write(position, BUFFER_WRITE_VEC32, false);
-            cb.write(quat, BUFFER_WRITE_VEC32, false);
-        }
-
-        cb.write(hasMassOffset, BUFFER_WRITE_BOOL, false);
-        if (hasMassOffset) {
-            cb.write(massOffset, BUFFER_WRITE_VEC32, false);
+            cb.write(hasShapeOffset, BUFFER_WRITE_BOOL, false);
+            if (hasShapeOffset) {
+                cb.write(position, BUFFER_WRITE_VEC32, false);
+                cb.write(rotation, BUFFER_WRITE_VEC32, false);
+            }
+    
+            cb.write(hasMassOffset, BUFFER_WRITE_BOOL, false);
+            if (hasMassOffset) {
+                cb.write(massOffset, BUFFER_WRITE_VEC32, false);
+            }
         }
 
         return ok;
@@ -279,12 +277,16 @@ class ShapeComponent extends pc.EventHandler {
             }
 
             const entity = component.entity;
-            const pos = entity.getLocalPosition();
-            const rot = entity.getLocalRotation();
+            // const pos = entity.getLocalPosition();
+            // const rot = entity.getLocalRotation();
 
             // Loss of precision for pos/rot (64 -> 32)
-            cb.write(pos, BUFFER_WRITE_VEC32, false);
-            cb.write(rot, BUFFER_WRITE_VEC32, false);
+            // cb.write(pos, BUFFER_WRITE_VEC32, false);
+            // cb.write(rot, BUFFER_WRITE_VEC32, false);
+
+            // Loss of precision for pos/rot (64 -> 32)
+            cb.write(component.shapePosition, BUFFER_WRITE_VEC32, false);
+            cb.write(component.shapeRotation, BUFFER_WRITE_VEC32, false);
         }
 
         return true;
