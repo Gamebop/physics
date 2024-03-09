@@ -782,10 +782,10 @@ class JoltBackend {
                     continue;
                 }
 
-                cb.write(index, BUFFER_WRITE_UINT32, false);
-
                 cb.writeOperator(COMPONENT_SYSTEM_BODY);
                 cb.writeCommand(CMD_UPDATE_TRANSFORMS);
+
+                cb.write(index, BUFFER_WRITE_UINT32, false);
                 
                 const ms = body.motionState;
                 if (useMotionStates && ms) {

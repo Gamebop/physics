@@ -866,7 +866,7 @@ class Creator {
                 jv.FromBuffer(cb);
 
                 settings = new Jolt.OffsetCenterOfMassShapeSettings(jv, settings);
-            }            
+            }
         }
 
         if (useScale) {

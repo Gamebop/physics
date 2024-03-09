@@ -230,25 +230,44 @@ class ShapeComponent extends pc.EventHandler {
         if (!isCompoundChild) {
             cb.write(props.density, BUFFER_WRITE_FLOAT32, false);
 
-            const position = props.shapePosition;
-            const rotation = props.shapeRotation;
-            const massOffset = props.massOffset;
-            const hasPositionOffset = !position.equals(pc.Vec3.ZERO);
-            const hasRotationOffset = forceWriteRotation || !rotation.equals(pc.Quat.IDENTITY);
-            const hasShapeOffset = hasPositionOffset || hasRotationOffset;
-            const hasMassOffset = !massOffset.equals(pc.Vec3.ZERO);
+            // const position = props.shapePosition;
+            // const rotation = props.shapeRotation;
+            // const massOffset = props.massOffset;
+            // const hasPositionOffset = !position.equals(pc.Vec3.ZERO);
+            // const hasRotationOffset = forceWriteRotation || !rotation.equals(pc.Quat.IDENTITY);
+            // const hasShapeOffset = hasPositionOffset || hasRotationOffset;
+            // const hasMassOffset = !massOffset.equals(pc.Vec3.ZERO);
     
-            cb.write(hasShapeOffset, BUFFER_WRITE_BOOL, false);
-            if (hasShapeOffset) {
-                cb.write(position, BUFFER_WRITE_VEC32, false);
-                cb.write(rotation, BUFFER_WRITE_VEC32, false);
-            }
+            // cb.write(hasShapeOffset, BUFFER_WRITE_BOOL, false);
+            // if (hasShapeOffset) {
+            //     cb.write(position, BUFFER_WRITE_VEC32, false);
+            //     cb.write(rotation, BUFFER_WRITE_VEC32, false);
+            // }
     
-            cb.write(hasMassOffset, BUFFER_WRITE_BOOL, false);
-            if (hasMassOffset) {
-                cb.write(massOffset, BUFFER_WRITE_VEC32, false);
-            }
+            // cb.write(hasMassOffset, BUFFER_WRITE_BOOL, false);
+            // if (hasMassOffset) {
+            //     cb.write(massOffset, BUFFER_WRITE_VEC32, false);
+            // }
         }
+
+        const position = props.shapePosition;
+        const rotation = props.shapeRotation;
+        const massOffset = props.massOffset;
+        const hasPositionOffset = !position.equals(pc.Vec3.ZERO);
+        const hasRotationOffset = forceWriteRotation || !rotation.equals(pc.Quat.IDENTITY);
+        const hasShapeOffset = hasPositionOffset || hasRotationOffset;
+        const hasMassOffset = !massOffset.equals(pc.Vec3.ZERO);
+
+        cb.write(hasShapeOffset, BUFFER_WRITE_BOOL, false);
+        if (hasShapeOffset) {
+            cb.write(position, BUFFER_WRITE_VEC32, false);
+            cb.write(rotation, BUFFER_WRITE_VEC32, false);
+        }
+
+        cb.write(hasMassOffset, BUFFER_WRITE_BOOL, false);
+        if (hasMassOffset) {
+            cb.write(massOffset, BUFFER_WRITE_VEC32, false);
+        }        
 
         return ok;
     }
@@ -275,14 +294,6 @@ class ShapeComponent extends pc.EventHandler {
             if (!ok) {
                 return false;
             }
-
-            const entity = component.entity;
-            // const pos = entity.getLocalPosition();
-            // const rot = entity.getLocalRotation();
-
-            // Loss of precision for pos/rot (64 -> 32)
-            // cb.write(pos, BUFFER_WRITE_VEC32, false);
-            // cb.write(rot, BUFFER_WRITE_VEC32, false);
 
             // Loss of precision for pos/rot (64 -> 32)
             cb.write(component.shapePosition, BUFFER_WRITE_VEC32, false);
