@@ -240,6 +240,7 @@ class PhysicsManager {
         const cb = this._outBuffer;
         const inBuffer = this._inBuffer;
         const msg = this._stepMessage;
+        const useSAB = this._config.useSAB;
 
         msg.dt = dt;
 
@@ -252,7 +253,7 @@ class PhysicsManager {
             if (inBuffer && inBuffer.buffer.byteLength > 0) {
                 const ib = inBuffer.buffer;
                 msg.inBuffer = ib;
-                this._dispatcher.postMessage(msg, this._config.useSAB ? null : [ ib ]);
+                this._dispatcher.postMessage(msg, useSAB ? null : [ ib ]);
             } else {
                 msg.inBuffer = null;
                 this._dispatcher.postMessage(msg);
@@ -275,7 +276,7 @@ class PhysicsManager {
             msg.meshBuffers = null;
         }
 
-        if (this._config.useSAB) {
+        if (useSAB) {
             this._dispatcher.postMessage(msg);
         } else {
             buffers.push(buffer);
