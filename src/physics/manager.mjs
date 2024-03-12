@@ -252,7 +252,7 @@ class PhysicsManager {
             if (inBuffer && inBuffer.buffer.byteLength > 0) {
                 const ib = inBuffer.buffer;
                 msg.inBuffer = ib;
-                this._dispatcher.postMessage(msg, [ ib ]);
+                this._dispatcher.postMessage(msg, this._config.useSAB ? null : [ ib ]);
             } else {
                 msg.inBuffer = null;
                 this._dispatcher.postMessage(msg);

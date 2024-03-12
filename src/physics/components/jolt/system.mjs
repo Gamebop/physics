@@ -257,7 +257,6 @@ class ShapeComponentSystem extends pc.ComponentSystem {
             const buffer = data[d + 4];
     
             const view = new Float32Array(buffer, byteOffset, length);
-            const entity = ShapeComponentSystem.entityMap.get(index);
             const color = getColor(motionType, config);
 
             const p = v4.set(data[d + 5], data[d + 6], data[d + 7]);
