@@ -1,27 +1,20 @@
 import { JoltBackend } from "../backends/jolt/backend.mjs";
 import { Debug } from "./debug.mjs";
 
-let backend = null;
-
-function createBackend(messenger, data) {
+function createBackend(dispatcher, data) {
     switch (data.backendName) {
         case 'jolt':
-            backend = new JoltBackend(messenger, data);
-            break;
-
-        // intentional fall-through
-        case 'ammo':
-        case 'rapier':
-        case 'physx':
-            Debug.warn(`Invalid backend selection: ${ backend }`);
+            Dispatcher.backend = new JoltBackend(dispatcher, data);
             break;
 
         default:
-            Debug.warn(`Invalid backend selection: ${ backend }`);
+            Debug.warn(`Invalid backend selection: ${ data.backendName }`);
     }
 }
 
 class Dispatcher {
+    static backend = null;
+
     constructor(manager = null) {
         this._useMainThread = !!manager;
         this._manager = manager;
@@ -41,19 +34,19 @@ class Dispatcher {
 
         switch (data.type) {
             case 'step':
-                backend?.step(data);
+                Dispatcher.backend?.step(data);
                 break;
 
             case 'create-backend':
                 createBackend(this, data);
-                // If we don't use a Web Worker, expose the backend instance to main thread for dev convenience
-                if (this._manager) {
-                    this._manager.backend = backend;
+                // If we don't use a Web Worker, expose the backend instance to main thread for DX
+                if (this._useMainThread) {
+                    this._manager.backend = Dispatcher.backend;
                 }
                 break;
 
             case 'override-contacts':
-                backend?.overrideContacts(data.listener, data.overrides);
+                Dispatcher.backend?.overrideContacts(data.listener, data.overrides);
                 break;
 
             case 'destroy':
@@ -68,8 +61,8 @@ class Dispatcher {
     destroy() {
         this._destroying = true;
 
-        backend.destroy();
-        backend = null;
+        Dispatcher.backend.destroy();
+        Dispatcher.backend = null;
         self.onmessage = (e) => {};
         dispatcher = null;
     }

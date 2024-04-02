@@ -98,7 +98,11 @@ class Listener {
         const { contactPoints, contactPointsAveraged } = this._backend.config;
         const manifold = Jolt.wrapPointer(manifoldPointer, Jolt.ContactManifold);
 
-        this._wrapAndWrite(b1Pointer, b2Pointer, CONTACT_TYPE_ADDED, true);
+        const ok = this._wrapAndWrite(b1Pointer, b2Pointer, CONTACT_TYPE_ADDED, true);
+
+        if (!ok) {
+            return;
+        }
 
         const n = manifold.mWorldSpaceNormal;
         const d = manifold.mPenetrationDepth;
@@ -391,7 +395,7 @@ class Listener {
         const body1 = Jolt.wrapPointer(b1Pointer, Body);
 		const body2 = Jolt.wrapPointer(b2Pointer, Body);
 
-        this._writeContactPair(body1, body2, type, ignoreCache);
+        return this._writeContactPair(body1, body2, type, ignoreCache);
     }
 
     _writeContactPair(body1, body2, type, ignoreCache) {
@@ -412,7 +416,7 @@ class Listener {
 
         // Ignore user-created bodies using Jolt API directly.
         if (idx1 == null || idx2 === null) {
-            return;
+            return false;
         }
 
         // Persisted contacts will be called once per substep, which may 
@@ -434,11 +438,15 @@ class Listener {
         data.push(!!body1);
         data.push(!!body2);
 
-        if (body1)
+        if (body1) {
             data.push(idx1);
+        }
         
-        if (body2)
+        if (body2) {
             data.push(idx2);
+        }
+
+        return true;
     }
 }
 

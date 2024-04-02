@@ -81,7 +81,25 @@ class JoltManager extends PhysicsManager {
                 ResponseHandler.handleQuery(cb, this._queryMap);
                 break;
         }
-    }    
+    }
+
+    addUpdateCallback(func) {
+        if (this._config.useWebWorker) {
+            DEBUG && Debug.warn('Physics update callback is not supported when Web Worker is enabled.');
+            return;
+        }
+
+        this._backend.updateCallback = func;
+    }
+
+    removeUpdateCallback() {
+        if (this._config.useWebWorker) {
+            DEBUG && Debug.warn('Physics update callback is not supported when Web Worker is enabled.');
+            return;
+        }
+                
+        this._backend.updateCallback = null;
+    }
 
     createShape(type, options = {}) {
         const cb = this._outBuffer;

@@ -68,10 +68,7 @@ class JoltBackend {
         };
         this._config = config;
         this._time = 0;
-
-        // Transform filters to bit values
         this._filterLayers = new Map();
-        // this._filterToBits(config);
 
         // Jolt data
         this.Jolt = null;
@@ -83,6 +80,7 @@ class JoltBackend {
         this._bodyFilter = null;
         this._shapeFilter = null;
         this._bodyList = null;
+        this._updateCallback = null;
         this._groupFilterTables = [];
 
         this._lastStamp = 0;
@@ -242,6 +240,14 @@ class JoltBackend {
         this._bodyList = list;
     }
 
+    get updateCallback() {
+        return this._updateCallback;
+    }
+
+    set updateCallback(func) {
+        this._updateCallback = func;
+    }
+
     step(data) {
         if (this._fatalError) return;
         
@@ -389,6 +395,9 @@ class JoltBackend {
         
         while (ok && time >= fixedStep) {
             try {
+                // Execute callbacks, if any
+                this._updateCallback?.();
+
                 // update characters before stepping
                 ok = this._stepCharacters(fixedStep);
                 // step the physics world
