@@ -21,7 +21,7 @@ class Listener {
 
     // Contact Events
 
-    onContactValidate(body1, body2, baseOffset, collideShapeResult) {
+    onContactValidate() {
         return this._backend.Jolt.ValidateResult_AcceptAllContactsForThisBodyPair;
     }
 

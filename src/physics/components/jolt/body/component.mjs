@@ -10,18 +10,16 @@ const vec3 = new pc.Vec3();
  */
 class BodyComponent extends ShapeComponent {
 
-    // ---- BODY PROPS ----
-
-    _angularVelocity = new pc.Vec3();
-
     /** @type {number} @hidden */
     _allowedDOFs = pc.JOLT_ALLOWED_DOFS_ALL;
-
+    
     _allowDynamicOrKinematic = false;
-
+    
     _allowSleeping = true;
-
+    
     _angularDamping = 0;
+    
+    _angularVelocity = new pc.Vec3();
 
     /** @type {number | null} @hidden */
     _collisionGroup = null;
@@ -83,34 +81,39 @@ class BodyComponent extends ShapeComponent {
         return this._allowDynamicOrKinematic;
     }    
 
+    // TODO
+    // use local exports
     /**
      * Which degrees of freedom this body has (can be used to limit simulation to 2D).
      * You can use following enum aliases:
      * ```
-     * JOLT_ALLOWED_DOFS_TRANSLATION_X
+     * ALLOWED_DOFS_TRANSLATION_X
      * ```
      * ```
-     * JOLT_ALLOWED_DOFS_TRANSLATION_Y
+     * ALLOWED_DOFS_TRANSLATION_Y
      * ```
      * ```
-     * JOLT_ALLOWED_DOFS_TRANSLATION_Z
+     * ALLOWED_DOFS_TRANSLATION_Z
      * ```
      * ```
-     * JOLT_ALLOWED_DOFS_ROTATION_X
+     * ALLOWED_DOFS_ROTATION_X
      * ```
      * ```
-     * JOLT_ALLOWED_DOFS_ROTATION_Y
+     * ALLOWED_DOFS_ROTATION_Y
      * ```
      * ```
-     * JOLT_ALLOWED_DOFS_ROTATION_Z
+     * ALLOWED_DOFS_ROTATION_Z
      * ```
      * ```
-     * JOLT_ALLOWED_DOFS_PLANE_2D
+     * ALLOWED_DOFS_PLANE_2D
      * ```
      * ```
-     * JOLT_ALLOWED_DOFS_ALL
+     * ALLOWED_DOFS_ALL
      * ```
-     * For example, using `JOLT_ALLOWED_DOFS_TRANSLATION_X` allows a body to move in world space X axis. 
+     * For example, using `ALLOWED_DOFS_TRANSLATION_X` restricts a body to move in the world space
+     * X axis.
+     * 
+     * @defaultValue ALLOWED_DOFS_ALL // enum integer
      */
     get allowedDOFs() {
         return this._allowedDOFs;
@@ -118,6 +121,8 @@ class BodyComponent extends ShapeComponent {
 
     /**
      * Specifies if this body go to sleep or not.
+     * 
+     * @defaultValue true
      */
     get allowSleeping() {
         return this._allowSleeping;
@@ -129,15 +134,18 @@ class BodyComponent extends ShapeComponent {
      * dw/dt = -c * w
      * ```
      * `c` must be between 0 and 1 but is usually close to 0.
+     * 
+     * @defaultValue 0
      */
     get angularDamping() {
         return this._angularDamping;
     }
 
     /**
-     * World space angular velocity (rad/s)
+     * World space angular velocity.
      * 
      * @type {import('playcanvas').Vec3}
+     * @defaultValue Vec3(0, 0, 0) // rad/s
      */
     set angularVelocity(vec) {
         if (DEBUG) {
@@ -159,18 +167,22 @@ class BodyComponent extends ShapeComponent {
     }
 
     /**
-     * The collision group this body belongs to (determines if two objects can collide).
-     * Expensive, so disabled by default. Prefer to use broadphase and object layers 
-     * instead for filtering.
+     * The collision group this body belongs to (determines if two objects can collide). Such
+     * filtering is expensive, so disabled by default (using `null` value). Prefer to use
+     * broadphase and object layers instead for filtering.
+     * 
+     * @defaultValue null
      */
     get collisionGroup() {
         return this._collisionGroup;
     }
 
     /**
-     * Friction of the body (dimensionless number, usually between 0 and 1, 0 = no friction,
-     * 1 = friction force equals force that presses the two bodies together). Note that bodies
-     * can have negative friction but the combined friction should never go below zero.
+     * Friction of the body (dimensionless number, usually between 0 and 1, 0 = no friction, 1 =
+     * friction force equals force that presses the two bodies together). Note that bodies can have
+     * negative friction but the combined friction should never go below zero.
+     * 
+     * @defaultValue 0.2
      */
     get friction() {
         return this._friction;
@@ -178,6 +190,8 @@ class BodyComponent extends ShapeComponent {
 
     /**
      * Value to multiply gravity with for this body.
+     * 
+     * @defaultValue 1
      */
     get gravityFactor() {
         return this._gravityFactor;
@@ -186,6 +200,7 @@ class BodyComponent extends ShapeComponent {
     /**
      * When calculating the inertia (not when it is provided) the calculated inertia will
      * be multiplied by this value.
+     * @defaultValue 1
      */
     get inertiaMultiplier() {
         return this._inertiaMultiplier;
@@ -194,6 +209,8 @@ class BodyComponent extends ShapeComponent {
     /**
      * If this body is a sensor. A sensor will receive collision callbacks, but will not
      * cause any collision responses and can be used as a trigger volume.
+     * 
+     * @defaultValue false
      */
     get isSensor() {
         return this._isSensor;
@@ -205,13 +222,17 @@ class BodyComponent extends ShapeComponent {
      * dv/dt = -c * v.
      * ```
      * `c` must be between 0 and 1 but is usually close to 0.
+     * 
+     * @defaultValue 0
      */
     get linearDamping() {
         return this._linearDamping;
     }
 
     /**
-     * World space linear velocity of the center of mass (m/s)
+     * World space linear velocity of the center of mass.
+     * 
+     * @defaultValue Vec3(0, 0, 0) // m/s
      */
     set linearVelocity(vec) {
         if (DEBUG) {
@@ -233,14 +254,18 @@ class BodyComponent extends ShapeComponent {
     }
 
     /**
-     * Maximum angular velocity that this body can reach (rad/s)
+     * Maximum angular velocity that this body can reach.
+     * 
+     * @defaultValue 0.25 * Math.PI * 60 // rad/s
      */
     get maxAngularVelocity() {
         return this._maxAngularVelocity;
     }
 
     /**
-     * Maximum linear velocity that this body can reach (m/s)
+     * Maximum linear velocity that this body can reach.
+     * 
+     * @defaultValue 500 // m/s
      */
     get maxLinearVelocity() {
         return this._maxLinearVelocity;
@@ -250,12 +275,14 @@ class BodyComponent extends ShapeComponent {
      * Motion quality, or how well it detects collisions when it has a high velocity.
      * Following enum aliases available:
      * ```
-     * JOLT_MOTION_QUALITY_DISCRETE
+     * MOTION_QUALITY_DISCRETE
      * ```
      * ```
-     * JOLT_MOTION_QUALITY_LINEAR_CAST
+     * MOTION_QUALITY_LINEAR_CAST
      * ```
-     * Use linear cast for fast moving objects, in other cases prefer discrete one since its cheaper (default).
+     * Use linear cast for fast moving objects, in other cases prefer discrete one as its cheaper.
+     * 
+     * @defaultValue MOTION_QUALITY_DISCRETE
      */
     get motionQuality() {
         return this._motionQuality;
@@ -265,16 +292,17 @@ class BodyComponent extends ShapeComponent {
      * Motion type, determines if the object is static, dynamic or kinematic.
      * You can use the following enum aliases:
      * ```
-     * JOLT_MOTION_TYPE_STATIC
+     * MOTION_TYPE_STATIC
      * ```
      * ```
-     * JOLT_MOTION_TYPE_DYNAMIC
+     * MOTION_TYPE_DYNAMIC
      * ```
      * ```
-     * JOLT_MOTION_TYPE_KINEMATIC
+     * MOTION_TYPE_KINEMATIC
      * ```
      * 
      * @type {number}
+     * @defaultValue MOTION_TYPE_STATIC
      */
     set motionType(type) {
         DEBUG && Debug.checkUint(type, `Invalid motion type: ${ type }`);
@@ -290,16 +318,20 @@ class BodyComponent extends ShapeComponent {
     }
 
     /**
-     * The collision layer this body belongs to (determines if two objects can collide).
-     * Allows cheap filtering.
+     * The collision layer this body belongs to (determines if two objects can collide). Allows
+     * cheap filtering.
+     * 
+     * @defaultValue 0
      */
     get objectLayer() {
         return this._objectLayer;
     }
 
     /**
-     * Used only if `JOLT_OMP_MASS_AND_INERTIA_PROVIDED` is selected for `overrideMassProperties`.
+     * Used only if `OMP_MASS_AND_INERTIA_PROVIDED` is selected for {@link overrideMassProperties}.
      * Backend will create inertia matrix from the given position.
+     * 
+     * @defaultValue Vec3(0, 0, 0) // meters
      */
     get overrideInertiaPosition() {
         return this._overrideInertiaPosition;
@@ -308,6 +340,8 @@ class BodyComponent extends ShapeComponent {
     /**
      * Used only if `JOLT_OMP_MASS_AND_INERTIA_PROVIDED` is selected for {@link overrideMassProperties}.
      * Backend will create inertia matrix from the given rotation.
+     * 
+     * @defaultValue Quat(0, 0, 0, 1)
      */
     get overrideInertiaRotation() {
         return this._overrideInertiaRotation;
@@ -323,72 +357,86 @@ class BodyComponent extends ShapeComponent {
 
     /**
      * Determines how a body mass and inertia is calculated. By default it uses 
-     * `JOLT_OMP_CALCULATE_MASS_AND_INERTIA`, which tells Jolt to auto-calculate those based the collider
-     * shape. You can use following enum aliases:
+     * `OMP_CALCULATE_MASS_AND_INERTIA`, which tells Jolt to auto-calculate those based on the
+     * collider shape. You can use the following enum aliases:
      * ```
-     * JOLT_OMP_CALCULATE_INERTIA
-     * ```
-     * ```
-     * JOLT_OMP_CALCULATE_MASS_AND_INERTIA
+     * OMP_CALCULATE_INERTIA
      * ```
      * ```
-     * JOLT_OMP_MASS_AND_INERTIA_PROVIDED
+     * OMP_CALCULATE_MASS_AND_INERTIA
      * ```
-     * If you select `JOLT_OMP_CALCULATE_INERTIA`, you must also specify {@link overrideMass}.
+     * ```
+     * OMP_MASS_AND_INERTIA_PROVIDED
+     * ```
+     * If you select `OMP_CALCULATE_INERTIA`, you must also specify {@link overrideMass}.
      * The inertia will be automatically calculated for you.
      * 
-     * If you select `JOLT_OMP_MASS_AND_INERTIA_PROVIDED`, you must also specify {@link overrideMass},
+     * If you select `OMP_MASS_AND_INERTIA_PROVIDED`, you must also specify {@link overrideMass},
      * {@link overrideInertiaPosition} and {@link overrideInertiaRotation}.
+     * 
+     * @defaultValue OMP_CALCULATE_MASS_AND_INERTIA
      */
     get overrideMassProperties() {
         return this._overrideMassProperties;
     }
 
     /**
-     * Read-only. Current position of the body (not of the center of mass).
+     * Current position of the body (not of the center of mass).
+     * 
+     * @defaultValue Vec3(0, 0, 0) // meters
      */
     get position() {
         return this._position;
     }
 
     /**
-     * Read-only. Current rotation of the body.
+     * Current rotation of the body.
+     * 
+     * @defaultValue Quat(0, 0, 0, 1)
      */
     get rotation() {
         return this._rotation;
     }
 
     /**
-     * Restitution of body (dimensionless number, usually between 0 and 1, 0 = completely
-     * inelastic collision response, 1 = completely elastic collision response). Note that
-     * bodies can have negative restitution but the combined restitution should never go below zero.
+     * Restitution of a body (dimensionless number, usually between 0 and 1, 0 = completely
+     * inelastic collision response, 1 = completely elastic collision response). Note that bodies
+     * can have negative restitution but the combined restitution should never go below zero.
+     * 
+     * @defaultValue 0
      */
     get restitution() {
         return this._restitution;
     }
 
     /**
-     * The collision sub group (within {@link collisionGroup}) this body belongs to (determines 
-     * if two objects can collide). Expensive, so disabled by default. Prefer to use broadphase
-     * and object layers instead for filtering.
+     * The collision sub group (within {@link collisionGroup}) this body belongs to (determines if
+     * two objects can collide). Expensive, so disabled by default (using `null` value). Prefer
+     * to use broadphase and object layers instead for filtering.
+     * 
+     * @defaultValue null
      */
     get subGroup() {
         return this._subGroup;
     }
 
     /**
-     * Enables/disables the use of motion state for this entity. Not used by static bodies.
+     * Enables/disables the use of a motion state for this entity. Note that it is disabled for
+     * static bodies.
      * 
-     * If the physcs fixed timestep is set lower than the client's browser refresh rate, then browser will have 
-     * multiple frame updates per single physics simulation step. If you enable motion state for this entity,
-     * then the position and rotation will be interpolated, otherwise the entity will visually move only after 
-     * physics completes a step.
+     * If the physcs fixed timestep is set lower than the client's browser refresh rate, then
+     * browser will have multiple frame updates per single physics simulation step. If you enable
+     * motion state for this entity, then the position and rotation will be interpolated, otherwise
+     * the entity will visually move only after physics completes a step.
      * 
-     * For example, say browser refreshes every 0.1 seconds, and physics step once a second. Without using
-     * motion state an entity position will update once every second, when physics update takes place. With motion state
-     * enabled, it will update the position/rotation every 0.1 seconds - once a true update (from physics) and 9 times
-     * interpolated. This will give a smooth motion of the entity, without having to do expensive physics simulation
-     * step.
+     * For example, say browser refreshes every 0.1 seconds, and physics step once a second.
+     * Without using motion state, an entity position will update once every second, when physics
+     * update takes place. With motion state enabled, it will update the position/rotation every
+     * 0.1 seconds - once a true update (from physics) and 9 times interpolated. This will give a
+     * smooth motion of the entity, without having to do an expensive physics simulation step every
+     * frame.
+     * 
+     * @defaultValue true
      */
     set useMotionState(bool) {
         if (DEBUG) {
@@ -811,6 +859,10 @@ class BodyComponent extends ShapeComponent {
         // that a compound parent cannot change children. So, currently
         // a child cannot be added/removed, we can only destroy/create
         // parent.
+
+        // TODO
+        // Jolt now supports dynamic compounds, so children can be changed.
+        // Need to implement it.
 
         if (this._isCompoundChild) return;
 

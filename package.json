@@ -7,7 +7,8 @@
     "scripts": {
         "build": "rimraf dist && webpack --mode=production && webpack --mode=development && typedoc",
         "build:dev": "rimraf dist && webpack --mode=development",
-        "build:prod": "rimraf dist && webpack --mode=production"
+        "build:prod": "rimraf dist && webpack --mode=production",
+        "docs": "typedoc"
     },
     "dependencies": {
         "jolt-physics": "^0.18.0",

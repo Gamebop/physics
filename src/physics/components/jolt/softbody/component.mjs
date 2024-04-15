@@ -2,35 +2,109 @@ import { Debug } from "../../../debug.mjs";
 import { BodyComponent } from "../body/component.mjs";
 import { ShapeComponent } from "../component.mjs";
 
+/**
+ * A SoftBody Component.
+ * 
+ * @category SoftBody Component
+ */
 class SoftBodyComponent extends BodyComponent {
-    // amount of substance * ideal gass constant * absolute temperature
-    // n * R * T
-    // see https://en.wikipedia.org/wiki/Pressure
+
     _pressure = 0;
 
-    // Update the position of the body while simulating (set to false for something
-    // that is attached to the static world)
     _updatePosition = true;
 
-    // Bake specified mRotation in the vertices and set the body rotation to identity (simulation is slightly more accurate if the rotation of a soft body is kept to identity)
     _makeRotationIdentity = true;
 
-    // Number of solver iterations
     _numIterations = 5;
 
-    // Inverse of the stiffness of the spring.
     _compliance = 0;
 
-    // Number of cells comprising a row. Think of a grid divided plane.
     _width = 0;
 
-    // Number of cells comprising a column. Think of a grid divided plane.
     _length = 0;
 
     _fixedIndices = [];
 
     constructor(system, entity) {
         super(system, entity);
+    }
+
+    /**
+     * The pressure of the soft body. Calculated from:
+     * ```text
+     * n * R * T
+     * (amount of substance * ideal gass constant * absolute temperature)
+     * ```
+     * see [Pressure](https://en.wikipedia.org/wiki/Pressure)
+     * 
+     * @defaultValue 0
+     */
+    get pressure() {
+        return this._pressure;
+    }
+
+    /**
+     * Update the position of the body while simulating (set to `false` for something that is
+     * attached to the static world)
+     * 
+     * @defaultValue true
+     */
+    get updatePosition() {
+        return this._updatePosition;
+    }
+
+    /**
+     * Bake specified rotation in the vertices and set the body rotation to identity (simulation is
+     * slightly more accurate if the rotation of a soft body is kept to identity)
+     * 
+     * @defaultValue true
+     */
+    get makeRotationIdentity() {
+        return this._makeRotationIdentity;
+    }
+
+    /**
+     * Number of solver iterations.
+     * 
+     * @defaultValue 5
+     */
+    get numIterations() {
+        return this._numIterations;
+    }
+
+    /**
+     * Inverse of the stiffness of the spring.
+     * 
+     * @defaultValue 0
+     */
+    get compliance() {
+        return this._compliance;
+    }
+
+    /**
+     * Number of cells comprising a row. Think of a grid divided plane.
+     * 
+     * @defaultValue 0
+     */
+    get width() {
+        return this._width;
+    }
+
+    /**
+     * Number of cells comprising a column. Think of a grid divided plane.
+     */
+    get length() {
+        return this._length;
+    }
+
+    /**
+     * An array of indices that point to the vertices which will be static (e.g. attached to
+     * something in the world).
+     * 
+     * @defaultValue [] // plain JS Array of integers
+     */
+    get fixedIndices() {
+        return this._fixedIndices;
     }
 
     writeComponentData(cb) {

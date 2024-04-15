@@ -14,7 +14,7 @@ function getColor(type, config) {
 }
 
 const schema = [
-    // component
+    // PC component
     'enabled',
     'index',
     'trackDynamic',
@@ -44,6 +44,13 @@ const schema = [
     'hfActiveEdgeCosThresholdAngle'
 ];
 
+/**
+ * Base class for all Jolt Component Systems.
+ * 
+ * You are not supposed to use this system directly. Instead, use one of the derived ones.
+ * 
+ * @category Base
+ */
 class ShapeComponentSystem extends pc.ComponentSystem {
     static entityMap = new IndexedCache();
 
@@ -52,12 +59,14 @@ class ShapeComponentSystem extends pc.ComponentSystem {
     constructor(app, manager) {
         super(app);
 
-        // The store where all ComponentData objects are kept
+        // The store where all components are kept
         this.store = {};
         this.schema = schema;
 
         this._manager = manager;
 
+        // TODO
+        // remove from instance, use static directly
         this.entityMap = ShapeComponentSystem.entityMap;
 
         this._exposeConstants();
@@ -121,6 +130,8 @@ class ShapeComponentSystem extends pc.ComponentSystem {
         this.entityMap.free(index);
     }
 
+    // TODO
+    // use module export
     _exposeConstants() {
         if (typeof window !== 'undefined' && window.pc) {
             pc.JOLT_SHAPE_BOX = SHAPE_BOX;

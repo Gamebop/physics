@@ -1,120 +1,100 @@
 import { Debug } from "../../debug.mjs";
 import { buildAccessors } from "../../util.mjs";
 
+/**
+ * Base class for all Jolt-based Components. You are not able to create a rigidbody without a shape
+ * in Jolt, so all components are derived from this class, inheriting shape properties.
+ * 
+ * You are not supposed to use this component directly. Instead, use one of the derived ones.
+ * 
+ * @category Base
+ */
 class ShapeComponent extends pc.EventHandler {
 
-    // ---- COMPONENT PROPS ----
-
-    // Shape type
-    _shape = SHAPE_BOX;
-
-    // Enable / disable component
-    _enabled = true;
-
+    // Component Properties
 
     // TODO
     // get rid of trackDynamic, it doesn't work well with workers and in some parent/child edge cases
-
-    // Automatically moves dynamic bodies, when the position is set on entity.
-    // TODO
-    // Make it work with web workers
     _trackDynamic = true;
 
-    // Unique body index. This can change during entity lifecycle, e.g. every time entity is enabled, a new
-    // index is assigned and a new body is created. The index is used to map entity to body. Indices can be reused.
+    _enabled = true;
+
+    /** @type {number} @hidden */
+    _shape = SHAPE_BOX;
+
     _index = -1;
 
-    // Render asset ID, used for mesh or convex hulls.
+    /** @type {number | import('playcanvas').Asset | null} @hidden */
     _renderAsset = null;
 
-    // Meshes used for mesh or convex hulls
+    /** @type {Array.<import('playcanvas').Mesh> | null} @hidden */
     _meshes = null;
 
-    // Tells if the component describes a compound child
+    // Tells if this component describes a compound child.
     _isCompoundChild = false;
 
-    // Applies entity scale on the shape
     _useEntityScale = true;
 
-    // Read-only. Constraint indices applied on this body.
     // TODO
     // remove default Map
+    /** @type {Map<number, import('playcanvas').Entity> | null} @hidden */
     _constraints = new Map();
 
-    // Debug draw
     _debugDraw = false;
 
-    // ---- SHAPE PROPS ----
+    // Shape Properties
 
-    // Half extents for a box shape
     _halfExtent = new pc.Vec3(0.5, 0.5, 0.5);
 
-    // Raidus for radius based shapes
     _radius = 0.5;
 
-    // Internally the convex radius will be subtracted from the half extent so the total box will not grow with the convex radius
     _convexRadius = 0.05;
 
-    // Half height of radius based shapes, e.g. cylinder, capsule
     _halfHeight = 0.5;
 
-    // Density of the object in kg / m^3
     _density = 1000;
 
-    // Shape local position offset
     _shapePosition = pc.Vec3.ZERO;
 
-    // Shape local rotation offset
     _shapeRotation = pc.Quat.IDENTITY;
 
-    // Offset center of mass in local space of the body. Does not move the shape.
     _massOffset = pc.Vec3.ZERO;
 
+    // TODO
+    // consider moving HeightField to own component
+
+    /** @type {Float32Array | null} @hidden */
     _hfSamples = null;
 
     _hfSampleCount = 0;
 
-    // The HeightField is divided in blocks of hfBlockSize * hfBlockSize * 2 triangles and the
-    // acceleration structure culls blocks only, bigger block sizes reduce memory consumption
-    // but also reduce query performance. Sensible values are [2, 8], does not need to be a
-    // power of 2. Note that at run-time Jolt performs one more grid subdivision, so the effective
-    // block size is half of what is provided here.
     _hfBlockSize = 2;
 
-    // How many bits per sample to use to compress the HeightField. Can be in the range [1, 8].
-    // Note that each sample is compressed relative to the min/max value of its block of
-    // hfBlockSize * hfBlockSize pixels so the effective precision is higher. Also note that
-    // increasing hfBlockSize saves more memory than reducing the amount of bits per sample.
     _hfBitsPerSample = 8;
 
-    // Cosine of the threshold angle (if the angle between the two triangles in HeightField is
-    // bigger than this, the edge is active, note that a concave edge is always inactive). Setting
-    // this value too small can cause ghost collisions with edges, setting it too big can cause
-    // depenetration artifacts (objects not depenetrating quickly). Valid ranges are between
-    // cos(0 degrees) and cos(90 degrees). The default value is cos(5 degrees).
     _hfActiveEdgeCosThresholdAngle = 0.996195;
 
     _hfScale = pc.Vec3.ONE;
 
-    // The height field is a surface defined by: hfOffset + hfScale * (x, hfHeightSamples[y * hfSampleCount + x], y).
-    // where x and y are integers in the range x and y e [0, hfSampleCount - 1].
     _hfOffset = pc.Vec3.ZERO;
 
-    // The ComponentSystem used to create this Component.
-    system;
+    /** @type {import('./system.mjs').ShapeComponentSystem | null} @hidden */
+    _system = null;
 
-    // The Entity that this Component is attached to.
-    entity;
+    /** @type {import('playcanvas').Entity | null} @hidden */
+    _entity = null;
 
     constructor(system, entity) {
         super();
 
-        this.system = system;
-        this.entity = entity;
+        this._system = system;
+        this._entity = entity;
 
         if (system.schema && !this._accessorsBuilt) {
             buildAccessors(this, system.schema);
         }
+
+        // Editor events support
 
         this.on('set', function (name, oldValue, newValue) {
             this.fire('set_' + name, name, oldValue, newValue);
@@ -123,14 +103,289 @@ class ShapeComponent extends pc.EventHandler {
         this.on('set_enabled', this.onSetEnabled, this);
     }
 
+    /**
+     * A map with all constraints that are applied on this component. Where:
+     * - Key: unique index of the constraint.
+     * - Value: the other entity that this constraint connects to.
+     * 
+     * @defaultValue null
+     */
     get constraints() {
         return this._constraints;
     }
 
+    /**
+     * Internally the convex radius will be subtracted from the half extent / radius so the total
+     * shape size will not grow with the convex radius.
+     * 
+     * @defaultValue 0.05 // meters
+     */
+    get convexRadius() {
+        return this._convexRadius;
+    }
+
+    /**
+     * Enables debug draw of the shape.
+     * 
+     * @defaultValue false
+     */
+    get debugDraw() {
+        return this._debugDraw;
+    }
+
+    /**
+     * Density of the object.
+     * 
+     * @defaultValue 1000 // kg/m^3
+     */
+    get density() {
+        return this._density;
+    }
+
+    /**
+     * Enable/disable the component. All related physical objects are destroyed on disable,
+     * and re-created anew on enable.
+     * 
+     * @defaultValue true
+     */
+    set enabled(isEnabled) {
+        if (this._enabled !== isEnabled && this._entity.enabled) {
+            isEnabled ? this.onEnable() : this.onDisable();
+        }
+    }
+
+    get enabled() {
+        return this._enabled;
+    }
+
+    /**
+     * An entity this component is attached to.
+     * 
+     * @defaultValue null
+     */
+    get entity() {
+        return this._entity;
+    }
+
+    /**
+     * Half extent of a box shape (`SHAPE_BOX`).
+     * 
+     * @defaultValue Vec3(0.5, 0.5, 0.5) // meters
+     */
+    get halfExtent() {
+        return this._halfExtent;
+    }
+
+    /**
+     * Half height of radius based shapes, e.g. cylinder, capsule, etc.
+     * 
+     * @defaultValue 0.5 // meters
+     */
+    get halfHeight() {
+        return this._halfHeight;
+    }
+
+    /**
+     * Cosine of the threshold angle (if the angle between the two triangles in HeightField is
+     * bigger than this, the edge is active, note that a concave edge is always inactive). Setting
+     * this value too small can cause ghost collisions with edges, setting it too big can cause
+     * depenetration artifacts (objects not depenetrating quickly). Valid ranges are between
+     * `cos(0 degrees)` and `cos(90 degrees)`.
+     * 
+     * @defaultValue cos(5 degrees) // radians
+     */
+    get hfActiveEdgeCosThresholdAngle() {
+        return this._hfActiveEdgeCosThresholdAngle;        
+    }
+
+    /**
+     * How many bits per sample to use to compress the HeightField. Can be in the range [1, 8].
+     * Note that each sample is compressed relative to the min/max value of its block of
+     * hfBlockSize * hfBlockSize pixels, so the effective precision is higher. Also note that
+     * increasing hfBlockSize saves more memory than reducing the amount of bits per sample.
+     * 
+     * @defaultValue 8 // integer
+     */
+    get hfBitsPerSample() {
+        return this._hfBitsPerSample;
+    }
+
+    /**
+     * The HeightField is divided in blocks of hfBlockSize * hfBlockSize * 2 triangles and the
+     * acceleration structure culls blocks only, bigger block sizes reduce memory consumption but
+     * also reduce query performance. Sensible values are [2, 8], does not need to be a power of 2.
+     * Note that at run-time Jolt performs one more grid subdivision, so the effective block size
+     * is half of what is provided here.
+     * 
+     * @defaultValue 2 // integer
+     */
+    get hfBlockSize() {
+        return this._hfBlockSize;
+    }
+
+    /**
+     * Offsets the local position of the HeightField shape.
+     * 
+     * @defaultValue Vec3(0, 0, 0) // meters
+     */
+    get hfOffset() {
+        return this._hfOffset;
+    }
+
+    /**
+     * A typed array (`Float32Array`) containing the HeightField samples data.
+     * 
+     * @example
+     * ```js
+     * const samples = new Float32Array(width * height);
+     * for (let i = 0; i < buffer.length; ++i) {
+     *     // all terrain vertices will be at 1.2 meters above ground level
+     *     samples[i] = 1.2;
+     * }
+     * ```
+     * 
+     * @defaultValue null
+     */
+    get hfSamples() {
+        return this._hfSamples;
+    }
+
+    /**
+     * Defines the count of vertices in the HeightField. Set this to the number of vertices on one
+     * side, e.g. if your HeightField has 100x100 vertices, then sample count should be 100.
+     * 
+     * @defaultValue 0 // integer
+     */
+    get hfSampleCount() {
+        return this._hfSampleCount;
+    }
+
+    /**
+     * Sets the scale of the HeightField.
+     * 
+     * @defaultValue Vec3(1, 1, 1) // float Vec3
+     */
+    get hfScale() {
+        return this._hfScale;        
+    }
+
+    /**
+     * Unique body index. This can change during entity lifecycle, e.g. every time entity is
+     * enabled, a new index is assigned and a new body is created. The index is used to map
+     * entity to body. Indices can be reused.
+     * 
+     * @defaultValue -1 // integer
+     */
     get index() {
         return this._index;
-    }    
-    
+    }
+
+    /**
+     * Meshes used for mesh or convex hulls.
+     * 
+     * @defaultValue null
+     */
+    get meshes() {
+        return this._meshes;
+    }
+
+    /**
+     * Center of mass offset in local space of the body. Does not translate the shape.
+     * 
+     * @defaultValue Vec3(0, 0, 0) // meters
+     */
+    get massOffset() {
+        return this._massOffset;
+    }
+
+    /**
+     * Specifies a radius for radius-based shapes, e.g. sphere, capsule, etc.
+     * 
+     * @defaultValue 0.5 // meters
+     */
+    get radius() {
+        return this._radius;
+    }
+
+    /**
+     * A number representing the shape. Supported aliases:
+     * 
+     * ```
+     * SHAPE_BOX
+     * ```
+     * ```
+     * SHAPE_CAPSULE
+     * ```
+     * ```
+     * SHAPE_CYLINDER
+     * ```
+     * ```
+     * SHAPE_SPHERE
+     * ```
+     * ```
+     * SHAPE_MESH
+     * ```
+     * ```
+     * SHAPE_CONVEX_HULL
+     * ```
+     * ```
+     * SHAPE_STATIC_COMPOUND
+     * ```
+     * ```
+     * SHAPE_HEIGHTFIELD
+     * ```
+     * 
+     * @defaultValue SHAPE_BOX // enum integer
+     */
+    get shape() {
+        return this._shape;
+    }
+
+    /**
+     * A local position offset of the shape.
+     * 
+     * @defaultValue Vec3(0, 0, 0) // meters
+     */
+    get shapePosition() {
+        return this._shapePosition;
+    }
+
+    /**
+     * A local rotation offset of the shape.
+     * 
+     * @defaultValue Quat(0, 0, 0, 1)
+     */
+    get shapeRotation() {
+        return this._shapeRotation;
+    }
+
+    /**
+     * Render asset ID, used for mesh or convex hulls.
+     * 
+     * @defaultValue null
+     */
+    get renderAsset() {
+        return this._renderAsset;
+    }
+
+    /**
+     * Component System used to create this Component.
+     * 
+     * @defaultValue null
+     */
+    get system() {
+        return this._system;
+    }
+
+    /**
+     * Applies entity scale on the shape.
+     * 
+     * @defaultValue true
+     */
+    get useEntityScale() {
+        return this._useEntityScale;
+    }
+
     onSetEnabled(name, oldValue, newValue) {
         if (oldValue !== newValue) {
             if (this.entity.enabled) {

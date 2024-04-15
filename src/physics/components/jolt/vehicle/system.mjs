@@ -42,6 +42,11 @@ const schema = [
     'wheels'
 ];
 
+/**
+ * Vehicle Component System. Handles all Vehicle Components.
+ * 
+ * @category Vehicle Component
+ */
 class VehicleComponentSystem extends BodyComponentSystem {
     constructor(app, manager, id) {
         super(app, manager);

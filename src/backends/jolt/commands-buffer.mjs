@@ -1,5 +1,12 @@
 import { Debug } from '../../physics/debug.mjs';
 
+/**
+ * A commands buffer that is used by the framework to communicate between frontend application and
+ * a physics backend. Using a commands buffer allows to decouple them and to run the backend in a
+ * Web Worker.
+ * 
+ * @group Utilities
+ */
 class CommandsBuffer {
     constructor(config) {
         if (config) {

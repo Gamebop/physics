@@ -1,146 +1,507 @@
 import { Debug } from "../../../debug.mjs";
 import { BodyComponent } from "../body/component.mjs";
 
+/**
+ * Vehicle Component describes all properties of a Jolt Vehicle. There are different types of
+ * vehicles supported:
+ * - Wheeled vehicle - a vehicle with wheels, e.g. a car, truck, etc.
+ * - Motorcycle vehicle - a two-wheeled vehicle, e.g. motorcycle, bicycle, etc.
+ * - Tracked vehicle - a vehicle with tracks, e.g. tank, traktor, etc.
+ * 
+ * @category Vehicle Component
+ */
 class VehicleComponent extends BodyComponent {
-    // Used only when the constraint is active. Override for the number of solver 
-    // velocity iterations to run, 0 means use the default in PhysicsSettings.numVelocitySteps.
-    // The number of iterations to use is the max of all contacts and constraints in the island.
+
     _numVelocityStepsOverride = 0;
 
-    // Used only when the constraint is active. Override for the number of solver
-    // position iterations to run, 0 means use the default in PhysicsSettings.numPositionSteps.
-    // The number of iterations to use is the max of all contacts and constraints in the island.
     _numPositionStepsOverride = 0;
 
-    // Vector indicating the up direction of the vehicle (in local space to the body)
     _up = pc.Vec3.UP;
 
-    // Vector indicating forward direction of the vehicle (in local space to the body)
     _forward = pc.Vec3.BACK;
 
-    // Defines the maximum pitch/roll angle (rad), can be used to avoid the car from getting upside
-    // down. The vehicle up direction will stay within a cone centered around the up axis with half
-    // top angle maxPitchRollAngle, set to pi to turn off. Defaults to ~1.04 rad (60 degrees)
     _maxPitchRollAngle = 1.0471975511965976;
 
-    // An array of arrays. Each array represents a track and lists indices of wheels that are inside
-    // that track. The last element in each track array will become a driven wheel (an index that points
-    // to a wheel that is connected to the engine).
-    // Example with 2 tracks, and each having 4 wheels: [[0, 1, 2, 3], [4, 5, 6, 7]]
+    // TODO
+    // lazy allocate array
     _tracks = [];
 
-    // An array of objects that describe each wheel. See _writeWheelsData().
+    // TODO
+    // lazy allocate array
     _wheels = [];
 
-    // Vehicle type. Can be wheeled (VEHICLE_TYPE_WHEEL) or tracked (VEHICLE_TYPE_TRACK).
     _type = VEHICLE_TYPE_WHEEL;
 
-    // Max amount of torque (Nm) that the engine can deliver.
     _maxTorque = 500;
     
-    // Min amount of revolutions per minute (rpm) the engine can produce without stalling.
     _minRPM = 1000;
 
-    // Max amount of revolutions per minute (rpm) the engine can generate.
     _maxRPM = 6000;
 
-    // Moment of inertia (kg m^2) of the engine.
     _inertia = 0.5;
 
-    // Angular damping factor of the wheel: dw/dt = -c * w.
     _wheelAngularDamping = 0.2;
 
-    // Curve that describes a ratio of the max torque the engine can produce vs the fraction of the max RPM of the engine.
     _normalizedTorque = new pc.Curve([0, 0.8]);
 
-    // How to switch gears.
     _mode = pc.JOLT_TRANSMISSION_AUTO;
 
-    // Ratio in rotation rate between engine and gear box, first element is 1st gear, 2nd element 2nd gear etc.
     _gearRatios = [2.66, 1.78, 1.3, 1, 0.74];
 
-    // Ratio in rotation rate between engine and gear box when driving in reverse.
     _reverseGearRatios = [-2.9];
 
-    // How long it takes to switch gears (s), only used in auto mode.
     _switchTime = 0.5;
 
-    // How long it takes to release the clutch (go to full friction), only used in auto mode
     _clutchReleaseTime = 0.3;
 
-    // How long to wait after releasing the clutch before another switch is attempted (s), only used in auto mode.
     _switchLatency = 0.5;
 
-    // If RPM of engine is bigger then this we will shift a gear up, only used in auto mode.
     _shiftUpRPM = 4000;
 
-    // If RPM of engine is smaller then this we will shift a gear down, only used in auto mode.
     _shiftDownRPM = 2000;
 
-    // Strength of the clutch when fully engaged. Total torque a clutch applies is 
-    // Torque = ClutchStrength * (Velocity Engine - Avg Velocity Wheels At Clutch) (units: k m^2 s^-1)
     _clutchStrength = 10;
 
-    // List of differentials and their properties
     _differentials = [];
 
-    // Used when vehicle is of wheeled type. Ratio max / min average wheel speed of each differential
-    // (measured at the clutch). When the ratio is exceeded all torque gets distributed to the differential
-    // with the minimal average velocity. This allows implementing a limited slip differential between
-    // differentials. Set to Number.MAX_VALUE for an open differential. Value should be > 1.
     _differentialLimitedSlipRatio = 1.4;
 
-    // An anti rollbar is a stiff spring that connects two wheels to reduce the amount of roll the
-    // vehicle makes in sharp corners See: https://en.wikipedia.org/wiki/Anti-roll_bar
     _antiRollBars = [];    
 
-    // Collision tester that tests wheels collision.
-    // - VEHICLE_CAST_TYPE_RAY
-    // - VEHICLE_CAST_TYPE_SPHERE
-    // - VEHICLE_CAST_TYPE_CYLINDER 
     _castType = VEHICLE_CAST_TYPE_RAY;
 
-    // Object layer to test collision with.
     _castObjectLayer = OBJ_LAYER_MOVING;
 
-    // World space up vector, used to avoid colliding with vertical walls.
     _castUp = pc.Vec3.UP;
 
-    // Max angle (rad) that is considered for colliding wheels. This is to avoid colliding
-    // with vertical walls. Defaults to ~1.4 rad (80 degrees).
     _castMaxSlopeAngle = 1.3962634015954636;
 
-    // Sets the radius of the sphere used in cast.
     _castRadius = 0.3;
 
-    // Fraction of half the wheel width (or wheel radius if it is smaller) that is used as the convex radius
     _castFraction = 0.1;
 
-    // Bike Lean:
-
-    // How far we're willing to make the bike lean over in turns (in radians)
     _maxLeanAngle = 45;
     
-    // Spring constant for the lean spring.
     _leanSpringConstant = 5000;
 
-    // Spring damping constant for the lean spring.
     _leanSpringDamping = 1000;
 
-    // The lean spring applies an additional force equal to this coefficient * Integral(delta angle, 0, t),
-    // this effectively makes the lean spring a PID controller.
     _leanSpringIntegrationCoefficient = 0;
 
-    // How much to decay the angle integral when the wheels are not touching the floor:
-    // new_value = e^(-decay * t) * initial_value.
     _leanSpringIntegrationCoefficientDecay = 4;
 
-    // How much to smooth the lean angle (0 = no smoothing, 1 = lean angle never changes). Note that this
-    // is frame rate dependent because the formula is: smoothing_factor * previous + (1 - smoothing_factor) * current
     _leanSmoothingFactor = 0.8;
 
     constructor(system, entity) {
         super(system, entity);
+    }
+
+    /**
+     * An anti-roll bar is a stiff spring that connects two wheels to reduce the amount of roll the
+     * vehicle makes in sharp corners See: [Anti-roll bar](https://en.wikipedia.org/wiki/Anti-roll_bar).
+     * 
+     * @defaultValue []
+     */
+    get antiRollBars() {
+        return this._antiRollBars;
+    }
+
+    /**
+     * Fraction of half the wheel width (or wheel radius if it is smaller) that is used as the
+     * convex radius.
+     * 
+     * @defaultValue 0.1 // float, percent
+     */
+    get castFraction() {
+        return this._castFraction;
+    }
+
+    /**
+     * Max angle that is considered for colliding wheels. This is to avoid colliding with vertical
+     * walls.
+     * 
+     * @defaultValue 80 * Math.PI / 180 // radians
+     */
+    get castMaxSlopeAngle() {
+        return this._castMaxSlopeAngle;
+    }
+
+    /**
+     * Object layer to test collision against. Default ones available:
+     * ```
+     * OBJ_LAYER_MOVING
+     * ```
+     * ```
+     * OBJ_LAYER_NON_MOVING
+     * ```
+     * You can define custom layers. See (TODO add link).
+     * 
+     * @defaultValue OBJ_LAYER_MOVING // enum integer
+     */
+    get castObjectLayer() {
+        return this._castObjectLayer;
+    }
+
+    /**
+     * Sets the radius of the sphere used in cast.
+     * 
+     * @defaultValue 0.3 // meters
+     */
+    get castRadius() {
+        return this._castRadius;
+    }
+
+    /**
+     * A collision tester that tests wheels collision. Can be one of the following:
+     * ```
+     * VEHICLE_CAST_TYPE_RAY
+     * ```
+     * ```
+     * VEHICLE_CAST_TYPE_SPHERE
+     * ```
+     * ```
+     * VEHICLE_CAST_TYPE_CYLINDER
+     * ```
+     * 
+     * @defaultValue VEHICLE_CAST_TYPE_RAY // enum integer
+     */
+    get castType() {
+        return this._castType;
+    }
+
+    /**
+     * World space up vector, used to avoid colliding with vertical walls.
+     * 
+     * @defaultValue Vec3(0, 1, 0)
+     */
+    get castUp() {
+        return this._castUp;
+    }
+
+    /**
+     * How long it takes to release the clutch (go to full friction), only used in auto mode.
+     * 
+     * @defaultValue 0.3 // seconds
+     */
+    get clutchReleaseTime() {
+        return this._clutchReleaseTime;
+    }
+
+    /**
+     * Strength of the clutch when fully engaged. Total torque a clutch applies is 
+     * ```text
+     * Torque = ClutchStrength * (Velocity Engine - Avg Velocity Wheels At Clutch)
+     * ```
+     * 
+     * @defaultValue 10 // k m^2 s^-1
+     */
+    get clutchStrength() {
+        return this._clutchStrength;
+    }
+
+    /**
+     * Used when vehicle is of wheeled type. Ratio max/min average wheel speed of each differential
+     * (measured at the clutch). When the ratio is exceeded all torque gets distributed to the
+     * differential with the minimal average velocity. This allows implementing a limited slip
+     * differential between differentials. Set to Number.MAX_VALUE for an open differential. Value
+     * should be > 1.
+     * 
+     * @defaultValue 1.4 // float
+     */
+    get differentialLimitedSlipRatio() {
+        return this._differentialLimitedSlipRatio;
+    }
+
+    /**
+     * List of differentials and their properties.
+     * 
+     * @defaultValue []
+     */
+    get differentials() {
+        return this._differentials;
+    }
+
+    /**
+     * Vector indicating forward direction of the vehicle (in local space to the body).
+     * 
+     * @defaultValue Vec3(0, 0, 1)
+     */
+    get forward() {
+        return this._forward;
+    }
+
+    /**
+     * Ratio in rotation rate between engine and gear box. First element is the 1st gear, 2nd
+     * element is 2nd gear etc.
+     * 
+     * @defaultValue [2.66, 1.78, 1.3, 1, 0.74] // array of floats
+     */
+    get gearRatios() {
+        return this._gearRatios;
+    }
+
+    /**
+     * Moment of inertia of the engine.
+     * 
+     * @defaultValue 0.5 // kg m^2
+     */
+    get inertia() {
+        return this._inertia;
+    }
+
+    /**
+     * How much to smooth the lean angle. Used only by motorcycle type.
+     * - 0 = no smoothing
+     * - 1 = lean angle never changes
+     * 
+     * @defaultValue 0.8 // float
+     */
+    get leanSmoothingFactor() {
+        return this._leanSmoothingFactor;
+    }
+
+    /**
+     * Spring constant for the lean spring. Used only by motorcycle type.
+     * 
+     * @defaultValue 5000 // float
+     */
+    get leanSpringConstant() {
+        return this._leanSpringConstant;
+    }
+
+    /**
+     * Spring damping constant for the lean spring. Used only by motorcycle type.
+     * 
+     * @defaultValue 1000 // float
+     */
+    get leanSpringDamping() {
+        return this._leanSpringDamping;
+    }
+
+    /**
+     * The lean spring applies an additional force equal to 
+     * ```
+     * coefficient * Integral(delta angle, 0, t)
+     * ```
+     * This effectively makes the lean spring a PID controller. Used only by motorcycle type.
+     * 
+     * @defaultValue 0 // float
+     */
+    get leanSpringIntegrationCoefficient() {
+        return this._leanSpringIntegrationCoefficient;
+    }
+
+    /**
+     * How much to decay the angle integral when the wheels are not touching the floor:
+     * ```
+     * new_value = e^(-decay * t) * initial_value
+     * ```
+     * Used only by motorcycle type.
+     * 
+     * @defaultValue 4 // float
+     */
+    get leanSpringIntegrationCoefficientDecay() {
+        return this._leanSpringIntegrationCoefficientDecay;
+    }
+
+    /**
+     * How far we're willing to make the bike lean over in turns. Used only by motorcycle type.
+     * 
+     * @defaultValue 45 * Math.PI / 180 // radians
+     */
+    get maxLeanAngle() {
+        return this._maxLeanAngle;
+    }    
+
+    /**
+     * Defines the maximum pitch/roll angle. Can be used to avoid the car from getting upside down.
+     * The vehicle up direction will stay within a cone centered around the up axis with half top
+     * angle `maxPitchRollAngle`. Set to `Math.PI` to turn off.
+     * 
+     * @defaultValue 60 * Math.PI / 180 // radians
+     */
+    get maxPitchRollAngle() {
+        return this._maxPitchRollAngle;
+    }
+
+    /**
+     * Max amount of torque that the engine can deliver.
+     * 
+     * @defaultValue 500 // Nm
+     */
+    get maxTorque() {
+        return this._maxTorque;
+    }
+
+    /**
+     * Min amount of revolutions per minute the engine can produce without stalling.
+     * 
+     * @defaultValue 1000 // revolutions per minute, RPM
+     */
+    get minRPM() {
+        return this._minRPM;
+    }
+
+    /**
+     * Max amount of revolutions per minute the engine can generate.
+     * 
+     * @defaultValue 6000 // revolutions per minute, RPM
+     */
+    get maxRPM() {
+        return this._maxRPM;
+    }
+
+    /**
+     * How to switch gears. Possible values:
+     * ```
+     * TRANSMISSION_AUTO
+     * ```
+     * ```
+     * TRANSMISSION_MANUAL
+     * ```
+     * 
+     * @defaultValue TRANSMISSION_AUTO // enum integer
+     */
+    get mode() {
+        return this._mode;
+    }
+
+    /**
+     * Curve that describes a ratio of the max torque the engine can produce vs the fraction of the
+     * max RPM of the engine.
+     * 
+     * @defaultValue Curve([0, 0.8])
+     */
+    get normalizedTorque() {
+        return this._normalizedTorque;
+    }
+
+    /**
+     * Override for the number of solver position iterations to run, 0 means use the default in
+     * (TODO add link to settings) PhysicsSettings.numPositionSteps.
+     * 
+     * @defaultValue 0 // integer
+     */
+    get numPositionStepsOverride() {
+        return this._numPositionStepsOverride;
+    }
+
+    /**
+     * Override for the number of solver velocity iterations to run, 0 means use the default in
+     * (TODO add link to settings) PhysicsSettings.numVelocitySteps. The number of iterations to
+     * use is the max of all contacts and constraints in the island.
+     * 
+     * @defaultValue 0 // integer
+     */
+    get numVelocityStepsOverride() {
+        return this._numVelocityStepsOverride;
+    }
+
+    /**
+     * Ratio in rotation rate between engine and gear box when driving in reverse.
+     * 
+     * @defaultValue [-2.9] // array of floats
+     */
+    get reverseGearRatios() {
+        return this._reverseGearRatios;
+    }
+
+    /**
+     * If RPM of engine is smaller then this we will shift a gear down, only used in auto mode.
+     * 
+     * @defaultValue 2000 // revolutions per minute, RPM
+     */
+    get shiftDownRPM() {
+        return this._shiftDownRPM;
+    }
+
+    /**
+     * If RPM of engine is bigger then this we will shift a gear up, only used in auto mode.
+     * 
+     * @defaultValue 4000 // revolutions per minute, RPM
+     */
+    get shiftUpRPM() {
+        return this._shiftUpRPM;
+    }
+
+    /**
+     * How long to wait after releasing the clutch before another switch is attempted, only used in
+     * auto mode.
+     * 
+     * @defaultValue 0.5 // seconds
+     */
+    get switchLatency() {
+        return this._switchLatency;
+    }
+
+    /**
+     * How long it takes to switch gears, only used in auto mode.
+     * 
+     * @defaultValue 0.5 // seconds
+     */
+    get switchTime() {
+        return this._switchTime;
+    }
+    
+    /**
+     * An array of arrays. Each array represents a track and lists indices of wheels that are
+     * inside that track. The last element in each track array will become a driven wheel (an index
+     * that points to a wheel that is connected to the engine).
+     * Example with 2 tracks, and each having 4 wheels:
+     * ```
+     * [[0, 1, 2, 3], [4, 5, 6, 7]]
+     * ```
+     * 
+     * @defaultValue []
+     */
+    get tracks() {
+        return this._tracks;
+    }
+
+    /**
+     * Vehicle type. Can be one of the following
+     * ```
+     * VEHICLE_TYPE_WHEEL
+     * ```
+     * ```
+     * VEHICLE_TYPE_TRACK
+     * ```
+     * ```
+     * VEHICLE_TYPE_MOTORCYCLE
+     * ```
+     * 
+     * @defaultValue VEHICLE_TYPE_WHEEL // enum integer
+     */
+    get type() {
+        return this._type;
+    }
+
+    /**
+     * Vector indicating the up direction of the vehicle (in local space to the body).
+     * 
+     * @defaultValue Vec3(0, 1, 0)
+     */
+    get up() {
+        return this._up;
+    }
+
+    /**
+     * Angular damping factor of the wheel.
+     * ```
+     * dw/dt = -c * w.
+     * ```
+     * 
+     * @defaultValue 0.2 // float
+     */
+    get wheelAngularDamping() {
+        return this._wheelAngularDamping;
+    }
+
+    /**
+     * An array of objects that describe each wheel. See (TODO) _writeWheelsData().
+     */
+    get wheels() {
+        return this._wheels;
     }
 
     writeVehicleData(cb) {

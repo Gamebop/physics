@@ -23,6 +23,11 @@
         "entryPoints": [
             "src/index.mjs",
         ],
+        "navigation": {
+            "includeCategories": true,
+            "includeGroups": true
+        },
+        "categorizeByGroup": true,
         "excludeNotDocumented": true,
         "excludeNotDocumentedKinds": [
             "Module",

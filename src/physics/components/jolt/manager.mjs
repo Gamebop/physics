@@ -9,6 +9,14 @@ import { SoftBodyComponentSystem } from "./softbody/system.mjs";
 import { ShapeComponentSystem } from "./system.mjs";
 import { VehicleComponentSystem } from "./vehicle/system.mjs";
 
+/**
+ * Jolt Physics Manager.
+ * 
+ * Handles all Jolt-based Components and Systems. Provides interface to generic functionality,
+ * like raycasts, gravity and other settings, primitive shapes creation, etc.
+ * 
+ * @category Base
+ */
 class JoltManager extends PhysicsManager {
     constructor(app, opts, resolve) {
         super(app, 'jolt', opts);
@@ -32,6 +40,13 @@ class JoltManager extends PhysicsManager {
         this._systems.set(COMPONENT_SYSTEM_MANAGER, this);
     }
 
+    /**
+     * Changes the world gravity.
+     * 
+     * @param {import('playcanvas').Vec3} gravity - Gravity vector.
+     * 
+     * @defaultValue Vec3(0, -9.81, 0)
+     */
     set gravity(gravity) {
         if (DEBUG) {
             const ok = Debug.checkVec(gravity, `Invalid gravity vector`, gravity);
@@ -54,6 +69,11 @@ class JoltManager extends PhysicsManager {
         return this._gravity;
     }
 
+    /**
+     * A cache containing callbacks to physics queries, e.g. raycasts.
+     * 
+     * @hidden
+     */
     get queryMap() {
         return this._queryMap;
     }
@@ -101,6 +121,26 @@ class JoltManager extends PhysicsManager {
         this._backend.updateCallback = null;
     }
 
+    /**
+     * Allows to create a primitive shape, e.g. box, sphere, etc. Note, that it will not be
+     * added to the simulation. The shape is supposed to be used by other methods, for example,
+     * during a shapecast, or when you want to change a shape of a character.
+     * 
+     * Important: the system does not know when the shape is no longer needed. You should destroy
+     * it manually when you no longer need it using {@link destroyShape}.
+     * 
+     * @example
+     * ```js
+     * const shapeIndex = manager.createShape(SHAPE_CAPSULE, {
+     *     shapePosition: new pc.Vec3(0, 0.5, 0),
+     *     halfHeight: 0.25,
+     *     radius: 0.25
+     * });
+     * ```
+     * @param {number} type - Primitive shape type.
+     * @param {object} options - An object, describing the properties of the shape.
+     * @returns {number}
+     */
     createShape(type, options = {}) {
         const cb = this._outBuffer;
 
@@ -136,6 +176,11 @@ class JoltManager extends PhysicsManager {
         return index;
     }
 
+    /**
+     * Destroys a previously created shape.
+     * 
+     * @param {number} index - Integer index associated with a shape.
+     */
     destroyShape(index) {
         if (DEBUG) {
             const ok = Debug.checkUint(index, `Invalid shape number: ${ num }`);

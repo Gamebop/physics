@@ -1,152 +1,298 @@
 import { Debug } from "../../../debug.mjs";
 import { ShapeComponent } from "../component.mjs";
 
+/**
+ * Char Component describes the properties of a Jolt Character Virtual.
+ * 
+ * @category Char Component
+ */
 class CharComponent extends ShapeComponent {
-    // ---- SHAPE PROPS ----
 
-    // Shape type
+    /** @type {number} @hidden */
     _shape = SHAPE_CAPSULE;
 
-    // ---- CHARACTER PROPS ----
-
-    // Vector indicating the up direction of the character.
     _up = pc.Vec3.UP;
 
-    // Enables/disables the use of motion state for the character.
     _useMotionState = true;
 
-    // Character linear velocity. Must be set by user. Backend will use it to calculate next
-    // position.
     _linearVelocity = new pc.Vec3();
 
-    // Plane, defined in local space relative to the character. Every contact 
-    // behind this plane can support the character, every contact in front of 
-    // this plane is treated as only colliding with the player. Default: Accept
-    // any contact.
     _supportingVolume = new pc.Plane(pc.Vec3.UP, -1);
 
-    // Maximum angle of slope that character can still walk on (radians).
     _maxSlopeAngle = 45 * pc.math.DEG_TO_RAD;
 
-    // Character mass (kg). Used to push down objects with gravity when the 
-    // character is standing on top.
     _mass = 70;
 
-    // Maximum force with which the character can push other bodies (N).
     _maxStrength = 100;
 
-    // An extra offset applied to the shape in local space.
     _shapeOffset = pc.Vec3.ZERO;
 
-    // When colliding with back faces, the character will not be able to move through
-    // back facing triangles. Use this if you have triangles that need to collide
-    // on both sides.
+    // TODO
+    // add local flags export
+    /** @type {number} @hidden */
     _backFaceMode = pc.JOLT_BFM_COLLIDE_BACK_FACES;
 
-    // How far to scan outside of the shape for predictive contacts. A value of 0 will
-    // most likely cause the character to get stuck as it cannot properly calculate a sliding
-    // direction anymore. A value that's too high will cause ghost collisions.
     _predictiveContactDistance = 0.1;
 
-    // Max amount of collision loops
     _maxCollisionIterations = 5;
 
-    // How often to try stepping in the constraint solving.
     _maxConstraintIterations = 15;
 
-    // Early out condition: If this much time is left to simulate we are done.
     _minTimeRemaining = 1.0e-4;
 
-    // How far we're willing to penetrate geometry
     _collisionTolerance = 1.0e-3;
 
-    // How far we try to stay away from the geometry, this ensures that the sweep will
-    // hit as little as possible lowering the collision cost and reducing the risk of
-    // getting stuck.
     _characterPadding = 0.02;
 
-    // Max num hits to collect in order to avoid excess of contact points collection.
     _maxNumHits = 256;
 
-    // Cos(angle) where angle is the maximum angle between two hits contact normals that 
-    // are allowed to be merged during hit reduction. Default is around 2.5 degrees. Set 
-    // to -1 to turn off.
     _hitReductionCosMaxAngle = 0.999;
 
-    // This value governs how fast a penetration will be resolved, 0 = nothing is resolved,
-    // 1 = everything in one update.
     _penetrationRecoverySpeed = 1;
 
-    // Read-only. True if the character is supported by normal or steep ground.
     _isSupported = false;
 
-    // Read-only. True if the ground is too steep to walk on.
     _isSlopeTooSteep = false;
 
-    // Read-only. If the character is supported, this will tell the ground entity.
+    /** @type {import('playcanvas').Entity | null} @hidden */
     _groundEntity = null;
 
-    // Read-only. If the character is supported, this will tell the ground normal. Otherwise
-    // will be a zero vector.
     _groundNormal = new pc.Vec3();
 
-    // If the character is not supported, will be a zero vector.
     _groundVelocity = new pc.Vec3();
 
-    // Ground state.
+    // TODO
+    // use local export
     _state = pc.JOLT_GROUND_STATE_NOT_SUPPORTED;
 
-    // User data to be associated with a shape.
+    /** @type {number | null} @hidden */
     _userData = null;
 
-    // An entity with a kinemaitc or dynamic body, that will be paired with this character to enable
-    // a world presence (allow raycasts and collisions detection vs character)
+    /** @type {import('playcanvas').Entity | null} @hidden */
     _pairedEntity = null;
 
     constructor(system, entity) {
         super(system, entity);
     }
 
-    get linearVelocity() {
-        return this._linearVelocity;
+    /**
+     * When colliding with back faces, the character will not be able to move through back facing
+     * triangles. Use this if you have triangles that need to collide on both sides.
+     * 
+     * Possible values:
+     * ```
+     * BFM_IGNORE_BACK_FACES
+     * ```
+     * ```
+     * BFM_COLLIDE_BACK_FACES
+     * ```
+     * 
+     * @defaultValue BFM_COLLIDE_BACK_FACES
+     */
+    get backFaceMode() {
+        return this._backFaceMode;
     }
 
+    /**
+     * How far we try to stay away from the geometry, this ensures that the sweep will hit as
+     * little as possible lowering the collision cost and reducing the risk of getting stuck.
+     * 
+     * @defaultValue 0.02 // meters
+     */
+    get characterPadding() {
+        return this._characterPadding;
+    }
+
+    /**
+     * How far we're allowed to penetrate geometry.
+     * 
+     * @defaultValue 0.001 // meters
+     */
+    get collisionTolerance() {
+        return this._collisionTolerance;
+    }
+
+    /**
+     * Read-only. If the character is supported, this will tell the ground Entity.
+     * 
+     * @defaultValue null
+     */
+    get groundEntity() {
+        return this._groundEntity;
+    }
+
+    /**
+     * Read-only. If the character is supported, this will tell the ground normal. Otherwise will
+     * be a zero vector.
+     * 
+     * @defaultValue Vec3(0, 0, 0)
+     */
+    get groundNormal() {
+        return this._groundNormal;
+    }
+
+    /**
+     * Velocity of the ground. If the character is not supported, then it will be a zero vector.
+     * 
+     * @defaultValue Vec3(0, 0, 0)
+     */
+    get _groundVelocity() {
+        return this._groundVelocity;
+    }
+
+    /**
+     * Uses cos(angle) where angle is the maximum angle between two hits contact normals that are
+     * allowed to be merged during hit reduction. Set to -1 to turn off.
+     * 
+     * @defaultValue 2.5 * Math.PI / 180 // radians
+     */
+    get hitReductionCosMaxAngle() {
+        return this._hitReductionCosMaxAngle;
+    }
+
+    /**
+     * Read-only. Will be `true` if the ground is too steep to walk on.
+     * 
+     * @defaultValue false
+     */
+    get isSlopeTooSteep() {
+        return this._isSlopeTooSteep;
+    }
+
+    /**
+     * Read-only. Will be `true` if character is supported by normal or steep ground.
+     * 
+     * @defaultValue false
+     */
+    get isSupported() {
+        return this._isSupported;
+    }    
+
+    /**
+     * Linear velocity of the character. Must be set by user. Backend will use it to calculate the
+     * next position at the next simulation update.
+     * 
+     * @defaultValue Vec3(0, 0, 0) // m/s
+     */
     set linearVelocity(vel) {
-        DEBUG && Debug.checkVec(vel, `Invalid character linear velocity`, vel);
+        if (DEBUG) {
+            const ok = Debug.checkVec(vel, `Invalid character linear velocity`, vel);
+            if (!ok) {
+                return;
+            }
+        }
+
         this.system.addCommand(
             OPERATOR_MODIFIER, CMD_CHAR_SET_LIN_VEL, this._index,
             vel, BUFFER_WRITE_VEC32, false
         );
     }
 
-    get userData() {
-        return this._userData;
+    get linearVelocity() {
+        return this._linearVelocity;
     }
 
-    set userData(num) {
-        if (DEBUG) {
-            let ok = Debug.checkFloat(num, `Invalid user data value. Should be a number: ${ num }`);
-            if (!ok)
-                return;
-        }
-
-        this._userData = num;
-
-        this.system.addCommand(
-            OPERATOR_MODIFIER, CMD_SET_USER_DATA, this._index,
-            num, BUFFER_WRITE_FLOAT32, false
-        );        
+    /**
+     * Character mass. Used to push down objects with gravity when character is standing on top.
+     * 
+     * @defaultValue 70 // kg
+     */
+    get mass() {
+        return this._mass;
     }
 
-    get pairedEntity() {
-        return this._pairedEntity;
+    /**
+     * Max amount of collision loops.
+     * 
+     * @defaultValue 5 // integer
+     */
+    get maxCollisionIterations() {
+        return this._maxCollisionIterations;
     }
 
+    /**
+     * How often to try stepping during the constraint solving.
+     * 
+     * @defaultValue 15 // integer
+     */
+    get maxConstraintIterations() {
+        return this._maxConstraintIterations;
+    }
+
+    /**
+     * The maximum angle of a slope that the character can still walk on.
+     * 
+     * @defaultValue 45 * Math.PI / 180 // radians
+     */
+    get maxSlopeAngle() {
+        return this._maxSlopeAngle;
+    }
+
+    /**
+     * Max number of hits to collect in order to avoid excess of contact points collection.
+     * 
+     * @defaultValue 256 // integer
+     */
+    get maxNumHits() {
+        return this._maxNumHits;
+    }
+
+    /**
+     * Maximum force with which the character can push other bodies.
+     * 
+     * @defaultValue 100 // Newtons
+     */
+    get maxStrength() {
+        return this._maxStrength;
+    }
+
+    /**
+     * Early out condition: If this much time is left to simulate we are done.
+     * 
+     * @defaultValue 0.0001 // seconds
+     */
+    get minTimeRemaining() {
+        return this._minTimeRemaining;
+    }
+
+    /**
+     * This value governs how fast a penetration will be resolved. Accepts a float in [0, 1] range,
+     * where:
+     *   0 - nothing is resolved
+     *   1 - everything is resolved in one update
+     * 
+     * @defaultValue 1 // float
+     */
+    get penetrationRecoverySpeed() {
+        return this._penetrationRecoverySpeed;
+    }
+
+    /**
+     * An extra linear offset applied to the shape in local space. Note, that if a shape already
+     * has an offset via {@link ShapeComponent.shapePosition} and/or
+     * {@link ShapeComponent.shapeRotation}, then this offset will be added ontop of those.
+     * 
+     * @defaultValue Vec3(0, 0, 0) // meters
+     */
+    get shapeOffset() {
+        return this._shapeOffset;
+    }
+
+    /**
+     * Character Virtual exists outside of the physics simulation, so other bodies cannot "see" it.
+     * To solve this, we "pair" an Entity that has a kinematic or dynamic body component with it.
+     * This adds a world presence to the character, and allow raycasts and collisions detection
+     * against it.
+     * 
+     * @defaultValue null
+     */
     set pairedEntity(entity) {
         if (DEBUG) {
-            let ok = Debug.assert(!!entity.body, `Invalid entity to pair. Needs to have a "body" component.`, entity);
-            if (!ok)
+            const ok = Debug.assert(!!entity.body, 
+                `Invalid entity to pair. Needs to have a "body" component.`, entity);
+            if (!ok) {
                 return;
+            }
         }
 
         this._pairedEntity = entity;
@@ -157,6 +303,126 @@ class CharComponent extends ShapeComponent {
         );
     }
 
+    get pairedEntity() {
+        return this._pairedEntity;
+    }
+
+    /**
+     * How far to scan outside of the shape for predictive contacts. A value of 0 will most likely
+     * cause the character to get stuck as it cannot properly calculate a sliding direction
+     * anymore. A value that's too high will cause ghost collisions.
+     * 
+     * @defaultValue 0.1 // meters
+     */
+    get predictiveContactDistance() {
+        return this._predictiveContactDistance;
+    }
+
+    /**
+     * Character's initial shape type. It is possible to change the shape of the char later using 
+     * {@link setShape}
+     * 
+     * @defaultValue SHAPE_CAPSULE // enum integer
+     */
+    get shape() {
+        return this._shape;
+    }
+
+    /**
+     * Read-only. Tells the current ground state of the character.
+     * 
+     * Possible values:
+     * ```
+     * GROUND_STATE_NOT_SUPPORTED
+     * ```
+     * ```
+     * GROUND_STATE_ON_STEEP_GROUND
+     * ```
+     * ```
+     * GROUND_STATE_NOT_SUPPORTED
+     * ```
+     * ```
+     * GROUND_STATE_IN_AIR
+     * ```
+     * 
+     * @defaultValue GROUND_STATE_NOT_SUPPORTED // enum integer
+     */
+    get state() {
+        return this._state;
+    }
+
+    /**
+     * Plane, defined in local space relative to the character. Every contact behind this plane can
+     * support the character, every contact in front of this plane is treated as only colliding
+     * with the player.
+     * 
+     * @defaultValue Plane(Vec3.UP, -1)
+     */
+    get supportingVolume() {
+        return this._supportingVolume;
+    }
+
+    /**
+     * Vector indicating the up direction of the character (normalized).
+     * 
+     * @defaultValue Vec3(0, 1, 0)
+     */
+    get up() {
+        return this._up;
+    }
+
+    /**
+     * Enables/disables the use of motion state for the character. Motion state interpolates the
+     * position/rotation (isometry) of the character between the physics updates. This will make
+     * the motion look smooth, when browser's framemrate is faster than the physics update rate. If
+     * set to `false`, then the character isometry will update together with the physics update.
+     * 
+     * @defaultValue true
+     */
+    get useMotionState() {
+        return this._useMotionState;
+    }
+
+    /**
+     * Allows to associate a user defined number with a character shape. This is useful, when you
+     * want to control the character logic in the collision callback, when running physics in a Web
+     * Worker.
+     */
+    set userData(num) {
+        if (DEBUG) {
+            const ok = Debug.checkFloat(num,
+                `Invalid user data value. Should be a number: ${ num }`);
+            if (!ok) {
+                return;
+            }
+        }
+
+        this._userData = num;
+
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_SET_USER_DATA, this._index,
+            num, BUFFER_WRITE_FLOAT32, false
+        );
+    }
+
+    get userData() {
+        return this._userData;
+    }
+
+    /**
+     * Changes the shape of the character. You should first create a shape using
+     * {@link JoltManager.createShape}. Note, that this method does not guarantee that the shape
+     * will be changed. For example, when trying to change to a larger shape that doesn't have
+     * enough physical space around it.
+     *  
+     * You can provide a callback function, which will be called when a shape is changed
+     * successfully.
+     * 
+     * @param {null | number} shapeIndex - Integer index of the shape to change the current shape
+     * to. Use `null` to reset the shape back to the one the character was created with.
+     * @param {null | number} callback - A callback function to call when the shape is changed
+     * successfully.
+     */
     setShape(shapeIndex = null, callback = null) {
         const system = this.system;
 

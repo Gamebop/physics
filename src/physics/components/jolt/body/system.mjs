@@ -38,6 +38,7 @@ const schema = [
  * @category Body Component
  */
 class BodyComponentSystem extends ShapeComponentSystem {
+
     constructor(app, manager, id) {
         super(app, manager);
 
@@ -50,12 +51,61 @@ class BodyComponentSystem extends ShapeComponentSystem {
         this.on('beforeremove', this.onBeforeRemove, this);
     }
 
-    overrideContacts(callbacks = {}) {
+    /**
+     * Allows to override the JS callbacks that Jolt will call from Wasm instance. Important - do
+     * not use arrow functions! User regular ones.
+     * 
+     * Note that the functions will be re-evaluated and will lose their current scope, so don't
+     * reference any existing variables outside these functions.
+     * 
+     * For details, refer to Jolt documentation: [Contact Listener](
+     * https://jrouwe.github.io/JoltPhysics/class_contact_listener.html)
+     * 
+     * @param {object} callbacks An object with one or more callback functions, allowing you to
+     * override the default ones. The examples show the default behavior that you can customize.
+     * @param {function} callbacks.OnContactValidate
+     * Called after detecting a collision between a body pair, but before calling `OnContactAdded`
+     * and before adding the contact constraint.
+     * ```javascript
+     * onContactValidate: function (body1, body2, baseOffset, collideShapeResult) {
+     *     // TODO export local flag
+     *     return Jolt.ValidateResult_AcceptAllContactsForThisBodyPair;
+     * }
+     * ```
+     * @param {function} callbacks.OnContactAdded
+     * Called whenever a new contact point is detected.
+     * ```javascript
+     * OnContactAdded: function (body1, body2, manifold, settings) {}
+     * ```
+     * @param {function} callbacks.OnContactPersisted
+     * Called whenever a contact is detected that was also detected last update.
+     * ```javascript
+     * OnContactPersisted: function (body1, body2, manifold, settings) {}
+     * ```
+     * @param {function} callbacks.OnContactRemoved
+     * Called whenever a contact was detected last update but is not detected anymore.
+     * ```javascript
+     * OnContactRemoved: function (subShapePair) {}
+     * ```
+     */
+    overrideContacts(callbacks) {
         if (DEBUG) {
-            !!callbacks.OnContactValidate && Debug.assert(typeof callbacks.OnContactValidate === 'function', 'OnContactValidate must be a function', callbacks);
-            !!callbacks.OnContactAdded && Debug.assert(typeof callbacks.OnContactAdded === 'function', 'OnContactAdded must be a function', callbacks);
-            !!callbacks.OnContactPersisted && Debug.assert(typeof callbacks.OnContactPersisted === 'function', 'OnContactPersisted must be a function', callbacks);
-            !!callbacks.OnContactRemoved && Debug.assert(typeof callbacks.OnContactRemoved === 'function', 'OnContactRemoved must be a function', callbacks);
+            let ok = !!callbacks;
+            if (!!callbacks.OnContactValidate) {
+                ok = ok && Debug.assert(typeof callbacks.OnContactValidate === 'function', 'OnContactValidate must be a function', callbacks);
+            }
+            if (!!callbacks.OnContactAdded) {
+                ok = ok && Debug.assert(typeof callbacks.OnContactAdded === 'function', 'OnContactAdded must be a function', callbacks);
+            }
+            if (!!callbacks.OnContactPersisted) {
+                ok = ok && Debug.assert(typeof callbacks.OnContactPersisted === 'function', 'OnContactPersisted must be a function', callbacks);
+            }
+            if (!!callbacks.OnContactRemoved) {
+                ok = ok && Debug.assert(typeof callbacks.OnContactRemoved === 'function', 'OnContactRemoved must be a function', callbacks);
+            }
+            if (!ok) {
+                return;
+            }
         }
 
         const overrides = Object.create(null);

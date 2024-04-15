@@ -38,6 +38,11 @@ const quat = new pc.Quat()
 const positions = [];
 const indices = [];
 
+/**
+ * SoftBody Component System. Handles all SoftBody Components.
+ * 
+ * @category SoftBody Component
+ */
 class SoftBodyComponentSystem extends BodyComponentSystem {
 
     constructor(app, manager, id) {
