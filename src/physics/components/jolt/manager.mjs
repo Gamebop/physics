@@ -15,7 +15,7 @@ import { VehicleComponentSystem } from "./vehicle/system.mjs";
  * Handles all Jolt-based Components and Systems. Provides interface to generic functionality,
  * like raycasts, gravity and other settings, primitive shapes creation, etc.
  * 
- * @category Base
+ * @category Manager
  */
 class JoltManager extends PhysicsManager {
     constructor(app, opts, resolve) {

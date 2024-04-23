@@ -5,6 +5,7 @@ import { Dispatcher } from "./dispatcher.mjs";
 import { IndexedCache } from "./indexed-cache.mjs";
 
 class PhysicsManager {
+    // TODO: remove backendName from attributes
     constructor(app, backendName, opts = {}) {
         const config = {
             useSharedArrayBuffer: true,
@@ -133,6 +134,8 @@ class PhysicsManager {
         this._dispatcher.postMessage(msg);
     }
 
+    // TODO
+    // move the commands buffer handling out to Jolt Manager
     onMessage(msg) {
         if (this._paused || msg.origin !== 'physics-worker') return;
 

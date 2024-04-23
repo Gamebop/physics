@@ -178,11 +178,14 @@ class BodyComponent extends ShapeComponent {
     }
 
     /**
-     * Friction of the body (dimensionless number, usually between 0 and 1, 0 = no friction, 1 =
-     * friction force equals force that presses the two bodies together). Note that bodies can have
-     * negative friction but the combined friction should never go below zero.
+     * Friction of the body. Dimensionless number, usually between 0 and 1:
+     * - 0 = no friction
+     * - 1 = friction force equals force that presses the two bodies together
      * 
-     * @defaultValue 0.2
+     * Note that bodies can have negative friction, but the combined friction should never go below
+     * zero.
+     * 
+     * @defaultValue 0.2 // float
      */
     get friction() {
         return this._friction;
@@ -191,7 +194,7 @@ class BodyComponent extends ShapeComponent {
     /**
      * Value to multiply gravity with for this body.
      * 
-     * @defaultValue 1
+     * @defaultValue 1 // float
      */
     get gravityFactor() {
         return this._gravityFactor;
@@ -200,7 +203,8 @@ class BodyComponent extends ShapeComponent {
     /**
      * When calculating the inertia (not when it is provided) the calculated inertia will
      * be multiplied by this value.
-     * @defaultValue 1
+     * 
+     * @defaultValue 1 // float
      */
     get inertiaMultiplier() {
         return this._inertiaMultiplier;
@@ -221,9 +225,9 @@ class BodyComponent extends ShapeComponent {
      * ```
      * dv/dt = -c * v.
      * ```
-     * `c` must be between 0 and 1 but is usually close to 0.
+     * `c` must be between 0 and 1, but is usually close to 0.
      * 
-     * @defaultValue 0
+     * @defaultValue 0 // float
      */
     get linearDamping() {
         return this._linearDamping;
@@ -321,7 +325,7 @@ class BodyComponent extends ShapeComponent {
      * The collision layer this body belongs to (determines if two objects can collide). Allows
      * cheap filtering.
      * 
-     * @defaultValue 0
+     * @defaultValue 0 // integer
      */
     get objectLayer() {
         return this._objectLayer;
@@ -350,6 +354,8 @@ class BodyComponent extends ShapeComponent {
     /**
      * Used only if `JOLT_OMP_CALCULATE_INERTIA` or `JOLT_OMP_MASS_AND_INERTIA_PROVIDED` is selected
      * for {@link overrideMassProperties}
+     * 
+     * @defaultValue 1 // kg
      */
     get overrideMass() {
         return this._overrideMass;
@@ -403,7 +409,7 @@ class BodyComponent extends ShapeComponent {
      * inelastic collision response, 1 = completely elastic collision response). Note that bodies
      * can have negative restitution but the combined restitution should never go below zero.
      * 
-     * @defaultValue 0
+     * @defaultValue 0 // float
      */
     get restitution() {
         return this._restitution;

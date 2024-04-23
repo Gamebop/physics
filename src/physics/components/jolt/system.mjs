@@ -45,11 +45,9 @@ const schema = [
 ];
 
 /**
- * Base class for all Jolt Component Systems.
+ * Base class for Shape Component Systems.
  * 
- * You are not supposed to use this system directly. Instead, use one of the derived ones.
- * 
- * @category Base
+ * @category Base Classes
  */
 class ShapeComponentSystem extends pc.ComponentSystem {
     static entityMap = new IndexedCache();

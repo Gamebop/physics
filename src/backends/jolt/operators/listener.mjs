@@ -30,6 +30,9 @@ class Listener {
 
         const listener = new Jolt.ContactListenerJS();
         listener.OnContactValidate = this.onContactValidate.bind(this);
+
+        // TODO
+        // remove per-callback config.option, we either enable or disable all
         
         if (config.contactAddedEventsEnabled) {
             listener.OnContactAdded = this.onContactAdded.bind(this);

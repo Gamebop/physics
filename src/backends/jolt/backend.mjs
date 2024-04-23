@@ -62,7 +62,7 @@ class JoltBackend {
             mapObjectToBroadPhaseLayer: [
                 0, BP_LAYER_NON_MOVING,
                 1, BP_LAYER_MOVING,
-                2, BP_LAYER_NON_MOVING
+                2, BP_LAYER_NON_MOVING  // TODO remove 2 from the defaults
             ],
             ...data.config
         };

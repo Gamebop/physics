@@ -1,6 +1,19 @@
 import { Debug } from "../../../debug.mjs";
 import { BodyComponent } from "../body/component.mjs";
 
+export const springSettings = {
+    mode: 
+};
+
+/** Wheel creation options. */
+export const wheelSettings = {
+    /** @type {import('playcanvas').Vec3} */
+    position: pc.Vec3(),
+    spring: {
+        mode: SPRING_MODE_FREQUENCY
+    }
+};
+
 /**
  * Vehicle Component describes all properties of a Jolt Vehicle. There are different types of
  * vehicles supported:
@@ -26,8 +39,7 @@ class VehicleComponent extends BodyComponent {
     // lazy allocate array
     _tracks = [];
 
-    // TODO
-    // lazy allocate array
+    /** @type {wheelSettings[]} @hidden */
     _wheels = [];
 
     _type = VEHICLE_TYPE_WHEEL;
@@ -377,8 +389,8 @@ class VehicleComponent extends BodyComponent {
     }
 
     /**
-     * Override for the number of solver position iterations to run, 0 means use the default in
-     * (TODO add link to settings) PhysicsSettings.numPositionSteps.
+     * Override for the number of solver position iterations to run, 0 means use the default that
+     * was set using `numPositionSteps` param during initialization: {@link init}.
      * 
      * @defaultValue 0 // integer
      */
@@ -387,9 +399,9 @@ class VehicleComponent extends BodyComponent {
     }
 
     /**
-     * Override for the number of solver velocity iterations to run, 0 means use the default in
-     * (TODO add link to settings) PhysicsSettings.numVelocitySteps. The number of iterations to
-     * use is the max of all contacts and constraints in the island.
+     * Override for the number of solver velocity iterations to run, 0 means use the default that
+     * was set using `numVelocitySteps` param during initialization: {@link init}. The number of
+     * iterations to use is the max of all contacts and constraints in the island.
      * 
      * @defaultValue 0 // integer
      */
@@ -446,8 +458,8 @@ class VehicleComponent extends BodyComponent {
     /**
      * An array of arrays. Each array represents a track and lists indices of wheels that are
      * inside that track. The last element in each track array will become a driven wheel (an index
-     * that points to a wheel that is connected to the engine).
-     * Example with 2 tracks, and each having 4 wheels:
+     * that points to a wheel that is connected to the engine).  
+     * Example with 2 tracks, and each having 4 wheels. Wheels 3 and 7 are driven wheels:
      * ```
      * [[0, 1, 2, 3], [4, 5, 6, 7]]
      * ```
@@ -498,7 +510,10 @@ class VehicleComponent extends BodyComponent {
     }
 
     /**
-     * An array of objects that describe each wheel. See (TODO) _writeWheelsData().
+     * An array of objects that describe each wheel: `[{}, {}, ...]`. The element's index in the
+     * array corresponds to the wheel's index (`[wheel1, wheel2, ...]`).
+     * 
+     * @defaultValue []
      */
     get wheels() {
         return this._wheels;

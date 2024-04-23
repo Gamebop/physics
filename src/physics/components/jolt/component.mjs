@@ -2,12 +2,16 @@ import { Debug } from "../../debug.mjs";
 import { buildAccessors } from "../../util.mjs";
 
 /**
- * Base class for all Jolt-based Components. You are not able to create a rigidbody without a shape
- * in Jolt, so all components are derived from this class, inheriting shape properties.
+ * This is a base component providing similar treats for all derived components, like Body,
+ * Vehicle, etc. Most probably you don't want to use this component directly, but one of
+ * the derived ones instead.
  * 
- * You are not supposed to use this component directly. Instead, use one of the derived ones.
+ * @see {@link BodyComponent | Body Component}  
+ * @see {@link CharComponent | Char Component}  
+ * @see {@link SoftBodyComponent | SoftBody Component}  
+ * @see {@link VehicleComponent | Vehicle Component}  
  * 
- * @category Base
+ * @category Base Classes
  */
 class ShapeComponent extends pc.EventHandler {
 
