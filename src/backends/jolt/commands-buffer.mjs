@@ -131,7 +131,7 @@ class CommandsBuffer {
     }
 
     readCommand() {
-        return this.readUint8();
+        return this.readUint16();
     }
 
     /**
@@ -140,7 +140,7 @@ class CommandsBuffer {
      */
     writeCommand(command) {
         this._increment();
-        this.writeUint8(command);
+        this.writeUint16(command);
         this._dirty = true;
     }
 

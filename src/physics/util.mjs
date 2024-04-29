@@ -20,7 +20,7 @@ function buildAccessors(obj, schema) {
         });
     }
 
-    obj._accessorsBuilt = true;
+    obj.accessorsBuilt = true;
 }
 
 export { buildAccessors };

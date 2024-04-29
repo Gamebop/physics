@@ -91,9 +91,25 @@ class Debug {
     }
 
     static checkQuat(quat, msg) {
-        let ok = true;
-        ok = ok && Debug.checkVec(quat, msg);
+        let ok = Debug.checkVec(quat, msg);
         ok = ok && Debug.checkFloat(quat.w, msg);
+        return ok;
+    }
+
+    static checkSpringSettings(settings) {
+        let ok = Debug.assert(typeof settings === 'object', 'Invalid settings object for constraint', settings);
+        if (settings.springMode != null) {
+            ok = ok && Debug.checkFloat(settings.springMode, `Invalid spring mode: ${ settings.springMode }`);
+        }
+        if (settings.frequency != null) {
+            ok = ok && Debug.checkFloat(settings.frequency, `Invalid spring frequency: ${ settings.frequency }`);
+        }
+        if (settings.stiffness != null) {
+            ok = ok && Debug.checkFloat(settings.stiffness, `Invalid spring stiffness: ${ settings.stiffness }`);
+        }
+        if (settings.damping != null) {
+            ok = ok && Debug.checkFloat(settings.damping, `Invalid spring stiffness: ${ settings.damping }`);
+        }
         return ok;
     }
 

@@ -1,6 +1,6 @@
 import { Debug } from "../../../debug.mjs";
 import { ResponseHandler } from "../response-handler.mjs";
-import { ShapeComponentSystem } from "../system.mjs";
+import { ShapeComponentSystem } from "../shape/system.mjs";
 import { BodyComponent } from "./component.mjs";
 
 const schema = [
@@ -41,13 +41,19 @@ class BodyComponentSystem extends ShapeComponentSystem {
     constructor(app, manager, id) {
         super(app, manager);
 
-        this.id = 'body';
-        this.schema = [...this.schema, ...schema];
-        this.ComponentType = BodyComponent;
+        this.schema = [...this._schema, ...schema];
 
         manager.systems.set(id, this);
 
         this.on('beforeremove', this.onBeforeRemove, this);
+    }
+
+    get id() {
+        return 'body';
+    }
+
+    get ComponentType() {
+        return BodyComponent;
     }
 
     overrideContacts(callbacks = {}) {
@@ -92,7 +98,7 @@ class BodyComponentSystem extends ShapeComponentSystem {
         const command = cb.readCommand();
 
         switch (command) {
-            case CMD_UPDATE_TRANSFORMS:
+            case CMD_REPORT_TRANSFORMS:
                 // TODO
                 // move to ResponseHandler
                 ShapeComponentSystem.updateDynamic(cb);
@@ -115,15 +121,16 @@ class BodyComponentSystem extends ShapeComponentSystem {
         this.fire('write-isometry');
     }
 
-    initializeComponentData(component, data) {
-        if (DEBUG) {
-            const ok = Debug.verifyProperties(data, this.schema);
-            if (!ok)
-                return;
-        }
+    // initializeComponentData(component, data) {
+    //     if (DEBUG) {
+    //         const ok = Debug.verifyProperties(data, this._schema);
+    //         if (!ok) {
+    //             return;
+    //         }
+    //     }
 
-        super.initializeComponentData(component, data);
-    }
+    //     super.initializeComponentData(component, data);
+    // }
 
     onBeforeRemove(entity, component) {
         if (component.enabled) {

@@ -3,7 +3,6 @@ import { SoftBodyComponent } from "./component.mjs";
 
 const schema = [
     // Component
-    'enabled',
     'debugDraw',
     'renderAsset',
     'meshes',
@@ -43,11 +42,17 @@ class SoftBodyComponentSystem extends BodyComponentSystem {
     constructor(app, manager, id) {
         super(app, manager);
 
-        this.id = 'softbody';
-        this.schema = schema;
-        this.ComponentType = SoftBodyComponent;
+        this._schema = [ ...this._schema, ...schema ];
 
         manager.systems.set(id, this);
+    }
+
+    get id() {
+        return 'softbody';
+    }
+    
+    get ComponentType() {
+        return SoftBodyComponent;
     }
 
     createBody(component) {
@@ -63,7 +68,7 @@ class SoftBodyComponentSystem extends BodyComponentSystem {
         const command = cb.readCommand();
 
         switch (command) {
-            case CMD_UPDATE_TRANSFORMS:
+            case CMD_REPORT_TRANSFORMS:
                 this._updateVertices(cb);
             break;
         }

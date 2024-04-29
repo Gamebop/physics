@@ -2,7 +2,7 @@ import { Debug } from "../../../debug.mjs";
 import { IndexedCache } from "../../../indexed-cache.mjs";
 import { CharComponent } from "./component.mjs";
 import { ResponseHandler } from "../response-handler.mjs";
-import { ShapeComponentSystem } from "../system.mjs";
+import { ShapeComponentSystem } from "../shape/system.mjs";
 
 const schema = [
     // Jolt virtual character
@@ -35,10 +35,7 @@ class CharComponentSystem extends ShapeComponentSystem {
     constructor(app, manager, id) {
         super(app, manager);
 
-        this.id = 'char';
-        this.schema = [...this.schema, ...schema];
-        this.ComponentType = CharComponent;
-
+        this._schema = [...this._schema, ...schema];
         this._queryMap = new IndexedCache();
 
         this._exposeConstants();
@@ -46,24 +43,32 @@ class CharComponentSystem extends ShapeComponentSystem {
         manager.systems.set(id, this);
     }
 
+    get id() {
+        return 'char';
+    }
+
+    get ComponentType() {
+        return CharComponent;
+    }
+
     getCallbackIndex(callback) {
         return this._manager.queryMap.add(callback);
     }
 
-    initializeComponentData(component, data) {
-        if (DEBUG) {
-            const ok = Debug.verifyProperties(data, this.schema);
-            if (!ok) return;
-        }
+    // initializeComponentData(component, data) {
+    //     if (DEBUG) {
+    //         const ok = Debug.verifyProperties(data, this.schema);
+    //         if (!ok) return;
+    //     }
 
-        super.initializeComponentData(component, data);
-    }
+    //     super.initializeComponentData(component, data);
+    // }
 
     processCommands(cb) {
         const command = cb.readCommand();
 
         switch (command) {
-            case CMD_UPDATE_TRANSFORMS:
+            case CMD_REPORT_TRANSFORMS:
                 this._updateCharTransforms(cb);
                 break;
 

@@ -1,5 +1,6 @@
 import { Debug } from "../../../physics/debug.mjs";
 import { MotionState } from "../motion-state.mjs";
+import { createSpringSettings, createMotorSettings, setSixDOFAxes } from "../utils.mjs";
 
 class Creator {
     constructor(backend) {
@@ -692,8 +693,9 @@ class Creator {
         if (DEBUG) {
             let ok = Debug.checkUint(groupsCount, `Invalid filter groups count: ${ groupsCount }`);
             ok = ok && Debug.assert(groupsCount > 0, `Invalid filter groups count: ${ groupsCount }`);
-            if (!ok)
+            if (!ok) {
                 return false
+            }
         }
         
         for (let i = 0; i < groupsCount; i++) {
@@ -703,9 +705,11 @@ class Creator {
 
             if (DEBUG) {
                 const ok = Debug.checkUint(subGroupsCount, `Invalid sub group count: ${ subGroupsCount }`);
-                if (!ok)
+                if (!ok) {
                     return false;
-                table.maxIndex = subGroupsCount - 1; // for debug test in debug mode when creating a body
+                }
+                // for verification check (only in debug build) when creating a body
+                table.maxIndex = subGroupsCount - 1;
             }
         }
 
@@ -948,10 +952,14 @@ class Creator {
         const tracker = backend.tracker;
         const physicsSystem = backend.physicsSystem;
 
-        const type = cb.read(BUFFER_READ_UINT8);
         const index = cb.read(BUFFER_READ_UINT32);
+        const type = cb.read(BUFFER_READ_UINT8);
         const idx1 = cb.read(BUFFER_READ_UINT32);
         const idx2 = cb.read(BUFFER_READ_UINT32);
+        const velOverride = cb.read(BUFFER_READ_UINT8);
+        const posOverride = cb.read(BUFFER_READ_UINT8);
+        const space = (cb.read(BUFFER_READ_UINT8) === CONSTRAINT_SPACE_WORLD) ?
+            Jolt.EConstraintSpace_WorldSpace : Jolt.EConstraintSpace_LocalToBodyCOM;
 
         const body1 = tracker.getBodyByPCID(idx1);
         const body2 = tracker.getBodyByPCID(idx2);
@@ -994,7 +1002,7 @@ class Creator {
                 if (cb.flag) settings.mMinDistance = cb.read(BUFFER_READ_FLOAT32);
                 if (cb.flag) settings.mMaxDistance = cb.read(BUFFER_READ_FLOAT32);
                 if (cb.read(BUFFER_READ_BOOL)) {
-                    const springSettings = this._createSpringSettings(cb, Jolt);
+                    const springSettings = createSpringSettings(cb, Jolt);
                     settings.mLimitsSpringSettings = springSettings;
                     Jolt.destroy(springSettings);
                 }
@@ -1012,12 +1020,12 @@ class Creator {
                 if (cb.flag) settings.mLimitsMax = cb.read(BUFFER_READ_FLOAT32);
                 if (cb.flag) settings.mMaxFrictionTorque = cb.read(BUFFER_READ_FLOAT32);
                 if (cb.read(BUFFER_READ_BOOL)) {
-                    const springSettings = this._createSpringSettings(cb, Jolt);
+                    const springSettings = createSpringSettings(cb, Jolt);
                     settings.mLimitsSpringSettings = springSettings;
                     Jolt.destroy(springSettings);
                 }
                 if (cb.read(BUFFER_READ_BOOL)) {
-                    const motorSettings = this._createMotorSettings(cb, Jolt);
+                    const motorSettings = createMotorSettings(cb, Jolt);
                     settings.mMotorSettings = motorSettings;
                     Jolt.destroy(motorSettings);
                 }
@@ -1038,12 +1046,12 @@ class Creator {
                 if (cb.flag) settings.mLimitsMax = cb.read(BUFFER_READ_FLOAT32);
                 if (cb.flag) settings.mMaxFrictionForce = cb.read(BUFFER_READ_FLOAT32);
                 if (cb.read(BUFFER_READ_BOOL)) {
-                    const springSettings = this._createSpringSettings(cb, Jolt);
+                    const springSettings = createSpringSettings(cb, Jolt);
                     settings.mLimitsSpringSettings = springSettings;
                     Jolt.destroy(springSettings);
                 }
                 if (cb.read(BUFFER_READ_BOOL)) {
-                    const motorSettings = this._createMotorSettings(cb, Jolt);
+                    const motorSettings = createMotorSettings(cb, Jolt);
                     settings.mMotorSettings = motorSettings;
                     Jolt.destroy(motorSettings);
                 }
@@ -1072,12 +1080,12 @@ class Creator {
                 if (cb.flag) settings.mTwistMaxAngle = cb.read(BUFFER_READ_FLOAT32);
                 if (cb.flag) settings.mMaxFrictionTorque = cb.read(BUFFER_READ_FLOAT32);
                 if (cb.read(BUFFER_READ_BOOL)) {
-                    const swingMotorSettings = this._createMotorSettings(cb, Jolt);
+                    const swingMotorSettings = createMotorSettings(cb, Jolt);
                     settings.mSwingMotorSettings = swingMotorSettings;
                     Jolt.destroy(swingMotorSettings);
                 }
                 if (cb.read(BUFFER_READ_BOOL)) {
-                    const twistMotorSettings = this._createMotorSettings(cb, Jolt);
+                    const twistMotorSettings = createMotorSettings(cb, Jolt);
                     settings.mTwistMotorSettings = twistMotorSettings;
                     Jolt.destroy(twistMotorSettings);
                 }
@@ -1094,150 +1102,73 @@ class Creator {
                 settings.mMaxLength = cb.read(BUFFER_READ_FLOAT32);
                 break;
             
-            case CONSTRAINT_TYPE_SIX_DOF:
+            case CONSTRAINT_TYPE_SIX_DOF: {
                 settings = new Jolt.SixDOFConstraintSettings();
-                if (cb.read(BUFFER_READ_UINT8)) {
-                    const count = cb.read(BUFFER_READ_UINT8);
-                    for (let i = 0; i < count; i++) {
-                        const axis = cb.read(BUFFER_READ_UINT8);
-
-                        switch (axis) {
-                            case CONSTRAINT_SIX_DOF_TRANSLATION_X:
-                                settings.MakeFreeAxis(Jolt.SixDOFConstraintSettings_EAxis_TranslationX);
-                                break;
-
-                            case CONSTRAINT_SIX_DOF_TRANSLATION_Y:
-                                settings.MakeFreeAxis(Jolt.SixDOFConstraintSettings_EAxis_TranslationY);
-                                break;
-                            
-                            case CONSTRAINT_SIX_DOF_TRANSLATION_Z:
-                                settings.MakeFreeAxis(Jolt.SixDOFConstraintSettings_EAxis_TranslationZ);
-                                break;
-
-                            case CONSTRAINT_SIX_DOF_ROTATION_X:
-                                settings.MakeFreeAxis(Jolt.SixDOFConstraintSettings_EAxis_RotationX);
-                                break;
-                            
-                            case CONSTRAINT_SIX_DOF_ROTATION_Y:
-                                settings.MakeFreeAxis(Jolt.SixDOFConstraintSettings_EAxis_RotationY);
-                                break;
-
-                            case CONSTRAINT_SIX_DOF_ROTATION_Z:
-                                settings.MakeFreeAxis(Jolt.SixDOFConstraintSettings_EAxis_RotationZ);
-                                break;
-                            
-                            default:
-                                DEBUG && Debug.error(`Unrecognized six dof constraint axis setting: ${ axis }`);
-                                return false;
-                        }
-                    }
-                }
-                if (cb.read(BUFFER_READ_UINT8)) {
-                    const count = cb.read(BUFFER_READ_UINT8);
-                    for (let i = 0; i < count; i++) {
-                        const axis = cb.read(BUFFER_READ_UINT8);
-
-                        switch (axis) {
-                            case CONSTRAINT_SIX_DOF_TRANSLATION_X:
-                                settings.MakeFixedAxis(Jolt.SixDOFConstraintSettings_EAxis_TranslationX);
-                                break;
-
-                            case CONSTRAINT_SIX_DOF_TRANSLATION_Y:
-                                settings.MakeFixedAxis(Jolt.SixDOFConstraintSettings_EAxis_TranslationY);
-                                break;
-                            
-                            case CONSTRAINT_SIX_DOF_TRANSLATION_Z:
-                                settings.MakeFixedAxis(Jolt.SixDOFConstraintSettings_EAxis_TranslationZ);
-                                break;
-
-                            case CONSTRAINT_SIX_DOF_ROTATION_X:
-                                settings.MakeFixedAxis(Jolt.SixDOFConstraintSettings_EAxis_RotationX);
-                                break;
-                            
-                            case CONSTRAINT_SIX_DOF_ROTATION_Y:
-                                settings.MakeFixedAxis(Jolt.SixDOFConstraintSettings_EAxis_RotationY);
-                                break;
-
-                            case CONSTRAINT_SIX_DOF_ROTATION_Z:
-                                settings.MakeFixedAxis(Jolt.SixDOFConstraintSettings_EAxis_RotationZ);
-                                break;
-                            
-                            default:
-                                DEBUG && Debug.error(`Unrecognized six dof constraint axis setting: ${ axis }`);
-                                return false;
-                        }
-                    }
-                }
-                if (cb.read(BUFFER_READ_UINT8)) {
-                    const count = cb.read(BUFFER_READ_UINT8);
-                    for (let i = 0; i < count; i++) {
-                        const axis = cb.read(BUFFER_READ_UINT8);
-                        const min = cb.read(BUFFER_READ_FLOAT32);
-                        const max = cb.read(BUFFER_READ_FLOAT32);
-
-                        switch (axis) {
-                            case CONSTRAINT_SIX_DOF_TRANSLATION_X:
-                                settings.SetLimitedAxis(Jolt.SixDOFConstraintSettings_EAxis_TranslationX, min, max);
-                                break;
-
-                            case CONSTRAINT_SIX_DOF_TRANSLATION_Y:
-                                settings.SetLimitedAxis(Jolt.SixDOFConstraintSettings_EAxis_TranslationY, min, max);
-                                break;
-                            
-                            case CONSTRAINT_SIX_DOF_TRANSLATION_Z:
-                                settings.SetLimitedAxis(Jolt.SixDOFConstraintSettings_EAxis_TranslationZ, min, max);
-                                break;
-
-                            case CONSTRAINT_SIX_DOF_ROTATION_X:
-                                settings.SetLimitedAxis(Jolt.SixDOFConstraintSettings_EAxis_RotationX, min, max);
-                                break;
-                            
-                            case CONSTRAINT_SIX_DOF_ROTATION_Y:
-                                settings.SetLimitedAxis(Jolt.SixDOFConstraintSettings_EAxis_RotationY, min, max);
-                                break;
-
-                            case CONSTRAINT_SIX_DOF_ROTATION_Z:
-                                settings.SetLimitedAxis(Jolt.SixDOFConstraintSettings_EAxis_RotationZ, min, max);
-                                break;
-                            
-                            default:
-                                DEBUG && Debug.error(`Unrecognized six dof constraint axis setting: ${ axis }`);
-                                return false;
-                        }
-                    }
-                }                
-                if (cb.flag) settings.mPosition1 = jv.FromBuffer(cb);
-                if (cb.flag) settings.mAxisX1 = jv.FromBuffer(cb);
-                if (cb.flag) settings.mAxisY1 = jv.FromBuffer(cb);
-                if (cb.flag) settings.mPosition2 = jv.FromBuffer(cb);
-                if (cb.flag) settings.mAxisX2 = jv.FromBuffer(cb);
-                if (cb.flag) settings.mAxisY2 = jv.FromBuffer(cb);
-                if (cb.flag) settings.mMaxFriction = cb.read(BUFFER_READ_FLOAT32);
-                if (cb.flag) settings.mLimitMin = cb.read(BUFFER_READ_FLOAT32);
-                if (cb.flag) settings.mLimitMax = cb.read(BUFFER_READ_FLOAT32);
+                // free axes
                 if (cb.read(BUFFER_READ_BOOL)) {
-                    const springSettings = this._createSpringSettings(cb, Jolt);
-                    settings.mLimitsSpringSettings = springSettings;
-                    Jolt.destroy(springSettings);
+                    setSixDOFAxes(cb, settings, 'MakeFreeAxis', Jolt, false /* isLimited */);
+                }
+                // fixed axes
+                if (cb.read(BUFFER_READ_BOOL)) {
+                    setSixDOFAxes(cb, settings, 'MakeFixedAxis', Jolt, false /* isLimited */);
+                }
+                // limited axes
+                if (cb.read(BUFFER_READ_BOOL)) {
+                    setSixDOFAxes(cb, settings, 'SetLimitedAxis', Jolt, true /* isLimited */);
+                }               
+                settings.mPosition1 = jv.FromBuffer(cb);
+                settings.mAxisX1 = jv.FromBuffer(cb);
+                settings.mAxisY1 = jv.FromBuffer(cb);
+                settings.mPosition2 = jv.FromBuffer(cb);
+                settings.mAxisX2 = jv.FromBuffer(cb);
+                settings.mAxisY2 = jv.FromBuffer(cb);
+
+                // TODO
+                // refactor
+
+                if (cb.read(BUFFER_READ_BOOL)) {
+                    for (let i = 0; i < 6; ++i) {
+                        settings.set_mMaxFriction(i, cb.read(BUFFER_READ_FLOAT32));
+                    }
                 }
                 if (cb.read(BUFFER_READ_BOOL)) {
-                    const motorSettings = this._createMotorSettings(cb, Jolt);
-                    settings.mMotorSettings = motorSettings;
-                    Jolt.destroy(motorSettings);
+                    for (let i = 0; i < 6; ++i) {
+                        settings.set_mLimitMin(i, cb.read(BUFFER_READ_FLOAT32));
+                    }
+                }
+                if (cb.read(BUFFER_READ_BOOL)) {
+                    for (let i = 0; i < 6; ++i) {
+                        settings.set_mLimitMax(i, cb.read(BUFFER_READ_FLOAT32));
+                    }
+                }
+                if (cb.read(BUFFER_READ_BOOL)) {
+                    for (let i = 0; i < 6; ++i) {
+                        if (cb.read(BUFFER_READ_BOOL)) {
+                            const springSettings = createSpringSettings(cb, Jolt);
+                            settings.set_mLimitsSpringSettings(i, springSettings);
+                            Jolt.destroy(springSettings);
+                        }
+                    }
+                }
+                if (cb.read(BUFFER_READ_BOOL)) {
+                    for (let i = 0; i < 6; ++i) {
+                        if (cb.read(BUFFER_READ_BOOL)) {
+                            const motorSettings = createMotorSettings(cb, Jolt);
+                            settings.set_mMotorSettings(i, motorSettings);
+                            Jolt.destroy(motorSettings);
+                        }
+                    }
                 }
                 break;
-
+            }
             default:
                 DEBUG && Debug.error(`Unrecognized constraint type: ${ type }`);
                 return false;
         }
 
-        if (cb.flag) settings.mNumVelocityStepsOverride = cb.read(BUFFER_READ_UINT8);
-        if (cb.flag) settings.mNumPositionStepsOverride = cb.read(BUFFER_READ_UINT8);
-        if (cb.flag) {
-            const space = (cb.read(BUFFER_READ_UINT8) === CONSTRAINT_SPACE_WORLD) ? Jolt.EConstraintSpace_WorldSpace : Jolt.EConstraintSpace_LocalToBodyCOM;
-            settings.mSpace = space;
-        }
+        if (velOverride > 0) settings.mNumVelocityStepsOverride = velOverride;
+        if (posOverride > 0) settings.mNumPositionStepsOverride = posOverride;
+        settings.mSpace = space;
 
         const constraint = settings.Create(body1, body2);
 
@@ -1254,6 +1185,9 @@ class Creator {
         body1.constraints.push(index);
         body2.constraints.push(index);
 
+        // TODO
+        // Change body linking. Current method doesn't allow 2 different joints between the same
+        // two bodies.
         body1.linked.add(body2);
         body2.linked.add(body1);
 
@@ -1264,31 +1198,35 @@ class Creator {
         return true;
     }
 
-    _createSpringSettings(cb, Jolt) {
-        const springSettings = new Jolt.SpringSettings();
-        const mode = cb.flag ? cb.read(BUFFER_READ_UINT8) : SPRING_MODE_FREQUENCY;
-        springSettings.mMode = (mode === SPRING_MODE_FREQUENCY) ? 
-            Jolt.ESpringMode_FrequencyAndDamping : Jolt.ESpringMode_StiffnessAndDamping;
-        if (cb.flag) springSettings.mFrequency = cb.read(BUFFER_READ_FLOAT32);
-        if (cb.flag) springSettings.mStiffness = cb.read(BUFFER_READ_FLOAT32);
-        if (cb.flag) springSettings.mDamping = cb.read(BUFFER_READ_FLOAT32);
-        return springSettings;
-    }
+    // _createSpringSettings(cb, Jolt) {
+    //     const springSettings = new Jolt.SpringSettings();
+    //     const mode = cb.flag ? cb.read(BUFFER_READ_UINT8) : SPRING_MODE_FREQUENCY;
+    //     const isFrequencyMode = mode === SPRING_MODE_FREQUENCY;
+    //     springSettings.mMode = isFrequencyMode ?
+    //         Jolt.ESpringMode_FrequencyAndDamping : Jolt.ESpringMode_StiffnessAndDamping;
+    //     if (isFrequencyMode) {
+    //         if (cb.flag) springSettings.mFrequency = cb.read(BUFFER_READ_FLOAT32);
+    //     } else {
+    //         if (cb.flag) springSettings.mStiffness = cb.read(BUFFER_READ_FLOAT32);
+    //     }
+    //     if (cb.flag) springSettings.mDamping = cb.read(BUFFER_READ_FLOAT32);
+    //     return springSettings;
+    // }
 
-    _createMotorSettings(cb, Jolt) {
-        const motorSettings = new Jolt.MotorSettings();
-        if (cb.read(BUFFER_READ_BOOL)) {
-            const springsSettings = this._createSpringSettings(cb, Jolt);
-            motorSettings.mSpringSettings = springsSettings;
-            Jolt.destroy(springsSettings);
-        }
-        if (cb.flag) motorSettings.mMinForceLimit = cb.read(BUFFER_READ_FLOAT32);
-        if (cb.flag) motorSettings.mMaxForceLimit = cb.read(BUFFER_READ_FLOAT32);
-        if (cb.flag) motorSettings.mMinTorqueLimit = cb.read(BUFFER_READ_FLOAT32);
-        if (cb.flag) motorSettings.mMaxTorqueLimit = cb.read(BUFFER_READ_FLOAT32);
+    // _createMotorSettings(cb, Jolt) {
+    //     const motorSettings = new Jolt.MotorSettings();
+    //     if (cb.read(BUFFER_READ_BOOL)) {
+    //         const springsSettings = createSpringSettings(cb, Jolt);
+    //         motorSettings.mSpringSettings = springsSettings;
+    //         Jolt.destroy(springsSettings);
+    //     }
+    //     if (cb.flag) motorSettings.mMinForceLimit = cb.read(BUFFER_READ_FLOAT32);
+    //     if (cb.flag) motorSettings.mMaxForceLimit = cb.read(BUFFER_READ_FLOAT32);
+    //     if (cb.flag) motorSettings.mMinTorqueLimit = cb.read(BUFFER_READ_FLOAT32);
+    //     if (cb.flag) motorSettings.mMaxTorqueLimit = cb.read(BUFFER_READ_FLOAT32);
 
-        return motorSettings;
-    }
+    //     return motorSettings;
+    // }
 
     _createCharacter(cb) {
         const backend = this._backend;

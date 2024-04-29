@@ -46,11 +46,17 @@ class VehicleComponentSystem extends BodyComponentSystem {
     constructor(app, manager, id) {
         super(app, manager);
 
-        this.id = 'vehicle';
-        this.schema = [...this.schema, ...schema];
-        this.ComponentType = VehicleComponent;
+        this._schema = [...this._schema, ...schema];
 
         manager.systems.set(id, this);
+    }
+
+    get id() {
+        return 'vehicle';
+    }
+
+    get ComponentType() {
+        return VehicleComponent;
     }
 
     createVehicle(component) {

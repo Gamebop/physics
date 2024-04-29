@@ -1,5 +1,5 @@
 import { Debug } from "../../debug.mjs";
-import { ShapeComponentSystem } from "./system.mjs";
+import { ShapeComponentSystem } from "./shape/system.mjs";
 
 class ContactResult {
     constructor(entity, normal, depth, point = null, offset = null, points1 = null, points2 = null) {

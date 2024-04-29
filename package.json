@@ -10,7 +10,7 @@
         "build:prod": "rimraf dist && webpack --mode=production"
     },
     "dependencies": {
-        "jolt-physics": "^0.18.0",
+        "jolt-physics": "^0.23.0",
         "playcanvas": "^1.66.1"
     },
     "devDependencies": {

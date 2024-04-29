@@ -32,6 +32,8 @@ class PhysicsManager {
         this._systems = new Map();
         this._backend = null
 
+        // TODO
+        // this needs a change after we move to modules
         const wasmAsset = app.assets.find('jolt-physics.wasm.wasm');
         const glueAsset = app.assets.find('jolt-physics.wasm.js');
 

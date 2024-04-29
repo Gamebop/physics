@@ -1,5 +1,5 @@
 import { Debug } from "../../../debug.mjs";
-import { ShapeComponent } from "../component.mjs";
+import { ShapeComponent } from "../shape/component.mjs";
 
 class CharComponent extends ShapeComponent {
     // ---- SHAPE PROPS ----
@@ -104,7 +104,7 @@ class CharComponent extends ShapeComponent {
     _pairedEntity = null;
 
     constructor(system, entity) {
-        super(system, entity);
+        super(system, entity);      
     }
 
     get linearVelocity() {

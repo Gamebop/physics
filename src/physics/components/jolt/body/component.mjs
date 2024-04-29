@@ -1,6 +1,8 @@
 import { Debug } from "../../../debug.mjs";
-import { ShapeComponent } from "../component.mjs";
+import { ShapeComponent } from "../shape/component.mjs";
 
+// TODO
+// make static
 const vec3 = new pc.Vec3();
 
 /**

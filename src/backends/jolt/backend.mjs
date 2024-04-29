@@ -602,7 +602,7 @@ class JoltBackend {
         const useMotionStates = this._config.useMotionStates;
 
         cb.writeOperator(COMPONENT_SYSTEM_CHAR);
-        cb.writeCommand(CMD_UPDATE_TRANSFORMS);
+        cb.writeCommand(CMD_REPORT_TRANSFORMS);
         cb.write(count, BUFFER_WRITE_UINT32, false);
 
         try {
@@ -792,7 +792,7 @@ class JoltBackend {
                 }
 
                 cb.writeOperator(COMPONENT_SYSTEM_BODY);
-                cb.writeCommand(CMD_UPDATE_TRANSFORMS);
+                cb.writeCommand(CMD_REPORT_TRANSFORMS);
 
                 cb.write(index, BUFFER_WRITE_UINT32, false);
                 
@@ -862,7 +862,7 @@ class JoltBackend {
                 }
 
                 cb.writeOperator(COMPONENT_SYSTEM_SOFT_BODY);
-                cb.writeCommand(CMD_UPDATE_TRANSFORMS);
+                cb.writeCommand(CMD_REPORT_TRANSFORMS);
 
                 const index = tracker.getPCID(pointer);
                 cb.write(index, BUFFER_WRITE_UINT32, false);

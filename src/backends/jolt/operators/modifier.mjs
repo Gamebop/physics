@@ -1,16 +1,21 @@
 import { Debug } from "../../../physics/debug.mjs";
 import { MotionState } from "../motion-state.mjs";
+import { ConstraintModifier } from "./helpers/constraint-modifier.mjs";
 
 class Modifier {
     constructor(backend) {
         this._backend = backend;
 
         const Jolt = backend.Jolt;
-
+        
         this._joltVec3_1 = new Jolt.Vec3();
         this._joltVec3_2 = new Jolt.Vec3();
         this._joltVec3_3 = new Jolt.Vec3();
         this._joltQuat_1 = new Jolt.Quat();
+
+        this._constraintModifier = new ConstraintModifier(this);
+        // TODO
+        // add modifier helpers for other components as well
     }
 
     get joltVec3_1() {
@@ -21,10 +26,22 @@ class Modifier {
         return this._joltVec3_2;
     }
 
+    get joltQuat() {
+        return this._joltQuat_1;
+    }
+
+    get backend() {
+        return this._backend;
+    }
+
     modify() {
         const cb = this._backend.inBuffer;
         const command = cb.readCommand();
         let ok = true;
+
+        if (command >= 500 && command < 600) {
+            return this._constraintModifier.modify(command, cb);
+        }
 
         switch (command) {
             case CMD_CHANGE_GRAVITY:
@@ -99,9 +116,9 @@ class Modifier {
                 ok = this._useMotionState(cb);
                 break;
 
-            case CMD_SET_CONSTRAINT_ENABLED:
-                ok = this._setConstraintEnabled(cb);
-                break;
+            // case CMD_SET_CONSTRAINT_ENABLED:
+            //     ok = this._setConstraintEnabled(cb);
+            //     break;
 
             case CMD_SET_DRIVER_INPUT:
                 ok = this._setDriverInput(cb);
@@ -314,43 +331,43 @@ class Modifier {
         return true;
     }
 
-    _setConstraintEnabled(cb) {
-        const backend = this._backend;
-        const Jolt = backend.Jolt;
+    // _setConstraintEnabled(cb) {
+    //     const backend = this._backend;
+    //     const Jolt = backend.Jolt;
 
-        const index = cb.read(BUFFER_READ_UINT32);
-        const enabled = cb.read(BUFFER_READ_BOOL);
-        const activate = cb.read(BUFFER_READ_BOOL);
+    //     const index = cb.read(BUFFER_READ_UINT32);
+    //     const enabled = cb.read(BUFFER_READ_BOOL);
+    //     const activate = cb.read(BUFFER_READ_BOOL);
 
-        const data = backend.tracker.constraintMap.get(index);
+    //     const data = backend.tracker.constraintMap.get(index);
         
-        // An index could be old and constraint might have been already destroyed.
-        if (!data) {
-            DEBUG && Debug.warn(`Trying to enable/disable a constraint that has already been destroyed: ${ index }`);
-            return true;
-        }
+    //     // An index could be old and constraint might have been already destroyed.
+    //     if (!data) {
+    //         DEBUG && Debug.warn(`Trying to enable/disable a constraint that has already been destroyed: ${ index }`);
+    //         return true;
+    //     }
 
-        try {
-            data.constraint.SetEnabled(enabled);
+    //     try {
+    //         data.constraint.SetEnabled(enabled);
     
-            if (activate) {
-                const bodyInterface = backend.bodyInterface;
-                const { body1, body2 } = data;
+    //         if (activate) {
+    //             const bodyInterface = backend.bodyInterface;
+    //             const { body1, body2 } = data;
     
-                if (Jolt.getPointer(data.body1) !== 0) {
-                    bodyInterface.ActivateBody(body1.GetID());
-                }
-                if (Jolt.getPointer(data.body2) !== 0) {
-                    bodyInterface.ActivateBody(body2.GetID());
-                }
-            }
-        } catch (e) {
-            DEBUG && Debug.error(e);
-            return false;
-        }
+    //             if (Jolt.getPointer(data.body1) !== 0) {
+    //                 bodyInterface.ActivateBody(body1.GetID());
+    //             }
+    //             if (Jolt.getPointer(data.body2) !== 0) {
+    //                 bodyInterface.ActivateBody(body2.GetID());
+    //             }
+    //         }
+    //     } catch (e) {
+    //         DEBUG && Debug.error(e);
+    //         return false;
+    //     }
         
-        return true;
-    }
+    //     return true;
+    // }
 
     _resetVelocities(cb) {
         const jv1 = this._joltVec3_1;
