@@ -1,4 +1,6 @@
+import { Plane, Vec3, math } from "playcanvas";
 import { Debug } from "../../../debug.mjs";
+import { BFM_COLLIDE_BACK_FACES, BUFFER_READ_BOOL, BUFFER_READ_FLOAT32, BUFFER_READ_UINT32, BUFFER_READ_UINT8, BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_PLANE, BUFFER_WRITE_UINT32, BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32, CMD_CHAR_SET_LIN_VEL, CMD_CHAR_SET_SHAPE, CMD_DESTROY_BODY, CMD_PAIR_BODY, CMD_SET_USER_DATA, GROUND_STATE_NOT_SUPPORTED, OPERATOR_CLEANER, OPERATOR_MODIFIER, SHAPE_CAPSULE } from "../constants.mjs";
 import { ShapeComponent } from "../shape/component.mjs";
 
 class CharComponent extends ShapeComponent {
@@ -10,23 +12,23 @@ class CharComponent extends ShapeComponent {
     // ---- CHARACTER PROPS ----
 
     // Vector indicating the up direction of the character.
-    _up = pc.Vec3.UP;
+    _up = Vec3.UP;
 
     // Enables/disables the use of motion state for the character.
     _useMotionState = true;
 
     // Character linear velocity. Must be set by user. Backend will use it to calculate next
     // position.
-    _linearVelocity = new pc.Vec3();
+    _linearVelocity = new Vec3();
 
     // Plane, defined in local space relative to the character. Every contact 
     // behind this plane can support the character, every contact in front of 
     // this plane is treated as only colliding with the player. Default: Accept
     // any contact.
-    _supportingVolume = new pc.Plane(pc.Vec3.UP, -1);
+    _supportingVolume = new Plane(Vec3.UP, -1);
 
     // Maximum angle of slope that character can still walk on (radians).
-    _maxSlopeAngle = 45 * pc.math.DEG_TO_RAD;
+    _maxSlopeAngle = 45 * math.DEG_TO_RAD;
 
     // Character mass (kg). Used to push down objects with gravity when the 
     // character is standing on top.
@@ -36,12 +38,12 @@ class CharComponent extends ShapeComponent {
     _maxStrength = 100;
 
     // An extra offset applied to the shape in local space.
-    _shapeOffset = pc.Vec3.ZERO;
+    _shapeOffset = Vec3.ZERO;
 
     // When colliding with back faces, the character will not be able to move through
     // back facing triangles. Use this if you have triangles that need to collide
     // on both sides.
-    _backFaceMode = pc.JOLT_BFM_COLLIDE_BACK_FACES;
+    _backFaceMode = BFM_COLLIDE_BACK_FACES;
 
     // How far to scan outside of the shape for predictive contacts. A value of 0 will
     // most likely cause the character to get stuck as it cannot properly calculate a sliding
@@ -88,13 +90,13 @@ class CharComponent extends ShapeComponent {
 
     // Read-only. If the character is supported, this will tell the ground normal. Otherwise
     // will be a zero vector.
-    _groundNormal = new pc.Vec3();
+    _groundNormal = new Vec3();
 
     // If the character is not supported, will be a zero vector.
-    _groundVelocity = new pc.Vec3();
+    _groundVelocity = new Vec3();
 
     // Ground state.
-    _state = pc.JOLT_GROUND_STATE_NOT_SUPPORTED;
+    _state = GROUND_STATE_NOT_SUPPORTED;
 
     // User data to be associated with a shape.
     _userData = null;
@@ -126,8 +128,9 @@ class CharComponent extends ShapeComponent {
     set userData(num) {
         if (DEBUG) {
             let ok = Debug.checkFloat(num, `Invalid user data value. Should be a number: ${ num }`);
-            if (!ok)
+            if (!ok) {
                 return;
+            }
         }
 
         this._userData = num;

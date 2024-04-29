@@ -1,17 +1,19 @@
+import { Color, Quat, Vec3 } from "playcanvas";
 import { IndexedCache } from "../../../indexed-cache.mjs";
+import { BUFFER_READ_FLOAT32, BUFFER_READ_UINT32, FLOAT32_SIZE, MOTION_TYPE_DYNAMIC, MOTION_TYPE_KINEMATIC, MOTION_TYPE_STATIC } from "../constants.mjs";
 import { ComponentSystem } from "../system.mjs";
 import { ShapeComponent } from "./component.mjs";
 
 function getColor(type, config) {
     switch (type) {
-        case pc.JOLT_MOTION_TYPE_STATIC:
+        case MOTION_TYPE_STATIC:
             return config.debugColorStatic;
-        case pc.JOLT_MOTION_TYPE_KINEMATIC:
+        case MOTION_TYPE_KINEMATIC:
             return config.debugColorKinematic;
-        case pc.JOLT_MOTION_TYPE_DYNAMIC:
+        case MOTION_TYPE_DYNAMIC:
             return config.debugColorDynamic;
         default:
-            return pc.Color.WHITE;
+            return Color.WHITE;
     }
 }
 
@@ -83,45 +85,7 @@ class ShapeComponentSystem extends ComponentSystem {
         this.entityMap.free(index);
     }
 
-    _exposeConstants() {
-        if (typeof window !== 'undefined' && window.pc) {
-            pc.JOLT_SHAPE_BOX = SHAPE_BOX;
-            pc.JOLT_SHAPE_CAPSULE = SHAPE_CAPSULE;
-            pc.JOLT_SHAPE_CYLINDER = SHAPE_CYLINDER;
-            pc.JOLT_SHAPE_SPHERE = SHAPE_SPHERE;
-            pc.JOLT_SHAPE_MESH = SHAPE_MESH;
-            pc.JOLT_SHAPE_CONVEX_HULL = SHAPE_CONVEX_HULL;
-            pc.JOLT_SHAPE_STATIC_COMPOUND = SHAPE_STATIC_COMPOUND;
-            pc.JOLT_SHAPE_HEIGHTFIELD = SHAPE_HEIGHTFIELD;
-            pc.JOLT_OBJ_LAYER_NON_MOVING = OBJ_LAYER_NON_MOVING;
-            pc.JOLT_OBJ_LAYER_MOVING = OBJ_LAYER_MOVING;
-            pc.JOLT_BP_LAYER_NON_MOVING = BP_LAYER_NON_MOVING;
-            pc.JOLT_BP_LAYER_MOVING = BP_LAYER_MOVING;
-            pc.JOLT_VEHICLE_TYPE_WHEEL = VEHICLE_TYPE_WHEEL;
-            pc.JOLT_VEHICLE_TYPE_TRACK = VEHICLE_TYPE_TRACK;
-            pc.JOLT_VEHICLE_TYPE_MOTORCYCLE = VEHICLE_TYPE_MOTORCYCLE;
-            pc.JOLT_VEHICLE_CAST_TYPE_RAY = VEHICLE_CAST_TYPE_RAY;
-            pc.JOLT_VEHICLE_CAST_TYPE_CYLINDER = VEHICLE_CAST_TYPE_CYLINDER;
-            pc.JOLT_VEHICLE_CAST_TYPE_SPHERE = VEHICLE_CAST_TYPE_SPHERE;
-            pc.JOLT_CONSTRAINT_TYPE_FIXED = CONSTRAINT_TYPE_FIXED;
-            pc.JOLT_CONSTRAINT_TYPE_POINT = CONSTRAINT_TYPE_POINT;
-            pc.JOLT_CONSTRAINT_TYPE_DISTANCE = CONSTRAINT_TYPE_DISTANCE;
-            pc.JOLT_CONSTRAINT_TYPE_HINGE = CONSTRAINT_TYPE_HINGE;
-            pc.JOLT_CONSTRAINT_TYPE_SLIDER = CONSTRAINT_TYPE_SLIDER;
-            pc.JOLT_CONSTRAINT_TYPE_CONE = CONSTRAINT_TYPE_CONE;
-            pc.JOLT_CONSTRAINT_TYPE_SWING_TWIST = CONSTRAINT_TYPE_SWING_TWIST;
-            pc.JOLT_CONSTRAINT_TYPE_SIX_DOF = CONSTRAINT_TYPE_SIX_DOF;
-            pc.JOLT_CONSTRAINT_TYPE_PULLEY = CONSTRAINT_TYPE_PULLEY;
-            pc.JOLT_CONSTRAINT_SIX_DOF_TRANSLATION_X = CONSTRAINT_SIX_DOF_TRANSLATION_X;
-            pc.JOLT_CONSTRAINT_SIX_DOF_TRANSLATION_Y = CONSTRAINT_SIX_DOF_TRANSLATION_Y;
-            pc.JOLT_CONSTRAINT_SIX_DOF_TRANSLATION_Z = CONSTRAINT_SIX_DOF_TRANSLATION_Z;
-            pc.JOLT_CONSTRAINT_SIX_DOF_ROTATION_X = CONSTRAINT_SIX_DOF_ROTATION_X;
-            pc.JOLT_CONSTRAINT_SIX_DOF_ROTATION_Y = CONSTRAINT_SIX_DOF_ROTATION_Y;
-            pc.JOLT_CONSTRAINT_SIX_DOF_ROTATION_Z = CONSTRAINT_SIX_DOF_ROTATION_Z;
-            pc.JOLT_CONSTRAINT_SPACE_LOCAL = CONSTRAINT_SPACE_LOCAL;
-            pc.JOLT_CONSTRAINT_SPACE_WORLD = CONSTRAINT_SPACE_WORLD;
-        }
-    }
+    _exposeConstants() {}
 
     static updateDynamic(cb) {
         const index = cb.read(BUFFER_READ_UINT32);
@@ -202,7 +166,7 @@ class ShapeComponentSystem extends ComponentSystem {
         const tempVectors = ShapeComponentSystem.tempVectors;
 
         if (tempVectors.length === 0) {
-            tempVectors.push( new pc.Vec3(), new pc.Vec3(), new pc.Vec3(), new pc.Vec3(), new pc.Quat() );
+            tempVectors.push( new Vec3(), new Vec3(), new Vec3(), new Vec3(), new Quat() );
         }
 
         const v1 = tempVectors[0];

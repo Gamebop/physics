@@ -1,4 +1,5 @@
 import { Debug } from "../../../debug.mjs";
+import { CMD_CAST_RAY, CMD_CAST_SHAPE, CMD_CREATE_BODY, CMD_REPORT_CONTACTS, CMD_REPORT_TRANSFORMS, OPERATOR_CREATOR } from "../constants.mjs";
 import { ResponseHandler } from "../response-handler.mjs";
 import { ShapeComponentSystem } from "../shape/system.mjs";
 import { BodyComponent } from "./component.mjs";

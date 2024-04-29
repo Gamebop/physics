@@ -1,12 +1,14 @@
+import { Vec3 } from "playcanvas";
 import { Debug } from "../../../../debug.mjs";
+import { CONSTRAINT_TYPE_CONE } from "../../constants.mjs";
 import { Constraint } from "./constraint.mjs";
 
 class ConeConstraint extends Constraint {
     _type = CONSTRAINT_TYPE_CONE;
 
-    _twistAxis1 = pc.Vec3.RIGHT;
+    _twistAxis1 = Vec3.RIGHT;
 
-    _twistAxis2 = pc.Vec3.RIGHT;
+    _twistAxis2 = Vec3.RIGHT;
 
     _halfConeAngle = 0;
 

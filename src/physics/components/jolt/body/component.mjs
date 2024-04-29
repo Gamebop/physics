@@ -1,9 +1,11 @@
+import { Quat, Vec3 } from "playcanvas";
 import { Debug } from "../../../debug.mjs";
+import { ALLOWED_DOFS_ALL, BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT32, BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32, CMD_DESTROY_BODY, CMD_MOVE_BODY, CMD_MOVE_KINEMATIC, CMD_RESET_VELOCITIES, MOTION_QUALITY_DISCRETE, MOTION_TYPE_DYNAMIC, MOTION_TYPE_KINEMATIC, MOTION_TYPE_STATIC, OMP_CALCULATE_MASS_AND_INERTIA, OMP_MASS_AND_INERTIA_PROVIDED, OPERATOR_CLEANER, OPERATOR_MODIFIER, SHAPE_CONVEX_HULL, SHAPE_HEIGHTFIELD, SHAPE_MESH } from "../constants.mjs";
 import { ShapeComponent } from "../shape/component.mjs";
 
 // TODO
 // make static
-const vec3 = new pc.Vec3();
+const vec3 = new Vec3();
 
 /**
  * Body Component description.
@@ -14,10 +16,10 @@ class BodyComponent extends ShapeComponent {
 
     // ---- BODY PROPS ----
 
-    _angularVelocity = new pc.Vec3();
+    _angularVelocity = new Vec3();
 
     /** @type {number} @hidden */
-    _allowedDOFs = pc.JOLT_ALLOWED_DOFS_ALL;
+    _allowedDOFs = ALLOWED_DOFS_ALL;
 
     _allowDynamicOrKinematic = false;
 
@@ -38,31 +40,32 @@ class BodyComponent extends ShapeComponent {
 
     _linearDamping = 0;
 
-    _linearVelocity = new pc.Vec3();
+    _linearVelocity = new Vec3();
     
-    _maxAngularVelocity = 0.25 * Math.PI * 60;
+    _maxAngularVelocity = 47.12388980384689;
 
     _maxLinearVelocity = 500;
 
     /** @type {number} @hidden */
-    _motionQuality = pc.JOLT_MOTION_QUALITY_DISCRETE;
+    _motionQuality = MOTION_QUALITY_DISCRETE;
 
     /** @type {number} @hidden */
-    _motionType = pc.JOLT_MOTION_TYPE_STATIC;
+    _motionType = MOTION_TYPE_STATIC;
 
     _objectLayer = 0;
 
-    _overrideInertiaPosition = new pc.Vec3();
-    _overrideInertiaRotation = new pc.Quat();
+    _overrideInertiaPosition = new Vec3();
+
+    _overrideInertiaRotation = new Quat();
 
     _overrideMass = 1;
     
     /** @type {number} @hidden */
-    _overrideMassProperties = pc.JOLT_OMP_CALCULATE_MASS_AND_INERTIA;
+    _overrideMassProperties = OMP_CALCULATE_MASS_AND_INERTIA;
 
-    _position = new pc.Vec3();
+    _position = new Vec3();
 
-    _rotation = new pc.Quat();
+    _rotation = new Quat();
     
     _restitution = 0;
 
@@ -76,7 +79,7 @@ class BodyComponent extends ShapeComponent {
     }
 
     /**
-     * When this body is created as `JOLT_MOTION_TYPE_STATIC`, this setting tells
+     * When this body is created as `MOTION_TYPE_STATIC`, this setting tells
      * the system to create a MotionProperties object so that the object can be
      * switched to kinematic or dynamic. Use `false` (default), if you don't intend
      * to switch the type of this body from static.
@@ -89,30 +92,30 @@ class BodyComponent extends ShapeComponent {
      * Which degrees of freedom this body has (can be used to limit simulation to 2D).
      * You can use following enum aliases:
      * ```
-     * JOLT_ALLOWED_DOFS_TRANSLATION_X
+     * ALLOWED_DOFS_TRANSLATION_X
      * ```
      * ```
-     * JOLT_ALLOWED_DOFS_TRANSLATION_Y
+     * ALLOWED_DOFS_TRANSLATION_Y
      * ```
      * ```
-     * JOLT_ALLOWED_DOFS_TRANSLATION_Z
+     * ALLOWED_DOFS_TRANSLATION_Z
      * ```
      * ```
-     * JOLT_ALLOWED_DOFS_ROTATION_X
+     * ALLOWED_DOFS_ROTATION_X
      * ```
      * ```
-     * JOLT_ALLOWED_DOFS_ROTATION_Y
+     * ALLOWED_DOFS_ROTATION_Y
      * ```
      * ```
-     * JOLT_ALLOWED_DOFS_ROTATION_Z
+     * ALLOWED_DOFS_ROTATION_Z
      * ```
      * ```
-     * JOLT_ALLOWED_DOFS_PLANE_2D
+     * ALLOWED_DOFS_PLANE_2D
      * ```
      * ```
-     * JOLT_ALLOWED_DOFS_ALL
+     * ALLOWED_DOFS_ALL
      * ```
-     * For example, using `JOLT_ALLOWED_DOFS_TRANSLATION_X` allows a body to move in world space X axis. 
+     * For example, using `ALLOWED_DOFS_TRANSLATION_X` allows a body to move in world space X axis. 
      */
     get allowedDOFs() {
         return this._allowedDOFs;
@@ -139,7 +142,7 @@ class BodyComponent extends ShapeComponent {
     /**
      * World space angular velocity (rad/s)
      * 
-     * @type {import('playcanvas').Vec3}
+     * @type {Vec3}
      */
     set angularVelocity(vec) {
         if (DEBUG) {
@@ -252,10 +255,10 @@ class BodyComponent extends ShapeComponent {
      * Motion quality, or how well it detects collisions when it has a high velocity.
      * Following enum aliases available:
      * ```
-     * JOLT_MOTION_QUALITY_DISCRETE
+     * MOTION_QUALITY_DISCRETE
      * ```
      * ```
-     * JOLT_MOTION_QUALITY_LINEAR_CAST
+     * MOTION_QUALITY_LINEAR_CAST
      * ```
      * Use linear cast for fast moving objects, in other cases prefer discrete one since its cheaper (default).
      */
@@ -267,13 +270,13 @@ class BodyComponent extends ShapeComponent {
      * Motion type, determines if the object is static, dynamic or kinematic.
      * You can use the following enum aliases:
      * ```
-     * JOLT_MOTION_TYPE_STATIC
+     * MOTION_TYPE_STATIC
      * ```
      * ```
-     * JOLT_MOTION_TYPE_DYNAMIC
+     * MOTION_TYPE_DYNAMIC
      * ```
      * ```
-     * JOLT_MOTION_TYPE_KINEMATIC
+     * MOTION_TYPE_KINEMATIC
      * ```
      * 
      * @type {number}
@@ -300,7 +303,7 @@ class BodyComponent extends ShapeComponent {
     }
 
     /**
-     * Used only if `JOLT_OMP_MASS_AND_INERTIA_PROVIDED` is selected for `overrideMassProperties`.
+     * Used only if `OMP_MASS_AND_INERTIA_PROVIDED` is selected for `overrideMassProperties`.
      * Backend will create inertia matrix from the given position.
      */
     get overrideInertiaPosition() {
@@ -308,7 +311,7 @@ class BodyComponent extends ShapeComponent {
     }
 
     /**
-     * Used only if `JOLT_OMP_MASS_AND_INERTIA_PROVIDED` is selected for {@link overrideMassProperties}.
+     * Used only if `OMP_MASS_AND_INERTIA_PROVIDED` is selected for {@link overrideMassProperties}.
      * Backend will create inertia matrix from the given rotation.
      */
     get overrideInertiaRotation() {
@@ -316,7 +319,7 @@ class BodyComponent extends ShapeComponent {
     }
 
     /**
-     * Used only if `JOLT_OMP_CALCULATE_INERTIA` or `JOLT_OMP_MASS_AND_INERTIA_PROVIDED` is selected
+     * Used only if `OMP_CALCULATE_INERTIA` or `OMP_MASS_AND_INERTIA_PROVIDED` is selected
      * for {@link overrideMassProperties}
      */
     get overrideMass() {
@@ -325,21 +328,21 @@ class BodyComponent extends ShapeComponent {
 
     /**
      * Determines how a body mass and inertia is calculated. By default it uses 
-     * `JOLT_OMP_CALCULATE_MASS_AND_INERTIA`, which tells Jolt to auto-calculate those based the collider
+     * `OMP_CALCULATE_MASS_AND_INERTIA`, which tells Jolt to auto-calculate those based the collider
      * shape. You can use following enum aliases:
      * ```
-     * JOLT_OMP_CALCULATE_INERTIA
+     * OMP_CALCULATE_INERTIA
      * ```
      * ```
-     * JOLT_OMP_CALCULATE_MASS_AND_INERTIA
+     * OMP_CALCULATE_MASS_AND_INERTIA
      * ```
      * ```
-     * JOLT_OMP_MASS_AND_INERTIA_PROVIDED
+     * OMP_MASS_AND_INERTIA_PROVIDED
      * ```
-     * If you select `JOLT_OMP_CALCULATE_INERTIA`, you must also specify {@link overrideMass}.
+     * If you select `OMP_CALCULATE_INERTIA`, you must also specify {@link overrideMass}.
      * The inertia will be automatically calculated for you.
      * 
-     * If you select `JOLT_OMP_MASS_AND_INERTIA_PROVIDED`, you must also specify {@link overrideMass},
+     * If you select `OMP_MASS_AND_INERTIA_PROVIDED`, you must also specify {@link overrideMass},
      * {@link overrideInertiaPosition} and {@link overrideInertiaRotation}.
      */
     get overrideMassProperties() {
@@ -417,7 +420,7 @@ class BodyComponent extends ShapeComponent {
      * @param {import('playcanvas').Vec3} [offset] - Offset from the body center where the force is added.
      * @param {boolean} [isOffsetLocal] - Specifies if offset is in world or local space.
      */
-    addForce(force, offset = pc.Vec3.ZERO, isOffsetLocal = false) {
+    addForce(force, offset = Vec3.ZERO, isOffsetLocal = false) {
         if (DEBUG) {
             let ok = Debug.checkVec(force, `Invalid add force vector`);
             ok = ok && Debug.checkVec(offset, `Invalid add force offset`);
@@ -428,7 +431,7 @@ class BodyComponent extends ShapeComponent {
 
         vec3.copy(offset);
 
-        if (!vec3.equals(pc.Vec3.ZERO) && isOffsetLocal) {   
+        if (!vec3.equals(Vec3.ZERO) && isOffsetLocal) {   
             this._localToWorld(vec3);
         }
 
@@ -486,7 +489,7 @@ class BodyComponent extends ShapeComponent {
      * @param {import('playcanvas').Vec3} [offset] - Offset from the body center where the impulse is added.
      * @param {boolean} [isOffsetLocal] - Specifies if offset is in world or local space.
      */
-    addImpulse(impulse, offset = pc.Vec3.ZERO, isOffsetLocal = false) {
+    addImpulse(impulse, offset = Vec3.ZERO, isOffsetLocal = false) {
         if (DEBUG) {
             let ok = Debug.checkVec(impulse, `Invalid add impulse vector:`);
             ok = ok && Debug.checkVec(offset, `Invalid add impulse offset:`);
@@ -497,7 +500,7 @@ class BodyComponent extends ShapeComponent {
 
         vec3.copy(offset);
 
-        if (!vec3.equals(pc.Vec3.ZERO) && isOffsetLocal) {
+        if (!vec3.equals(Vec3.ZERO) && isOffsetLocal) {
             this._localToWorld(vec3);
         }
 
@@ -614,7 +617,7 @@ class BodyComponent extends ShapeComponent {
      * @param {import('playcanvas').Vec3} position - World space position where to place the body. 
      * @param {import('playcanvas').Quat} [rotation] - World space rotation the body should assume at new position.
      */
-    teleport(position, rotation = pc.Quat.IDENTITY) {
+    teleport(position, rotation = Quat.IDENTITY) {
         if (DEBUG) {
             let ok = Debug.checkVec(position, `Invalid position vector`, position);
             ok = ok && Debug.checkQuat(rotation, `Invalid rotation quat`, rotation);
@@ -695,7 +698,7 @@ class BodyComponent extends ShapeComponent {
     }    
 
     writeIsometry() {
-        if (this._motionType === pc.JOLT_MOTION_TYPE_DYNAMIC) {
+        if (this._motionType === MOTION_TYPE_DYNAMIC) {
             return;
         }
 
@@ -710,10 +713,6 @@ class BodyComponent extends ShapeComponent {
                 position, BUFFER_WRITE_VEC32, false,
                 rotation, BUFFER_WRITE_VEC32, false
             );
-
-            // if (this._motionType === pc.JOLT_MOTION_TYPE_DYNAMIC) {
-            //     this.resetVelocities();
-            // }
         }
     }    
 
@@ -764,10 +763,10 @@ class BodyComponent extends ShapeComponent {
         const massProps = this._overrideMassProperties;
         cb.write(massProps, BUFFER_WRITE_UINT8, false);
 
-        if (massProps !== pc.JOLT_OMP_CALCULATE_MASS_AND_INERTIA) {
+        if (massProps !== OMP_CALCULATE_MASS_AND_INERTIA) {
             cb.write(this._overrideMass, BUFFER_WRITE_FLOAT32, false);
 
-            if (this._overrideMassProperties === pc.JOLT_OMP_MASS_AND_INERTIA_PROVIDED) {
+            if (this._overrideMassProperties === OMP_MASS_AND_INERTIA_PROVIDED) {
                 // override inertia
                 // Potential precision loss (64 -> 32)
                 cb.write(this._overrideInertiaPosition, BUFFER_WRITE_VEC32, false);
@@ -794,7 +793,7 @@ class BodyComponent extends ShapeComponent {
 
         if (!isCompoundChild) {
             const motionType = this._motionType;
-            if ((motionType === pc.JOLT_MOTION_TYPE_DYNAMIC && this._trackDynamic) || motionType === pc.JOLT_MOTION_TYPE_KINEMATIC) {
+            if ((motionType === MOTION_TYPE_DYNAMIC && this._trackDynamic) || motionType === MOTION_TYPE_KINEMATIC) {
                 this._isometryEvent = this.system.on('write-isometry', this.writeIsometry, this);
             }
         }
@@ -809,10 +808,7 @@ class BodyComponent extends ShapeComponent {
         system.setIndexFree(componentIndex);
 
         // TODO
-        // Jolt currently exposes only static compounds to Wasm. Which means,
-        // that a compound parent cannot change children. So, currently
-        // a child cannot be added/removed, we can only destroy/create
-        // parent.
+        // Add support for dynamic compounds
 
         if (this._isCompoundChild) return;
 

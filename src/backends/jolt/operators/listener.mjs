@@ -1,3 +1,5 @@
+const eval2 = eval;
+
 class Listener {
     constructor(backend) {
         this._listener = null;
@@ -62,7 +64,7 @@ class Listener {
         const listener = listenerType === 'contacts' ? this._listener : this._charListener;
 
         for (const [method, funcStr] of Object.entries(overrides)) {
-            listener[method] = eval('(' + funcStr + ')').bind(this);
+            listener[method] = eval2('(' + funcStr + ')').bind(this);
         }
     }
 

@@ -2,18 +2,6 @@ import { Debug } from "./debug.mjs";
 import { JoltManager } from "./components/jolt/manager.mjs";
 import { extendPCMath } from "./math.mjs";
 
-// Override chunk location in order for the engine to locate them in PlayCanvas Editor.
-// TODO
-// is there a better way?
-const oldFn = __webpack_get_script_filename__;
-__webpack_get_script_filename__ = (chunkId) => {
-    const filename = oldFn(chunkId);
-    const app = pc.Application.getApplication();
-    const asset = app.assets.find(filename, 'script');
-    const url = asset.getFileUrl();
-    return url;
-};
-
 /**
  * Components initialization method.
  * 
@@ -52,7 +40,7 @@ function init(app, opts = {}) {
         function onReady() {
             app.on('destroy', () => destroy());
             app[propertyName] = manager;
-            resolve();
+            resolve(manager);
         }
 
         function destroy() {

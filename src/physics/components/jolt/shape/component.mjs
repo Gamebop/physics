@@ -1,5 +1,7 @@
+import { Quat, SEMANTIC_POSITION, Vec3 } from "playcanvas";
 import { Debug } from "../../../debug.mjs";
 import { Component } from "../component.mjs";
+import { BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT32, BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32, FLOAT32_SIZE, SHAPE_BOX, SHAPE_CONVEX_HULL, SHAPE_MESH } from "../constants.mjs";
 
 class ShapeComponent extends Component {
 
@@ -43,7 +45,7 @@ class ShapeComponent extends Component {
     // ---- SHAPE PROPS ----
 
     // Half extents for a box shape
-    _halfExtent = new pc.Vec3(0.5, 0.5, 0.5);
+    _halfExtent = new Vec3(0.5, 0.5, 0.5);
 
     // Raidus for radius based shapes
     _radius = 0.5;
@@ -58,13 +60,13 @@ class ShapeComponent extends Component {
     _density = 1000;
 
     // Shape local position offset
-    _shapePosition = pc.Vec3.ZERO;
+    _shapePosition = Vec3.ZERO;
 
     // Shape local rotation offset
-    _shapeRotation = pc.Quat.IDENTITY;
+    _shapeRotation = Quat.IDENTITY;
 
     // Offset center of mass in local space of the body. Does not move the shape.
-    _massOffset = pc.Vec3.ZERO;
+    _massOffset = Vec3.ZERO;
 
     _hfSamples = null;
 
@@ -90,11 +92,11 @@ class ShapeComponent extends Component {
     // cos(0 degrees) and cos(90 degrees). The default value is cos(5 degrees).
     _hfActiveEdgeCosThresholdAngle = 0.996195;
 
-    _hfScale = pc.Vec3.ONE;
+    _hfScale = Vec3.ONE;
 
     // The height field is a surface defined by: hfOffset + hfScale * (x, hfHeightSamples[y * hfSampleCount + x], y).
     // where x and y are integers in the range x and y e [0, hfSampleCount - 1].
-    _hfOffset = pc.Vec3.ZERO;
+    _hfOffset = Vec3.ZERO;
 
     constructor(system, entity) {
         super(system, entity);
@@ -108,7 +110,7 @@ class ShapeComponent extends Component {
         return this._index;
     }
 
-    static quat = new pc.Quat();
+    static quat = new Quat();
 
     static writeShapeData(cb, props, forceWriteRotation = false) {
         const shape = props.shape;
@@ -184,10 +186,10 @@ class ShapeComponent extends Component {
             const position = props.shapePosition;
             const rotation = props.shapeRotation;
             const massOffset = props.massOffset;
-            const hasPositionOffset = !position.equals(pc.Vec3.ZERO);
-            const hasRotationOffset = forceWriteRotation || !rotation.equals(pc.Quat.IDENTITY);
+            const hasPositionOffset = !position.equals(Vec3.ZERO);
+            const hasRotationOffset = forceWriteRotation || !rotation.equals(Quat.IDENTITY);
             const hasShapeOffset = hasPositionOffset || hasRotationOffset;
-            const hasMassOffset = !massOffset.equals(pc.Vec3.ZERO);
+            const hasMassOffset = !massOffset.equals(Vec3.ZERO);
     
             cb.write(hasShapeOffset, BUFFER_WRITE_BOOL, false);
             if (hasShapeOffset) {
@@ -244,7 +246,7 @@ class ShapeComponent extends Component {
 
             for (let i = 0; i < format.elements.length; i++) {
                 const element = format.elements[i];
-                if (element.name === pc.SEMANTIC_POSITION) {
+                if (element.name === SEMANTIC_POSITION) {
                     cb.write(mesh.primitive[0].base, BUFFER_WRITE_UINT8, false);
                     cb.write(element.offset, BUFFER_WRITE_UINT32, false);
                     cb.write(element.stride / FLOAT32_SIZE, BUFFER_WRITE_UINT8, false);

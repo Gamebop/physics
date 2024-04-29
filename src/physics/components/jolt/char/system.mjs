@@ -3,6 +3,7 @@ import { IndexedCache } from "../../../indexed-cache.mjs";
 import { CharComponent } from "./component.mjs";
 import { ResponseHandler } from "../response-handler.mjs";
 import { ShapeComponentSystem } from "../shape/system.mjs";
+import { BUFFER_READ_UINT32, CMD_CREATE_CHAR, CMD_REPORT_CONTACTS, CMD_REPORT_SET_SHAPE, CMD_REPORT_TRANSFORMS, OPERATOR_CREATOR } from "../constants.mjs";
 
 const schema = [
     // Jolt virtual character

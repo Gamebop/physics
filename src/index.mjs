@@ -10,4 +10,6 @@ import { init } from "./physics/init.mjs";
 export { BodyComponent } from "./physics/components/jolt/body/component.mjs";
 export { BodyComponentSystem } from "./physics/components/jolt/body/system.mjs";
 
-export default { init };
+export * from "./physics/components/jolt/constants.mjs";
+
+export { init };

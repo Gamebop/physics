@@ -1,4 +1,4 @@
-import joltInfo from "jolt-physics/package.json";
+// import joltInfo from "jolt-physics/package.json";
 import { Debug } from "../../physics/debug.mjs";
 import { extendJoltMath } from "../../physics/math.mjs";
 import { CommandsBuffer } from "./commands-buffer.mjs";
@@ -9,6 +9,8 @@ import { Listener } from "./operators/listener.mjs";
 import { Modifier } from "./operators/modifier.mjs";
 import { Querier } from "./operators/querier.mjs";
 import { Tracker } from "./operators/tracker.mjs";
+
+// const joltInfo = require("jolt-physics/package.json");
 
 class JoltBackend {
     constructor(messenger, data) {
@@ -141,7 +143,7 @@ class JoltBackend {
                 this._exposeConstants();
 
                 if (DEBUG) {
-                    console.log('Jolt Physics:', joltInfo.version);
+                    // console.log('Jolt Physics:', joltInfo.version);
                 }
             });
         }
@@ -726,39 +728,39 @@ class JoltBackend {
         const msg = this._responseMessage;
 
         msg.constants = [
-            'JOLT_MOTION_TYPE_STATIC', Jolt.EMotionType_Static,
-            'JOLT_MOTION_TYPE_DYNAMIC', Jolt.EMotionType_Dynamic,
-            'JOLT_MOTION_TYPE_KINEMATIC', Jolt.EMotionType_Kinematic,
+            // 'JOLT_MOTION_TYPE_STATIC', Jolt.EMotionType_Static,
+            // 'JOLT_MOTION_TYPE_DYNAMIC', Jolt.EMotionType_Dynamic,
+            // 'JOLT_MOTION_TYPE_KINEMATIC', Jolt.EMotionType_Kinematic,
 
-            'JOLT_OMP_CALCULATE_INERTIA', Jolt.EOverrideMassProperties_CalculateInertia,
-            'JOLT_OMP_CALCULATE_MASS_AND_INERTIA', Jolt.EOverrideMassProperties_CalculateMassAndInertia,
-            'JOLT_OMP_MASS_AND_INERTIA_PROVIDED', Jolt.EOverrideMassProperties_MassAndInertiaProvided,
+            // 'JOLT_OMP_CALCULATE_INERTIA', Jolt.EOverrideMassProperties_CalculateInertia,
+            // 'JOLT_OMP_CALCULATE_MASS_AND_INERTIA', Jolt.EOverrideMassProperties_CalculateMassAndInertia,
+            // 'JOLT_OMP_MASS_AND_INERTIA_PROVIDED', Jolt.EOverrideMassProperties_MassAndInertiaProvided,
 
-            'JOLT_ALLOWED_DOFS_TRANSLATION_X', Jolt.EAllowedDOFs_TranslationX,
-            'JOLT_ALLOWED_DOFS_TRANSLATION_Y', Jolt.EAllowedDOFs_TranslationY,
-            'JOLT_ALLOWED_DOFS_TRANSLATION_Z', Jolt.EAllowedDOFs_TranslationZ,
-            'JOLT_ALLOWED_DOFS_ROTATION_X', Jolt.EAllowedDOFs_RotationX,
-            'JOLT_ALLOWED_DOFS_ROTATION_Y', Jolt.EAllowedDOFs_RotationY,
-            'JOLT_ALLOWED_DOFS_ROTATION_Z', Jolt.EAllowedDOFs_RotationZ,
-            'JOLT_ALLOWED_DOFS_PLANE_2D', Jolt.EAllowedDOFs_Plane2D,
-            'JOLT_ALLOWED_DOFS_ALL', Jolt.EAllowedDOFs_All,
+            // 'JOLT_ALLOWED_DOFS_TRANSLATION_X', Jolt.EAllowedDOFs_TranslationX,
+            // 'JOLT_ALLOWED_DOFS_TRANSLATION_Y', Jolt.EAllowedDOFs_TranslationY,
+            // 'JOLT_ALLOWED_DOFS_TRANSLATION_Z', Jolt.EAllowedDOFs_TranslationZ,
+            // 'JOLT_ALLOWED_DOFS_ROTATION_X', Jolt.EAllowedDOFs_RotationX,
+            // 'JOLT_ALLOWED_DOFS_ROTATION_Y', Jolt.EAllowedDOFs_RotationY,
+            // 'JOLT_ALLOWED_DOFS_ROTATION_Z', Jolt.EAllowedDOFs_RotationZ,
+            // 'JOLT_ALLOWED_DOFS_PLANE_2D', Jolt.EAllowedDOFs_Plane2D,
+            // 'JOLT_ALLOWED_DOFS_ALL', Jolt.EAllowedDOFs_All,
 
-            'JOLT_MOTION_QUALITY_DISCRETE', Jolt.EMotionQuality_Discrete,
-            'JOLT_MOTION_QUALITY_LINEAR_CAST', Jolt.EMotionQuality_LinearCast,
+            // 'JOLT_MOTION_QUALITY_DISCRETE', Jolt.EMotionQuality_Discrete,
+            // 'JOLT_MOTION_QUALITY_LINEAR_CAST', Jolt.EMotionQuality_LinearCast,
 
-            'JOLT_BFM_IGNORE_BACK_FACES', Jolt.EBackFaceMode_IgnoreBackFaces,
-            'JOLT_BFM_COLLIDE_BACK_FACES', Jolt.EBackFaceMode_CollideWithBackFaces,
+            // 'JOLT_BFM_IGNORE_BACK_FACES', Jolt.EBackFaceMode_IgnoreBackFaces,
+            // 'JOLT_BFM_COLLIDE_BACK_FACES', Jolt.EBackFaceMode_CollideWithBackFaces,
             
-            'JOLT_GROUND_STATE_ON_GROUND', Jolt.EGroundState_OnGround,
-            'JOLT_GROUND_STATE_ON_STEEP_GROUND', Jolt.EGroundState_OnSteepGround,
-            'JOLT_GROUND_STATE_NOT_SUPPORTED', Jolt.EGroundState_NotSupported,
-            'JOLT_GROUND_STATE_IN_AIR', Jolt.EGroundState_InAir,
+            // 'JOLT_GROUND_STATE_ON_GROUND', Jolt.EGroundState_OnGround,
+            // 'JOLT_GROUND_STATE_ON_STEEP_GROUND', Jolt.EGroundState_OnSteepGround,
+            // 'JOLT_GROUND_STATE_NOT_SUPPORTED', Jolt.EGroundState_NotSupported,
+            // 'JOLT_GROUND_STATE_IN_AIR', Jolt.EGroundState_InAir,
 
-            'JOLT_TRANSMISSION_AUTO', Jolt.ETransmissionMode_Auto,
-            'JOLT_TRANSMISSION_MANUAL', Jolt.ETransmissionMode_Manual,
+            // 'JOLT_TRANSMISSION_AUTO', Jolt.ETransmissionMode_Auto,
+            // 'JOLT_TRANSMISSION_MANUAL', Jolt.ETransmissionMode_Manual,
 
-            'JOLT_SPRING_MODE_FREQUENCY', Jolt.ESpringMode_FrequencyAndDamping,
-            'JOLT_SPRING_MODE_STIFFNESS', Jolt.ESpringMode_StiffnessAndDamping,
+            // 'JOLT_SPRING_MODE_FREQUENCY', Jolt.ESpringMode_FrequencyAndDamping,
+            // 'JOLT_SPRING_MODE_STIFFNESS', Jolt.ESpringMode_StiffnessAndDamping,
         ];
 
         dispatcher.respond(msg, null);
