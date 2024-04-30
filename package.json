@@ -13,6 +13,9 @@
     "bugs": {
         "url": "https://github.com/gamebop/physics/issues"
     },
+    "publishConfig": {
+        "registry":"https://npm.pkg.github.com/"
+    },
     "repository": {
         "type": "git",
         "url": "https://github.com/gamebop/physics.git"
