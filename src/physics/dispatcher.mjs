@@ -1,5 +1,5 @@
-import { JoltBackend } from "../backends/jolt/backend.mjs";
-import { Debug } from "./debug.mjs";
+import { JoltBackend } from './jolt/back/backend.mjs';
+import { Debug } from './jolt/debug.mjs';
 
 function createBackend(dispatcher, data) {
     switch (data.backendName) {

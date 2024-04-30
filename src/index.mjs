@@ -5,11 +5,11 @@
  * @module PhysicsComponents
  */
 
-import { init } from "./physics/init.mjs";
+import { init } from './physics/init.mjs';
 
-export { BodyComponent } from "./physics/components/jolt/body/component.mjs";
-export { BodyComponentSystem } from "./physics/components/jolt/body/system.mjs";
+export { BodyComponent } from './physics/jolt/front/body/component.mjs';
+export { BodyComponentSystem } from './physics/jolt/front/body/system.mjs';
 
-export * from "./physics/components/jolt/constants.mjs";
+export * from './physics/jolt/constants.mjs';
 
 export { init };

@@ -5,18 +5,20 @@
     "license": "MIT",
     "type": "module",
     "scripts": {
-        "build": "rimraf dist && webpack --mode=production && webpack --mode=development && typedoc",
-        "build:dev": "rimraf dist && rollup -c",
-        "build:prod": "rimraf dist && webpack --mode=production"
+        "build:dev": "rimraf dist && rollup -c --config_dev",
+        "build:prod": "rimraf dist && rollup -c"
     },
     "dependencies": {
-        "jolt-physics": "^0.23.0",
         "playcanvas": "^1.66.1"
     },
     "devDependencies": {
         "@rollup/plugin-json": "^6.1.0",
+        "@rollup/plugin-node-resolve": "^15.2.3",
+        "@rollup/plugin-strip": "^3.0.4",
+        "@rollup/plugin-terser": "^0.4.4",
         "rimraf": "^5.0.5",
         "rollup": "^4.17.1",
+        "rollup-plugin-jscc": "^2.0.0",
         "typedoc": "^0.25.8",
         "typescript": "^5.3.3"
     }
