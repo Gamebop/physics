@@ -1,18 +1,22 @@
+import { Vec3 } from "playcanvas";
 import { Debug } from "../../../../debug.mjs";
 import { Constraint } from "./constraint.mjs";
+import {
+    BUFFER_WRITE_BOOL, BUFFER_WRITE_VEC32, CONSTRAINT_TYPE_FIXED
+} from "../../constants.mjs";
 
 class FixedConstraint extends Constraint {
     _type = CONSTRAINT_TYPE_FIXED;
 
     _autoDetectPoint = true;
 
-    _axisX1 = pc.Vec3.RIGHT;
+    _axisX1 = Vec3.RIGHT;
 
-    _axisX2 = pc.Vec3.RIGHT;
+    _axisX2 = Vec3.RIGHT;
 
-    _axisY1 = pc.Vec3.UP;
+    _axisY1 = Vec3.UP;
 
-    _axisY2 = pc.Vec3.UP;
+    _axisY2 = Vec3.UP;
 
     constructor(entity1, entity2, opts = {}) {
         super(entity1, entity2, opts);

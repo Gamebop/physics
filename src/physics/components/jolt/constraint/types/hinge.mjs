@@ -1,16 +1,24 @@
+import { Vec3 } from "playcanvas";
 import { Debug } from "../../../../debug.mjs";
 import { Constraint, SpringSettings, MotorSettings } from "./constraint.mjs";
+import {
+    BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT8,
+    BUFFER_WRITE_VEC32, CMD_JNT_H_SET_LIMITS, CMD_JNT_H_SET_M_F_TORQUE,
+    CMD_JNT_H_SET_M_S, CMD_JNT_H_SET_SPRING_S, CMD_JNT_H_SET_T_ANGLE,
+    CMD_JNT_H_SET_T_ANG_VEL, CONSTRAINT_TYPE_HINGE, OPERATOR_MODIFIER,
+    SPRING_MODE_FREQUENCY
+} from "../../constants.mjs";
 
 class HingeConstraint extends Constraint {
     _type = CONSTRAINT_TYPE_HINGE;
 
-    _hingeAxis1 = pc.Vec3.UP;
+    _hingeAxis1 = Vec3.UP;
 
-    _hingeAxis2 = pc.Vec3.UP;
+    _hingeAxis2 = Vec3.UP;
 
-    _normalAxis1 = pc.Vec3.RIGHT;
+    _normalAxis1 = Vec3.RIGHT;
 
-    _normalAxis2 = pc.Vec3.RIGHT;
+    _normalAxis2 = Vec3.RIGHT;
 
     _limitsMax = 3.141592653589793;
 

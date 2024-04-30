@@ -1,7 +1,8 @@
+import { EventHandler } from "playcanvas";
 import { Debug } from "../../debug.mjs";
 import { buildAccessors } from "../../util.mjs";
 
-class Component extends pc.EventHandler {
+class Component extends EventHandler {
 
     // Flag, whether the accessors were set on this component.
     _accessorsBuilt = false;
@@ -58,17 +59,7 @@ class Component extends pc.EventHandler {
 
     onEnable() {}
 
-    onDisable() {
-        // TODO
-
-        // const constraints = this._constraints;
-
-        // constraints.forEach((entity2, index) => {
-        //     entity2?.body?.constraints.delete(index);
-        //     this.system.freeConstraintIndex(index);
-        // });
-        // constraints.clear();
-    }
+    onDisable() {}
 
     // PlayCanvas compatibility
     onPostStateChange() {}

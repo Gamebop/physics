@@ -1,5 +1,13 @@
+import { Curve, Vec3 } from "playcanvas";
 import { Debug } from "../../../debug.mjs";
 import { BodyComponent } from "../body/component.mjs";
+import {
+    BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_INT32, BUFFER_WRITE_UINT16,
+    BUFFER_WRITE_UINT32, BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32, CMD_SET_DRIVER_INPUT,
+    OBJ_LAYER_MOVING, OPERATOR_MODIFIER, SPRING_MODE_FREQUENCY, TRANSMISSION_AUTO,
+    VEHICLE_CAST_TYPE_CYLINDER, VEHICLE_CAST_TYPE_RAY, VEHICLE_CAST_TYPE_SPHERE,
+    VEHICLE_TYPE_MOTORCYCLE, VEHICLE_TYPE_WHEEL
+} from "../constants.mjs";
 
 class VehicleComponent extends BodyComponent {
     // Used only when the constraint is active. Override for the number of solver 
@@ -13,10 +21,10 @@ class VehicleComponent extends BodyComponent {
     _numPositionStepsOverride = 0;
 
     // Vector indicating the up direction of the vehicle (in local space to the body)
-    _up = pc.Vec3.UP;
+    _up = Vec3.UP;
 
     // Vector indicating forward direction of the vehicle (in local space to the body)
-    _forward = pc.Vec3.BACK;
+    _forward = Vec3.BACK;
 
     // Defines the maximum pitch/roll angle (rad), can be used to avoid the car from getting upside
     // down. The vehicle up direction will stay within a cone centered around the up axis with half
@@ -51,10 +59,10 @@ class VehicleComponent extends BodyComponent {
     _wheelAngularDamping = 0.2;
 
     // Curve that describes a ratio of the max torque the engine can produce vs the fraction of the max RPM of the engine.
-    _normalizedTorque = new pc.Curve([0, 0.8]);
+    _normalizedTorque = new Curve([0, 0.8]);
 
     // How to switch gears.
-    _mode = pc.JOLT_TRANSMISSION_AUTO;
+    _mode = TRANSMISSION_AUTO;
 
     // Ratio in rotation rate between engine and gear box, first element is 1st gear, 2nd element 2nd gear etc.
     _gearRatios = [2.66, 1.78, 1.3, 1, 0.74];
@@ -104,7 +112,7 @@ class VehicleComponent extends BodyComponent {
     _castObjectLayer = OBJ_LAYER_MOVING;
 
     // World space up vector, used to avoid colliding with vertical walls.
-    _castUp = pc.Vec3.UP;
+    _castUp = Vec3.UP;
 
     // Max angle (rad) that is considered for colliding wheels. This is to avoid colliding
     // with vertical walls. Defaults to ~1.4 rad (80 degrees).
@@ -292,9 +300,6 @@ class VehicleComponent extends BodyComponent {
         const wheels = this._wheels;
         const count = wheels.length;
 
-        // TODO
-        // consider making wheel as its own component
-
         cb.write(count, BUFFER_WRITE_UINT32, false);
 
         for (let i = 0; i < count; i++) {
@@ -304,18 +309,12 @@ class VehicleComponent extends BodyComponent {
                 let ok = Debug.assert(desc.position, 
                     'A wheel description requires an attachment position of wheel' +
                     'suspension in local space of the vehicle', desc);
-                const spring = desc.spring;
-                if (spring) {
-                    const { stiffness, frequency } = spring;
-                    if (stiffness != null) {
-                        Debug.assert(stiffness !== 0, 'Wheel spring stiffness cannot be zero', spring);
-                    }
-                    if (frequency != null) {
-                        Debug.assert(frequency !== 0, 'Wheel spring frequency cannot be zero', spring);
-                    }
+                if (desc.spring) {
+                    ok = ok && Debug.checkSpringSettings(desc.spring);
                 }
-                if (!ok)
+                if (!ok) {
                     return;
+                }
             }
 
             // Read-only. Velocity difference between ground and wheel relative to ground velocity.
@@ -334,23 +333,23 @@ class VehicleComponent extends BodyComponent {
 
             // Where tire forces (suspension and traction) are applied, in local space of the body. 
             // A good default is the center of the wheel in its neutral pose. See enableSuspensionForcePoint.
-            cb.write(desc.suspensionForcePoint || pc.Vec3.ZERO, BUFFER_WRITE_VEC32, false);
+            cb.write(desc.suspensionForcePoint || Vec3.ZERO, BUFFER_WRITE_VEC32, false);
 
             // Direction of the suspension in local space of the body, should point down.
-            cb.write(desc.suspensionDirection || pc.Vec3.DOWN, BUFFER_WRITE_VEC32, false);
+            cb.write(desc.suspensionDirection || Vec3.DOWN, BUFFER_WRITE_VEC32, false);
 
             // Direction of the steering axis in local space of the body, should point up (e.g. for a 
             // bike would be -suspensionDirection)
-            cb.write(desc.steeringAxis || pc.Vec3.UP, BUFFER_WRITE_VEC32, false);
+            cb.write(desc.steeringAxis || Vec3.UP, BUFFER_WRITE_VEC32, false);
 
             // Up direction when the wheel is in the neutral steering position (usually 
             // component.up but can be used to give the wheel camber or for a bike would be -suspensionDirection)
-            cb.write(desc.wheelUp || pc.Vec3.UP, BUFFER_WRITE_VEC32, false);
+            cb.write(desc.wheelUp || Vec3.UP, BUFFER_WRITE_VEC32, false);
 
             // Forward direction when the wheel is in the neutral steering position (usually 
             // component.forward but can be used to give the wheel toe, does not need to be perpendicular
             // to wheelUp)
-            cb.write(desc.wheelForward || pc.Vec3.BACK, BUFFER_WRITE_VEC32, false);
+            cb.write(desc.wheelForward || Vec3.BACK, BUFFER_WRITE_VEC32, false);
 
             // How long the suspension is in max raised position relative to the attachment point (m)
             cb.write(desc.suspensionMinLength ?? 0.3, BUFFER_WRITE_FLOAT32, false);
@@ -378,7 +377,7 @@ class VehicleComponent extends BodyComponent {
 
             // wheel spring data
             const spring = desc.spring || {};
-            cb.write(spring.mode ?? pc.JOLT_SPRING_MODE_FREQUENCY, BUFFER_WRITE_UINT8, false);
+            cb.write(spring.mode ?? SPRING_MODE_FREQUENCY, BUFFER_WRITE_UINT8, false);
             cb.write(spring.frequency ?? 1.5, BUFFER_WRITE_FLOAT32, false);
             cb.write(spring.stiffness ?? 1.5, BUFFER_WRITE_FLOAT32, false);
             cb.write(spring.damping ?? 0.5, BUFFER_WRITE_FLOAT32, false);

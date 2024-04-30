@@ -1,4 +1,9 @@
 import { Constraint, SpringSettings } from "./constraint.mjs";
+import {
+    BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT8,
+    BUFFER_WRITE_VEC32, CMD_JNT_D_SET_DISTANCE, CMD_JNT_D_SET_SPRING_S,
+    CONSTRAINT_TYPE_DISTANCE, OPERATOR_MODIFIER, SPRING_MODE_FREQUENCY
+} from "../../constants.mjs";
 
 class DistanceConstraint extends Constraint {
     _type = CONSTRAINT_TYPE_DISTANCE;

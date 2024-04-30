@@ -1,7 +1,12 @@
 import { Quat, SEMANTIC_POSITION, Vec3 } from "playcanvas";
 import { Debug } from "../../../debug.mjs";
 import { Component } from "../component.mjs";
-import { BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT32, BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32, FLOAT32_SIZE, SHAPE_BOX, SHAPE_CONVEX_HULL, SHAPE_MESH } from "../constants.mjs";
+import {
+    BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT32,
+    BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32, FLOAT32_SIZE, SHAPE_BOX,
+    SHAPE_CAPSULE, SHAPE_CONVEX_HULL, SHAPE_CYLINDER, SHAPE_HEIGHTFIELD,
+    SHAPE_MESH, SHAPE_SPHERE, SHAPE_STATIC_COMPOUND
+} from "../constants.mjs";
 
 class ShapeComponent extends Component {
 

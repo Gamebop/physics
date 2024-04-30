@@ -1,5 +1,14 @@
+import { Vec3 } from "playcanvas";
 import { Debug } from "../../../../debug.mjs";
 import { Constraint, SpringSettings, MotorSettings } from "./constraint.mjs";
+import {
+    BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT8,
+    BUFFER_WRITE_VEC32, CMD_JNT_SDF_SET_M_F, CMD_JNT_SDF_SET_M_STATE,
+    CMD_JNT_SDF_SET_R_LIMITS, CMD_JNT_SDF_SET_SPRING_S, CMD_JNT_SDF_SET_T_ANG_VEL_CS,
+    CMD_JNT_SDF_SET_T_LIMITS, CMD_JNT_SDF_SET_T_POS_CS, CMD_JNT_SDF_SET_T_ROT_BS,
+    CMD_JNT_SDF_SET_T_ROT_CS, CMD_JNT_SDF_SET_T_VEL_CS, CONSTRAINT_SWING_TYPE_CONE,
+    CONSTRAINT_TYPE_SIX_DOF, OPERATOR_MODIFIER, SPRING_MODE_FREQUENCY
+} from "../../constants.mjs";
 
 function copyArr(src, dst) {
     for (let i = 0; i < src.length; ++i) {
@@ -18,13 +27,13 @@ function copySettings(Constructor, src) {
 class SixDOFConstraint extends Constraint {
     _type = CONSTRAINT_TYPE_SIX_DOF;
 
-    _axisX1 = pc.Vec3.RIGHT;
+    _axisX1 = Vec3.RIGHT;
 
-    _axisX2 = pc.Vec3.RIGHT;
+    _axisX2 = Vec3.RIGHT;
 
-    _axisY1 = pc.Vec3.UP;
+    _axisY1 = Vec3.UP;
 
-    _axisY2 = pc.Vec3.UP;
+    _axisY2 = Vec3.UP;
 
     _fixedAxes = null;
 

@@ -1,11 +1,15 @@
+import { Vec3 } from "playcanvas";
 import { Constraint } from "./constraint.mjs";
+import {
+    BUFFER_WRITE_FLOAT32, BUFFER_WRITE_VEC32, CONSTRAINT_TYPE_PULLEY
+} from "../../constants.mjs";
 
 class PulleyConstraint extends Constraint {
     _type = CONSTRAINT_TYPE_PULLEY;
 
-    _fixedPoint1 = pc.Vec3.ZERO;
+    _fixedPoint1 = Vec3.ZERO;
 
-    _fixedPoint2 = pc.Vec3.ZERO;
+    _fixedPoint2 = Vec3.ZERO;
 
     _ratio = 1;
 

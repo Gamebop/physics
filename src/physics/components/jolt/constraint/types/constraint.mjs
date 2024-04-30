@@ -1,4 +1,10 @@
+import { Entity, Vec3 } from "playcanvas";
 import { Debug } from "../../../../debug.mjs";
+import {
+    BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT32,
+    BUFFER_WRITE_UINT8, CMD_JNT_SET_ENABLED, CONSTRAINT_SPACE_WORLD,
+    CONSTRAINT_TYPE_UNDEFINED, OPERATOR_MODIFIER, SPRING_MODE_FREQUENCY
+} from "../../constants.mjs";
 
 class SpringSettings {
     springMode = SPRING_MODE_FREQUENCY;
@@ -82,9 +88,9 @@ class Constraint {
 
     _index = -1;
 
-    _point1 = new pc.Vec3();
+    _point1 = new Vec3();
 
-    _point2 = new pc.Vec3();
+    _point2 = new Vec3();
 
     _type = CONSTRAINT_TYPE_UNDEFINED;
 
@@ -100,16 +106,16 @@ class Constraint {
 
     constructor(entity1, entity2, opts = {}) {
         if (DEBUG) {
-            let ok = Debug.assert(!!entity1 && entity1 instanceof pc.Entity && !!entity1.body,
+            let ok = Debug.assert(!!entity1 && entity1 instanceof Entity && !!entity1.body,
                 'Invalid entity1 when adding a constraint', entity1);
-            ok = ok && Debug.assert(!!entity2 && entity2 instanceof pc.Entity && !!entity2.body,
+            ok = ok && Debug.assert(!!entity2 && entity2 instanceof Entity && !!entity2.body,
                 'Invalid entity1 when adding a constraint', entity2);
             if (opts.point1) {
-                ok = ok && Debug.assert(opts.point1 instanceof pc.Vec3,
+                ok = ok && Debug.assert(opts.point1 instanceof Vec3,
                     'Invalid point1 when adding a constraint. Expected a vector.', opts.point1);
             }
             if (opts.point2) {
-                ok = ok && Debug.assert(opts.point2 instanceof pc.Vec3,
+                ok = ok && Debug.assert(opts.point2 instanceof Vec3,
                     'Invalid point1 when adding a constraint. Expected a vector.', opts.point2);
             }
             if (!ok) {
@@ -202,3 +208,4 @@ class Constraint {
 }
 
 export { Constraint, MotorSettings, SpringSettings };
+

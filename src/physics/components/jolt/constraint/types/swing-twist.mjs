@@ -1,17 +1,25 @@
+import { Vec3 } from 'playcanvas';
 import { Debug } from '../../../../debug.mjs';
 import { Constraint, MotorSettings } from './constraint.mjs';
+import {
+    BUFFER_WRITE_FLOAT32, BUFFER_WRITE_VEC32, CMD_JNT_ST_SET_M_F_TORQUE,
+    CMD_JNT_ST_SET_N_H_C_ANGLE, CMD_JNT_ST_SET_P_H_C_ANGLE, CMD_JNT_ST_SET_SWING_M_S,
+    CMD_JNT_ST_SET_TWIST_M_S, CMD_JNT_ST_SET_T_ANG_VEL_CS, CMD_JNT_ST_SET_T_MAX_ANGLE, CMD_JNT_ST_SET_T_MIN_ANGLE,
+    CMD_JNT_ST_SET_T_O_BS, CMD_JNT_ST_SET_T_O_CS, CONSTRAINT_TYPE_SWING_TWIST,
+    OPERATOR_MODIFIER
+} from '../../constants.mjs';
 
 class SwingTwistConstraint extends Constraint {
 
     _type = CONSTRAINT_TYPE_SWING_TWIST;
     
-    _twistAxis1 = pc.Vec3.RIGHT;
+    _twistAxis1 = Vec3.RIGHT;
 
-    _twistAxis2 = pc.Vec3.RIGHT;
+    _twistAxis2 = Vec3.RIGHT;
 
-    _planeAxis1 = pc.Vec3.UP;
+    _planeAxis1 = Vec3.UP;
     
-    _planeAxis2 = pc.Vec3.UP;
+    _planeAxis2 = Vec3.UP;
 
     _normalHalfConeAngle = 0;
 

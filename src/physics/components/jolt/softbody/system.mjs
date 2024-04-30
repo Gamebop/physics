@@ -1,4 +1,5 @@
 import { BodyComponentSystem } from "../body/system.mjs";
+import { BUFFER_READ_FLOAT32, BUFFER_READ_UINT32, CMD_CREATE_SOFT_BODY, CMD_REPORT_TRANSFORMS, OPERATOR_CREATOR } from "../constants.mjs";
 import { SoftBodyComponent } from "./component.mjs";
 
 const schema = [

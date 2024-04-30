@@ -66,6 +66,9 @@ export const VEHICLE_CAST_TYPE_RAY = 0;
 export const VEHICLE_CAST_TYPE_SPHERE = 1;
 export const VEHICLE_CAST_TYPE_CYLINDER = 2;
 
+export const TRANSMISSION_AUTO = 0;
+export const TRANSMISSION_MANUAL = 1;
+
 export const OBJ_LAYER_NON_MOVING = 0;
 export const OBJ_LAYER_MOVING = 1;
 
@@ -150,19 +153,14 @@ export const CMD_SET_USER_DATA = 25;
 export const CMD_PAIR_BODY = 26;
 
 export const CMD_SET_DRIVER_INPUT = 27;
-export const TRANSMISSION_AUTO = 28;
-export const TRANSMISSION_MANUAL = 29;
 
-export const CMD_DESTROY_BODY = 30;
-export const CMD_DESTROY_SHAPE = 31;
-export const CMD_DESTROY_CONSTRAINT = 32;
+export const CMD_DESTROY_BODY = 28;
+export const CMD_DESTROY_SHAPE = 29;
+export const CMD_DESTROY_CONSTRAINT = 30;
 
-export const CMD_REPORT_TRANSFORMS = 33;
-export const CMD_REPORT_CONTACTS = 34;
-export const CMD_REPORT_SET_SHAPE = 35;
-
-export const SPRING_MODE_FREQUENCY = 36;
-export const SPRING_MODE_STIFFNESS = 37;
+export const CMD_REPORT_TRANSFORMS = 31;
+export const CMD_REPORT_CONTACTS = 32;
+export const CMD_REPORT_SET_SHAPE = 33;
 
 // Constraints 500+
 

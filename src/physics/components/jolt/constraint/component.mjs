@@ -9,6 +9,11 @@ import { PulleyConstraint } from "./types/pulley.mjs";
 import { SixDOFConstraint } from "./types/six-dof.mjs";
 import { SliderConstraint } from "./types/slider.mjs";
 import { SwingTwistConstraint } from "./types/swing-twist.mjs";
+import {
+    CONSTRAINT_TYPE_CONE, CONSTRAINT_TYPE_DISTANCE, CONSTRAINT_TYPE_FIXED,
+    CONSTRAINT_TYPE_HINGE, CONSTRAINT_TYPE_POINT, CONSTRAINT_TYPE_PULLEY,
+    CONSTRAINT_TYPE_SIX_DOF, CONSTRAINT_TYPE_SLIDER, CONSTRAINT_TYPE_SWING_TWIST
+} from "../constants.mjs";
 
 class ConstraintComponent extends Component {
 

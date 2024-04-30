@@ -1,8 +1,8 @@
 import { Color, Quat, Vec3 } from "playcanvas";
 import { IndexedCache } from "../../../indexed-cache.mjs";
-import { BUFFER_READ_FLOAT32, BUFFER_READ_UINT32, FLOAT32_SIZE, MOTION_TYPE_DYNAMIC, MOTION_TYPE_KINEMATIC, MOTION_TYPE_STATIC } from "../constants.mjs";
 import { ComponentSystem } from "../system.mjs";
 import { ShapeComponent } from "./component.mjs";
+import { BUFFER_READ_FLOAT32, BUFFER_READ_UINT32, FLOAT32_SIZE, MOTION_TYPE_DYNAMIC, MOTION_TYPE_KINEMATIC, MOTION_TYPE_STATIC } from "../constants.mjs";
 
 function getColor(type, config) {
     switch (type) {
@@ -60,9 +60,6 @@ class ShapeComponentSystem extends ComponentSystem {
         // TODO
         // can we use static method directly?
         this.entityMap = ShapeComponentSystem.entityMap;
-
-        // TODO remove this
-        this._exposeConstants();
     }
 
     get id() {
@@ -84,8 +81,6 @@ class ShapeComponentSystem extends ComponentSystem {
     setIndexFree(index) {
         this.entityMap.free(index);
     }
-
-    _exposeConstants() {}
 
     static updateDynamic(cb) {
         const index = cb.read(BUFFER_READ_UINT32);

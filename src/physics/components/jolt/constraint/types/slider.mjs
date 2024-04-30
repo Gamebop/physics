@@ -1,16 +1,24 @@
+import { Vec3 } from "playcanvas";
 import { Debug } from "../../../../debug.mjs";
 import { Constraint, SpringSettings, MotorSettings } from "./constraint.mjs";
+import {
+    BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT8,
+    BUFFER_WRITE_VEC32, CMD_JNT_S_SET_LIMITS, CMD_JNT_S_SET_M_F_FORCE,
+    CMD_JNT_S_SET_M_STATE, CMD_JNT_S_SET_SPRING_S, CMD_JNT_S_SET_T_POS,
+    CMD_JNT_S_SET_T_VEL, CONSTRAINT_TYPE_SLIDER, OPERATOR_MODIFIER,
+    SPRING_MODE_FREQUENCY
+} from "../../constants.mjs";
 
 class SliderConstraint extends Constraint {
     _type = CONSTRAINT_TYPE_SLIDER;
 
-    _sliderAxis1 = pc.Vec3.RIGHT;
+    _sliderAxis1 = Vec3.RIGHT;
 
-    _sliderAxis2 = pc.Vec3.RIGHT;
+    _sliderAxis2 = Vec3.RIGHT;
 
-    _normalAxis1 = pc.Vec3.UP;
+    _normalAxis1 = Vec3.UP;
 
-    _normalAxis2 = pc.Vec3.UP;
+    _normalAxis2 = Vec3.UP;
 
     _limitsMin = -Number.MAX_VALUE;
 

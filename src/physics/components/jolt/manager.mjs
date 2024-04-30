@@ -9,6 +9,8 @@ import { ResponseHandler } from "./response-handler.mjs";
 import { SoftBodyComponentSystem } from "./softbody/system.mjs";
 import { ShapeComponentSystem } from "./shape/system.mjs";
 import { VehicleComponentSystem } from "./vehicle/system.mjs";
+import { BUFFER_WRITE_BOOL, BUFFER_WRITE_UINT16, BUFFER_WRITE_UINT32, BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32, CMD_CAST_RAY, CMD_CAST_SHAPE, CMD_CHANGE_GRAVITY, CMD_CREATE_GROUPS, CMD_CREATE_SHAPE, CMD_DESTROY_SHAPE, CMD_TOGGLE_GROUP_PAIR, COMPONENT_SYSTEM_BODY, COMPONENT_SYSTEM_CHAR, COMPONENT_SYSTEM_CONSTRAINT, COMPONENT_SYSTEM_MANAGER, COMPONENT_SYSTEM_SOFT_BODY, COMPONENT_SYSTEM_VEHICLE, OPERATOR_CLEANER, OPERATOR_CREATOR, OPERATOR_MODIFIER, OPERATOR_QUERIER } from "./constants.mjs";
+import { Quat, Vec3 } from "playcanvas";
 
 class JoltManager extends PhysicsManager {
     constructor(app, opts, resolve) {
@@ -25,10 +27,8 @@ class JoltManager extends PhysicsManager {
         app.systems.add(new ConstraintComponentSystem(app, this, COMPONENT_SYSTEM_CONSTRAINT))
 
         this._queryMap = new IndexedCache();
-        // this._constraintMap = new IndexedCache();
         this._shapeMap = new IndexedCache();
         this._gravity = new pc.Vec3(0, -9.81, 0);
-
         this._resolve = resolve;
 
         this._systems.set(COMPONENT_SYSTEM_MANAGER, this);
@@ -111,10 +111,10 @@ class JoltManager extends PhysicsManager {
         const opts = {
             // defaults
             density: 1000,
-            shapePosition: new pc.Vec3(),
-            shapeRotation: new pc.Quat(),
-            scale: new pc.Vec3(1, 1, 1),
-            halfExtent: new pc.Vec3(0.5, 0.5, 0.5),
+            shapePosition: new Vec3(),
+            shapeRotation: new Quat(),
+            scale: new Vec3(1, 1, 1),
+            halfExtent: new Vec3(0.5, 0.5, 0.5),
             convexRadius: 0.05,
             halfHeight: 0.5,
             radius: 0.5,
@@ -126,7 +126,7 @@ class JoltManager extends PhysicsManager {
             shape: type,
             useEntityScale: false,
             isCompoundChild: false,
-            massOffset: pc.Vec3.ZERO
+            massOffset: Vec3.ZERO
         };
 
         const index = this._shapeMap.add(opts);
@@ -260,279 +260,6 @@ class JoltManager extends PhysicsManager {
         cb.write(opts?.bpFilterLayer, BUFFER_WRITE_UINT32);
         cb.write(opts?.objFilterLayer, BUFFER_WRITE_UINT32);
     }
-
-    // createConstraint(type, entity1, entity2, opts = {}) {
-    //     if (DEBUG) {
-    //         let ok = Debug.assert(!!entity1.c.body, `Entity has no Body Component. Cannot create constraint.`, entity1);
-    //         ok = ok && Debug.assert(!!entity2.c.body, `Entity has no Body Component. Cannot create constraint.`, entity2);
-    //         if (!ok) return;
-    //     }
-
-    //     const cb = this._outBuffer;
-    //     const index = this._constraintMap.add({ entity1, entity2 });
-
-    //     entity1.body.constraints.set(index, entity2);
-    //     entity2.body.constraints.set(index, entity1);
-
-    //     cb.writeOperator(OPERATOR_CREATOR);
-    //     cb.writeCommand(CMD_CREATE_CONSTRAINT);
-    //     cb.write(type, BUFFER_WRITE_UINT8, false);
-
-    //     cb.write(index, BUFFER_WRITE_UINT32, false);
-    //     cb.write(entity1.c.body.index, BUFFER_WRITE_UINT32, false);
-    //     cb.write(entity2.c.body.index, BUFFER_WRITE_UINT32, false);
-
-    //     switch (type) {
-    //         case CONSTRAINT_TYPE_FIXED:
-    //             JoltManager.writeFixedConstraint(cb, opts);
-    //             break;
-
-    //         case CONSTRAINT_TYPE_POINT:
-    //             JoltManager.writePointConstraint(cb, opts);
-    //             break;
-
-    //         case CONSTRAINT_TYPE_DISTANCE:
-    //             JoltManager.writeDistanceConstraint(cb, opts);
-    //             break;
-
-    //         case CONSTRAINT_TYPE_HINGE:
-    //             JoltManager.writeHingeConstraint(cb, opts);
-    //             break;
-
-    //         case CONSTRAINT_TYPE_SLIDER:
-    //             JoltManager.writeSliderConstraint(cb, opts);
-    //             break;
-
-    //         case CONSTRAINT_TYPE_CONE:
-    //             JoltManager.writeConeConstraint(cb, opts);
-    //             break;
-
-    //         case CONSTRAINT_TYPE_SWING_TWIST:
-    //             JoltManager.writeSwingTwistConstraint(cb, opts);
-    //             break;
-
-    //         case CONSTRAINT_TYPE_SIX_DOF:
-    //             JoltManager.writeSixDofConstraint(cb, opts);
-    //             break;
-
-    //         case CONSTRAINT_TYPE_PULLEY:
-    //             JoltManager.writePulleyConstraint(cb, opts);
-    //             break;
-
-    //         default:
-    //             DEBUG && Debug.error(`Unrecognized constraint type: ${ type }`);
-    //             return;
-    //     }
-
-    //     cb.write(opts.numVelocityStepsOverride, BUFFER_WRITE_UINT8);
-    //     cb.write(opts.numPositionStepsOverride, BUFFER_WRITE_UINT8);
-    //     cb.write(opts.space, BUFFER_WRITE_UINT8);
-
-    //     return index;
-    // }
-
-    // destroyConstraint(index) {
-    //     if (DEBUG) {
-    //         const ok = Debug.checkUint(index, `Invalid index of a constraint trying to destroy: ${ index }`);
-    //         if (!ok)
-    //             return;
-    //     }
-
-    //     const cb = this._outBuffer;
-
-    //     cb.writeOperator(OPERATOR_CLEANER);
-    //     cb.writeCommand(CMD_DESTROY_CONSTRAINT);
-    //     cb.write(index, BUFFER_WRITE_UINT32, false);
-
-    //     this.freeConstraintIndex(index);
-    // }
-
-    // freeConstraintIndex(index) {
-    //     this._constraintMap.free(index);
-    // }
-
-    // setConstraintEnabled(index, enabled, activate = true) {
-    //     if (DEBUG) {
-    //         let ok = Debug.checkUint(index, `Invalid constraint index: ${ index }`);
-    //         ok = ok && Debug.checkBool(enabled, `Invalid constraint enable bool: ${ enabled }`);
-    //         ok = ok && Debug.checkBool(enabled, `Invalid activate bool: ${ enabled }`);
-    //         if (!ok)
-    //             return;
-    //     }
-
-    //     const cb = this._outBuffer;
-
-    //     cb.writeOperator(OPERATOR_MODIFIER);
-    //     cb.writeCommand(CMD_SET_CONSTRAINT_ENABLED);
-    //     cb.write(index, BUFFER_WRITE_UINT32, false);
-    //     cb.write(enabled, BUFFER_WRITE_BOOL, false);
-    //     cb.write(activate, BUFFER_WRITE_BOOL, false);
-    // }
-
-    // https://jrouwe.github.io/JoltPhysics/class_fixed_constraint_settings.html
-    // static writeFixedConstraint(cb, opts) {
-    //     cb.write(opts.autoDetectPoint, BUFFER_WRITE_BOOL);
-    //     if (!opts.autoDetectPoint) {
-    //         cb.write(opts.point1, BUFFER_WRITE_VEC32);
-    //         cb.write(opts.point2, BUFFER_WRITE_VEC32);
-    //     }
-    //     cb.write(opts.axisX1, BUFFER_WRITE_VEC32);
-    //     cb.write(opts.axisY1, BUFFER_WRITE_VEC32);
-    //     cb.write(opts.axisX2, BUFFER_WRITE_VEC32);
-    //     cb.write(opts.axisY2, BUFFER_WRITE_VEC32);
-    // }
-
-    // https://jrouwe.github.io/JoltPhysics/class_point_constraint_settings.html
-    // static writePointConstraint(cb, opts) {
-    //     cb.write(opts.point1, BUFFER_WRITE_VEC32);
-    //     cb.write(opts.point2, BUFFER_WRITE_VEC32);
-    // }
-
-    // https://jrouwe.github.io/JoltPhysics/class_distance_constraint_settings.html
-    // static writeDistanceConstraint(cb, opts) {
-    //     cb.write(opts.point1, BUFFER_WRITE_VEC32);
-    //     cb.write(opts.point2, BUFFER_WRITE_VEC32);
-    //     cb.write(opts.minDistance, BUFFER_WRITE_FLOAT32);
-    //     cb.write(opts.maxDistance, BUFFER_WRITE_FLOAT32);
-
-    //     JoltManager.writeSpringSettings(cb, opts.springSettings);
-    // }
-
-    // https://jrouwe.github.io/JoltPhysics/class_hinge_constraint_settings.html
-    // static writeHingeConstraint(cb, opts) {
-    //     cb.write(opts.point1, BUFFER_WRITE_VEC32);
-    //     cb.write(opts.hingeAxis1, BUFFER_WRITE_VEC32);
-    //     cb.write(opts.normalAxis1, BUFFER_WRITE_VEC32);
-    //     cb.write(opts.point2, BUFFER_WRITE_VEC32);
-    //     cb.write(opts.hingeAxis2, BUFFER_WRITE_VEC32);
-    //     cb.write(opts.normalAxis2, BUFFER_WRITE_VEC32);
-    //     cb.write(opts.limitsMin, BUFFER_WRITE_FLOAT32);
-    //     cb.write(opts.limitsMax, BUFFER_WRITE_FLOAT32);
-    //     cb.write(opts.maxFrictionTorque, BUFFER_WRITE_FLOAT32);
-
-    //     JoltManager.writeSpringSettings(cb, opts.springSettings);
-    //     JoltManager.writeMotorSettings(cb, opts.motorSettings);
-    // }
-
-    // https://jrouwe.github.io/JoltPhysics/class_slider_constraint_settings.html
-    // static writeSliderConstraint(cb, opts) {
-    //     cb.write(opts.autoDetectPoint, BUFFER_WRITE_BOOL);
-    //     if (!opts.autoDetectPoint) {
-    //         cb.write(opts.point1, BUFFER_WRITE_VEC32);
-    //         cb.write(opts.point2, BUFFER_WRITE_VEC32);
-    //     }
-    //     cb.write(opts.sliderAxis1, BUFFER_WRITE_VEC32);
-    //     cb.write(opts.normalAxis1, BUFFER_WRITE_VEC32);
-    //     cb.write(opts.sliderAxis2, BUFFER_WRITE_VEC32);
-    //     cb.write(opts.normalAxis2, BUFFER_WRITE_VEC32);
-    //     cb.write(opts.limitsMin, BUFFER_WRITE_FLOAT32);
-    //     cb.write(opts.limitsMax, BUFFER_WRITE_FLOAT32);
-    //     cb.write(opts.maxFrictionForce, BUFFER_WRITE_FLOAT32);
-
-    //     JoltManager.writeSpringSettings(cb, opts.springSettings);
-    //     JoltManager.writeMotorSettings(cb, opts.motorSettings);
-    // }
-
-    // https://jrouwe.github.io/JoltPhysics/class_cone_constraint_settings.html
-    // static writeConeConstraint(cb, opts) {
-    //     cb.write(opts.point1, BUFFER_WRITE_VEC32);
-    //     cb.write(opts.twistAxis1, BUFFER_WRITE_VEC32);
-    //     cb.write(opts.point2, BUFFER_WRITE_VEC32);
-    //     cb.write(opts.twistAxis2, BUFFER_WRITE_VEC32);
-    //     cb.write(opts.halfConeAngle, BUFFER_WRITE_FLOAT32);
-    // }
-
-    // https://jrouwe.github.io/JoltPhysics/class_swing_twist_constraint_settings.html
-    // static writeSwingTwistConstraint(cb, opts) {
-    //     cb.write(opts.position1, BUFFER_WRITE_VEC32);
-    //     cb.write(opts.twistAxis1, BUFFER_WRITE_VEC32);
-    //     cb.write(opts.planeAxis1, BUFFER_WRITE_VEC32);
-    //     cb.write(opts.position2, BUFFER_WRITE_VEC32);
-    //     cb.write(opts.twistAxis2, BUFFER_WRITE_VEC32);
-    //     cb.write(opts.planeAxis2, BUFFER_WRITE_VEC32);
-    //     cb.write(opts.normalHalfConeAngle, BUFFER_WRITE_FLOAT32);
-    //     cb.write(opts.planeHalfConeAngle, BUFFER_WRITE_FLOAT32);
-    //     cb.write(opts.twistMinAngle, BUFFER_WRITE_FLOAT32);
-    //     cb.write(opts.twistMaxAngle, BUFFER_WRITE_FLOAT32);
-    //     cb.write(opts.maxFrictionTorque, BUFFER_WRITE_FLOAT32);
-
-    //     JoltManager.writeMotorSettings(cb, opts.swingMotorSettings);
-    //     JoltManager.writeMotorSettings(cb, opts.twistMotorSettings);
-    // }
-
-    // https://jrouwe.github.io/JoltPhysics/class_six_d_o_f_constraint_settings.html
-    // static writeSixDofConstraint(cb, opts) {
-    //     JoltManager.writeAxes(cb, opts.freeAxes);
-    //     JoltManager.writeAxes(cb, opts.fixedAxes);
-    //     JoltManager.writeAxes(cb, opts.limitedAxes, true);
-
-    //     cb.write(opts.position1, BUFFER_WRITE_VEC32);
-    //     cb.write(opts.axisX1, BUFFER_WRITE_VEC32);
-    //     cb.write(opts.axisY1, BUFFER_WRITE_VEC32);
-    //     cb.write(opts.position2, BUFFER_WRITE_VEC32);
-    //     cb.write(opts.axisX2, BUFFER_WRITE_VEC32);
-    //     cb.write(opts.axisY2, BUFFER_WRITE_VEC32);
-    //     cb.write(opts.maxFriction, BUFFER_WRITE_FLOAT32);
-    //     cb.write(opts.limitsMin, BUFFER_WRITE_FLOAT32);
-    //     cb.write(opts.limitsMax, BUFFER_WRITE_FLOAT32);
-
-    //     JoltManager.writeSpringSettings(cb, opts.springSettings);
-    //     JoltManager.writeMotorSettings(cb, opts.motorSettings);
-    // }
-
-    // https://jrouwe.github.io/JoltPhysics/class_pulley_constraint_settings.html
-    // static writePulleyConstraint(cb, opts) {
-    //     cb.write(opts.bodyPoint1 || pc.Vec3.ZERO, BUFFER_WRITE_VEC32, false);
-    //     cb.write(opts.bodyPoint2 || pc.Vec3.ZERO, BUFFER_WRITE_VEC32, false);
-    //     cb.write(opts.fixedPoint1 || pc.Vec3.ZERO, BUFFER_WRITE_VEC32, false);
-    //     cb.write(opts.fixedPoint2 || pc.Vec3.ZERO, BUFFER_WRITE_VEC32, false);
-    //     cb.write(opts.ratio ?? 1, BUFFER_WRITE_FLOAT32, false);
-    //     cb.write(opts.minLength ?? 0, BUFFER_WRITE_FLOAT32, false);
-    //     cb.write(opts.maxLength ?? -1, BUFFER_WRITE_FLOAT32, false);
-    // }
-
-    // static writeAxes(cb, axes, limits) {
-    //     cb.write(!!axes, BUFFER_WRITE_BOOL, false);
-    //     if (axes) {
-    //         const count = axes.length;
-    //         if (limits) {
-    //             cb.write(count / 3, BUFFER_WRITE_UINT8, false);
-    //             for (let i = 0; i < count; i += 3) {
-    //                 cb.write(axes[i], BUFFER_WRITE_UINT8, false);
-    //                 cb.write(axes[i + 1], BUFFER_WRITE_FLOAT32, false);
-    //                 cb.write(axes[i + 2], BUFFER_WRITE_FLOAT32, false);
-    //             }
-    //         } else {
-    //             cb.write(count, BUFFER_WRITE_UINT8, false);
-    //             for (let i = 0; i < count; i++) {
-    //                 cb.write(axes[i], BUFFER_WRITE_UINT8, false);
-    //             }
-    //         }
-    //     }
-    // }
-
-    // static writeSpringSettings(cb, springSettings) {
-    //     cb.write(!!springSettings, BUFFER_WRITE_BOOL, false);
-    //     if (springSettings != null) {
-    //         cb.write(springSettings.springMode, BUFFER_WRITE_UINT8);
-    //         cb.write(springSettings.frequency, BUFFER_WRITE_FLOAT32);
-    //         cb.write(springSettings.stiffness, BUFFER_WRITE_FLOAT32);
-    //         cb.write(springSettings.damping, BUFFER_WRITE_FLOAT32);
-    //     }
-    // }
-
-    // static writeMotorSettings(cb, motorSettings) {
-    //     cb.write(!!motorSettings, BUFFER_WRITE_BOOL, false);
-    //     if (motorSettings != null) {
-    //         JoltManager.writeSpringSettings(cb, motorSettings.springSettings);
-    //         cb.write(motorSettings.minForceLimit, BUFFER_WRITE_FLOAT32);
-    //         cb.write(motorSettings.maxForceLimit, BUFFER_WRITE_FLOAT32);
-    //         cb.write(motorSettings.minTorqueLimit, BUFFER_WRITE_FLOAT32);
-    //         cb.write(motorSettings.maxTorqueLimit, BUFFER_WRITE_FLOAT32);
-    //     }
-    // }
-
 }
 
 export { JoltManager };
-

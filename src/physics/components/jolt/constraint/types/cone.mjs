@@ -43,7 +43,7 @@ class ConeConstraint extends Constraint {
             OPERATOR_MODIFIER, CMD_JNT_C_SET_H_C_ANGLE, this._index,
             angle, BUFFER_WRITE_FLOAT32, false
         );
-    }    
+    }
 
     get twistAxis1() {
         return this._twistAxis1;
