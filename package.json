@@ -1,13 +1,25 @@
 {
-    "name": "physics",
+    "name": "@gamebop/physics",
+    "description": "Physics components for PlayCanvas engine",
     "version": "0.1.0",
     "main": "index.mjs",
+    "author": "Gamebop",
     "license": "MIT",
     "type": "module",
     "scripts": {
         "build:dev": "rimraf dist && rollup -c --config_dev",
         "build:prod": "rimraf dist && rollup -c"
     },
+    "bugs": {
+        "url": "https://github.com/gamebop/physics/issues"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/gamebop/physics.git"
+    },
+    "files": [
+        "dist/*"
+    ],
     "dependencies": {
         "playcanvas": "^1.66.1"
     },
