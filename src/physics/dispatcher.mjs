@@ -86,6 +86,6 @@ self.onmessage = function(event) {
     const data = event.data;
     if (data?.origin !== 'physics-manager') return;
     dispatcher.handleMessage(data);
-}
+};
 
 export { Dispatcher };

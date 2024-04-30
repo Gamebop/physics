@@ -1,7 +1,9 @@
 import { Debug } from '../../debug.mjs';
 import { buildAccessors } from '../../util.mjs';
+import { BUFFER_WRITE_UINT32 } from './constants.mjs';
+import { ComponentSystem } from 'playcanvas';
 
-class ComponentSystem extends pc.ComponentSystem {
+class ComponentSystem extends ComponentSystem {
 
     _store = {};
 

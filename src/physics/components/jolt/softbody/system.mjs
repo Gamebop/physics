@@ -1,6 +1,10 @@
+import { Quat, Vec3, calculateNormals } from "playcanvas";
 import { BodyComponentSystem } from "../body/system.mjs";
-import { BUFFER_READ_FLOAT32, BUFFER_READ_UINT32, CMD_CREATE_SOFT_BODY, CMD_REPORT_TRANSFORMS, OPERATOR_CREATOR } from "../constants.mjs";
 import { SoftBodyComponent } from "./component.mjs";
+import {
+    BUFFER_READ_FLOAT32, BUFFER_READ_UINT32, CMD_CREATE_SOFT_BODY, CMD_REPORT_TRANSFORMS,
+    OPERATOR_CREATOR
+} from "../constants.mjs";
 
 const schema = [
     // Component
@@ -33,8 +37,8 @@ const schema = [
     'compliance'
 ];
 
-const vec = new pc.Vec3();
-const quat = new pc.Quat()
+const vec = new Vec3();
+const quat = new Quat()
 const positions = [];
 const indices = [];
 
@@ -115,7 +119,7 @@ class SoftBodyComponentSystem extends BodyComponentSystem {
             positions.push(vec.x, vec.y, vec.z);
         }
 
-        mesh.setNormals(pc.calculateNormals(positions, indices));
+        mesh.setNormals(calculateNormals(positions, indices));
         mesh.setPositions(positions);
         mesh.update();
     }

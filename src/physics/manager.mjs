@@ -1,3 +1,4 @@
+import { Color, LAYERID_IMMEDIATE } from "playcanvas";
 import info from "../../package.json";
 import { CommandsBuffer } from "../backends/jolt/commands-buffer.mjs";
 import { Debug } from "./debug.mjs";
@@ -14,10 +15,10 @@ class PhysicsManager {
             fixedStep: 1 / 30,
             subSteps: 1,
             useMotionStates: true,
-            debugColorStatic: pc.Color.GRAY,
-            debugColorKinematic: pc.Color.MAGENTA,
-            debugColorDynamic: pc.Color.YELLOW,
-            debugDrawLayerId: pc.LAYERID_IMMEDIATE,
+            debugColorStatic: Color.GRAY,
+            debugColorKinematic: Color.MAGENTA,
+            debugColorDynamic: Color.YELLOW,
+            debugDrawLayerId: LAYERID_IMMEDIATE,
             debugDrawDepth: true,
             ...opts
         };

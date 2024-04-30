@@ -9,8 +9,15 @@ import { ResponseHandler } from "./response-handler.mjs";
 import { SoftBodyComponentSystem } from "./softbody/system.mjs";
 import { ShapeComponentSystem } from "./shape/system.mjs";
 import { VehicleComponentSystem } from "./vehicle/system.mjs";
-import { BUFFER_WRITE_BOOL, BUFFER_WRITE_UINT16, BUFFER_WRITE_UINT32, BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32, CMD_CAST_RAY, CMD_CAST_SHAPE, CMD_CHANGE_GRAVITY, CMD_CREATE_GROUPS, CMD_CREATE_SHAPE, CMD_DESTROY_SHAPE, CMD_TOGGLE_GROUP_PAIR, COMPONENT_SYSTEM_BODY, COMPONENT_SYSTEM_CHAR, COMPONENT_SYSTEM_CONSTRAINT, COMPONENT_SYSTEM_MANAGER, COMPONENT_SYSTEM_SOFT_BODY, COMPONENT_SYSTEM_VEHICLE, OPERATOR_CLEANER, OPERATOR_CREATOR, OPERATOR_MODIFIER, OPERATOR_QUERIER } from "./constants.mjs";
 import { Quat, Vec3 } from "playcanvas";
+import {
+    BUFFER_WRITE_BOOL, BUFFER_WRITE_UINT16, BUFFER_WRITE_UINT32, BUFFER_WRITE_UINT8,
+    BUFFER_WRITE_VEC32, CMD_CAST_RAY, CMD_CAST_SHAPE, CMD_CHANGE_GRAVITY, CMD_CREATE_GROUPS,
+    CMD_CREATE_SHAPE, CMD_DESTROY_SHAPE, CMD_TOGGLE_GROUP_PAIR, COMPONENT_SYSTEM_BODY,
+    COMPONENT_SYSTEM_CHAR, COMPONENT_SYSTEM_CONSTRAINT, COMPONENT_SYSTEM_MANAGER,
+    COMPONENT_SYSTEM_SOFT_BODY, COMPONENT_SYSTEM_VEHICLE, OPERATOR_CLEANER, OPERATOR_CREATOR,
+    OPERATOR_MODIFIER, OPERATOR_QUERIER
+} from "./constants.mjs";
 
 class JoltManager extends PhysicsManager {
     constructor(app, opts, resolve) {
@@ -28,7 +35,7 @@ class JoltManager extends PhysicsManager {
 
         this._queryMap = new IndexedCache();
         this._shapeMap = new IndexedCache();
-        this._gravity = new pc.Vec3(0, -9.81, 0);
+        this._gravity = new Vec3(0, -9.81, 0);
         this._resolve = resolve;
 
         this._systems.set(COMPONENT_SYSTEM_MANAGER, this);
@@ -142,7 +149,7 @@ class JoltManager extends PhysicsManager {
 
     destroyShape(index) {
         if (DEBUG) {
-            const ok = Debug.checkUint(index, `Invalid shape number: ${ num }`);
+            const ok = Debug.checkUint(index, `Invalid shape number: ${ index }`);
             if (!ok)
                 return;
         }
@@ -176,8 +183,9 @@ class JoltManager extends PhysicsManager {
             ok = ok && Debug.checkUint(subGroup1, `Invalid group 1: ${ subGroup1 }`);
             ok = ok && Debug.checkUint(subGroup2, `Invalid group 2: ${ subGroup2 }`);
             ok = ok && Debug.checkBool(enable, `Invalid toggle flag: ${ enable }`);
-            if (!ok)
+            if (!ok) {
                 return;
+            }
         }
 
         const cb = this._outBuffer;
@@ -199,8 +207,9 @@ class JoltManager extends PhysicsManager {
             if (ok && opts?.calculateNormal != null) ok = Debug.checkBool(opts.calculateNormal);
             if (ok && opts?.ignoreBackFaces != null) ok = Debug.checkBool(opts.ignoreBackFaces);
             if (ok && opts?.treatConvexAsSolid != null) ok = Debug.checkBool(opts.treatConvexAsSolid);
-            if (!ok)
+            if (!ok) {
                 return;
+            }
         }
 
         const cb = this._outBuffer;
@@ -228,8 +237,9 @@ class JoltManager extends PhysicsManager {
             ok = ok && Debug.checkVec(pos, `Invalid cast shape position vector`);
             ok = ok && Debug.checkVec(dir, `Invalid cast shape direction vector`);
             ok = ok && Debug.checkQuat(rot, `Invalid cast shape rotation`);
-            if (!ok)
+            if (!ok) {
                 return;
+            }
         }
 
         const cb = this._outBuffer;
