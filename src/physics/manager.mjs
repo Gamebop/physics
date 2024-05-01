@@ -1,8 +1,8 @@
-import info from "../../package.json";
-import { CommandsBuffer } from "../backends/jolt/commands-buffer.mjs";
-import { Debug } from "./debug.mjs";
-import { Dispatcher } from "./dispatcher.mjs";
-import { IndexedCache } from "./indexed-cache.mjs";
+import { Color, LAYERID_IMMEDIATE } from 'playcanvas';
+import { CommandsBuffer } from './jolt/back/commands-buffer.mjs';
+import { Debug } from './jolt/debug.mjs';
+import { Dispatcher } from './dispatcher.mjs';
+import { IndexedCache } from './indexed-cache.mjs';
 
 class PhysicsManager {
     // TODO: remove backendName from attributes
@@ -15,10 +15,10 @@ class PhysicsManager {
             fixedStep: 1 / 30,
             subSteps: 1,
             useMotionStates: true,
-            debugColorStatic: pc.Color.GRAY,
-            debugColorKinematic: pc.Color.MAGENTA,
-            debugColorDynamic: pc.Color.YELLOW,
-            debugDrawLayerId: pc.LAYERID_IMMEDIATE,
+            debugColorStatic: Color.GRAY,
+            debugColorKinematic: Color.MAGENTA,
+            debugColorDynamic: Color.YELLOW,
+            debugDrawLayerId: LAYERID_IMMEDIATE,
             debugDrawDepth: true,
             ...opts
         };
@@ -33,6 +33,8 @@ class PhysicsManager {
         this._systems = new Map();
         this._backend = null
 
+        // TODO
+        // this needs a change after we move to modules
         const wasmAsset = app.assets.find('jolt-physics.wasm.wasm');
         const glueAsset = app.assets.find('jolt-physics.wasm.js');
 
@@ -56,13 +58,11 @@ class PhysicsManager {
             type: 'step', buffer: null, inBuffer: null, origin: 'physics-manager'
         };
 
-        if (DEBUG) {
+        if ($_DEBUG) {
             this._perfCache = new IndexedCache();
         }
 
         this._frame = app.stats.frame;
-
-        this.version = info.version;
 
         this._config = config;
         this._app = app;
@@ -111,7 +111,7 @@ class PhysicsManager {
         }
 
         let index;
-        if (DEBUG) {
+        if ($_DEBUG) {
             const startTime = performance.now();
             index = this._perfCache.add(startTime);
 
@@ -159,7 +159,7 @@ class PhysicsManager {
             const count = inBuffer.commandsCount;
             for (let i = 0; i < count; i++) {
                 const operator = inBuffer.readOperator();
-                if (DEBUG) {
+                if ($_DEBUG) {
                     const ok = Debug.assert(!!systems.get(operator), `Invalid component system: ${ operator }`);
                     if (!ok) {
                         this._updateEvent.off();
@@ -189,7 +189,7 @@ class PhysicsManager {
             this._updateEvent = this._app.systems.on('postUpdate', this.onUpdate, this);
         }
 
-        if (DEBUG) {
+        if ($_DEBUG) {
             const perfIndex = msg.perfIndex;
             
             if (perfIndex == null) return;
@@ -247,7 +247,7 @@ class PhysicsManager {
 
         msg.dt = dt;
 
-        if (DEBUG) {
+        if ($_DEBUG) {
             msg.perfIndex = perfIndex;
         }
 

@@ -5,23 +5,11 @@
  * @module PhysicsComponents
  */
 
-export { init } from './physics/init.mjs';
-export { CommandsBuffer } from './backends/jolt/commands-buffer.mjs';
-export { IndexedCache } from './physics/indexed-cache.mjs';
+import { init } from './physics/init.mjs';
 
-export { JoltManager } from './physics/components/jolt/manager.mjs';
+export { BodyComponent } from './physics/jolt/front/body/component.mjs';
+export { BodyComponentSystem } from './physics/jolt/front/body/system.mjs';
 
-export { ShapeComponent } from './physics/components/jolt/component.mjs';
-export { ShapeComponentSystem } from './physics/components/jolt/system.mjs';
+export * from './physics/jolt/constants.mjs';
 
-export { BodyComponent } from './physics/components/jolt/body/component.mjs';
-export { BodyComponentSystem } from './physics/components/jolt/body/system.mjs';
-
-export { SoftBodyComponent } from './physics/components/jolt/softbody/component.mjs';
-export { SoftBodyComponentSystem } from './physics/components/jolt/softbody/system.mjs';
-
-export { CharComponent } from './physics/components/jolt/char/component.mjs';
-export { CharComponentSystem } from './physics/components/jolt/char/system.mjs';
-
-export { VehicleComponent, props } from './physics/components/jolt/vehicle/component.mjs';
-export { VehicleComponentSystem } from './physics/components/jolt/vehicle/system.mjs';
+export { init };

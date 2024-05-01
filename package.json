@@ -1,24 +1,38 @@
 {
-    "name": "jolt",
-    "version": "0.1.0",
-    "main": "index.js",
+    "name": "@gamebop/physics",
+    "description": "Physics components for PlayCanvas engine",
+    "version": "0.2.0",
+    "main": "index.mjs",
+    "author": "Gamebop",
     "license": "MIT",
     "type": "module",
     "scripts": {
-        "build": "rimraf dist && webpack --mode=production && webpack --mode=development && typedoc",
-        "build:dev": "rimraf dist && webpack --mode=development",
-        "build:prod": "rimraf dist && webpack --mode=production",
-        "docs": "typedoc"
+        "build": "rimraf dist && rollup -c && rollup -c --config_dev",
+        "build:dev": "rimraf dist && rollup -c --config_dev",
+        "build:prod": "rimraf dist && rollup -c"
     },
+    "bugs": {
+        "url": "https://github.com/gamebop/physics/issues"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/gamebop/physics.git"
+    },
+    "files": [
+        "dist/*"
+    ],
     "dependencies": {
-        "jolt-physics": "^0.18.0",
         "playcanvas": "^1.66.1"
     },
     "devDependencies": {
+        "@rollup/plugin-json": "^6.1.0",
+        "@rollup/plugin-node-resolve": "^15.2.3",
+        "@rollup/plugin-strip": "^3.0.4",
+        "@rollup/plugin-terser": "^0.4.4",
         "rimraf": "^5.0.5",
+        "rollup": "^4.17.1",
+        "rollup-plugin-jscc": "^2.0.0",
         "typedoc": "^0.25.8",
-        "typescript": "^5.3.3",
-        "webpack": "^5.89.0",
-        "webpack-cli": "^5.1.4"
+        "typescript": "^5.3.3"
     }
 }

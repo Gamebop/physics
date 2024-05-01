@@ -1,5 +1,5 @@
-import { JoltBackend } from "../backends/jolt/backend.mjs";
-import { Debug } from "./debug.mjs";
+import { JoltBackend } from './jolt/back/backend.mjs';
+import { Debug } from './jolt/debug.mjs';
 
 function createBackend(dispatcher, data) {
     switch (data.backendName) {
@@ -86,6 +86,6 @@ self.onmessage = function(event) {
     const data = event.data;
     if (data?.origin !== 'physics-manager') return;
     dispatcher.handleMessage(data);
-}
+};
 
 export { Dispatcher };
