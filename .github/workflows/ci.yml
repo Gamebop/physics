@@ -34,3 +34,23 @@ jobs:
 
     - name: Build Physics
       run: npm run build
+
+  docs:
+    name: Docs
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js 18.x
+      uses: actions/setup-node@v4
+      with:
+        node-version: 18.x
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm clean-install --progress=false --no-fund
+
+    - name: Build API reference manual
+      run: npm run docs      

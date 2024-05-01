@@ -9,7 +9,8 @@
     "scripts": {
         "build": "rimraf dist && rollup -c && rollup -c --config_dev",
         "build:dev": "rimraf dist && rollup -c --config_dev",
-        "build:prod": "rimraf dist && rollup -c"
+        "build:prod": "rimraf dist && rollup -c",
+        "docs": "typedoc"
     },
     "bugs": {
         "url": "https://github.com/gamebop/physics/issues"
