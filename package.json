@@ -7,6 +7,7 @@
     "license": "MIT",
     "type": "module",
     "scripts": {
+        "build": "rimraf dist && rollup -c && rollup -c --config_dev",
         "build:dev": "rimraf dist && rollup -c --config_dev",
         "build:prod": "rimraf dist && rollup -c"
     },

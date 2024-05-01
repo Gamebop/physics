@@ -42,7 +42,7 @@ const jscOptsDev = {
 
 export default args => {
 	const isDev = args.config_dev;
-	
+	const file = isDev ? 'dist/physics.dbg.mjs' : 'dist/physics.min.mjs';
 	const plugins = [nodeResolve()];
 	
 	if (isDev) {
@@ -58,7 +58,7 @@ export default args => {
 	return {
 		input: 'src/index.mjs',
 		output: {
-			file: 'dist/physics.mjs',
+			file,
 			format: 'es',
 			sourcemap: isDev ? 'inline' : false
 		},
