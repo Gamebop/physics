@@ -1,9 +1,6 @@
 name: Publish to GPR
 
-on:
-  push:
-    tags:
-      - '*'
+on: workflow_dispatch
 
 jobs:
   publish-gpr:
@@ -17,6 +14,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 18
+          cache: 'npm'
           registry-url: https://npm.pkg.github.com/
       
       - name: Install dependencies
