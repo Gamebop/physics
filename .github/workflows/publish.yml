@@ -2,7 +2,7 @@ name: Publish to GPR
 
 on:
   release:
-    [published]
+    types: [published]
 
 jobs:
   publish-gpr:
