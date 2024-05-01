@@ -1,8 +1,9 @@
 name: Publish to GPR
 
 on:
-  tags-ignore:
-    '*-dev'
+  push:
+    tags-ignore:
+      '*-dev'
 
 jobs:
   publish-gpr:
