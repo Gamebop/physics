@@ -47,6 +47,8 @@ class JoltManager extends PhysicsManager {
         // TODO
         // component systems will use Jolt constants, which
         // are not available until webworker responds with them.
+        // TODO
+        // now that we moved to modules, this needs an update
 
         app.systems.add(new BodyComponentSystem(app, this, COMPONENT_SYSTEM_BODY));
         app.systems.add(new CharComponentSystem(app, this, COMPONENT_SYSTEM_CHAR));
@@ -70,15 +72,6 @@ class JoltManager extends PhysicsManager {
             // first check if user wants to use own custom build
             msg.glueUrl = opts.glueUrl;
             msg.wasmUrl = opts.wasmUrl;
-        } else {
-            // then check if glue/wasm are in the project assets
-            const wasmAsset = app.assets.find('jolt-physics.wasm.wasm');
-            const glueAsset = app.assets.find('jolt-physics.wasm.js');
-
-            if (wasmAsset && glueAsset) {
-                msg.glueUrl = glueAsset.getFileUrl();
-                msg.wasmUrl = wasmAsset.getFileUrl();
-            }
         }
 
         msg.backendName = 'jolt';
