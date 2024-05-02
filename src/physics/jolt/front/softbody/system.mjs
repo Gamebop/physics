@@ -14,20 +14,20 @@ const schema = [
     'useEntityScale',
 
     // Soft Body
-	'position',
-	'rotation',
-	'objectLayer',
-	'collisionGroup',
+    'position',
+    'rotation',
+    'objectLayer',
+    'collisionGroup',
     'subGroup',
-	'numIterations',
-	'linearDamping',
-	'maxLinearVelocity',
-	'restitution',
-	'friction',
-	'pressure',
-	'gravityFactor',
-	'updatePosition',
-	'makeRotationIdentity',
+    'numIterations',
+    'linearDamping',
+    'maxLinearVelocity',
+    'restitution',
+    'friction',
+    'pressure',
+    'gravityFactor',
+    'updatePosition',
+    'makeRotationIdentity',
     'allowSleeping',
 
     // Shape Data
@@ -38,21 +38,20 @@ const schema = [
 ];
 
 const vec = new Vec3();
-const quat = new Quat()
+const quat = new Quat();
 const positions = [];
 const indices = [];
 
 /**
  * SoftBody Component System. Handles all SoftBody Components.
- * 
+ *
  * @category SoftBody Component
  */
 class SoftBodyComponentSystem extends BodyComponentSystem {
-
     constructor(app, manager, id) {
         super(app, manager);
 
-        this._schema = [ ...this._schema, ...schema ];
+        this._schema = [...this._schema, ...schema];
 
         manager.systems.set(id, this);
     }
@@ -60,7 +59,7 @@ class SoftBodyComponentSystem extends BodyComponentSystem {
     get id() {
         return 'softbody';
     }
-    
+
     get ComponentType() {
         return SoftBodyComponent;
     }
@@ -77,10 +76,8 @@ class SoftBodyComponentSystem extends BodyComponentSystem {
     processCommands(cb) {
         const command = cb.readCommand();
 
-        switch (command) {
-            case CMD_REPORT_TRANSFORMS:
-                this._updateVertices(cb);
-            break;
+        if (command === CMD_REPORT_TRANSFORMS) {
+            this._updateVertices(cb);
         }
     }
 
@@ -104,8 +101,8 @@ class SoftBodyComponentSystem extends BodyComponentSystem {
         let sx = 1;
         let sy = 1;
         let sz = 1;
-        
-        if (component.useEntityScale ) {
+
+        if (component.useEntityScale) {
             const s = entity.getLocalScale();
             sx = s.x || 1; sy = s.y || 1; sz = s.z || 1;
         }

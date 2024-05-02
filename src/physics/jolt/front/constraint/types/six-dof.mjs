@@ -56,10 +56,10 @@ class SixDOFConstraint extends Constraint {
     constructor(entity1, entity2, opts = {}) {
         super(entity1, entity2, opts);
 
-        opts.axisX1 && (this._axisX1 = opts.axisX1);
-        opts.axisX2 && (this._axisX2 = opts.axisX2);
-        opts.axisY1 && (this._axisY1 = opts.axisY1);
-        opts.axisY2 && (this._axisY2 = opts.axisY2);
+        if (opts.axisX1) this._axisX1 = opts.axisX1;
+        if (opts.axisX2) this._axisX2 = opts.axisX2;
+        if (opts.axisY1) this._axisY1 = opts.axisY1;
+        if (opts.axisY2) this._axisY2 = opts.axisY2;
 
         this._swingType = opts.swingType ?? this._swingType;
 
@@ -148,7 +148,7 @@ class SixDOFConstraint extends Constraint {
 
     setLimitsSpringSettings(axis, settings) {
         if ($_DEBUG) {
-            let ok = Debug.checkUint(axis, `Invalid axis uint scalar: ${ axis }`);
+            let ok = Debug.checkUint(axis, `Invalid axis uint scalar: ${axis}`);
             ok = ok && Debug.checkSpringSettings(settings);
             if (!ok) {
                 return;
@@ -173,8 +173,8 @@ class SixDOFConstraint extends Constraint {
 
     setMaxFriction(axis, friction) {
         if ($_DEBUG) {
-            let ok = Debug.checkUint(axis, `Invalid axis uint scalar: ${ axis }`);
-            ok = ok && Debug.checkFloat(friction, `Invalid max friction scalar value: ${ friction }`);
+            let ok = Debug.checkUint(axis, `Invalid axis uint scalar: ${axis}`);
+            ok = ok && Debug.checkFloat(friction, `Invalid max friction scalar value: ${friction}`);
             if (!ok) {
                 return;
             }
@@ -189,7 +189,7 @@ class SixDOFConstraint extends Constraint {
 
     setMotorState(axis, state) {
         if ($_DEBUG) {
-            let ok = Debug.checkUint(axis, `Invalid axis uint scalar: ${ axis }`);
+            let ok = Debug.checkUint(axis, `Invalid axis uint scalar: ${axis}`);
             ok = ok && Debug.checkUint(state, `Invalid motor state scalar for constraint:`, state);
             if (!ok) {
                 return;

@@ -28,16 +28,16 @@ class CharComponent extends ShapeComponent {
     // position.
     _linearVelocity = new Vec3();
 
-    // Plane, defined in local space relative to the character. Every contact 
-    // behind this plane can support the character, every contact in front of 
-    // this plane is treated as only colliding with the player. Default: Accept
+    // Plane, defined in local space relative to the character. Every contact behind this plane
+    // can support the character, every contact in front of this plane is treated as only colliding
+    // with the player. Default: Accept
     // any contact.
     _supportingVolume = new Plane(Vec3.UP, -1);
 
     // Maximum angle of slope that character can still walk on (radians).
     _maxSlopeAngle = 45 * math.DEG_TO_RAD;
 
-    // Character mass (kg). Used to push down objects with gravity when the 
+    // Character mass (kg). Used to push down objects with gravity when the
     // character is standing on top.
     _mass = 70;
 
@@ -77,8 +77,8 @@ class CharComponent extends ShapeComponent {
     // Max num hits to collect in order to avoid excess of contact points collection.
     _maxNumHits = 256;
 
-    // Cos(angle) where angle is the maximum angle between two hits contact normals that 
-    // are allowed to be merged during hit reduction. Default is around 2.5 degrees. Set 
+    // Cos(angle) where angle is the maximum angle between two hits contact normals that
+    // are allowed to be merged during hit reduction. Default is around 2.5 degrees. Set
     // to -1 to turn off.
     _hitReductionCosMaxAngle = 0.999;
 
@@ -112,29 +112,23 @@ class CharComponent extends ShapeComponent {
     // a world presence (allow raycasts and collisions detection vs character)
     _pairedEntity = null;
 
-    constructor(system, entity) {
-        super(system, entity);      
-    }
-
-    get linearVelocity() {
-        return this._linearVelocity;
-    }
-
     set linearVelocity(vel) {
-        $_DEBUG && Debug.checkVec(vel, `Invalid character linear velocity`, vel);
+        if ($_DEBUG) {
+            Debug.checkVec(vel, `Invalid character linear velocity`, vel);
+        }
         this.system.addCommand(
             OPERATOR_MODIFIER, CMD_CHAR_SET_LIN_VEL, this._index,
             vel, BUFFER_WRITE_VEC32, false
         );
     }
 
-    get userData() {
-        return this._userData;
+    get linearVelocity() {
+        return this._linearVelocity;
     }
 
     set userData(num) {
         if ($_DEBUG) {
-            let ok = Debug.checkFloat(num, `Invalid user data value. Should be a number: ${ num }`);
+            const ok = Debug.checkFloat(num, `Invalid user data value. Should be a number: ${num}`);
             if (!ok) {
                 return;
             }
@@ -145,16 +139,16 @@ class CharComponent extends ShapeComponent {
         this.system.addCommand(
             OPERATOR_MODIFIER, CMD_SET_USER_DATA, this._index,
             num, BUFFER_WRITE_FLOAT32, false
-        );        
+        );
     }
 
-    get pairedEntity() {
-        return this._pairedEntity;
+    get userData() {
+        return this._userData;
     }
 
     set pairedEntity(entity) {
         if ($_DEBUG) {
-            let ok = Debug.assert(!!entity.body, `Invalid entity to pair. Needs to have a "body" component.`, entity);
+            const ok = Debug.assert(!!entity.body, `Invalid entity to pair. Needs to have a "body" component.`, entity);
             if (!ok)
                 return;
         }
@@ -165,6 +159,10 @@ class CharComponent extends ShapeComponent {
             OPERATOR_MODIFIER, CMD_PAIR_BODY, this._index,
             entity.body.index, BUFFER_WRITE_UINT32, false
         );
+    }
+
+    get pairedEntity() {
+        return this._pairedEntity;
     }
 
     setShape(shapeIndex = null, callback = null) {
@@ -215,7 +213,9 @@ class CharComponent extends ShapeComponent {
         cb.write(pos, BUFFER_WRITE_VEC32, false);
         cb.write(rot, BUFFER_WRITE_VEC32, false);
 
-        $_DEBUG && cb.write(this._debugDraw, BUFFER_WRITE_BOOL, false);
+        if ($_DEBUG) {
+            cb.write(this._debugDraw, BUFFER_WRITE_BOOL, false);
+        }
     }
 
     updateTransforms(cb, map) {
@@ -287,7 +287,7 @@ class CharComponent extends ShapeComponent {
         system.setIndexFree(componentIndex);
 
         system.addCommand(OPERATOR_CLEANER, CMD_DESTROY_BODY, componentIndex);
-    }    
+    }
 
     _writeCallback(callback) {
         if (callback) {
@@ -299,4 +299,3 @@ class CharComponent extends ShapeComponent {
 }
 
 export { CharComponent };
-

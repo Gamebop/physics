@@ -164,7 +164,7 @@ class ShapeComponentSystem extends JoltComponentSystem {
         const tempVectors = ShapeComponentSystem.tempVectors;
 
         if (tempVectors.length === 0) {
-            tempVectors.push( new Vec3(), new Vec3(), new Vec3(), new Vec3(), new Quat() );
+            tempVectors.push(new Vec3(), new Vec3(), new Vec3(), new Vec3(), new Quat());
         }
 
         const v1 = tempVectors[0];
@@ -172,39 +172,37 @@ class ShapeComponentSystem extends JoltComponentSystem {
         const v3 = tempVectors[2];
         const v4 = tempVectors[3];
         const q1 = tempVectors[4];
-    
+
         for (let d = 0, total = data.length; d < total; d += 12) {
-            const index = data[d];
             const length = data[d + 1];
             const byteOffset = data[d + 2];
             const motionType = data[d + 3];
             const buffer = data[d + 4];
-    
+
             const view = new Float32Array(buffer, byteOffset, length);
             const color = getColor(motionType, config);
 
             const p = v4.set(data[d + 5], data[d + 6], data[d + 7]);
             const r = q1.set(data[d + 8], data[d + 9], data[d + 10], data[d + 11]);
-    
+
             for (let i = 0, end = view.length; i < end; i += 9) {
                 v1.set(view[i], view[i + 1], view[i + 2]);
                 v2.set(view[i + 3], view[i + 4], view[i + 5]);
                 v3.set(view[i + 6], view[i + 7], view[i + 8]);
-    
+
                 r.transformVector(v1, v1);
                 r.transformVector(v2, v2);
                 r.transformVector(v3, v3);
                 v1.add(p);
                 v2.add(p);
                 v3.add(p);
-    
+
                 app.drawLine(v1, v2, color, useDepth, layer);
                 app.drawLine(v2, v3, color, useDepth, layer);
                 app.drawLine(v3, v1, color, useDepth, layer);
             }
         }
-    }    
+    }
 }
 
 export { ShapeComponentSystem };
-

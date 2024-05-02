@@ -15,7 +15,7 @@ class MotionState {
         const position = this._position;
         const op = this._oldPos;
         const cp = this._currentPos;
-        
+
         try {
             if (stepped) {
                 const bp = body.GetPosition();
@@ -73,15 +73,12 @@ class MotionState {
                     r.y = c0 * or.y + c1 * q2y;
                     r.z = c0 * or.z + c1 * q2z;
                     r.w = c0 * or.w + c1 * q2w;
-                } else {
-                    r.x = r.x;
-                    r.y = r.y;
-                    r.z = r.z;
-                    r.w = r.w;
                 }
             }
         } catch (e) {
-            $_DEBUG && Debug.error(e);
+            if ($_DEBUG) {
+                Debug.error(e);
+            }
             return false;
         }
 

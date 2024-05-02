@@ -1,6 +1,9 @@
 import { Vec3 } from 'playcanvas';
 import { Debug } from '../../../debug.mjs';
-import { CONSTRAINT_TYPE_CONE } from '../../../constants.mjs';
+import {
+    BUFFER_WRITE_FLOAT32, BUFFER_WRITE_VEC32, CMD_JNT_C_SET_H_C_ANGLE, CONSTRAINT_TYPE_CONE,
+    OPERATOR_MODIFIER
+} from '../../../constants.mjs';
 import { Constraint } from './constraint.mjs';
 
 class ConeConstraint extends Constraint {
@@ -15,19 +18,15 @@ class ConeConstraint extends Constraint {
     constructor(entity1, entity2, opts = {}) {
         super(entity1, entity2, opts);
 
-        opts.twistAxis1 && (this._twistAxis1 = opts.twistAxis1);
-        opts.twistAxis2 && (this._twistAxis2 = opts.twistAxis2);
+        if (opts.twistAxis1) this._twistAxis1 = opts.twistAxis1;
+        if (opts.twistAxis2) this._twistAxis2 = opts.twistAxis2;
 
         this._halfConeAngle = opts.halfConeAngle ?? this._halfConeAngle;
     }
 
-    get halfConeAngle() {
-        return this._halfConeAngle;
-    }
-
     set halfConeAngle(angle) {
         if ($_DEBUG) {
-            const ok = Debug.checkFloat(angle, `Invalid half cone angle scalar: ${ angle }`);
+            const ok = Debug.checkFloat(angle, `Invalid half cone angle scalar: ${angle}`);
             if (!ok) {
                 return;
             }
@@ -43,6 +42,10 @@ class ConeConstraint extends Constraint {
             OPERATOR_MODIFIER, CMD_JNT_C_SET_H_C_ANGLE, this._index,
             angle, BUFFER_WRITE_FLOAT32, false
         );
+    }
+
+    get halfConeAngle() {
+        return this._halfConeAngle;
     }
 
     get twistAxis1() {

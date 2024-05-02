@@ -45,7 +45,7 @@ const schema = [
 
 /**
  * Vehicle Component System. Handles all Vehicle Components.
- * 
+ *
  * @category Vehicle Component
  */
 class VehicleComponentSystem extends BodyComponentSystem {

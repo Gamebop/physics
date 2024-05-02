@@ -8,6 +8,7 @@ import {
     CMD_JNT_SDF_SET_R_LIMITS, CMD_JNT_SDF_SET_SPRING_S, CMD_JNT_SDF_SET_T_ANG_VEL_CS,
     CMD_JNT_SDF_SET_T_LIMITS, CMD_JNT_SDF_SET_T_POS_CS, CMD_JNT_SDF_SET_T_ROT_BS,
     CMD_JNT_SDF_SET_T_ROT_CS, CMD_JNT_SDF_SET_T_VEL_CS, CMD_JNT_SET_ENABLED,
+    CMD_JNT_ST_SET_M_F_TORQUE,
     CMD_JNT_ST_SET_N_H_C_ANGLE, CMD_JNT_ST_SET_P_H_C_ANGLE, CMD_JNT_ST_SET_SWING_M_S,
     CMD_JNT_ST_SET_TWIST_M_S, CMD_JNT_ST_SET_T_ANG_VEL_CS, CMD_JNT_ST_SET_T_MAX_ANGLE,
     CMD_JNT_ST_SET_T_MIN_ANGLE, CMD_JNT_ST_SET_T_O_BS, CMD_JNT_ST_SET_T_O_CS, CMD_JNT_S_SET_LIMITS,
@@ -39,7 +40,9 @@ class ConstraintModifier {
             return this._updateSixDOFConstraint(command, cb);
         }
 
-        $_DEBUG && Debug.warn(`Unrecognized command for constraint modifier: ${ command }`);
+        if ($_DEBUG) {
+            Debug.warn(`Unrecognized command for constraint modifier: ${command}`);
+        }
         return false;
     }
 
@@ -51,19 +54,21 @@ class ConstraintModifier {
         const activate = cb.read(BUFFER_READ_BOOL);
 
         const data = tracker.constraintMap.get(index);
-        
+
         // An index could be old and constraint might have been already destroyed.
         if (!data) {
-            $_DEBUG && Debug.warn(`Trying to enable/disable a constraint that has already been destroyed: ${ index }`);
+            if ($_DEBUG) {
+                Debug.warn(`Trying to enable/disable a constraint that has already been destroyed: ${index}`);
+            }
             return true;
         }
 
         try {
             data.constraint.SetEnabled(enabled);
-    
+
             if (activate) {
                 const { body1, body2 } = data;
-    
+
                 if (Jolt.getPointer(data.body1) !== 0) {
                     bodyInterface.ActivateBody(body1.GetID());
                 }
@@ -72,12 +77,14 @@ class ConstraintModifier {
                 }
             }
         } catch (e) {
-            $_DEBUG && Debug.error(e);
+            if ($_DEBUG) {
+                Debug.error(e);
+            }
             return false;
         }
-        
+
         return true;
-    }    
+    }
 
     _updateHingeConstraint(command, cb) {
         try {
@@ -106,12 +113,16 @@ class ConstraintModifier {
                         break;
                     }
                     default:
-                        $_DEBUG && Debug.warn(`Unrecognized command for constraint modifier: ${ command }`);
+                        if ($_DEBUG) {
+                            Debug.warn(`Unrecognized command for constraint modifier: ${command}`);
+                        }
                         return false;
                 }
             }
         } catch (e) {
-            $_DEBUG && Debug.error(e);
+            if ($_DEBUG) {
+                Debug.error(e);
+            }
             return false;
         }
 
@@ -145,16 +156,20 @@ class ConstraintModifier {
                         break;
                     }
                     default:
-                        $_DEBUG && Debug.warn(`Unrecognized command for constraint modifier: ${ command }`);
+                        if ($_DEBUG) {
+                            Debug.warn(`Unrecognized command for constraint modifier: ${command}`);
+                        }
                         return false;
                 }
             }
         } catch (e) {
-            $_DEBUG && Debug.error(e);
+            if ($_DEBUG) {
+                Debug.error(e);
+            }
             return false;
         }
 
-        return true; 
+        return true;
     }
 
     _updateSwingTwistConstraint(command, cb) {
@@ -202,12 +217,16 @@ class ConstraintModifier {
                         constraint.SetTargetAngularVelocityCS(jv);
                         break;
                     default:
-                        $_DEBUG && Debug.warn(`Unrecognized command for constraint modifier: ${ command }`);
+                        if ($_DEBUG) {
+                            Debug.warn(`Unrecognized command for constraint modifier: ${command}`);
+                        }
                         return false;
                 }
             }
         } catch (e) {
-            $_DEBUG && Debug.error(e);
+            if ($_DEBUG) {
+                Debug.error(e);
+            }
             return false;
         }
 
@@ -229,12 +248,16 @@ class ConstraintModifier {
                         break;
                     }
                     default:
-                        $_DEBUG && Debug.warn(`Unrecognized command for constraint modifier: ${ command }`);
+                        if ($_DEBUG) {
+                            Debug.warn(`Unrecognized command for constraint modifier: ${command}`);
+                        }
                         return false;
                 }
             }
         } catch (e) {
-            $_DEBUG && Debug.error(e);
+            if ($_DEBUG) {
+                Debug.error(e);
+            }
             return false;
         }
 
@@ -251,12 +274,16 @@ class ConstraintModifier {
                         constraint.SetHalfConeAngle(cb.read(BUFFER_READ_FLOAT32));
                         break;
                     default:
-                        $_DEBUG && Debug.warn(`Unrecognized command for constraint modifier: ${ command }`);
+                        if ($_DEBUG) {
+                            Debug.warn(`Unrecognized command for constraint modifier: ${command}`);
+                        }
                         return false;
                 }
             }
         } catch (e) {
-            $_DEBUG && Debug.error(e);
+            if ($_DEBUG) {
+                Debug.error(e);
+            }
             return false;
         }
 
@@ -281,10 +308,11 @@ class ConstraintModifier {
                     case CMD_JNT_SDF_SET_R_LIMITS:
                         constraint.SetRotationLimits(jv1.FromBuffer(cb), jv2.FromBuffer(cb));
                         break;
-                    case CMD_JNT_SDF_SET_SPRING_S:
+                    case CMD_JNT_SDF_SET_SPRING_S: {
                         const settings = createSpringSettings(cb, modifier.backend.Jolt);
                         constraint.SetLimitsSpringSettings(cb.read(BUFFER_READ_UINT8), settings);
                         break;
+                    }
                     case CMD_JNT_SDF_SET_M_F:
                         constraint.SetMaxFriction(cb.read(BUFFER_READ_UINT8), cb.read(BUFFER_READ_FLOAT32));
                         break;
@@ -307,18 +335,22 @@ class ConstraintModifier {
                         constraint.SetTargetOrientationBS(jq.FromBuffer(cb));
                         break;
                     default:
-                        $_DEBUG && Debug.warn(`Unrecognized command for constraint modifier: ${ command }`);
+                        if ($_DEBUG) {
+                            Debug.warn(`Unrecognized command for constraint modifier: ${command}`);
+                        }
                         return false;
                 }
             }
         } catch (e) {
-            $_DEBUG && Debug.error(e);
+            if ($_DEBUG) {
+                Debug.error(e);
+            }
             return false;
         }
 
         return true;
     }
-    
+
     _getConstraint(cb, type) {
         const index = cb.read(BUFFER_READ_UINT32);
         const { tracker, Jolt } = this._modifier.backend;

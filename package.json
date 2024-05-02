@@ -2,7 +2,7 @@
     "name": "@gamebop/physics",
     "description": "Physics components for PlayCanvas engine",
     "version": "0.2.1",
-    "main": "index.mjs",
+    "main": "dist/index.dbg.mjs",
     "author": "Gamebop",
     "license": "MIT",
     "type": "module",
@@ -10,6 +10,9 @@
         "build": "rimraf dist && rollup -c && rollup -c --config_dev",
         "build:dev": "rimraf dist && rollup -c --config_dev",
         "build:prod": "rimraf dist && rollup -c",
+        "build:publish": "rimraf dist && rollup -c && rollup -c --config_dev && npm run publint",
+        "lint": "eslint --ext .mjs, src rollup.config.mjs",
+        "publint": "publint",
         "docs": "typedoc"
     },
     "bugs": {
@@ -19,6 +22,28 @@
         "type": "git",
         "url": "https://github.com/gamebop/physics.git"
     },
+    "eslintConfig": {
+        "extends": "@playcanvas/eslint-config",
+        "rules": {
+            "no-eval": "off",
+            "no-new-wrappers": "off",
+            "jsdoc/check-tag-names": [
+                "error",
+                {
+                    "definedTags": [
+                        "defaultValue",
+                        "category",
+                        "group",
+                        "hidden"
+                    ]
+                }
+            ]
+        },
+        "globals": {
+            "Jolt": "readonly",
+            "$_DEBUG": "readonly"
+        }
+    },
     "files": [
         "dist/*"
     ],
@@ -26,10 +51,13 @@
         "playcanvas": "^1.66.1"
     },
     "devDependencies": {
+        "@playcanvas/eslint-config": "^1.7.1",
         "@rollup/plugin-json": "^6.1.0",
         "@rollup/plugin-node-resolve": "^15.2.3",
         "@rollup/plugin-strip": "^3.0.4",
         "@rollup/plugin-terser": "^0.4.4",
+        "eslint": "^8.57.0",
+        "publint": "^0.2.7",
         "rimraf": "^5.0.5",
         "rollup": "^4.17.1",
         "rollup-plugin-jscc": "^2.0.0",

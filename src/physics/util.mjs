@@ -9,11 +9,11 @@ function buildAccessors(obj, schema) {
 
         Object.defineProperty(obj, property, {
             get: function () {
-                return this[`_${ property }`];
+                return this[`_${property}`];
             },
             set: function (value) {
-                const oldValue = this[`_${ property }`];
-                this[`_${ property }`] = value;
+                const oldValue = this[`_${property}`];
+                this[`_${property}`] = value;
                 this.fire('set', property, oldValue, value);
             },
             configurable: true

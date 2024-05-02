@@ -2,7 +2,7 @@
  * An indexed map cache. Used to temporarily store objects and functions. For example, a raycast
  * callback function to be called, once we get the result from the physics backend.
  * Indices can be freed and re-used.
- * 
+ *
  * @hidden
  */
 class IndexedCache {
@@ -14,21 +14,21 @@ class IndexedCache {
 
     /**
      * Store an element in the cache. Will return one of the freed indices, or a new one.
-     * 
+     *
      * @param {*} element - An object or a function to store in the cache
-     * @returns {number}
+     * @returns {number} - TODO
      */
     add(element) {
-        const index = this._freed.pop() ?? this._index++; 
+        const index = this._freed.pop() ?? this._index++;
         this._storage[index] = element;
         return index;
     }
 
     /**
      * Retrieves a stored element under the given index.
-     * 
+     *
      * @param {number} index - An index of the element to retrieve.
-     * @returns {*}
+     * @returns {*} - TODO
      */
     get(index) {
         return this._storage[index];
@@ -36,7 +36,7 @@ class IndexedCache {
 
     /**
      * Frees an index to allow a re-use of it in the future.
-     * 
+     *
      * @param {number} index - An index to free. Once freed, the index might be used again.
      */
     free(index) {

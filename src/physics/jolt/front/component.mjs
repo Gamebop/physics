@@ -1,9 +1,6 @@
 import { EventHandler } from 'playcanvas';
-import { Debug } from '../debug.mjs';
-import { buildAccessors } from '../../util.mjs';
 
 class Component extends EventHandler {
-
     // Flag, whether the accessors were set on this component.
     _accessorsBuilt = false;
 
@@ -37,14 +34,14 @@ class Component extends EventHandler {
         return this._system;
     }
 
+    set accessorsBuilt(isSet) {
+        this._accessorsBuilt = isSet;
+    }
+
     get accessorsBuilt() {
         return this._accessorsBuilt;
     }
 
-    set accessorsBuilt(isSet) {
-        this._accessorsBuilt = isSet;
-    }
-    
     onSetEnabled(name, oldValue, newValue) {
         if (oldValue !== newValue) {
             if (this.entity.enabled) {
@@ -66,4 +63,3 @@ class Component extends EventHandler {
 }
 
 export { Component };
-

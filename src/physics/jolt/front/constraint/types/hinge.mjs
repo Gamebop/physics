@@ -33,10 +33,10 @@ class HingeConstraint extends Constraint {
     constructor(entity1, entity2, opts = {}) {
         super(entity1, entity2, opts);
 
-        opts.hingeAxis1 && (this._hingeAxis1 = opts.hingeAxis1);
-        opts.hingeAxis2 && (this._hingeAxis2 = opts.hingeAxis2);
-        opts.normalAxis1 && (this._normalAxis1 = opts.normalAxis1);
-        opts.normalAxis2 && (this._normalAxis2 = opts.normalAxis2);
+        if (opts.hingeAxis1) this._hingeAxis1 = opts.hingeAxis1;
+        if (opts.hingeAxis2) this._hingeAxis2 = opts.hingeAxis2;
+        if (opts.normalAxis1) this._normalAxis1 = opts.normalAxis1;
+        if (opts.normalAxis2) this._normalAxis2 = opts.normalAxis2;
 
         this._limitsMin = opts.limitsMin ?? this._limitsMin;
         this._limitsMax = opts.limitsMax ?? this._limitsMax;
@@ -67,10 +67,6 @@ class HingeConstraint extends Constraint {
         return this._limitsMin;
     }
 
-    get limitsSpringSettings() {
-        return this._limitsSpringSettings;
-    }
-
     set limitsSpringSettings(settings) {
         if ($_DEBUG) {
             const ok = Debug.checkSpringSettings(settings);
@@ -96,8 +92,8 @@ class HingeConstraint extends Constraint {
         );
     }
 
-    get maxFrictionTorque() {
-        return this._maxFrictionTorque;
+    get limitsSpringSettings() {
+        return this._limitsSpringSettings;
     }
 
     set maxFrictionTorque(torque) {
@@ -111,6 +107,10 @@ class HingeConstraint extends Constraint {
             OPERATOR_MODIFIER, CMD_JNT_H_SET_M_F_TORQUE, this._index,
             torque, BUFFER_WRITE_FLOAT32, false
         );
+    }
+
+    get maxFrictionTorque() {
+        return this._maxFrictionTorque;
     }
 
     get motorSettings() {
@@ -186,9 +186,9 @@ class HingeConstraint extends Constraint {
 
     setLimits(min, max) {
         if ($_DEBUG) {
-            let ok = Debug.checkFloat(min, `Invalid min scalar limit for constraint: ${ min }`);
-            ok = ok && Debug.checkFloat(max, `Invalid max scalar limit for constraint: ${ max }`);
-            ok = ok && Debug.assert(min <= max, `Invalid min/max range: [${ min } : ${ max }]`);
+            let ok = Debug.checkFloat(min, `Invalid min scalar limit for constraint: ${min}`);
+            ok = ok && Debug.checkFloat(max, `Invalid max scalar limit for constraint: ${max}`);
+            ok = ok && Debug.assert(min <= max, `Invalid min/max range: [${min} : ${max}]`);
             if (!ok) {
                 return;
             }

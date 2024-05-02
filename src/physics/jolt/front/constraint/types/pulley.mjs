@@ -20,8 +20,8 @@ class PulleyConstraint extends Constraint {
     constructor(entity1, entity2, opts = {}) {
         super(entity1, entity2, opts);
 
-        opts.fixedPoint1 && (this._fixedPoint1 = opts.fixedPoint1);
-        opts.fixedPoint2 && (this._fixedPoint2 = opts.fixedPoint2);
+        if (opts.fixedPoint1) this._fixedPoint1 = opts.fixedPoint1;
+        if (opts.fixedPoint2) this._fixedPoint2 = opts.fixedPoint2;
         this._ratio = opts.ratio ?? this._ratio;
         this._minLength = opts.minLength ?? this._minLength;
         this._maxLength = opts.maxLength ?? this._maxLength;
