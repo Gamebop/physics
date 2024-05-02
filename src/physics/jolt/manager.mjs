@@ -68,10 +68,21 @@ class JoltManager extends PhysicsManager {
         msg.glueUrl = null;
         msg.wasmUrl = null;
         
+        // TODO
+        // this needs a better handling
         if (opts.glueUrl && opts.wasmUrl) {
             // first check if user wants to use own custom build
             msg.glueUrl = opts.glueUrl;
             msg.wasmUrl = opts.wasmUrl;
+        } else {
+            // then check if glue/wasm are in the project assets
+            const wasmAsset = app.assets.find('jolt-physics.wasm.wasm');
+            const glueAsset = app.assets.find('jolt-physics.wasm.js');
+
+            if (wasmAsset && glueAsset) {
+                msg.glueUrl = glueAsset.getFileUrl();
+                msg.wasmUrl = wasmAsset.getFileUrl();
+            }
         }
 
         msg.backendName = 'jolt';
