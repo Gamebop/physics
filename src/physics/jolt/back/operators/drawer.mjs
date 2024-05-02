@@ -1,3 +1,4 @@
+import { FLOAT32_SIZE } from '../../constants.mjs';
 import { Debug } from '../../debug.mjs';
 
 class Drawer {

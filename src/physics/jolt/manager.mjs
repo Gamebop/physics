@@ -9,7 +9,7 @@ import { ResponseHandler } from './front/response-handler.mjs';
 import { SoftBodyComponentSystem } from './front/softbody/system.mjs';
 import { ShapeComponentSystem } from './front/shape/system.mjs';
 import { VehicleComponentSystem } from './front/vehicle/system.mjs';
-import { Quat, Vec3 } from 'playcanvas';
+import { Quat, Vec3, Color, LAYERID_IMMEDIATE } from 'playcanvas';
 import {
     BUFFER_WRITE_BOOL, BUFFER_WRITE_UINT16, BUFFER_WRITE_UINT32, BUFFER_WRITE_UINT8,
     BUFFER_WRITE_VEC32, CMD_CAST_RAY, CMD_CAST_SHAPE, CMD_CHANGE_GRAVITY, CMD_CREATE_GROUPS,
@@ -21,7 +21,28 @@ import {
 
 class JoltManager extends PhysicsManager {
     constructor(app, opts, resolve) {
-        super(app, opts);
+        const config = {
+            useSharedArrayBuffer: true,
+            commandsBufferSize: 10000, // bytes, 10k is enough to update about 150 active dynamic objects
+            allowCommandsBufferResize: true,
+            useWebWorker: false,
+            fixedStep: 1 / 30,
+            subSteps: 1,
+            useMotionStates: true,
+            debugColorStatic: Color.GRAY,
+            debugColorKinematic: Color.MAGENTA,
+            debugColorDynamic: Color.YELLOW,
+            debugDrawLayerId: LAYERID_IMMEDIATE,
+            debugDrawDepth: true,
+            ...opts
+        };
+
+        // Make sure requested features are supported
+        config.useSharedArrayBuffer = config.useSharedArrayBuffer && typeof SharedArrayBuffer !== 'undefined';
+        config.useWebWorker = config.useWebWorker && typeof Worker !== 'undefined';
+        config.useSAB = config.useWebWorker && config.useSharedArrayBuffer;
+
+        super(app, config);
 
         // TODO
         // component systems will use Jolt constants, which

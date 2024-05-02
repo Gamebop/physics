@@ -106,9 +106,9 @@ class Constraint {
 
     constructor(entity1, entity2, opts = {}) {
         if ($_DEBUG) {
-            let ok = Debug.assert(!!entity1 && entity1 instanceof Entity && !!entity1.body,
+            let ok = Debug.assert(!!entity1 && !!entity1.body,
                 'Invalid entity1 when adding a constraint', entity1);
-            ok = ok && Debug.assert(!!entity2 && entity2 instanceof Entity && !!entity2.body,
+            ok = ok && Debug.assert(!!entity2 && !!entity2.body,
                 'Invalid entity1 when adding a constraint', entity2);
             if (opts.point1) {
                 ok = ok && Debug.assert(opts.point1 instanceof Vec3,

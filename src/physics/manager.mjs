@@ -1,32 +1,10 @@
-import { Color, LAYERID_IMMEDIATE } from 'playcanvas';
 import { CommandsBuffer } from './jolt/back/commands-buffer.mjs';
 import { Debug } from './jolt/debug.mjs';
 import { Dispatcher } from './dispatcher.mjs';
 import { IndexedCache } from './indexed-cache.mjs';
 
 class PhysicsManager {
-    constructor(app, opts = {}) {
-        const config = {
-            useSharedArrayBuffer: true,
-            commandsBufferSize: 10000, // bytes, 10k is enough to update about 150 active dynamic objects
-            allowCommandsBufferResize: true,
-            useWebWorker: false,
-            fixedStep: 1 / 30,
-            subSteps: 1,
-            useMotionStates: true,
-            debugColorStatic: Color.GRAY,
-            debugColorKinematic: Color.MAGENTA,
-            debugColorDynamic: Color.YELLOW,
-            debugDrawLayerId: LAYERID_IMMEDIATE,
-            debugDrawDepth: true,
-            ...opts
-        };
-
-        // Make sure requested features are supported
-        config.useSharedArrayBuffer = config.useSharedArrayBuffer && typeof SharedArrayBuffer !== 'undefined';
-        config.useWebWorker = config.useWebWorker && typeof Worker !== 'undefined';
-        config.useSAB = config.useWebWorker && config.useSharedArrayBuffer;
-
+    constructor(app, config = {}) {
         this._createDispatcher(config);
 
         this._systems = new Map();
