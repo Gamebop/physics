@@ -1,5 +1,5 @@
 import { Debug } from './jolt/debug.mjs';
-import { JoltManager } from './jolt/front/manager.mjs';
+import { JoltManager } from './jolt/manager.mjs';
 import { extendPCMath } from './jolt/math.mjs';
 
 /**

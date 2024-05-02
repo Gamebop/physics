@@ -12,7 +12,8 @@ import { Tracker } from './operators/tracker.mjs';
 import {
     BP_LAYER_MOVING, BP_LAYER_NON_MOVING, BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_JOLTVEC32,
     BUFFER_WRITE_UINT32, BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32, CMD_REPORT_TRANSFORMS, COMPONENT_SYSTEM_BODY,
-    COMPONENT_SYSTEM_CHAR, COMPONENT_SYSTEM_SOFT_BODY, OBJ_LAYER_MOVING, OBJ_LAYER_NON_MOVING, OPERATOR_CREATOR
+    COMPONENT_SYSTEM_CHAR, COMPONENT_SYSTEM_SOFT_BODY, OBJ_LAYER_MOVING, OBJ_LAYER_NON_MOVING, OPERATOR_CLEANER,
+    OPERATOR_CREATOR, OPERATOR_MODIFIER, OPERATOR_QUERIER
 } from '../constants.mjs';
 
 // TODO
@@ -74,6 +75,7 @@ class JoltBackend {
             ...data.config
         };
         this._config = config;
+        this._dispatcher = messenger;
         this._time = 0;
         this._filterLayers = new Map();
 
@@ -92,67 +94,20 @@ class JoltBackend {
 
         this._lastStamp = 0;
 
-        const loadJolt = async () => {
-            const module = await import(data.glueUrl);
-            module.default({
-                locateFile: () => {
-                    return data.wasmUrl;
-                }
-            }).then(Jolt => {
-                this.Jolt = Jolt;
-
-                // Util
-                extendJoltMath(Jolt);
-
-                // Physics operators
-                this._creator = new Creator(this);
-                this._modifier = new Modifier(this);
-                this._cleaner = new Cleaner(this);
-                this._querier = new Querier(this);
-                this._tracker = new Tracker(Jolt);
-
-                if ($_DEBUG) {
-                    this._drawer = new Drawer(Jolt);
-                }
-                
-                const listener = new Listener(this);
-
-                if (config.contactEventsEnabled) {
-                    listener.initEvents(config);
-                }
-
-                this._listener = listener;
-
-                this._outBuffer = new CommandsBuffer({ ...this._config, commandsBufferSize: 2000 });
-
-                this._stepTime = 0;
-                this._steps = 0;
-
-                // TODO
-                // remove softBodies default array
-                this._responseMessage = {
-                    buffer: null,
-                    inBuffer: null,
-                    softBodies: [],
-                    origin: 'physics-worker'
-                };
-
-                this._dispatcher = messenger;
-                this._inBuffer = null;
-                this._fatalError = false;
-
-                if ($_DEBUG) {
-                    this._perfIndex = null;
-                }
-
-                this._exposeConstants();
-
-                if ($_DEBUG) {
-                    // console.log('Jolt Physics:', joltInfo.version);
-                }
-            });
+        if (data.glueUrl && data.wasmUrl) {
+            const loadJolt = async () => {
+                const module = await import(data.glueUrl);
+                module.default({
+                    locateFile: () => {
+                        return data.wasmUrl;
+                    }
+                }).then(Jolt => {
+                    this.Jolt = Jolt;
+                    this.onLibLoad(Jolt);
+                });
+            }
+            loadJolt();
         }
-        loadJolt();
     }
 
     set joltInterface(joltInterface) {
@@ -253,6 +208,59 @@ class JoltBackend {
 
     set updateCallback(func) {
         this._updateCallback = func;
+    }
+
+    onLibLoad(Jolt) {
+        // Util
+        extendJoltMath(Jolt);
+
+        // Physics operators
+        this._creator = new Creator(this);
+        this._modifier = new Modifier(this);
+        this._cleaner = new Cleaner(this);
+        this._querier = new Querier(this);
+        this._tracker = new Tracker(Jolt);
+
+        if ($_DEBUG) {
+            this._drawer = new Drawer(Jolt);
+        }
+        
+        const listener = new Listener(this);
+
+        if (config.contactEventsEnabled) {
+            listener.initEvents(config);
+        }
+
+        this._listener = listener;
+
+        this._outBuffer = new CommandsBuffer({ ...this._config, commandsBufferSize: 2000 });
+
+        this._stepTime = 0;
+        this._steps = 0;
+
+        // TODO
+        // remove softBodies default array
+        this._responseMessage = {
+            buffer: null,
+            inBuffer: null,
+            softBodies: [],
+            origin: 'physics-worker'
+        };
+
+        this._inBuffer = null;
+        this._fatalError = false;
+
+        if ($_DEBUG) {
+            this._perfIndex = null;
+        }
+
+        // TODO
+        // remove
+        this._exposeConstants();
+
+        if ($_DEBUG) {
+            // console.log('Jolt Physics:', joltInfo.version);
+        }
     }
 
     step(data) {

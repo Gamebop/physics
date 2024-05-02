@@ -1,50 +1,14 @@
-import { Color, LAYERID_IMMEDIATE } from 'playcanvas';
 import { CommandsBuffer } from './jolt/back/commands-buffer.mjs';
 import { Debug } from './jolt/debug.mjs';
 import { Dispatcher } from './dispatcher.mjs';
 import { IndexedCache } from './indexed-cache.mjs';
 
 class PhysicsManager {
-    // TODO: remove backendName from attributes
-    constructor(app, backendName, opts = {}) {
-        const config = {
-            useSharedArrayBuffer: true,
-            commandsBufferSize: 10000, // bytes, 10k is enough to update about 150 active dynamic objects
-            allowCommandsBufferResize: true,
-            useWebWorker: false,
-            fixedStep: 1 / 30,
-            subSteps: 1,
-            useMotionStates: true,
-            debugColorStatic: Color.GRAY,
-            debugColorKinematic: Color.MAGENTA,
-            debugColorDynamic: Color.YELLOW,
-            debugDrawLayerId: LAYERID_IMMEDIATE,
-            debugDrawDepth: true,
-            ...opts
-        };
-
-        // Make sure requested features are supported
-        config.useSharedArrayBuffer = config.useSharedArrayBuffer && typeof SharedArrayBuffer !== 'undefined';
-        config.useWebWorker = config.useWebWorker && typeof Worker !== 'undefined';
-        config.useSAB = config.useWebWorker && config.useSharedArrayBuffer;
-
+    constructor(app, config = {}) {
         this._createDispatcher(config);
 
         this._systems = new Map();
-        this._backend = null
-
-        // TODO
-        // this needs a change after we move to modules
-        const wasmAsset = app.assets.find('jolt-physics.wasm.wasm');
-        const glueAsset = app.assets.find('jolt-physics.wasm.js');
-
-        const msg = Object.create(null);
-        msg.type = 'create-backend';
-        msg.glueUrl = glueAsset.getFileUrl();
-        msg.wasmUrl = wasmAsset.getFileUrl();
-        msg.backendName = backendName;
-        msg.config = config;
-        this.sendUncompressed(msg);
+        this._backend = null;
 
         this._outBuffer = new CommandsBuffer(config);
         this._outBuffers = [];
@@ -297,9 +261,7 @@ class PhysicsManager {
 
     _createDispatcher(config) {
         if (config.useWebWorker) {
-            this._dispatcher = new Worker(
-                /* webpackChunkName: "worker" */ new URL('./dispatcher.mjs', import.meta.url
-            ));
+            this._dispatcher = new Worker(new URL('./dispatcher.mjs', import.meta.url));
             this._dispatcher.onmessage = this.onMessage.bind(this);
         } else {
             this._dispatcher = new Dispatcher(this);

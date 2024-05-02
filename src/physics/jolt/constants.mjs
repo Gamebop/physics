@@ -19,8 +19,8 @@ export const ALLOWED_DOFS_ROTATION_Z = 5;
 export const ALLOWED_DOFS_PLANE_2D = 6;
 export const ALLOWED_DOFS_ALL = 7;
 
-export const OMP_CALCULATE_INERTIA = 0;
-export const OMP_CALCULATE_MASS_AND_INERTIA = 1;
+export const OMP_CALCULATE_MASS_AND_INERTIA = 0;
+export const OMP_CALCULATE_INERTIA = 1;
 export const OMP_MASS_AND_INERTIA_PROVIDED = 2;
 
 export const BFM_IGNORE_BACK_FACES = 0;
@@ -104,21 +104,21 @@ export const UINT32_SIZE = Uint32Array.BYTES_PER_ELEMENT;
 export const UINT16_SIZE = Uint16Array.BYTES_PER_ELEMENT;
 export const UINT8_SIZE = Uint8Array.BYTES_PER_ELEMENT;
 
-export const BUFFER_WRITE_UINT8 = JSON.stringify('writeUint8');
-export const BUFFER_WRITE_UINT16 = JSON.stringify('writeUint16');
-export const BUFFER_WRITE_UINT32 = JSON.stringify('writeUint32');
-export const BUFFER_WRITE_INT32 = JSON.stringify('writeInt32');
-export const BUFFER_WRITE_VEC32 = JSON.stringify('writeVector32');
-export const BUFFER_WRITE_FLOAT32 = JSON.stringify('writeFloat32');
-export const BUFFER_WRITE_BOOL = JSON.stringify('writeBool');
-export const BUFFER_WRITE_PLANE = JSON.stringify('writePlane');
-export const BUFFER_WRITE_JOLTVEC32 = JSON.stringify('writeJoltVec32');
-export const BUFFER_READ_UINT8 = JSON.stringify('readUint8');
-export const BUFFER_READ_UINT16 = JSON.stringify('readUint16');
-export const BUFFER_READ_UINT32 = JSON.stringify('readUint32');
-export const BUFFER_READ_INT32 = JSON.stringify('readInt32');
-export const BUFFER_READ_FLOAT32 = JSON.stringify('readFloat32');
-export const BUFFER_READ_BOOL = JSON.stringify('readBool');
+export const BUFFER_WRITE_UINT8 = 'writeUint8';
+export const BUFFER_WRITE_UINT16 = 'writeUint16';
+export const BUFFER_WRITE_UINT32 = 'writeUint32';
+export const BUFFER_WRITE_INT32 = 'writeInt32';
+export const BUFFER_WRITE_VEC32 = 'writeVector32';
+export const BUFFER_WRITE_FLOAT32 = 'writeFloat32';
+export const BUFFER_WRITE_BOOL = 'writeBool';
+export const BUFFER_WRITE_PLANE = 'writePlane';
+export const BUFFER_WRITE_JOLTVEC32 = 'writeJoltVec32';
+export const BUFFER_READ_UINT8 = 'readUint8';
+export const BUFFER_READ_UINT16 = 'readUint16';
+export const BUFFER_READ_UINT32 = 'readUint32';
+export const BUFFER_READ_INT32 = 'readInt32';
+export const BUFFER_READ_FLOAT32 = 'readFloat32';
+export const BUFFER_READ_BOOL = 'readBool';
 
 export const CMD_CREATE_BODY = 0;
 export const CMD_CREATE_CHAR = 1;

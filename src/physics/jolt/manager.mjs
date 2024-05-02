@@ -1,15 +1,15 @@
-import { Debug } from '../debug.mjs';
-import { IndexedCache } from '../../indexed-cache.mjs';
-import { PhysicsManager } from '../../manager.mjs';
-import { BodyComponentSystem } from './body/system.mjs';
-import { CharComponentSystem } from './char/system.mjs';
-import { ShapeComponent } from './shape/component.mjs';
-import { ConstraintComponentSystem } from './constraint/system.mjs';
-import { ResponseHandler } from './response-handler.mjs';
-import { SoftBodyComponentSystem } from './softbody/system.mjs';
-import { ShapeComponentSystem } from './shape/system.mjs';
-import { VehicleComponentSystem } from './vehicle/system.mjs';
-import { Quat, Vec3 } from 'playcanvas';
+import { Debug } from './debug.mjs';
+import { IndexedCache } from '../indexed-cache.mjs';
+import { PhysicsManager } from '../manager.mjs';
+import { BodyComponentSystem } from './front/body/system.mjs';
+import { CharComponentSystem } from './front/char/system.mjs';
+import { ShapeComponent } from './front/shape/component.mjs';
+import { ConstraintComponentSystem } from './front/constraint/system.mjs';
+import { ResponseHandler } from './front/response-handler.mjs';
+import { SoftBodyComponentSystem } from './front/softbody/system.mjs';
+import { ShapeComponentSystem } from './front/shape/system.mjs';
+import { VehicleComponentSystem } from './front/vehicle/system.mjs';
+import { Quat, Vec3, Color, LAYERID_IMMEDIATE } from 'playcanvas';
 import {
     BUFFER_WRITE_BOOL, BUFFER_WRITE_UINT16, BUFFER_WRITE_UINT32, BUFFER_WRITE_UINT8,
     BUFFER_WRITE_VEC32, CMD_CAST_RAY, CMD_CAST_SHAPE, CMD_CHANGE_GRAVITY, CMD_CREATE_GROUPS,
@@ -17,15 +17,38 @@ import {
     COMPONENT_SYSTEM_CHAR, COMPONENT_SYSTEM_CONSTRAINT, COMPONENT_SYSTEM_MANAGER,
     COMPONENT_SYSTEM_SOFT_BODY, COMPONENT_SYSTEM_VEHICLE, OPERATOR_CLEANER, OPERATOR_CREATOR,
     OPERATOR_MODIFIER, OPERATOR_QUERIER
-} from '../constants.mjs';
+} from './constants.mjs';
 
 class JoltManager extends PhysicsManager {
     constructor(app, opts, resolve) {
-        super(app, 'jolt', opts);
+        const config = {
+            useSharedArrayBuffer: true,
+            commandsBufferSize: 10000, // bytes, 10k is enough to update about 150 active dynamic objects
+            allowCommandsBufferResize: true,
+            useWebWorker: false,
+            fixedStep: 1 / 30,
+            subSteps: 1,
+            useMotionStates: true,
+            debugColorStatic: Color.GRAY,
+            debugColorKinematic: Color.MAGENTA,
+            debugColorDynamic: Color.YELLOW,
+            debugDrawLayerId: LAYERID_IMMEDIATE,
+            debugDrawDepth: true,
+            ...opts
+        };
+
+        // Make sure requested features are supported
+        config.useSharedArrayBuffer = config.useSharedArrayBuffer && typeof SharedArrayBuffer !== 'undefined';
+        config.useWebWorker = config.useWebWorker && typeof Worker !== 'undefined';
+        config.useSAB = config.useWebWorker && config.useSharedArrayBuffer;
+
+        super(app, config);
 
         // TODO
         // component systems will use Jolt constants, which
         // are not available until webworker responds with them.
+        // TODO
+        // now that we moved to modules, this needs an update
 
         app.systems.add(new BodyComponentSystem(app, this, COMPONENT_SYSTEM_BODY));
         app.systems.add(new CharComponentSystem(app, this, COMPONENT_SYSTEM_CHAR));
@@ -39,6 +62,32 @@ class JoltManager extends PhysicsManager {
         this._resolve = resolve;
 
         this._systems.set(COMPONENT_SYSTEM_MANAGER, this);
+
+        const msg = Object.create(null);
+        msg.type = 'create-backend';
+        msg.glueUrl = null;
+        msg.wasmUrl = null;
+        
+        // TODO
+        // this needs a better handling
+        if (opts.glueUrl && opts.wasmUrl) {
+            // first check if user wants to use own custom build
+            msg.glueUrl = opts.glueUrl;
+            msg.wasmUrl = opts.wasmUrl;
+        } else {
+            // then check if glue/wasm are in the project assets
+            const wasmAsset = app.assets.find('jolt-physics.wasm.wasm');
+            const glueAsset = app.assets.find('jolt-physics.wasm.js');
+
+            if (wasmAsset && glueAsset) {
+                msg.glueUrl = glueAsset.getFileUrl();
+                msg.wasmUrl = wasmAsset.getFileUrl();
+            }
+        }
+
+        msg.backendName = 'jolt';
+        msg.config = config;
+        this.sendUncompressed(msg);
     }
 
     set gravity(gravity) {
