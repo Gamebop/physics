@@ -19,6 +19,8 @@ import {
     OPERATOR_MODIFIER, OPERATOR_QUERIER
 } from './constants.mjs';
 
+const halfExtent = new Vec3(0.5, 0.5, 0.5);
+
 class JoltManager extends PhysicsManager {
     constructor(app, opts, resolve) {
         const config = {
@@ -167,10 +169,10 @@ class JoltManager extends PhysicsManager {
         const opts = {
             // defaults
             density: 1000,
-            shapePosition: new Vec3(),
-            shapeRotation: new Quat(),
-            scale: new Vec3(1, 1, 1),
-            halfExtent: new Vec3(0.5, 0.5, 0.5),
+            shapePosition: Vec3.ZERO,
+            shapeRotation: Quat.IDENTITY,
+            scale: Vec3.ONE,
+            halfExtent,
             convexRadius: 0.05,
             halfHeight: 0.5,
             radius: 0.5,

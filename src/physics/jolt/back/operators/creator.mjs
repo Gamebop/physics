@@ -196,6 +196,7 @@ class Creator {
             return false;
         }
         const shape = shapeResult.Get();
+        shape.AddRef();
 
         this._backend.tracker.shapeMap.set(num, shape);
 
