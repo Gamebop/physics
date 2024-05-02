@@ -164,7 +164,7 @@ class Cleaner {
             return false;
         }
 
-        Jolt.destroy(shape);
+        shape.Release();
 
         tracker.shapeMap.delete(shapeNumber);
 
