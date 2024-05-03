@@ -133,17 +133,6 @@ class BodyComponentSystem extends ShapeComponentSystem {
         this.fire('write-isometry');
     }
 
-    // initializeComponentData(component, data) {
-    //     if ($_DEBUG) {
-    //         const ok = Debug.verifyProperties(data, this._schema);
-    //         if (!ok) {
-    //             return;
-    //         }
-    //     }
-
-    //     super.initializeComponentData(component, data);
-    // }
-
     onBeforeRemove(entity, component) {
         if (component.enabled) {
             component.enabled = false;
