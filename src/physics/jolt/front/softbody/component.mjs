@@ -36,8 +36,8 @@ class SoftBodyComponent extends BodyComponent {
      * ```
      * see [Pressure](https://en.wikipedia.org/wiki/Pressure)
      *
+     * @returns {number} Number, representing the pressure of the body.
      * @defaultValue 0
-     * @returns {number} - TODO
      */
     get pressure() {
         return this._pressure;
@@ -45,10 +45,10 @@ class SoftBodyComponent extends BodyComponent {
 
     /**
      * Update the position of the body while simulating (set to `false` for something that is
-     * attached to the static world)
+     * attached to the static world).
      *
+     * @returns {boolean} Boolean, telling if the body position will be updated during simulation.
      * @defaultValue true
-     * @returns {boolean} - TODO
      */
     get updatePosition() {
         return this._updatePosition;
@@ -56,10 +56,10 @@ class SoftBodyComponent extends BodyComponent {
 
     /**
      * Bake specified rotation in the vertices and set the body rotation to identity (simulation is
-     * slightly more accurate if the rotation of a soft body is kept to identity)
+     * slightly more accurate if the rotation of a soft body is kept to identity).
      *
+     * @returns {boolean} Boolean, telling if the rotation is set to identity after a bake.
      * @defaultValue true
-     * @returns {boolean} - TODO
      */
     get makeRotationIdentity() {
         return this._makeRotationIdentity;
@@ -68,8 +68,9 @@ class SoftBodyComponent extends BodyComponent {
     /**
      * Number of solver iterations.
      *
+     * @returns {number} Number, representing a number of solver iterations. The higher the number,
+     * the more accurate the simulation is, the more expensive it becomes to process.
      * @defaultValue 5
-     * @returns {number} - TODO
      */
     get numIterations() {
         return this._numIterations;
@@ -78,8 +79,8 @@ class SoftBodyComponent extends BodyComponent {
     /**
      * Inverse of the stiffness of the spring.
      *
+     * @returns {number} Number, representing the inverse of the spring stiffness.
      * @defaultValue 0
-     * @returns {number} - TODO
      */
     get compliance() {
         return this._compliance;
@@ -88,8 +89,8 @@ class SoftBodyComponent extends BodyComponent {
     /**
      * Number of cells comprising a row. Think of a grid divided plane.
      *
+     * @returns {number} Number, representing the amount of cells in a row.
      * @defaultValue 0
-     * @returns {number} - TODO
      */
     get width() {
         return this._width;
@@ -98,7 +99,8 @@ class SoftBodyComponent extends BodyComponent {
     /**
      * Number of cells comprising a column. Think of a grid divided plane.
      *
-     * @returns {number} - TODO
+     * @returns {number} Number, representing the amount of cell in a column.
+     * @defaultValue 0
      */
     get length() {
         return this._length;
@@ -108,8 +110,8 @@ class SoftBodyComponent extends BodyComponent {
      * An array of indices that point to the vertices which will be static (e.g. attached to
      * something in the world).
      *
-     * @defaultValue [] // plain JS Array of integers
-     * @returns {Array<number>} - TODO
+     * @returns {Array<number>} An array with indices of static vertices.
+     * @defaultValue []
      */
     get fixedIndices() {
         return this._fixedIndices;

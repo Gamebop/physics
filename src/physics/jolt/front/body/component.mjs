@@ -3,15 +3,18 @@ import { Debug } from '../../debug.mjs';
 import { ShapeComponent } from '../shape/component.mjs';
 import {
     ALLOWED_DOFS_ALL, BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT32,
-    BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32, CMD_ADD_FORCE, CMD_ADD_IMPULSE, CMD_APPLY_BUOYANCY_IMPULSE, CMD_DESTROY_BODY, CMD_MOVE_BODY,
-    CMD_MOVE_KINEMATIC, CMD_RESET_VELOCITIES, CMD_SET_ANG_VEL, CMD_SET_LIN_VEL, CMD_SET_MOTION_TYPE, CMD_USE_MOTION_STATE, MOTION_QUALITY_DISCRETE, MOTION_TYPE_DYNAMIC,
-    MOTION_TYPE_KINEMATIC, MOTION_TYPE_STATIC, OMP_CALCULATE_MASS_AND_INERTIA,
+    BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32, CMD_ADD_FORCE, CMD_ADD_IMPULSE, CMD_APPLY_BUOYANCY_IMPULSE,
+    CMD_DESTROY_BODY, CMD_MOVE_BODY, CMD_MOVE_KINEMATIC, CMD_RESET_VELOCITIES, CMD_SET_ANG_VEL,
+    CMD_SET_LIN_VEL, CMD_SET_MOTION_TYPE, CMD_USE_MOTION_STATE, MOTION_QUALITY_DISCRETE, MOTION_TYPE_DYNAMIC,
+    MOTION_TYPE_KINEMATIC, MOTION_TYPE_STATIC, OBJ_LAYER_NON_MOVING, OMP_CALCULATE_MASS_AND_INERTIA,
     OMP_MASS_AND_INERTIA_PROVIDED, OPERATOR_CLEANER, OPERATOR_MODIFIER,
     SHAPE_CONVEX_HULL, SHAPE_HEIGHTFIELD, SHAPE_MESH
 } from '../../constants.mjs';
 
-// TODO
-// make static
+import {
+    ALLOWED_DOFS_TRANSLATION_X
+} from '../../constants.mjs';
+
 const vec3 = new Vec3();
 
 /**
@@ -24,7 +27,6 @@ class BodyComponent extends ShapeComponent {
 
     _angularVelocity = new Vec3();
 
-    /** @type {number} @hidden */
     _allowedDOFs = ALLOWED_DOFS_ALL;
 
     _allowDynamicOrKinematic = false;
@@ -33,7 +35,6 @@ class BodyComponent extends ShapeComponent {
 
     _angularDamping = 0;
 
-    /** @type {number | null} @hidden */
     _collisionGroup = null;
 
     _friction = 0.2;
@@ -52,13 +53,11 @@ class BodyComponent extends ShapeComponent {
 
     _maxLinearVelocity = 500;
 
-    /** @type {number} @hidden */
     _motionQuality = MOTION_QUALITY_DISCRETE;
 
-    /** @type {number} @hidden */
     _motionType = MOTION_TYPE_STATIC;
 
-    _objectLayer = 0;
+    _objectLayer = OBJ_LAYER_NON_MOVING;
 
     _overrideInertiaPosition = new Vec3();
 
@@ -66,7 +65,6 @@ class BodyComponent extends ShapeComponent {
 
     _overrideMass = 1;
 
-    /** @type {number} @hidden */
     _overrideMassProperties = OMP_CALCULATE_MASS_AND_INERTIA;
 
     _position = new Vec3();
@@ -75,17 +73,18 @@ class BodyComponent extends ShapeComponent {
 
     _restitution = 0;
 
-    /** @type {number | null} @hidden */
     _subGroup = null;
 
     _useMotionState = true;
 
     /**
-     * When this body is created as `MOTION_TYPE_STATIC`, this setting tells
-     * the system to create a MotionProperties object so that the object can be
-     * switched to kinematic or dynamic. Use `false` (default), if you don't intend
-     * to switch the type of this body from static.
-     * @returns {*} - TODO
+     * When this body is created as `MOTION_TYPE_STATIC`, this setting tells Jolt system to create
+     * a `MotionProperties` object internally, so that the object can be switched to kinematic or
+     * dynamic. Use `false`, if you don't intend to switch the type of this body from static. This
+     * is a performance optimization.
+     *
+     * @returns {boolean} Allow/Disallow a static body to be switched to kinematic/dynamic.
+     * @defaultValue false
      */
     get allowDynamicOrKinematic() {
         return this._allowDynamicOrKinematic;
@@ -119,7 +118,9 @@ class BodyComponent extends ShapeComponent {
      * ALLOWED_DOFS_ALL
      * ```
      * For example, using `ALLOWED_DOFS_TRANSLATION_X` allows a body to move in world space X axis.
-     * @returns {*} - TODO
+     *
+     * @returns {number} Enum number, representing the degrees of freedom.
+     * @defaultValue ALLOWED_DOFS_ALL
      */
     get allowedDOFs() {
         return this._allowedDOFs;
@@ -127,7 +128,9 @@ class BodyComponent extends ShapeComponent {
 
     /**
      * Specifies if this body go to sleep or not.
-     * @returns {*} - TODO
+     *
+     * @returns {boolean} Boolean, telling if a body can go to sleep.
+     * @defaultValue true
      */
     get allowSleeping() {
         return this._allowSleeping;
@@ -139,51 +142,64 @@ class BodyComponent extends ShapeComponent {
      * dw/dt = -c * w
      * ```
      * `c` must be between 0 and 1 but is usually close to 0.
-     * @returns {*} - TODO
+     *
+     * @returns {number} Number, representing angular damping.
+     * @defaultValue 0
      */
     get angularDamping() {
         return this._angularDamping;
     }
 
     /**
-     * World space angular velocity (rad/s)
-     *
-     * @type {Vec3}
+     * @param {Vec3} velocity - Angular velocity Vec3 (rad/s per axis) to set this body to.
      */
-    set angularVelocity(vec) {
+    set angularVelocity(velocity) {
         if ($_DEBUG) {
-            const ok = Debug.checkVec(vec, `Invalid angular velocity vector`);
+            const ok = Debug.checkVec(velocity, `Invalid angular velocity vector`);
             if (!ok) return;
         }
 
-        if (!vec.equals(this._angularVelocity)) {
-            this._angularVelocity.copy(vec);
+        if (!velocity.equals(this._angularVelocity)) {
+            this._angularVelocity.copy(velocity);
             this.system.addCommand(
                 OPERATOR_MODIFIER, CMD_SET_ANG_VEL, this._index,
-                vec, BUFFER_WRITE_VEC32, false
+                velocity, BUFFER_WRITE_VEC32, false
             );
         }
     }
 
+    /**
+     * World space angular velocity.
+     *
+     * @returns {Vec3} Vec3, containing the current angular velocity of this body.
+     * @defaultValue Vec3(0, 0, 0) (rad/s)
+     */
     get angularVelocity() {
         return this._angularVelocity;
     }
 
     /**
-     * The collision group this body belongs to (determines if two objects can collide).
-     * Expensive, so disabled by default. Prefer to use broadphase and object layers
-     * instead for filtering.
-     * @returns {*} - TODO
+     * The collision group this body belongs to (determines if two objects can collide). Expensive,
+     * so disabled by default. Prefer to use broadphase and object layers instead for filtering.
+     *
+     * @returns {number | null} returns a number, representing a collision group
+     * this body belongs to. If no group is set, returns `null`;
+     * @defaultValue null
      */
     get collisionGroup() {
         return this._collisionGroup;
     }
 
     /**
-     * Friction of the body (dimensionless number, usually between 0 and 1, 0 = no friction,
-     * 1 = friction force equals force that presses the two bodies together). Note that bodies
-     * can have negative friction but the combined friction should never go below zero.
-     * @returns {*} - TODO
+     * Friction of the body. Dimensionless number, usually between 0 and 1:
+     * - `0`: no friction
+     * - `1`: friction force equals force that presses the two bodies together
+     *
+     * Note: bodies can have negative friction, but the combined friction should never go below
+     * zero.
+     *
+     * @returns {number} Number, representing friction factor.
+     * @defaultValue 0.2
      */
     get friction() {
         return this._friction;
@@ -191,16 +207,22 @@ class BodyComponent extends ShapeComponent {
 
     /**
      * Value to multiply gravity with for this body.
-     * @returns {*} - TODO
+     *
+     * @returns {number} Number, representing the gravity factor affecting this body.
+     * @defaultValue 1
      */
     get gravityFactor() {
         return this._gravityFactor;
     }
 
     /**
-     * When calculating the inertia (not when it is provided) the calculated inertia will
-     * be multiplied by this value.
-     * @returns {*} - TODO
+     * When calculating the inertia the calculated inertia will be multiplied by this value. This
+     * factor is ignored when {@link overrideMassProperties} is set to
+     * `OMP_MASS_AND_INERTIA_PROVIDED` - you are expected to calculate inertia yourself in that
+     * case.
+     *
+     * @returns {number} Number, representing inertia factor.
+     * @defaultValue 1
      */
     get inertiaMultiplier() {
         return this._inertiaMultiplier;
@@ -209,7 +231,9 @@ class BodyComponent extends ShapeComponent {
     /**
      * If this body is a sensor. A sensor will receive collision callbacks, but will not
      * cause any collision responses and can be used as a trigger volume.
-     * @returns {*} - TODO
+     *
+     * @returns {boolean} Boolean, telling if this body is a sensor.
+     * @defaultValue false
      */
     get isSensor() {
         return this._isSensor;
@@ -221,45 +245,57 @@ class BodyComponent extends ShapeComponent {
      * dv/dt = -c * v.
      * ```
      * `c` must be between 0 and 1 but is usually close to 0.
-     * @returns {*} - TODO
+     *
+     * @returns {number} Number, representing a linear damping factor.
+     * @defaultValue 0
      */
     get linearDamping() {
         return this._linearDamping;
     }
 
     /**
-     * World space linear velocity of the center of mass (m/s)
+     * @param {Vec3} vec - Linear velocity Vec3 (m/s per axis) to set this body to.
      */
-    set linearVelocity(vec) {
+    set linearVelocity(velocity) {
         if ($_DEBUG) {
-            const ok = Debug.checkVec(vec, `Invalid linear velocity vector`);
+            const ok = Debug.checkVec(velocity, `Invalid linear velocity vector`);
             if (!ok) return;
         }
 
         if (!vec.equals(this._linearVelocity)) {
-            this._linearVelocity.copy(vec);
+            this._linearVelocity.copy(velocity);
             this.system.addCommand(
                 OPERATOR_MODIFIER, CMD_SET_LIN_VEL, this._index,
-                vec, BUFFER_WRITE_VEC32, false
+                velocity, BUFFER_WRITE_VEC32, false
             );
         }
     }
 
+    /**
+     * World space linear velocity of the center of mass of this body.
+     *
+     * @returns {Vec3} Vec3, representing the current linear velocity of this body.
+     * @defaultValue Vec3(0, 0, 0) (m/s)
+     */
     get linearVelocity() {
         return this._linearVelocity;
     }
 
     /**
-     * Maximum angular velocity that this body can reach (rad/s)
-     * @returns {*} - TODO
+     * Maximum angular velocity that this body can reach.
+     *
+     * @returns {number} Number, representing maximum angular velocity this body can reach.
+     * @defaultValue 47.12388980384689 (0.25 * PI * 60.0, rad/s)
      */
     get maxAngularVelocity() {
         return this._maxAngularVelocity;
     }
 
     /**
-     * Maximum linear velocity that this body can reach (m/s)
-     * @returns {*} - TODO
+     * Maximum linear velocity that this body can reach.
+     *
+     * @returns {number} Number, representing maximum linear velocity this body can reach.
+     * @defaultValue 500 (m/s)
      */
     get maxLinearVelocity() {
         return this._maxLinearVelocity;
@@ -274,27 +310,18 @@ class BodyComponent extends ShapeComponent {
      * ```
      * MOTION_QUALITY_LINEAR_CAST
      * ```
-     * Use linear cast for fast moving objects, in other cases prefer discrete one since its cheaper (default).
-     * @returns {*} - TODO
+     * Use linear cast (CCD) for fast moving objects, in other cases prefer discrete one since it
+     * is cheaper.
+     *
+     * @returns {number} Enum number, representing the collision detection algorithm for this body.
+     * @defaultValue MOTION_QUALITY_DISCRETE
      */
     get motionQuality() {
         return this._motionQuality;
     }
 
     /**
-     * Motion type, determines if the object is static, dynamic or kinematic.
-     * You can use the following enum aliases:
-     * ```
-     * MOTION_TYPE_STATIC
-     * ```
-     * ```
-     * MOTION_TYPE_DYNAMIC
-     * ```
-     * ```
-     * MOTION_TYPE_KINEMATIC
-     * ```
-     *
-     * @type {number}
+     * @param {number} type - Number, representing motion quality enum.
      */
     set motionType(type) {
         if ($_DEBUG) {
@@ -307,23 +334,49 @@ class BodyComponent extends ShapeComponent {
         );
     }
 
+    /**
+     * Motion type, determines if the object is static, dynamic or kinematic. You can use the
+     * following enum aliases:
+     * ```
+     * MOTION_TYPE_STATIC
+     * ```
+     * ```
+     * MOTION_TYPE_DYNAMIC
+     * ```
+     * ```
+     * MOTION_TYPE_KINEMATIC
+     * ```
+     *
+     * @returns {number} Number, representing motion type of this body.
+     * @defaultValue MOTION_TYPE_STATIC
+     */
     get motionType() {
         return this._motionType;
     }
 
     /**
-     * The collision layer this body belongs to (determines if two objects can collide).
-     * Allows cheap filtering.
-     * @returns {*} - TODO
+     * The collision layer this body belongs to (determines if two objects can collide). Allows
+     * cheap filtering. Following aliases available:
+     * ```
+     * OBJ_LAYER_NON_MOVING
+     * ```
+     * ```
+     * OBJ_LAYER_MOVING
+     * ```
+     *
+     * @returns {number} Number, representing the object layer this body belongs to.
+     * @defaultValue OBJ_LAYER_NON_MOVING
      */
     get objectLayer() {
         return this._objectLayer;
     }
 
     /**
-     * Used only if `OMP_MASS_AND_INERTIA_PROVIDED` is selected for `overrideMassProperties`.
+     * Used only if `OMP_MASS_AND_INERTIA_PROVIDED` is selected for {@link overrideMassProperties}.
      * Backend will create inertia matrix from the given position.
-     * @returns {*} - TODO
+     *
+     * @returns {Vec3} Vec3 with position that is used for this body inertia calculation.
+     * @defaultValue Vec3(0, 0, 0) (m)
      */
     get overrideInertiaPosition() {
         return this._overrideInertiaPosition;
@@ -332,16 +385,21 @@ class BodyComponent extends ShapeComponent {
     /**
      * Used only if `OMP_MASS_AND_INERTIA_PROVIDED` is selected for {@link overrideMassProperties}.
      * Backend will create inertia matrix from the given rotation.
-     * @returns {*} - TODO
+     *
+     * @returns {Quat} Quat with rotation that is used for this body inertia calculation.
+     * @defaultValue Quat(0, 0, 0, 1)
      */
     get overrideInertiaRotation() {
         return this._overrideInertiaRotation;
     }
 
     /**
-     * Used only if `OMP_CALCULATE_INERTIA` or `OMP_MASS_AND_INERTIA_PROVIDED` is selected
-     * for {@link overrideMassProperties}
-     * @returns {*} - TODO
+     * Used only if `OMP_CALCULATE_INERTIA` or `OMP_MASS_AND_INERTIA_PROVIDED` is selected for
+     * {@link overrideMassProperties}.
+     *
+     * @returns {number} Number, representing the mass of this body, when the mass is not
+     * calculated automatically.
+     * @defaultValue 1 (kg)
      */
     get overrideMass() {
         return this._overrideMass;
@@ -365,7 +423,9 @@ class BodyComponent extends ShapeComponent {
      *
      * If you select `OMP_MASS_AND_INERTIA_PROVIDED`, you must also specify {@link overrideMass},
      * {@link overrideInertiaPosition} and {@link overrideInertiaRotation}.
-     * @returns {*} - TODO
+     *
+     * @returns {number} Number, representing the mass calculation method enum.
+     * @defaultValue OMP_CALCULATE_MASS_AND_INERTIA (calculates automatically)
      */
     get overrideMassProperties() {
         return this._overrideMassProperties;
@@ -373,7 +433,9 @@ class BodyComponent extends ShapeComponent {
 
     /**
      * Read-only. Current position of the body (not of the center of mass).
-     * @returns {*} - TODO
+     *
+     * @returns {Vec3} Vec3 with the current position of this body.
+     * @defaultValue Vec3(0, 0, 0) (m per axis)
      */
     get position() {
         return this._position;
@@ -381,45 +443,45 @@ class BodyComponent extends ShapeComponent {
 
     /**
      * Read-only. Current rotation of the body.
-     * @returns {*} - TODO
+     *
+     * @returns {Quat} Quat, representing the current rotation of this body.
+     * @defaultValue Quat(0, 0, 0, 1) (identity rotation)
      */
     get rotation() {
         return this._rotation;
     }
 
     /**
-     * Restitution of body (dimensionless number, usually between 0 and 1, 0 = completely
-     * inelastic collision response, 1 = completely elastic collision response). Note that
-     * bodies can have negative restitution but the combined restitution should never go below zero.
-     * @returns {*} - TODO
+     * Restitution of the body. Dimensionless number, usually between 0 and 1:
+     * - `0`: completely inelastic collision response
+     * - `1`: completely elastic collision response
+     *
+     * Note: bodies can have negative restitution but the combined restitution should never go
+     * below zero.
+     *
+     * @returns {number} Number, representing restitution factor for this body.
      */
     get restitution() {
         return this._restitution;
     }
 
     /**
-     * The collision sub group (within {@link collisionGroup}) this body belongs to (determines
-     * if two objects can collide). Expensive, so disabled by default. Prefer to use broadphase
-     * and object layers instead for filtering.
-     * @returns {*} - TODO
+     * The collision sub group (within {@link collisionGroup}) this body belongs to (determines if
+     * two objects can collide). Expensive, so disabled by default. Prefer to use broadphase and
+     * object layers instead for filtering.
+     *
+     * @returns {number} If set, will return a number, representing the sub group this body belongs
+     * to. Otherwise, will return `null`;
+     * @defaultValue null
      */
     get subGroup() {
         return this._subGroup;
     }
 
     /**
-     * Enables/disables the use of motion state for this entity. Not used by static bodies.
+     * Enables/Disables a motion state for this body.
      *
-     * If the physcs fixed timestep is set lower than the client's browser refresh rate, then browser will have
-     * multiple frame updates per single physics simulation step. If you enable motion state for this entity,
-     * then the position and rotation will be interpolated, otherwise the entity will visually move only after
-     * physics completes a step.
-     *
-     * For example, say browser refreshes every 0.1 seconds, and physics step once a second. Without using
-     * motion state an entity position will update once every second, when physics update takes place. With motion state
-     * enabled, it will update the position/rotation every 0.1 seconds - once a true update (from physics) and 9 times
-     * interpolated. This will give a smooth motion of the entity, without having to do expensive physics simulation
-     * step.
+     * @param {boolean} bool - Boolean to enable/disable the motion state.
      */
     set useMotionState(bool) {
         if ($_DEBUG) {
@@ -434,16 +496,34 @@ class BodyComponent extends ShapeComponent {
         );
     }
 
+    /**
+     * A motion state for this body. Not used by static bodies.
+     *
+     * If the physcs fixed timestep is set lower than the client's browser refresh rate, then
+     * browser will have multiple frame updates per single physics simulation step. If you enable
+     * motion state for this entity, then the position and rotation will be interpolated, otherwise
+     * the entity will visually move only after physics completes a step.
+     *
+     * For example, say browser refreshes every 0.1 seconds, and physics step once a second.
+     * Without using motion state an entity position will update once every second, when physics
+     * update takes place. With motion state enabled, it will update the position/rotation every
+     * 0.1 seconds - once a true update (from physics) and 9 times interpolated. This will give a
+     * smooth motion of the entity, without having to do expensive physics simulation step every
+     * frame.
+     *
+     * @returns {boolean} Boolean, telling if motion state is enabled for this body.
+     * @defaultValue true
+     */
     get useMotionState() {
         return this._useMotionState;
     }
 
     /**
-     * Adds a force (unit: N) at an offset to this body for the next physics time step. Will reset after
-     * the physics completes a step.
+     * Adds a force (unit: N) at an offset to this body for the next physics time step. Will reset
+     * after the physics completes a step.
      *
-     * @param {import('playcanvas').Vec3} force - Force to add to body.
-     * @param {import('playcanvas').Vec3} [offset] - Offset from the body center where the force is added.
+     * @param {Vec3} force - Force to add to body.
+     * @param {Vec3} [offset] - Offset from the body center where the force is added.
      * @param {boolean} [isOffsetLocal] - Specifies if offset is in world or local space.
      */
     addForce(force, offset = Vec3.ZERO, isOffsetLocal = false) {
@@ -510,8 +590,8 @@ class BodyComponent extends ShapeComponent {
     /**
      * Adds an impulse to the center of mass of the body (unit: kg m/s).
      *
-     * @param {import('playcanvas').Vec3} impulse - Impulse to add to body.
-     * @param {import('playcanvas').Vec3} [offset] - Offset from the body center where the impulse is added.
+     * @param {Vec3} impulse - Impulse to add to body.
+     * @param {Vec3} [offset] - Offset from the body center where the impulse is added.
      * @param {boolean} [isOffsetLocal] - Specifies if offset is in world or local space.
      */
     addImpulse(impulse, offset = Vec3.ZERO, isOffsetLocal = false) {
@@ -578,12 +658,18 @@ class BodyComponent extends ShapeComponent {
     /**
      * Applies an impulse to the body that simulates fluid buoyancy and drag.
      *
-     * @param {import('playcanvas').Vec3} waterSurfacePosition - Position of the fluid surface in world space.
-     * @param {import('playcanvas').Vec3} surfaceNormal - Normal of the fluid surface (should point up).
-     * @param {number} buoyancy - The buoyancy factor for the body. 1 = neutral body, < 1 sinks, > 1 floats.
-     * @param {number} linearDrag - Linear drag factor that slows down the body when in the fluid (approx. 0.5).
-     * @param {number} angularDrag - Angular drag factor that slows down rotation when the body is in the fluid (approx. 0.01).
-     * @param {import('playcanvas').Vec3} fluidVelocity - The average velocity of the fluid (in m/s) in which the body resides.
+     * @param {Vec3} waterSurfacePosition - Position of the fluid surface in world space.
+     * @param {Vec3} surfaceNormal - Normal of the fluid surface (should point up).
+     * @param {number} buoyancy - The buoyancy factor for the body:
+     * - `= 1`: neutral body
+     * - `< 1`: sinks
+     * - `> 1`: floats
+     * @param {number} linearDrag - Linear drag factor that slows down the body when in the fluid
+     * (approx. `0.5`).
+     * @param {number} angularDrag - Angular drag factor that slows down rotation when the body is
+     * in the fluid (approx. `0.01`).
+     * @param {Vec3} fluidVelocity - The average velocity of the fluid (in m/s) in which the body
+     * resides.
      */
     applyBuoyancyImpulse(waterSurfacePosition, surfaceNormal, buoyancy, linearDrag, angularDrag, fluidVelocity) {
         if ($_DEBUG) {
@@ -613,7 +699,7 @@ class BodyComponent extends ShapeComponent {
     /**
      * Adds an angular impulse to the center of mass.
      *
-     * @param {import('playcanvas').Vec3} impulse - Angular impulse vector.
+     * @param {Vec3} impulse - Angular impulse vector.
      */
     addAngularImpulse(impulse) {
         this.system.addCommand(
@@ -626,7 +712,7 @@ class BodyComponent extends ShapeComponent {
      * Adds a torque (unit: N) for the next physics time step. Will reset after the physics
      * completes a step.
      *
-     * @param {import('playcanvas').Vec3} torque - Torque vector.
+     * @param {Vec3} torque - Torque vector.
      */
     addTorque(torque) {
         this.system.addCommand(
@@ -636,11 +722,11 @@ class BodyComponent extends ShapeComponent {
     }
 
     /**
-     * Intantenous placement of a body to a new position/rotation (i.e. teleport). Will ignore any bodies
-     * between old and new position.
+     * Intantenous placement of a body to a new position/rotation (i.e. teleport). Will ignore any
+     * bodies between old and new position.
      *
-     * @param {import('playcanvas').Vec3} position - World space position where to place the body.
-     * @param {import('playcanvas').Quat} [rotation] - World space rotation the body should assume at new position.
+     * @param {Vec3} position - World space position where to place the body.
+     * @param {Quat} [rotation] - World space rotation the body should assume at new position.
      */
     teleport(position, rotation = Quat.IDENTITY) {
         if ($_DEBUG) {
@@ -696,15 +782,16 @@ class BodyComponent extends ShapeComponent {
     }
 
     /**
-     * Changes the position and rotation of a dynamic body. Unlike {@link teleport}, this
-     * method doesn't change the position/rotation directly, but instead calculates and
-     * sets linear and angular velocities for the body, so it can reach the target position
-     * and rotation in specified delta time. If delta time is set to zero (default), the engine will
-     * use the current fixed timestep value.
+     * Changes the position and rotation of a dynamic body. Unlike {@link teleport}, this method
+     * doesn't change the position/rotation instantenously, but instead calculates and sets linear
+     * and angular velocities for the body, so it can reach the target position and rotation in the
+     * specified delta time. If delta time is set to zero, the engine will use the current fixed
+     * timestep value.
      *
-     * @param {import('playcanvas').Vec3} pos - Taret position the body should reach in given dt.
-     * @param {import('playcanvas').Quat} rot - Target rotation the body should reach in given dt.
-     * @param {number} [dt] - Time in which the body should reach target position and rotation. In seconds.
+     * @param {Vec3} pos - Taret position the body should reach in given dt.
+     * @param {Quat} rot - Target rotation the body should reach in given dt.
+     * @param {number} [dt] - Time in which the body should reach target position and rotation
+     * (seconds).
      */
     moveKinematic(pos, rot, dt = 0) {
         this.system.addCommand(
