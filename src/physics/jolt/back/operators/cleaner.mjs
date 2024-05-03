@@ -73,7 +73,7 @@ class Cleaner {
                 const data = constraintMap.get(index);
                 const constraint = data.constraint;
                 const listener = constraint.listener; // vehicle
-                
+
                 constraintMap.delete(index);
                 if (listener && Jolt.getPointer(listener) !== 0) {
                     physicsSystem.RemoveStepListener(listener);
@@ -86,7 +86,7 @@ class Cleaner {
             }
             body.constraints = null;
 
-            body.linked?.forEach(linkedBody => {
+            body.linked?.forEach((linkedBody) => {
                 if (Jolt.getPointer(linkedBody) !== 0) {
                     bodyInterface.ActivateBody(linkedBody.GetID());
                 }
@@ -125,18 +125,18 @@ class Cleaner {
 
         const { constraint, body1, body2 } = data;
 
-        const clearIndex = list => {
+        const clearIndex = (list) => {
             const idx = list?.findIndex(e => e === index);
             if (idx >= 0) {
                 list.splice(idx, 1);
             }
-        }
+        };
 
-        const activate = body => {
+        const activate = (body) => {
             if (Jolt.getPointer(body) !== 0) {
                 bodyInterface.ActivateBody(body.GetID());
             }
-        }
+        };
 
         clearIndex(body1.constraints);
         clearIndex(body2.constraints);
@@ -154,7 +154,6 @@ class Cleaner {
 
     _destroyShape(cb) {
         const backend = this._backend;
-        const Jolt = backend.Jolt;
         const tracker = backend.tracker;
         const shapeNumber = cb.read(BUFFER_READ_UINT32);
         const shape = tracker.shapeMap.get(shapeNumber);
@@ -164,7 +163,7 @@ class Cleaner {
             return false;
         }
 
-        Jolt.destroy(shape);
+        shape.Release();
 
         tracker.shapeMap.delete(shapeNumber);
 

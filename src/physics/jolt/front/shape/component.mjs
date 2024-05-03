@@ -9,7 +9,6 @@ import {
 } from '../../constants.mjs';
 
 class ShapeComponent extends Component {
-
     // ---- COMPONENT PROPS ----
 
     // Shape type
@@ -103,10 +102,6 @@ class ShapeComponent extends Component {
     // where x and y are integers in the range x and y e [0, hfSampleCount - 1].
     _hfOffset = Vec3.ZERO;
 
-    constructor(system, entity) {
-        super(system, entity);
-    }
-
     get constraints() {
         return this._constraints;
     }
@@ -123,51 +118,51 @@ class ShapeComponent extends Component {
 
         const scale = props.scale || props.entity.getLocalScale();
         let useEntityScale = props.useEntityScale;
-        
-        if (useEntityScale && scale.x === 1 && scale.y === 1 && scale.z === 1 && 
+
+        if (useEntityScale && scale.x === 1 && scale.y === 1 && scale.z === 1 &&
             shape !== SHAPE_MESH && shape !== SHAPE_CONVEX_HULL) {
             useEntityScale = false;
         }
-        
+
         useEntityScale = useEntityScale || (shape === SHAPE_MESH || shape === SHAPE_CONVEX_HULL);
         cb.write(useEntityScale, BUFFER_WRITE_BOOL, false);
         if (useEntityScale) {
             // Potential precision loss 64 -> 32
             cb.write(scale, BUFFER_WRITE_VEC32, false);
         }
-    
+
         let ok = true;
         switch (shape) {
             case SHAPE_BOX:
                 cb.write(props.halfExtent, BUFFER_WRITE_VEC32, false);
                 cb.write(props.convexRadius, BUFFER_WRITE_FLOAT32, false);
                 break;
-    
+
             case SHAPE_CAPSULE:
                 cb.write(props.halfHeight, BUFFER_WRITE_FLOAT32, false);
                 cb.write(props.radius, BUFFER_WRITE_FLOAT32, false);
                 break;
-    
+
             case SHAPE_CYLINDER:
                 cb.write(props.halfHeight, BUFFER_WRITE_FLOAT32, false);
                 cb.write(props.radius, BUFFER_WRITE_FLOAT32, false);
                 cb.write(props.convexRadius, BUFFER_WRITE_FLOAT32, false);
                 break;
-    
+
             case SHAPE_SPHERE:
                 cb.write(props.radius, BUFFER_WRITE_FLOAT32, false);
                 break;
-    
+
             case SHAPE_STATIC_COMPOUND:
                 ok = ShapeComponent.addCompoundChildren(cb, props.entity);
                 break;
-    
+
             // intentional fall-through
             case SHAPE_CONVEX_HULL:
             case SHAPE_MESH:
                 ShapeComponent.addMeshes(props.meshes, cb);
                 break;
-            
+
             case SHAPE_HEIGHTFIELD:
                 cb.write(props.hfOffset, BUFFER_WRITE_VEC32, false);
                 cb.write(props.hfScale, BUFFER_WRITE_VEC32, false);
@@ -177,12 +172,14 @@ class ShapeComponent extends Component {
                 cb.write(props.hfActiveEdgeCosThresholdAngle, BUFFER_WRITE_FLOAT32, false);
                 cb.addBuffer(props.hfSamples.buffer);
                 break;
-    
+
             default:
-                $_DEBUG && Debug.warn('Unsupperted shape type', shape);
+                if ($_DEBUG) {
+                    Debug.warn('Unsupperted shape type', shape);
+                }
                 return false;
         }
-    
+
         const isCompoundChild = props.isCompoundChild;
         cb.write(isCompoundChild, BUFFER_WRITE_BOOL, false);
         if (!isCompoundChild) {
@@ -195,13 +192,13 @@ class ShapeComponent extends Component {
             const hasRotationOffset = forceWriteRotation || !rotation.equals(Quat.IDENTITY);
             const hasShapeOffset = hasPositionOffset || hasRotationOffset;
             const hasMassOffset = !massOffset.equals(Vec3.ZERO);
-    
+
             cb.write(hasShapeOffset, BUFFER_WRITE_BOOL, false);
             if (hasShapeOffset) {
                 cb.write(position, BUFFER_WRITE_VEC32, false);
                 cb.write(rotation, BUFFER_WRITE_VEC32, false);
             }
-    
+
             cb.write(hasMassOffset, BUFFER_WRITE_BOOL, false);
             if (hasMassOffset) {
                 cb.write(massOffset, BUFFER_WRITE_VEC32, false);
@@ -271,7 +268,8 @@ class ShapeComponent extends Component {
             const storage = ib.storage;
             const isView = ArrayBuffer.isView(storage);
 
-            let byteLength, byteOffset;
+            // let byteLength;
+            let byteOffset;
             if (isView) {
                 // byteLength = storage.byteLength;
                 byteOffset = storage.byteOffset;
@@ -288,4 +286,3 @@ class ShapeComponent extends Component {
 }
 
 export { ShapeComponent };
-

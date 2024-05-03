@@ -6,7 +6,7 @@ import {
     BUFFER_READ_UINT8, BUFFER_WRITE_UINT32, CMD_ADD_ANGULAR_IMPULSE, CMD_ADD_FORCE,
     CMD_ADD_IMPULSE, CMD_ADD_TORQUE, CMD_APPLY_BUOYANCY_IMPULSE, CMD_CHANGE_GRAVITY,
     CMD_CHAR_SET_LIN_VEL, CMD_CHAR_SET_SHAPE, CMD_MOVE_BODY, CMD_MOVE_KINEMATIC, CMD_PAIR_BODY,
-    CMD_REPORT_SET_SHAPE, CMD_SET_ANG_VEL, CMD_SET_DRIVER_INPUT, CMD_SET_LIN_VEL,
+    CMD_REPORT_SET_SHAPE, CMD_RESET_VELOCITIES, CMD_SET_ANG_VEL, CMD_SET_DRIVER_INPUT, CMD_SET_LIN_VEL,
     CMD_SET_MOTION_TYPE, CMD_SET_USER_DATA, CMD_TOGGLE_GROUP_PAIR, CMD_USE_MOTION_STATE,
     COMPONENT_SYSTEM_CHAR
 } from '../../constants.mjs';
@@ -16,7 +16,7 @@ class Modifier {
         this._backend = backend;
 
         const Jolt = backend.Jolt;
-        
+
         this._joltVec3_1 = new Jolt.Vec3();
         this._joltVec3_2 = new Jolt.Vec3();
         this._joltVec3_3 = new Jolt.Vec3();
@@ -80,7 +80,7 @@ class Modifier {
             case CMD_MOVE_BODY:
                 ok = this._moveBody(cb);
                 break;
-            
+
             case CMD_MOVE_KINEMATIC:
                 ok = this._moveKinematic(cb);
                 break;
@@ -144,7 +144,7 @@ class Modifier {
         this._joltVec3_1 = null;
         this._joltVec3_2 = null;
         this._joltVec3_3 = null;
-        this._joltQuat_1 = null;        
+        this._joltQuat_1 = null;
     }
 
     _changeGravity(cb) {
@@ -155,7 +155,9 @@ class Modifier {
         try {
             this._backend.system.SetGravity(jv);
         } catch (e) {
-            $_DEBUG && Debug.error(e);
+            if ($_DEBUG) {
+                Debug.error(e);
+            }
             return false;
         }
 
@@ -182,7 +184,9 @@ class Modifier {
             }
             this._backend.bodyInterface.ActivateBody(body.GetID());
         } catch (e) {
-            $_DEBUG && Debug.error(e);
+            if ($_DEBUG) {
+                Debug.error(e);
+            }
             return false;
         }
 
@@ -198,7 +202,7 @@ class Modifier {
 
         const char = tracker.getBodyByPCID(pcid);
         if ($_DEBUG && !char) {
-            Debug.warn(`Unable to locate character under id: ${ pcid }`);
+            Debug.warn(`Unable to locate character under id: ${pcid}`);
             return false;
         }
 
@@ -206,7 +210,7 @@ class Modifier {
         if (shapeIndex != null) {
             shape = tracker.shapeMap.get(shapeIndex);
             if ($_DEBUG && !shape) {
-                Debug.warn(`Unable to locate shape: ${ shapeIndex }`);
+                Debug.warn(`Unable to locate shape: ${shapeIndex}`);
                 return false;
             }
         } else {
@@ -218,14 +222,14 @@ class Modifier {
             cbIndex = cb.read(BUFFER_READ_UINT32);
         }
 
-        const ok = char.SetShape(shape, 
-            backend.config.penetrationSlop * 1.5,
-            backend.bpFilter,
-            backend.objFilter,
-            backend.bodyFilter,
-            backend.shapeFilter,
-            backend.joltInterface.GetTempAllocator());
-        
+        const ok = char.SetShape(shape,
+                                 backend.config.penetrationSlop * 1.5,
+                                 backend.bpFilter,
+                                 backend.objFilter,
+                                 backend.bodyFilter,
+                                 backend.shapeFilter,
+                                 backend.joltInterface.GetTempAllocator());
+
         if (ok && useCallback) {
             const cb = backend.outBuffer;
 
@@ -233,7 +237,7 @@ class Modifier {
             cb.writeCommand(CMD_REPORT_SET_SHAPE);
             cb.write(cbIndex, BUFFER_WRITE_UINT32, false);
         }
-        
+
         return true;
     }
 
@@ -250,14 +254,14 @@ class Modifier {
 
         const char = tracker.getBodyByPCID(pcid);
 
-        const ok = char.SetShape(shape, 
-            backend.config.penetrationSlop * 1.5,
-            backend.bpFilter,
-            backend.objFilter,
-            backend.bodyFilter,
-            backend.shapeFilter,
-            backend.joltInterface.GetTempAllocator());
-        
+        const ok = char.SetShape(char.originalShape,
+                                 backend.config.penetrationSlop * 1.5,
+                                 backend.bpFilter,
+                                 backend.objFilter,
+                                 backend.bodyFilter,
+                                 backend.shapeFilter,
+                                 backend.joltInterface.GetTempAllocator());
+
         if (ok && useCallback) {
             const cb = backend.outBuffer;
 
@@ -265,7 +269,7 @@ class Modifier {
             cb.writeCommand(CMD_REPORT_SET_SHAPE);
             cb.write(cbIndex, BUFFER_WRITE_UINT32, false);
         }
-        
+
         return true;
     }
 
@@ -277,7 +281,9 @@ class Modifier {
             const value = cb.read(BUFFER_READ_FLOAT32);
             shape.SetUserData(value);
         } catch (e) {
-            $_DEBUG && Debug.error(e);
+            if ($_DEBUG) {
+                Debug.error(e);
+            }
             return false;
         }
 
@@ -305,9 +311,11 @@ class Modifier {
             jv.FromBuffer(cb);
             char.SetLinearVelocity(jv);
         } catch (e) {
-            $_DEBUG && Debug.error(e);
+            if ($_DEBUG) {
+                Debug.error(e);
+            }
             return false;
-        }        
+        }
     }
 
     _applyBuoyancyImpulse(cb) {
@@ -329,7 +337,9 @@ class Modifier {
 
             body.ApplyBuoyancyImpulse(waterSurfacePosition, surfaceNormal, buoyancy, linearDrag, angularDrag, fluidVelocity, gravity, deltaTime);
         } catch (e) {
-            $_DEBUG && Debug.error(e);
+            if ($_DEBUG) {
+                Debug.error(e);
+            }
             return false;
         }
 
@@ -346,7 +356,9 @@ class Modifier {
             body.SetLinearVelocity(jv1);
             body.SetAngularVelocity(jv1);
         } catch (e) {
-            $_DEBUG && Debug.error(e);
+            if ($_DEBUG) {
+                Debug.error(e);
+            }
             return false;
         }
 
@@ -375,7 +387,9 @@ class Modifier {
                 backend.bodyInterface.SetPositionAndRotation(body.GetID(), jv, jq, Jolt.Activate);
             }
         } catch (e) {
-            $_DEBUG && Debug.error(e);
+            if ($_DEBUG) {
+                Debug.error(e);
+            }
             return false;
         }
 
@@ -432,12 +446,14 @@ class Modifier {
                 backend.bodyInterface.SetPositionAndRotation(body.GetID(), jv, jq, dt);
             }
         } catch (e) {
-            $_DEBUG && Debug.error(e);
+            if ($_DEBUG) {
+                Debug.error(e);
+            }
             return false;
         }
 
         return true;
-    }    
+    }
 
     _setDriverInput(cb) {
         const backend = this._backend;
@@ -474,9 +490,9 @@ class Modifier {
 
             if ($_DEBUG) {
                 let ok = true;
-                ok = ok && Debug.assert(!!filter, `Unable to locate filter group: ${ group }`);
-                ok = ok && Debug.assert(subGroup1 <= filter.maxIndex, `Sub group number is over the filter table size: ${ subGroup1 }`);
-                ok = ok && Debug.assert(subGroup2 <= filter.maxIndex, `Sub group number is over the filter table size: ${ subGroup2 }`);
+                ok = ok && Debug.assert(!!filter, `Unable to locate filter group: ${group}`);
+                ok = ok && Debug.assert(subGroup1 <= filter.maxIndex, `Sub group number is over the filter table size: ${subGroup1}`);
+                ok = ok && Debug.assert(subGroup2 <= filter.maxIndex, `Sub group number is over the filter table size: ${subGroup2}`);
                 if (!ok) return false;
             }
 
@@ -486,7 +502,9 @@ class Modifier {
                 filter.DisableCollision(subGroup1, subGroup2);
             }
         } catch (e) {
-            $_DEBUG && Debug.error(e);
+            if ($_DEBUG) {
+                Debug.error(e);
+            }
             return false;
         }
 
@@ -502,13 +520,20 @@ class Modifier {
         const body = tracker.getBodyByPCID(index);
         const type = cb.read(BUFFER_READ_UINT8);
 
-        $_DEBUG && Debug.checkUint(type);
+        if ($_DEBUG) {
+            const ok = Debug.checkUint(type);
+            if (!ok) {
+                return false;
+            }
+        }
 
         try {
             bodyInterface.SetMotionType(body.GetID(), type, Jolt.Activate);
             tracker.update(body, index);
         } catch (e) {
-            $_DEBUG && Debug.error(e);
+            if ($_DEBUG) {
+                Debug.error(e);
+            }
             return false;
         }
 
@@ -522,4 +547,3 @@ class Modifier {
 }
 
 export { Modifier };
-

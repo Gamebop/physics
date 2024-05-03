@@ -2,7 +2,7 @@ import { Vec3 } from 'playcanvas';
 import { Debug } from '../../../debug.mjs';
 import { Constraint, MotorSettings } from './constraint.mjs';
 import {
-    BUFFER_WRITE_FLOAT32, BUFFER_WRITE_VEC32, CMD_JNT_ST_SET_M_F_TORQUE,
+    BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32, CMD_JNT_ST_SET_M_F_TORQUE,
     CMD_JNT_ST_SET_N_H_C_ANGLE, CMD_JNT_ST_SET_P_H_C_ANGLE, CMD_JNT_ST_SET_SWING_M_S,
     CMD_JNT_ST_SET_TWIST_M_S, CMD_JNT_ST_SET_T_ANG_VEL_CS, CMD_JNT_ST_SET_T_MAX_ANGLE, CMD_JNT_ST_SET_T_MIN_ANGLE,
     CMD_JNT_ST_SET_T_O_BS, CMD_JNT_ST_SET_T_O_CS, CONSTRAINT_TYPE_SWING_TWIST,
@@ -10,15 +10,14 @@ import {
 } from '../../../constants.mjs';
 
 class SwingTwistConstraint extends Constraint {
-
     _type = CONSTRAINT_TYPE_SWING_TWIST;
-    
+
     _twistAxis1 = Vec3.RIGHT;
 
     _twistAxis2 = Vec3.RIGHT;
 
     _planeAxis1 = Vec3.UP;
-    
+
     _planeAxis2 = Vec3.UP;
 
     _normalHalfConeAngle = 0;
@@ -53,13 +52,9 @@ class SwingTwistConstraint extends Constraint {
         }
     }
 
-    get maxFrictionTorque() {
-        return this._maxFrictionTorque;
-    }
-
     set maxFrictionTorque(torque) {
         if ($_DEBUG) {
-            const ok = Debug.checkFloat(torque, `Invalid max friction torque scalar: ${ angle }`);
+            const ok = Debug.checkFloat(torque, `Invalid max friction torque scalar: ${torque}`);
             if (!ok) {
                 return;
             }
@@ -77,26 +72,22 @@ class SwingTwistConstraint extends Constraint {
         );
     }
 
-    get normalHalfConeAngle() {
-        return this._normalHalfConeAngle;
+    get maxFrictionTorque() {
+        return this._maxFrictionTorque;
     }
 
     get swingMotorSettings() {
         return this._swingMotorSettings;
     }
 
-    get normalHalfConeAngle() {
-        return this._normalHalfConeAngle;
-    }
-
     set normalHalfConeAngle(angle) {
         if ($_DEBUG) {
-            const ok = Debug.checkFloat(angle, `Invalid half cone angle scalar: ${ angle }`);
+            const ok = Debug.checkFloat(angle, `Invalid half cone angle scalar: ${angle}`);
             if (!ok) {
                 return;
             }
         }
-        
+
         if (this._normalHalfConeAngle === angle) {
             return;
         }
@@ -109,13 +100,13 @@ class SwingTwistConstraint extends Constraint {
         );
     }
 
-    get planeHalfConeAngle() {
-        return this._planeHalfConeAngle;
+    get normalHalfConeAngle() {
+        return this._normalHalfConeAngle;
     }
 
     set planeHalfConeAngle(angle) {
         if ($_DEBUG) {
-            const ok = Debug.checkFloat(angle, `Invalid plane half cone angle scalar: ${ angle }`);
+            const ok = Debug.checkFloat(angle, `Invalid plane half cone angle scalar: ${angle}`);
             if (!ok) {
                 return;
             }
@@ -133,6 +124,10 @@ class SwingTwistConstraint extends Constraint {
         );
     }
 
+    get planeHalfConeAngle() {
+        return this._planeHalfConeAngle;
+    }
+
     get twistAxis1() {
         return this._twistAxis1;
     }
@@ -141,18 +136,14 @@ class SwingTwistConstraint extends Constraint {
         return this._twistAxis2;
     }
 
-    get twistMaxAngle() {
-        return this._twistMaxAngle;
-    }
-
     set twistMaxAngle(angle) {
         if ($_DEBUG) {
-            const ok = Debug.checkFloat(angle, `Invalid twist max angle scalar: ${ angle }`);
+            const ok = Debug.checkFloat(angle, `Invalid twist max angle scalar: ${angle}`);
             if (!ok) {
                 return;
             }
         }
-        
+
         if (this._twistMaxAngle === angle) {
             return;
         }
@@ -165,13 +156,13 @@ class SwingTwistConstraint extends Constraint {
         );
     }
 
-    get twistMinAngle() {
-        return this._twistMinAngle;
+    get twistMaxAngle() {
+        return this._twistMaxAngle;
     }
 
     set twistMinAngle(angle) {
         if ($_DEBUG) {
-            const ok = Debug.checkFloat(angle, `Invalid twist min angle scalar: ${ angle }`);
+            const ok = Debug.checkFloat(angle, `Invalid twist min angle scalar: ${angle}`);
             if (!ok) {
                 return;
             }
@@ -187,6 +178,10 @@ class SwingTwistConstraint extends Constraint {
             OPERATOR_MODIFIER, CMD_JNT_ST_SET_T_MIN_ANGLE, this._index,
             angle, BUFFER_WRITE_FLOAT32, false
         );
+    }
+
+    get twistMinAngle() {
+        return this._twistMinAngle;
     }
 
     get twistMotorSettings() {
@@ -216,20 +211,20 @@ class SwingTwistConstraint extends Constraint {
 
     setSwingMotorState(state) {
         if ($_DEBUG) {
-            const ok = Debug.checkUint(state, `Invalid motor state scalar: ${ state }`);
+            const ok = Debug.checkUint(state, `Invalid motor state scalar: ${state}`);
             if (!ok) {
                 return;
             }
         }
         this.system.addCommand(
             OPERATOR_MODIFIER, CMD_JNT_ST_SET_SWING_M_S, this._index,
-            torque, BUFFER_WRITE_FLOAT32, false
+            state, BUFFER_WRITE_UINT8, false
         );
     }
 
     setTwistMotorState(state) {
         if ($_DEBUG) {
-            const ok = Debug.checkUint(state, `Invalid motor state scalar: ${ state }`);
+            const ok = Debug.checkUint(state, `Invalid motor state scalar: ${state}`);
             if (!ok) {
                 return;
             }
@@ -237,7 +232,7 @@ class SwingTwistConstraint extends Constraint {
 
         this.system.addCommand(
             OPERATOR_MODIFIER, CMD_JNT_ST_SET_TWIST_M_S, this._index,
-            torque, BUFFER_WRITE_FLOAT32, false
+            state, BUFFER_WRITE_UINT8, false
         );
     }
 

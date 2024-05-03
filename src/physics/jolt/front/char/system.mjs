@@ -32,16 +32,15 @@ const schema = [
     'groundNormal',
     'groundVelocity',
     'state',
-    'pairedEntity',
+    'pairedEntity'
 ];
 
 /**
  * Char Component System handles all Char Components.
- * 
+ *
  * @category Char Component
  */
 class CharComponentSystem extends ShapeComponentSystem {
-    
     constructor(app, manager, id) {
         super(app, manager);
 
@@ -104,48 +103,53 @@ class CharComponentSystem extends ShapeComponentSystem {
     /**
      * Allows to override the JS callbacks that Jolt will call from Wasm instance. Important - do
      * not use arrow functions! User regular ones.
-     * 
+     *
      * Note that the functions will be re-evaluated and will lose their current scope, so don't
      * reference any existing variables outside these functions.
-     * 
+     *
      * For details, refer to Jolt documentation: [Character Contact Listener](
      * https://jrouwe.github.io/JoltPhysics/class_character_contact_listener.html)
-     * 
-     * @param {object} callbacks An object with one or more callback functions, allowing you to
+     *
+     * @param {object} callbacks - An object with one or more callback functions, allowing you to
      * override the default ones.
-     * @param {function} callbacks.OnAdjustBodyVelocity
-     * Callback to adjust the velocity of a body as seen by the character.
+     * @param {function} callbacks.OnAdjustBodyVelocity - Callback to adjust the velocity of a body
+     * as seen by the character.
      * ```javascript
-     * OnAdjustBodyVelocity: function (inCharacter, inBody2, ioLinearVelocity,
-     *     ioAngularVelocity) {}
+     * OnAdjustBodyVelocity: function (inCharacter, inBody2, ioLinearVelocity,ioAngularVelocity) {}
      * ```
-     * @param {function} callbacks.OnContactValidate
-     * Checks if a character can collide with specified body. Return true if the contact is valid.
+     * @param {function} callbacks.OnContactValidate - Checks if a character can collide with
+     * specified body. Return true if the contact is valid.
      * ```javascript
-     * OnAdjustBodyVelocity: function (inCharacter, inBodyID2, inSubShapeID2) {
-     *     return true;  // allow all
-     * }
+     * OnAdjustBodyVelocity: function (inCharacter, inBodyID2, inSubShapeID2) {}
      * ```
-     * @param {function} callbacks.OnContactAdded
-     * Called whenever the character collides with a body.
+     * @param {function} callbacks.OnContactAdded - Called whenever the character collides with a
+     * body.
      * ```javascript
      * OnAdjustBodyVelocity: function (inCharacter, inBodyID2, inSubShapeID2, inContactPosition,
-     *     inContactNormal, ioSettings) {}
+     * inContactNormal, ioSettings) {}
      * ```
-     * @param {function} callbacks.OnContactSolve
-     * Called whenever a contact is being used by the solver.
+     * @param {function} callbacks.OnContactSolve - Called whenever a contact is being used by the
+     * solver.
      * ```javascript
      * OnAdjustBodyVelocity: function (inCharacter, inBodyID2, inSubShapeID2, inContactPosition,
-     *     inContactNormal, inContactVelocity, inContactMaterial, inCharacterVelocity,
-     *     ioNewCharacterVelocity) {}
+     * inContactNormal, inContactVelocity, inContactMaterial, inCharacterVelocity,
+     * ioNewCharacterVelocity) {}
      * ```
      */
     overrideContacts(callbacks = {}) {
         if ($_DEBUG) {
-            !!callbacks.OnAdjustBodyVelocity && Debug.assert(typeof callbacks.OnAdjustBodyVelocity === 'function', 'OnAdjustBodyVelocity must be a function', callbacks);
-            !!callbacks.OnContactValidate && Debug.assert(typeof callbacks.OnContactValidate === 'function', 'OnContactValidate must be a function', callbacks);
-            !!callbacks.OnContactAdded && Debug.assert(typeof callbacks.OnContactAdded === 'function', 'OnContactAdded must be a function', callbacks);
-            !!callbacks.OnContactSolve && Debug.assert(typeof callbacks.OnContactSolve === 'function', 'OnContactSolve must be a function', callbacks);
+            if (!!callbacks.OnAdjustBodyVelocity) {
+                Debug.assert(typeof callbacks.OnAdjustBodyVelocity === 'function', 'OnAdjustBodyVelocity must be a function', callbacks);
+            }
+            if (!!callbacks.OnContactValidate) {
+                Debug.assert(typeof callbacks.OnContactValidate === 'function', 'OnContactValidate must be a function', callbacks);
+            }
+            if (!!callbacks.OnContactAdded) {
+                Debug.assert(typeof callbacks.OnContactAdded === 'function', 'OnContactAdded must be a function', callbacks);
+            }
+            if (!!callbacks.OnContactSolve) {
+                Debug.assert(typeof callbacks.OnContactSolve === 'function', 'OnContactSolve must be a function', callbacks);
+            }
         }
 
         const overrides = Object.create(null);

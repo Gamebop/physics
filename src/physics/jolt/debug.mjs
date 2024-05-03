@@ -30,7 +30,7 @@ class Debug {
     static error(...attr) {
         console.error(...attr);
     }
-    
+
     static errorOnce(...attr) {
         if (!Debug._logged.has(attr[0])) {
             Debug._logged.add(attr[0]);
@@ -51,12 +51,12 @@ class Debug {
         ok = ok && Debug.assert(number >= min, msg);
         ok = ok && Debug.assert(number <= max, msg);
         return ok;
-    }   
+    }
 
     static checkInt(number, msg) {
         const ok = Debug.assert(Number.isInteger(number), msg);
         return ok;
-    }    
+    }
 
     static checkUint(number, msg) {
         let ok = Debug.checkInt(number, msg);
@@ -103,30 +103,30 @@ class Debug {
     static checkSpringSettings(settings) {
         let ok = Debug.assert(typeof settings === 'object', 'Invalid settings object for constraint', settings);
         if (settings.springMode != null) {
-            ok = ok && Debug.checkFloat(settings.springMode, `Invalid spring mode: ${ settings.springMode }`);
+            ok = ok && Debug.checkFloat(settings.springMode, `Invalid spring mode: ${settings.springMode}`);
         }
         if (settings.frequency != null) {
-            ok = ok && Debug.checkFloat(settings.frequency, `Invalid spring frequency: ${ settings.frequency }`);
+            ok = ok && Debug.checkFloat(settings.frequency, `Invalid spring frequency: ${settings.frequency}`);
         }
         if (settings.stiffness != null) {
-            ok = ok && Debug.checkFloat(settings.stiffness, `Invalid spring stiffness: ${ settings.stiffness }`);
+            ok = ok && Debug.checkFloat(settings.stiffness, `Invalid spring stiffness: ${settings.stiffness}`);
         }
         if (settings.damping != null) {
-            ok = ok && Debug.checkFloat(settings.damping, `Invalid spring stiffness: ${ settings.damping }`);
+            ok = ok && Debug.checkFloat(settings.damping, `Invalid spring stiffness: ${settings.damping}`);
         }
         return ok;
     }
 
     static verifyProperties(data, schema) {
         let ok = true;
-        Object.entries(data).forEach(entry => {
+        Object.entries(data).forEach((entry) => {
             let found = false;
             for (let i = 0, end = schema.length; i < end; i++) {
                 if (entry[0] === schema[i]) {
                     found = true;
                 }
             }
-            ok = ok && Debug.assert(found, `Component: Unrecognized options property: ${ entry }`);
+            ok = ok && Debug.assert(found, `Component: Unrecognized options property: ${entry}`);
         });
 
         return ok;

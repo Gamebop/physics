@@ -3,8 +3,8 @@ import { Debug } from '../../debug.mjs';
 import { ShapeComponent } from '../shape/component.mjs';
 import {
     ALLOWED_DOFS_ALL, BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT32,
-    BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32, CMD_DESTROY_BODY, CMD_MOVE_BODY,
-    CMD_MOVE_KINEMATIC, CMD_RESET_VELOCITIES, MOTION_QUALITY_DISCRETE, MOTION_TYPE_DYNAMIC,
+    BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32, CMD_ADD_FORCE, CMD_ADD_IMPULSE, CMD_APPLY_BUOYANCY_IMPULSE, CMD_DESTROY_BODY, CMD_MOVE_BODY,
+    CMD_MOVE_KINEMATIC, CMD_RESET_VELOCITIES, CMD_SET_ANG_VEL, CMD_SET_LIN_VEL, CMD_SET_MOTION_TYPE, CMD_USE_MOTION_STATE, MOTION_QUALITY_DISCRETE, MOTION_TYPE_DYNAMIC,
     MOTION_TYPE_KINEMATIC, MOTION_TYPE_STATIC, OMP_CALCULATE_MASS_AND_INERTIA,
     OMP_MASS_AND_INERTIA_PROVIDED, OPERATOR_CLEANER, OPERATOR_MODIFIER,
     SHAPE_CONVEX_HULL, SHAPE_HEIGHTFIELD, SHAPE_MESH
@@ -16,11 +16,10 @@ const vec3 = new Vec3();
 
 /**
  * Body Component description.
- * 
+ *
  * @category Body Component
  */
 class BodyComponent extends ShapeComponent {
-
     // ---- BODY PROPS ----
 
     _angularVelocity = new Vec3();
@@ -38,9 +37,9 @@ class BodyComponent extends ShapeComponent {
     _collisionGroup = null;
 
     _friction = 0.2;
-    
+
     _gravityFactor = 1;
-    
+
     _inertiaMultiplier = 1;
 
     _isSensor = false;
@@ -48,7 +47,7 @@ class BodyComponent extends ShapeComponent {
     _linearDamping = 0;
 
     _linearVelocity = new Vec3();
-    
+
     _maxAngularVelocity = 47.12388980384689;
 
     _maxLinearVelocity = 500;
@@ -66,14 +65,14 @@ class BodyComponent extends ShapeComponent {
     _overrideInertiaRotation = new Quat();
 
     _overrideMass = 1;
-    
+
     /** @type {number} @hidden */
     _overrideMassProperties = OMP_CALCULATE_MASS_AND_INERTIA;
 
     _position = new Vec3();
 
     _rotation = new Quat();
-    
+
     _restitution = 0;
 
     /** @type {number | null} @hidden */
@@ -81,19 +80,16 @@ class BodyComponent extends ShapeComponent {
 
     _useMotionState = true;
 
-    constructor(system, entity) {
-        super(system, entity);
-    }
-
     /**
      * When this body is created as `MOTION_TYPE_STATIC`, this setting tells
      * the system to create a MotionProperties object so that the object can be
      * switched to kinematic or dynamic. Use `false` (default), if you don't intend
      * to switch the type of this body from static.
+     * @returns {*} - TODO
      */
     get allowDynamicOrKinematic() {
         return this._allowDynamicOrKinematic;
-    }    
+    }
 
     /**
      * Which degrees of freedom this body has (can be used to limit simulation to 2D).
@@ -122,7 +118,8 @@ class BodyComponent extends ShapeComponent {
      * ```
      * ALLOWED_DOFS_ALL
      * ```
-     * For example, using `ALLOWED_DOFS_TRANSLATION_X` allows a body to move in world space X axis. 
+     * For example, using `ALLOWED_DOFS_TRANSLATION_X` allows a body to move in world space X axis.
+     * @returns {*} - TODO
      */
     get allowedDOFs() {
         return this._allowedDOFs;
@@ -130,10 +127,11 @@ class BodyComponent extends ShapeComponent {
 
     /**
      * Specifies if this body go to sleep or not.
+     * @returns {*} - TODO
      */
     get allowSleeping() {
         return this._allowSleeping;
-    }    
+    }
 
     /**
      * Specifies how quickly a body loses angular velocity. The formula used:
@@ -141,6 +139,7 @@ class BodyComponent extends ShapeComponent {
      * dw/dt = -c * w
      * ```
      * `c` must be between 0 and 1 but is usually close to 0.
+     * @returns {*} - TODO
      */
     get angularDamping() {
         return this._angularDamping;
@@ -148,7 +147,7 @@ class BodyComponent extends ShapeComponent {
 
     /**
      * World space angular velocity (rad/s)
-     * 
+     *
      * @type {Vec3}
      */
     set angularVelocity(vec) {
@@ -172,8 +171,9 @@ class BodyComponent extends ShapeComponent {
 
     /**
      * The collision group this body belongs to (determines if two objects can collide).
-     * Expensive, so disabled by default. Prefer to use broadphase and object layers 
+     * Expensive, so disabled by default. Prefer to use broadphase and object layers
      * instead for filtering.
+     * @returns {*} - TODO
      */
     get collisionGroup() {
         return this._collisionGroup;
@@ -183,6 +183,7 @@ class BodyComponent extends ShapeComponent {
      * Friction of the body (dimensionless number, usually between 0 and 1, 0 = no friction,
      * 1 = friction force equals force that presses the two bodies together). Note that bodies
      * can have negative friction but the combined friction should never go below zero.
+     * @returns {*} - TODO
      */
     get friction() {
         return this._friction;
@@ -190,6 +191,7 @@ class BodyComponent extends ShapeComponent {
 
     /**
      * Value to multiply gravity with for this body.
+     * @returns {*} - TODO
      */
     get gravityFactor() {
         return this._gravityFactor;
@@ -198,6 +200,7 @@ class BodyComponent extends ShapeComponent {
     /**
      * When calculating the inertia (not when it is provided) the calculated inertia will
      * be multiplied by this value.
+     * @returns {*} - TODO
      */
     get inertiaMultiplier() {
         return this._inertiaMultiplier;
@@ -206,6 +209,7 @@ class BodyComponent extends ShapeComponent {
     /**
      * If this body is a sensor. A sensor will receive collision callbacks, but will not
      * cause any collision responses and can be used as a trigger volume.
+     * @returns {*} - TODO
      */
     get isSensor() {
         return this._isSensor;
@@ -217,6 +221,7 @@ class BodyComponent extends ShapeComponent {
      * dv/dt = -c * v.
      * ```
      * `c` must be between 0 and 1 but is usually close to 0.
+     * @returns {*} - TODO
      */
     get linearDamping() {
         return this._linearDamping;
@@ -246,6 +251,7 @@ class BodyComponent extends ShapeComponent {
 
     /**
      * Maximum angular velocity that this body can reach (rad/s)
+     * @returns {*} - TODO
      */
     get maxAngularVelocity() {
         return this._maxAngularVelocity;
@@ -253,6 +259,7 @@ class BodyComponent extends ShapeComponent {
 
     /**
      * Maximum linear velocity that this body can reach (m/s)
+     * @returns {*} - TODO
      */
     get maxLinearVelocity() {
         return this._maxLinearVelocity;
@@ -268,10 +275,11 @@ class BodyComponent extends ShapeComponent {
      * MOTION_QUALITY_LINEAR_CAST
      * ```
      * Use linear cast for fast moving objects, in other cases prefer discrete one since its cheaper (default).
+     * @returns {*} - TODO
      */
     get motionQuality() {
         return this._motionQuality;
-    }   
+    }
 
     /**
      * Motion type, determines if the object is static, dynamic or kinematic.
@@ -285,11 +293,13 @@ class BodyComponent extends ShapeComponent {
      * ```
      * MOTION_TYPE_KINEMATIC
      * ```
-     * 
+     *
      * @type {number}
      */
     set motionType(type) {
-        $_DEBUG && Debug.checkUint(type, `Invalid motion type: ${ type }`);
+        if ($_DEBUG) {
+            Debug.checkUint(type, `Invalid motion type: ${type}`);
+        }
         this._motionType = type;
         this.system.addCommand(
             OPERATOR_MODIFIER, CMD_SET_MOTION_TYPE, this._index,
@@ -304,6 +314,7 @@ class BodyComponent extends ShapeComponent {
     /**
      * The collision layer this body belongs to (determines if two objects can collide).
      * Allows cheap filtering.
+     * @returns {*} - TODO
      */
     get objectLayer() {
         return this._objectLayer;
@@ -312,6 +323,7 @@ class BodyComponent extends ShapeComponent {
     /**
      * Used only if `OMP_MASS_AND_INERTIA_PROVIDED` is selected for `overrideMassProperties`.
      * Backend will create inertia matrix from the given position.
+     * @returns {*} - TODO
      */
     get overrideInertiaPosition() {
         return this._overrideInertiaPosition;
@@ -320,6 +332,7 @@ class BodyComponent extends ShapeComponent {
     /**
      * Used only if `OMP_MASS_AND_INERTIA_PROVIDED` is selected for {@link overrideMassProperties}.
      * Backend will create inertia matrix from the given rotation.
+     * @returns {*} - TODO
      */
     get overrideInertiaRotation() {
         return this._overrideInertiaRotation;
@@ -328,13 +341,14 @@ class BodyComponent extends ShapeComponent {
     /**
      * Used only if `OMP_CALCULATE_INERTIA` or `OMP_MASS_AND_INERTIA_PROVIDED` is selected
      * for {@link overrideMassProperties}
+     * @returns {*} - TODO
      */
     get overrideMass() {
         return this._overrideMass;
     }
 
     /**
-     * Determines how a body mass and inertia is calculated. By default it uses 
+     * Determines how a body mass and inertia is calculated. By default it uses
      * `OMP_CALCULATE_MASS_AND_INERTIA`, which tells Jolt to auto-calculate those based the collider
      * shape. You can use following enum aliases:
      * ```
@@ -348,9 +362,10 @@ class BodyComponent extends ShapeComponent {
      * ```
      * If you select `OMP_CALCULATE_INERTIA`, you must also specify {@link overrideMass}.
      * The inertia will be automatically calculated for you.
-     * 
+     *
      * If you select `OMP_MASS_AND_INERTIA_PROVIDED`, you must also specify {@link overrideMass},
      * {@link overrideInertiaPosition} and {@link overrideInertiaRotation}.
+     * @returns {*} - TODO
      */
     get overrideMassProperties() {
         return this._overrideMassProperties;
@@ -358,6 +373,7 @@ class BodyComponent extends ShapeComponent {
 
     /**
      * Read-only. Current position of the body (not of the center of mass).
+     * @returns {*} - TODO
      */
     get position() {
         return this._position;
@@ -365,6 +381,7 @@ class BodyComponent extends ShapeComponent {
 
     /**
      * Read-only. Current rotation of the body.
+     * @returns {*} - TODO
      */
     get rotation() {
         return this._rotation;
@@ -374,15 +391,17 @@ class BodyComponent extends ShapeComponent {
      * Restitution of body (dimensionless number, usually between 0 and 1, 0 = completely
      * inelastic collision response, 1 = completely elastic collision response). Note that
      * bodies can have negative restitution but the combined restitution should never go below zero.
+     * @returns {*} - TODO
      */
     get restitution() {
         return this._restitution;
     }
 
     /**
-     * The collision sub group (within {@link collisionGroup}) this body belongs to (determines 
+     * The collision sub group (within {@link collisionGroup}) this body belongs to (determines
      * if two objects can collide). Expensive, so disabled by default. Prefer to use broadphase
      * and object layers instead for filtering.
+     * @returns {*} - TODO
      */
     get subGroup() {
         return this._subGroup;
@@ -390,12 +409,12 @@ class BodyComponent extends ShapeComponent {
 
     /**
      * Enables/disables the use of motion state for this entity. Not used by static bodies.
-     * 
-     * If the physcs fixed timestep is set lower than the client's browser refresh rate, then browser will have 
+     *
+     * If the physcs fixed timestep is set lower than the client's browser refresh rate, then browser will have
      * multiple frame updates per single physics simulation step. If you enable motion state for this entity,
-     * then the position and rotation will be interpolated, otherwise the entity will visually move only after 
+     * then the position and rotation will be interpolated, otherwise the entity will visually move only after
      * physics completes a step.
-     * 
+     *
      * For example, say browser refreshes every 0.1 seconds, and physics step once a second. Without using
      * motion state an entity position will update once every second, when physics update takes place. With motion state
      * enabled, it will update the position/rotation every 0.1 seconds - once a true update (from physics) and 9 times
@@ -404,7 +423,7 @@ class BodyComponent extends ShapeComponent {
      */
     set useMotionState(bool) {
         if ($_DEBUG) {
-            const ok = Debug.checkBool(bool, `Invalid bool value for useMotionState property: ${ bool }`);
+            const ok = Debug.checkBool(bool, `Invalid bool value for useMotionState property: ${bool}`);
             if (!ok)
                 return;
         }
@@ -420,9 +439,9 @@ class BodyComponent extends ShapeComponent {
     }
 
     /**
-     * Adds a force (unit: N) at an offset to this body for the next physics time step. Will reset after 
+     * Adds a force (unit: N) at an offset to this body for the next physics time step. Will reset after
      * the physics completes a step.
-     * 
+     *
      * @param {import('playcanvas').Vec3} force - Force to add to body.
      * @param {import('playcanvas').Vec3} [offset] - Offset from the body center where the force is added.
      * @param {boolean} [isOffsetLocal] - Specifies if offset is in world or local space.
@@ -438,7 +457,7 @@ class BodyComponent extends ShapeComponent {
 
         vec3.copy(offset);
 
-        if (!vec3.equals(Vec3.ZERO) && isOffsetLocal) {   
+        if (!vec3.equals(Vec3.ZERO) && isOffsetLocal) {
             this._localToWorld(vec3);
         }
 
@@ -451,7 +470,7 @@ class BodyComponent extends ShapeComponent {
 
     /**
      * Same as {@link addForce}, but accepts scalars, instead of vectors.
-     * 
+     *
      * @param {number} forceX - Force scalar value on X axis.
      * @param {number} forceY - Force scalar value on Y axis.
      * @param {number} forceZ - Force scalar value on Z axis.
@@ -459,16 +478,15 @@ class BodyComponent extends ShapeComponent {
      * @param {number} [offsetY] - Force scalar offset on Y axis.
      * @param {number} [offsetZ] - Force scalar offset on Z axis.
      * @param {number} [isOffsetLocal] - Specifies if offset is in world or local space.
-     * @returns 
      */
     addForceScalars(forceX, forceY, forceZ, offsetX = 0, offsetY = 0, offsetZ = 0, isOffsetLocal = false) {
         if ($_DEBUG) {
-            let ok = Debug.checkFloat(forceX, `Invalid add impulse X component: ${ forceX }`);
-            ok = ok && Debug.checkFloat(forceY, `Invalid add impulse Y component: ${ forceY }`);
-            ok = ok && Debug.checkFloat(forceZ, `Invalid add impulse Z component: ${ forceZ }`);
-            ok = ok && Debug.checkFloat(offsetX, `Invalid add impulse offset X component: ${ offsetX }`);
-            ok = ok && Debug.checkFloat(offsetY, `Invalid add impulse offset Y component: ${ offsetY }`);
-            ok = ok && Debug.checkFloat(offsetZ, `Invalid add impulse offset Z component: ${ offsetZ }`);
+            let ok = Debug.checkFloat(forceX, `Invalid add impulse X component: ${forceX}`);
+            ok = ok && Debug.checkFloat(forceY, `Invalid add impulse Y component: ${forceY}`);
+            ok = ok && Debug.checkFloat(forceZ, `Invalid add impulse Z component: ${forceZ}`);
+            ok = ok && Debug.checkFloat(offsetX, `Invalid add impulse offset X component: ${offsetX}`);
+            ok = ok && Debug.checkFloat(offsetY, `Invalid add impulse offset Y component: ${offsetY}`);
+            ok = ok && Debug.checkFloat(offsetZ, `Invalid add impulse offset Z component: ${offsetZ}`);
             if (!ok) {
                 return;
             }
@@ -491,7 +509,7 @@ class BodyComponent extends ShapeComponent {
 
     /**
      * Adds an impulse to the center of mass of the body (unit: kg m/s).
-     * 
+     *
      * @param {import('playcanvas').Vec3} impulse - Impulse to add to body.
      * @param {import('playcanvas').Vec3} [offset] - Offset from the body center where the impulse is added.
      * @param {boolean} [isOffsetLocal] - Specifies if offset is in world or local space.
@@ -520,7 +538,7 @@ class BodyComponent extends ShapeComponent {
 
     /**
      * Same as {@link addImpulse}, but accepts scalars, instead of vectors.
-     * 
+     *
      * @param {number} impulseX - Impulse scalar value on X axis.
      * @param {number} impulseY - Impulse scalar value on Y axis.
      * @param {number} impulseZ - Impulse scalar value on Z axis.
@@ -531,12 +549,12 @@ class BodyComponent extends ShapeComponent {
      */
     addImpulseScalars(impulseX, impulseY, impulseZ, offsetX = 0, offsetY = 0, offsetZ = 0, isOffsetLocal = false) {
         if ($_DEBUG) {
-            let ok = Debug.checkFloat(impulseX, `Invalid add impulse X component: ${ impulseX }`);
-            ok = ok && Debug.checkFloat(impulseY, `Invalid add impulse Y component: ${ impulseY }`);
-            ok = ok && Debug.checkFloat(impulseZ, `Invalid add impulse Z component: ${ impulseZ }`);
-            ok = ok && Debug.checkFloat(offsetX, `Invalid add impulse offset X component: ${ offsetX }`);
-            ok = ok && Debug.checkFloat(offsetY, `Invalid add impulse offset Y component: ${ offsetY }`);
-            ok = ok && Debug.checkFloat(offsetZ, `Invalid add impulse offset Z component: ${ offsetZ }`);
+            let ok = Debug.checkFloat(impulseX, `Invalid add impulse X component: ${impulseX}`);
+            ok = ok && Debug.checkFloat(impulseY, `Invalid add impulse Y component: ${impulseY}`);
+            ok = ok && Debug.checkFloat(impulseZ, `Invalid add impulse Z component: ${impulseZ}`);
+            ok = ok && Debug.checkFloat(offsetX, `Invalid add impulse offset X component: ${offsetX}`);
+            ok = ok && Debug.checkFloat(offsetY, `Invalid add impulse offset Y component: ${offsetY}`);
+            ok = ok && Debug.checkFloat(offsetZ, `Invalid add impulse offset Z component: ${offsetZ}`);
             if (!ok) {
                 return;
             }
@@ -559,7 +577,7 @@ class BodyComponent extends ShapeComponent {
 
     /**
      * Applies an impulse to the body that simulates fluid buoyancy and drag.
-     * 
+     *
      * @param {import('playcanvas').Vec3} waterSurfacePosition - Position of the fluid surface in world space.
      * @param {import('playcanvas').Vec3} surfaceNormal - Normal of the fluid surface (should point up).
      * @param {number} buoyancy - The buoyancy factor for the body. 1 = neutral body, < 1 sinks, > 1 floats.
@@ -572,9 +590,9 @@ class BodyComponent extends ShapeComponent {
             let ok = true;
             ok = ok && Debug.checkVec(waterSurfacePosition, `Invalid water surface position vector`);
             ok = ok && Debug.checkVec(surfaceNormal, `Invalid surface normal`);
-            ok = ok && Debug.checkFloat(buoyancy, `Invalid buoyancy scalar: ${ buoyancy }`);
-            ok = ok && Debug.checkFloat(linearDrag, `Invalid linear drag scalar: ${ linearDrag }`);
-            ok = ok && Debug.checkFloat(angularDrag, `Invalid angular drag scalar: ${ angularDrag }`);
+            ok = ok && Debug.checkFloat(buoyancy, `Invalid buoyancy scalar: ${buoyancy}`);
+            ok = ok && Debug.checkFloat(linearDrag, `Invalid linear drag scalar: ${linearDrag}`);
+            ok = ok && Debug.checkFloat(angularDrag, `Invalid angular drag scalar: ${angularDrag}`);
             ok = ok && Debug.checkVec(fluidVelocity, `Invalid fluid velocity vector`);
             if (!ok) {
                 return;
@@ -594,7 +612,7 @@ class BodyComponent extends ShapeComponent {
 
     /**
      * Adds an angular impulse to the center of mass.
-     * 
+     *
      * @param {import('playcanvas').Vec3} impulse - Angular impulse vector.
      */
     addAngularImpulse(impulse) {
@@ -605,9 +623,9 @@ class BodyComponent extends ShapeComponent {
     }
 
     /**
-     * Adds a torque (unit: N) for the next physics time step. Will reset after 
-     * the physics completes a step.
-     * 
+     * Adds a torque (unit: N) for the next physics time step. Will reset after the physics
+     * completes a step.
+     *
      * @param {import('playcanvas').Vec3} torque - Torque vector.
      */
     addTorque(torque) {
@@ -620,8 +638,8 @@ class BodyComponent extends ShapeComponent {
     /**
      * Intantenous placement of a body to a new position/rotation (i.e. teleport). Will ignore any bodies
      * between old and new position.
-     * 
-     * @param {import('playcanvas').Vec3} position - World space position where to place the body. 
+     *
+     * @param {import('playcanvas').Vec3} position - World space position where to place the body.
      * @param {import('playcanvas').Quat} [rotation] - World space rotation the body should assume at new position.
      */
     teleport(position, rotation = Quat.IDENTITY) {
@@ -642,7 +660,7 @@ class BodyComponent extends ShapeComponent {
 
     /**
      * Same as {@link teleport}, but taking scalars, instead of vectors.
-     * 
+     *
      * @param {number} px - Position scalar value on X axis.
      * @param {number} py - Position scalar value on Y axis.
      * @param {number} pz - Position scalar value on Z axis.
@@ -683,7 +701,7 @@ class BodyComponent extends ShapeComponent {
      * sets linear and angular velocities for the body, so it can reach the target position
      * and rotation in specified delta time. If delta time is set to zero (default), the engine will
      * use the current fixed timestep value.
-     * 
+     *
      * @param {import('playcanvas').Vec3} pos - Taret position the body should reach in given dt.
      * @param {import('playcanvas').Quat} rot - Target rotation the body should reach in given dt.
      * @param {number} [dt] - Time in which the body should reach target position and rotation. In seconds.
@@ -702,7 +720,7 @@ class BodyComponent extends ShapeComponent {
      */
     resetVelocities() {
         this.system.addCommand(OPERATOR_MODIFIER, CMD_RESET_VELOCITIES, this._index);
-    }    
+    }
 
     writeIsometry() {
         if (this._motionType === MOTION_TYPE_DYNAMIC) {
@@ -721,7 +739,7 @@ class BodyComponent extends ShapeComponent {
                 rotation, BUFFER_WRITE_VEC32, false
             );
         }
-    }    
+    }
 
     writeComponentData(cb) {
         const ok = ShapeComponent.writeShapeData(cb, this);
@@ -781,7 +799,9 @@ class BodyComponent extends ShapeComponent {
             }
         }
 
-        $_DEBUG && cb.write(this._debugDraw, BUFFER_WRITE_BOOL, false);
+        if ($_DEBUG) {
+            cb.write(this._debugDraw, BUFFER_WRITE_BOOL, false);
+        }
     }
 
     onEnable() {
@@ -791,7 +811,7 @@ class BodyComponent extends ShapeComponent {
 
         this._index = system.getIndex(this.entity);
 
-        if ((shape === SHAPE_MESH || shape === SHAPE_CONVEX_HULL || shape === SHAPE_HEIGHTFIELD) && 
+        if ((shape === SHAPE_MESH || shape === SHAPE_CONVEX_HULL || shape === SHAPE_HEIGHTFIELD) &&
             this._renderAsset && !this._meshes) {
             this._addMeshes();
         } else if (!isCompoundChild) {
@@ -864,9 +884,8 @@ class BodyComponent extends ShapeComponent {
             loadAndHandleAsset(asset);
         } else {
             assets.once('add:' + id, loadAndHandleAsset);
-        }        
+        }
     }
 }
 
 export { BodyComponent };
-

@@ -1,5 +1,3 @@
-import { Debug } from '../../debug.mjs';
-
 class Tracker {
     constructor(Jolt) {
         this._Jolt = Jolt;
@@ -19,7 +17,9 @@ class Tracker {
             this._debug = new Set();
 
             Object.defineProperty(this, 'debug', {
-                get: () => { return this._debug; }
+                get: () => {
+                    return this._debug;
+                }
             });
         }
     }
@@ -52,7 +52,7 @@ class Tracker {
         } else {
             const motionType = body.GetMotionType();
             const bodyType = body.GetBodyType();
-    
+
             if (bodyType === Jolt.EBodyType_RigidBody) {
                 switch (motionType) {
                     case Jolt.EMotionType_Dynamic:
@@ -99,11 +99,11 @@ class Tracker {
         this._dynamic.delete(body);
         this._kinematic.delete(body);
         this._character.delete(body);
-        
+
         if ($_DEBUG) {
             this._debug.delete(body);
         }
-        
+
         const jid = this._Jolt.getPointer(body);
         const idx = this._idxMap.get(jid);
 
@@ -117,12 +117,12 @@ class Tracker {
         this._dynamic.clear();
         this._kinematic.clear();
 
-        this._character.forEach(char => {
+        this._character.forEach((char) => {
             Jolt.destroy(char);
         });
         this._character.clear();
 
-        this._bodyMap.forEach(body => {
+        this._bodyMap.forEach((body) => {
             Jolt.destroy(body);
         });
         this._bodyMap.clear();

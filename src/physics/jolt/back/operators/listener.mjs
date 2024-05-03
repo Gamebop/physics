@@ -41,7 +41,7 @@ class Listener {
 
         // TODO
         // remove per-callback config.option, we either enable or disable all
-        
+
         if (config.contactAddedEventsEnabled) {
             listener.OnContactAdded = this.onContactAdded.bind(this);
         } else {
@@ -187,8 +187,8 @@ class Listener {
         cp = Jolt.wrapPointer(cp, Jolt.Vec3);
         cn = Jolt.wrapPointer(cn, Jolt.Vec3);
         cv = Jolt.wrapPointer(cv, Jolt.Vec3);
-        nv = Jolt.wrapPointer(nv, Jolt.Vec3);        
-        
+        nv = Jolt.wrapPointer(nv, Jolt.Vec3);
+
         const bodyLockInterface = backend.physicsSystem.GetBodyLockInterface();
 
         let body2 = bodyLockInterface.TryGetBody(bodyID2);
@@ -279,16 +279,16 @@ class Listener {
     _writeContactEvents(cb) {
         const data = this._contactsData;
         const contactsCount = data[0];
-        
+
         if (contactsCount === 0) {
             return;
         }
-        
+
         const { contactPoints, contactPointsAveraged } = this._backend.config;
 
         cb.writeOperator(COMPONENT_SYSTEM_BODY);
         cb.writeCommand(CMD_REPORT_CONTACTS);
-        
+
         cb.write(contactsCount, BUFFER_WRITE_UINT32, false);
 
         // TODO
@@ -316,13 +316,13 @@ class Listener {
                 cb.write(data[k++], BUFFER_WRITE_FLOAT32, false);
                 cb.write(data[k++], BUFFER_WRITE_FLOAT32, false);
                 cb.write(data[k++], BUFFER_WRITE_FLOAT32, false);
-                
+
                 // depth
                 cb.write(data[k++], BUFFER_WRITE_FLOAT32, false);
-    
+
                 cb.write(contactPoints, BUFFER_WRITE_BOOL, false);
                 if (contactPoints) {
-    
+
                     cb.write(contactPointsAveraged, BUFFER_WRITE_BOOL, false);
                     if (contactPointsAveraged) {
                         // world point
@@ -334,13 +334,13 @@ class Listener {
                         cb.write(data[k++], BUFFER_WRITE_FLOAT32, false);
                         cb.write(data[k++], BUFFER_WRITE_FLOAT32, false);
                         cb.write(data[k++], BUFFER_WRITE_FLOAT32, false);
-                        
+
                         // count1, count2
                         const count1 = data[k++];
                         const count2 = data[k++];
                         cb.write(count1, BUFFER_WRITE_UINT32, false);
                         cb.write(count2, BUFFER_WRITE_UINT32, false);
-    
+
                         // local points
                         for (let i = 0; i < count1; i++) {
                             cb.write(data[k++], BUFFER_WRITE_FLOAT32, false);
@@ -351,7 +351,7 @@ class Listener {
                             cb.write(data[k++], BUFFER_WRITE_FLOAT32, false);
                             cb.write(data[k++], BUFFER_WRITE_FLOAT32, false);
                             cb.write(data[k++], BUFFER_WRITE_FLOAT32, false);
-                        }                    
+                        }
                     }
                 }
             }
@@ -364,7 +364,7 @@ class Listener {
 
         // Skip writing contact events, if there are none
         let skip = true;
-        data.forEach(contacts => {
+        data.forEach((contacts) => {
             if (contacts[0] > 0) {
                 skip = false;
             }
@@ -387,7 +387,7 @@ class Listener {
                 // is body 2 valid
                 cb.write(contacts[k++], BUFFER_WRITE_BOOL, false);
                 cb.write(contacts[k++] || 0, BUFFER_WRITE_UINT32, false);
-                
+
                 // contact position
                 // contact normal
                 // contact velocity
@@ -404,7 +404,7 @@ class Listener {
         const Body = Jolt.Body;
 
         const body1 = Jolt.wrapPointer(b1Pointer, Body);
-		const body2 = Jolt.wrapPointer(b2Pointer, Body);
+        const body2 = Jolt.wrapPointer(b2Pointer, Body);
 
         return this._writeContactPair(body1, body2, type, ignoreCache);
     }
@@ -430,13 +430,13 @@ class Listener {
             return false;
         }
 
-        // Persisted contacts will be called once per substep, which may 
+        // Persisted contacts will be called once per substep, which may
         // happen multiple times per sim step. For general purposes, the first
         // substep results should be enough, so we can discard the same
         // contact pair after the first substep.
         if (!ignoreCache && body1 && body2) {
             const cache = this._contactsCache;
-            const str = `${ idx1 }:${ idx2 }:${ type }`;
+            const str = `${idx1}:${idx2}:${type}`;
             if (cache.has(str)) {
                 return;
             }
@@ -452,7 +452,7 @@ class Listener {
         if (body1) {
             data.push(idx1);
         }
-        
+
         if (body2) {
             data.push(idx2);
         }

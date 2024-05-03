@@ -32,7 +32,7 @@ class Drawer {
         }
 
         let ok = true;
-        debugBodies.forEach(body => {
+        debugBodies.forEach((body) => {
             ok = ok && this._writeShape(body, tracker);
         });
 
@@ -63,7 +63,7 @@ class Drawer {
 
     _writeShape(body, tracker) {
         const Jolt = this._Jolt;
-        
+
         try {
             const motionType = body.isCharacter ? Jolt.EMotionType_Kinematic : body.GetMotionType();
             const isRigidBody = body.isCharacter ? true : (body.GetBodyType() === Jolt.EBodyType_RigidBody);
@@ -83,16 +83,16 @@ class Drawer {
                     this._buffers.push(buffer);
 
                     return true;
-                } else {
-                    // Soft body will have new vertex positions, so we need to create a new triContext
-                    Jolt.destroy(body.triContext);
-                    body.triContext = null;
-                    body.debugDrawData = null;
                 }
+
+                // Soft body will have new vertex positions, so we need to create a new triContext
+                Jolt.destroy(body.triContext);
+                body.triContext = null;
+                body.debugDrawData = null;
             }
-            
+
             const index = tracker.getPCID(Jolt.getPointer(body));
-            const shape = body.GetShape();            
+            const shape = body.GetShape();
             const triContext = new Jolt.ShapeGetTriangles(shape, Jolt.AABox.prototype.sBiggest(), shape.GetCenterOfMass(), Jolt.Quat.prototype.sIdentity(), this._scale);
             const byteOffset = triContext.GetVerticesData();
             const length = triContext.GetVerticesSize() / FLOAT32_SIZE;
@@ -109,7 +109,9 @@ class Drawer {
             this._buffers.push(buffer);
 
         } catch (e) {
-            $_DEBUG && Debug.error(e);
+            if ($_DEBUG) {
+                Debug.error(e);
+            }
             return false;
         }
 

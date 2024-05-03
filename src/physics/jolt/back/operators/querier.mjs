@@ -1,11 +1,16 @@
 import { Debug } from '../../debug.mjs';
+import {
+    BUFFER_READ_BOOL, BUFFER_READ_UINT32, BUFFER_READ_UINT8, BUFFER_WRITE_BOOL,
+    BUFFER_WRITE_JOLTVEC32, BUFFER_WRITE_UINT16, BUFFER_WRITE_UINT32, CMD_CAST_RAY, CMD_CAST_SHAPE,
+    COMPONENT_SYSTEM_MANAGER
+} from '../../constants.mjs';
 
-const params = [];
+let params = [];
 
 class Querier {
     constructor(backend) {
         this._backend = backend;
-        
+
         const Jolt = backend.Jolt;
 
         // TODO
@@ -14,8 +19,8 @@ class Querier {
         this._rayCast = new Jolt.RRayCast();
         this._rayCastSettings = new Jolt.RayCastSettings();
         this._tempVectors = [
-            new Jolt.Quat(), new Jolt.Vec3(), new Jolt.Vec3(), 
-            new Jolt.Vec3(), new Jolt.Vec3(), new Jolt.Vec3(),
+            new Jolt.Quat(), new Jolt.Vec3(), new Jolt.Vec3(),
+            new Jolt.Vec3(), new Jolt.Vec3(), new Jolt.Vec3()
         ];
 
         this._shapeCastSettings = new Jolt.ShapeCastSettings();
@@ -44,7 +49,9 @@ class Querier {
                 break;
 
             default:
-                $_DEBUG && Debug.error(`Invalid querier command: ${ command }`);
+                if ($_DEBUG) {
+                    Debug.error(`Invalid querier command: ${command}`);
+                }
                 return false;
         }
 
@@ -52,7 +59,7 @@ class Querier {
     }
 
     destroy() {
-        this._tempVectors.forEach(vector => {
+        this._tempVectors.forEach((vector) => {
             Jolt.destroy(vector);
         });
         this._tempVectors.length = 0;
@@ -92,17 +99,17 @@ class Querier {
 
         buffer.writeOperator(COMPONENT_SYSTEM_MANAGER);
         buffer.writeCommand(CMD_CAST_RAY);
-        
+
         const queryIndex = cb.read(BUFFER_READ_UINT32);
         buffer.write(queryIndex, BUFFER_WRITE_UINT16, false);
 
         try {
             jv.FromBuffer(cb);
             cast.mOrigin = jv;
-    
+
             jv.FromBuffer(cb);
             cast.mDirection = jv;
-    
+
             const firstOnly = cb.flag ? cb.read(BUFFER_READ_BOOL) : true;
             const calculateNormal = cb.flag ? cb.read(BUFFER_READ_BOOL) : false;
             const ignoreBackFaces = cb.flag ? cb.read(BUFFER_READ_BOOL) : true;
@@ -111,10 +118,10 @@ class Querier {
             const { bodyFilter, shapeFilter } = this._backend;
 
             buffer.write(firstOnly, BUFFER_WRITE_BOOL, false);
-    
+
             castSettings.mBackFaceMode = ignoreBackFaces ? Jolt.EBackFaceMode_IgnoreBackFaces : Jolt.EBackFaceMode_CollideWithBackFaces;
             castSettings.mTreatConvexAsSolid = solidConvex;
-            
+
             const customBPFilter = cb.flag;
             const bpFilter = customBPFilter ? new Jolt.DefaultBroadPhaseLayerFilter(joltInterface.GetObjectVsBroadPhaseLayerFilter(), cb.read(BUFFER_READ_UINT32)) : backend.bpFilter;
 
@@ -138,7 +145,7 @@ class Querier {
                     Querier.writeRayHit(buffer, system, tracker, cast, calculateNormal, hits.at(i), Jolt);
                 }
             }
-    
+
             collector.Reset();
 
             if (customBPFilter) {
@@ -148,9 +155,10 @@ class Querier {
             if (customObjFilter) {
                 Jolt.destroy(objFilter);
             }
-            
         } catch (e) {
-            $_DEBUG && Debug.error(e);
+            if ($_DEBUG) {
+                Debug.error(e);
+            }
             return false;
         }
 
@@ -177,30 +185,38 @@ class Querier {
         buffer.writeOperator(COMPONENT_SYSTEM_MANAGER);
         buffer.writeCommand(CMD_CAST_SHAPE);
         buffer.write(queryIndex, BUFFER_WRITE_UINT16, false);
-        
+
         try {
             position.FromBuffer(cb);
             rotation.FromBuffer(cb);
             direction.FromBuffer(cb);
-            cb.flag ? scale.FromBuffer(cb) : scale.Set(1, 1, 1);
-            cb.flag ? offset.FromBuffer(cb) : offset.Set(0, 0, 0);
+            if (cb.flag) {
+                scale.FromBuffer(cb);
+            } else {
+                scale.Set(1, 1, 1);
+            }
+            if (cb.flag) {
+                offset.FromBuffer(cb);
+            } else {
+                offset.Set(0, 0, 0);
+            }
             if (cb.flag) castSettings.mBackFaceModeTriangles = cb.read(BUFFER_READ_UINT8);
             if (cb.flag) castSettings.mBackFaceModeConvex = cb.read(BUFFER_READ_UINT8);
             if (cb.flag) castSettings.mUseShrunkenShapeAndConvexRadius = cb.read(BUFFER_READ_BOOL);
             if (cb.flag) castSettings.mReturnDeepestPoint = cb.read(BUFFER_READ_BOOL);
-            
+
             const firstOnly = cb.flag ? cb.read(BUFFER_READ_BOOL) : true;
             const calculateNormal = cb.flag ? cb.read(BUFFER_READ_BOOL) : false;
             const collector = firstOnly ? this._collectorShapeFirst : this._collectorShapeAll;
             const shapeIndex = cb.read(BUFFER_READ_UINT32);
 
             buffer.write(firstOnly, BUFFER_WRITE_BOOL, false);
-            
+
             params.length = 0;
 
             const shape = tracker.shapeMap.get(shapeIndex);
             if ($_DEBUG && !shape) {
-                Debug.warn(`Unable to locate shape for shape cast: ${ shapeIndex }`);
+                Debug.warn(`Unable to locate shape for shape cast: ${shapeIndex}`);
                 return false;
             }
 
@@ -215,7 +231,7 @@ class Querier {
             const objFilter = customObjFilter ? new Jolt.DefaultObjectLayerFilter(joltInterface.GetObjectLayerPairFilter(), cb.read(BUFFER_READ_UINT32)) : backend.objFilter;
 
             system.GetNarrowPhaseQuery().CastShape(shapeCast, castSettings, offset, collector, bpFilter, objFilter, bodyFilter, shapeFilter);
-            
+
             if (firstOnly) {
                 if (collector.HadHit()) {
                     buffer.write(1, BUFFER_WRITE_UINT16, false); // hits count
@@ -235,7 +251,7 @@ class Querier {
             collector.Reset();
 
             Jolt.destroy(shapeCast);
-            
+
             if (customBPFilter) {
                 Jolt.destroy(bpFilter);
             }
@@ -245,7 +261,9 @@ class Querier {
             }
 
         } catch (e) {
-            $_DEBUG && Debug.error(e);
+            if ($_DEBUG) {
+                Debug.error(e);
+            }
             return false;
         }
 

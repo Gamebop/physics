@@ -1,16 +1,7 @@
 import { JoltBackend } from './jolt/back/backend.mjs';
 import { Debug } from './jolt/debug.mjs';
 
-function createBackend(dispatcher, data) {
-    switch (data.backendName) {
-        case 'jolt':
-            Dispatcher.backend = new JoltBackend(dispatcher, data);
-            break;
-
-        default:
-            Debug.warn(`Invalid backend selection: ${ data.backendName }`);
-    }
-}
+let dispatcher;
 
 class Dispatcher {
     static backend = null;
@@ -80,9 +71,21 @@ class Dispatcher {
     }
 }
 
-let dispatcher = new Dispatcher();
+function createBackend(dispatcher, data) {
+    switch (data.backendName) {
+        case 'jolt':
+            Dispatcher.backend = new JoltBackend(dispatcher, data);
+            break;
 
-self.onmessage = function(event) {
+        default:
+            Debug.warn(`Invalid backend selection: ${data.backendName}`);
+            break;
+    }
+}
+
+dispatcher = new Dispatcher();
+
+self.onmessage = function (event) {
     const data = event.data;
     if (data?.origin !== 'physics-manager') return;
     dispatcher.handleMessage(data);

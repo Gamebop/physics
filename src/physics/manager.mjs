@@ -35,6 +35,7 @@ class PhysicsManager {
     set backend(instance) {
         this._backend = instance;
     }
+
     get backend() {
         return this._backend;
     }
@@ -46,6 +47,7 @@ class PhysicsManager {
     set paused(bool) {
         this._paused = bool;
     }
+
     get paused() {
         return this._paused;
     }
@@ -124,7 +126,7 @@ class PhysicsManager {
             for (let i = 0; i < count; i++) {
                 const operator = inBuffer.readOperator();
                 if ($_DEBUG) {
-                    const ok = Debug.assert(!!systems.get(operator), `Invalid component system: ${ operator }`);
+                    const ok = Debug.assert(!!systems.get(operator), `Invalid component system: ${operator}`);
                     if (!ok) {
                         this._updateEvent.off();
                         return;
@@ -155,13 +157,13 @@ class PhysicsManager {
 
         if ($_DEBUG) {
             const perfIndex = msg.perfIndex;
-            
+
             if (perfIndex == null) return;
-            
+
             const cache = this._perfCache;
             const startTime = cache.get(perfIndex);
             const frame = this._app.stats.frame;
-            
+
             cache.free(perfIndex);
             frame.physicsTime = performance.now() - startTime + msg.time;
         }
@@ -171,11 +173,11 @@ class PhysicsManager {
             this._skipped = false;
             this._writeIsometry();
             this._dispatchCommands(this._frame.dt, this._lastIndex);
-        }        
+        }
     }
 
     destroy() {
-        this._systems.forEach(system => {
+        this._systems.forEach((system) => {
             system.destroy();
         });
         this._systems.clear();
@@ -198,9 +200,9 @@ class PhysicsManager {
     }
 
     _writeIsometry() {
-        this._systems.forEach(system => {
+        this._systems.forEach((system) => {
             system.requestIsometry?.();
-        })
+        });
     }
 
     _dispatchCommands(dt, perfIndex) {
@@ -220,7 +222,7 @@ class PhysicsManager {
             if (inBuffer && inBuffer.buffer.byteLength > 0) {
                 const ib = inBuffer.buffer;
                 msg.inBuffer = ib;
-                this._dispatcher.postMessage(msg, useSAB ? null : [ ib ]);
+                this._dispatcher.postMessage(msg, useSAB ? null : [ib]);
             } else {
                 msg.inBuffer = null;
                 this._dispatcher.postMessage(msg);
