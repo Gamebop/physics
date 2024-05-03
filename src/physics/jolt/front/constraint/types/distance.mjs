@@ -6,6 +6,12 @@ import {
 } from '../../../constants.mjs';
 import { Debug } from '../../../debug.mjs';
 
+/**
+ * Interface for distance constraint.
+ *
+ * @group Utilities
+ * @category Constraints
+ */
 class DistanceConstraint extends Constraint {
     _type = CONSTRAINT_TYPE_DISTANCE;
 

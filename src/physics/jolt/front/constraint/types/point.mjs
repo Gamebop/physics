@@ -1,6 +1,12 @@
 import { BUFFER_WRITE_VEC32, CONSTRAINT_TYPE_POINT } from '../../../constants.mjs';
 import { Constraint } from './constraint.mjs';
 
+/**
+ * Interface for point constraint.
+ *
+ * @group Utilities
+ * @category Constraints
+ */
 class PointConstraint extends Constraint {
     _type = CONSTRAINT_TYPE_POINT;
 

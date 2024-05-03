@@ -9,6 +9,12 @@ import {
     SPRING_MODE_FREQUENCY
 } from '../../../constants.mjs';
 
+/**
+ * Interface for slider constraint.
+ *
+ * @group Utilities
+ * @category Constraints
+ */
 class SliderConstraint extends Constraint {
     _type = CONSTRAINT_TYPE_SLIDER;
 
