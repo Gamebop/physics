@@ -324,11 +324,9 @@ class ShapeComponent extends Component {
     }
 
     /**
-     * Applies entity scale on the shape.
+     * Applies entity scale on the shape. This makes it easier to adjust the size of the collision
+     * shape by simply scaling the entity.
      *
-     * @returns {boolean} Boolean, telling if the entity scale is applied on the collision shape.
-     * This makes it easier to adjust the size of the collision shape by simply scaling the entity.
-     * 
      * Note: Some shapes do not support non-uniformed scales, like `SHAPE_SPHERE`. Works best with
      * `SHAPE_BOX` which you can scale on any axis. Others, like capsule and cone, can't have a
      * different radius on `X` and `Z` axis, but allow scaling `Y` for their height.
