@@ -4,12 +4,11 @@ import { BUFFER_WRITE_UINT32 } from '../constants.mjs';
 import { ComponentSystem } from 'playcanvas';
 
 class JoltComponentSystem extends ComponentSystem {
-
     _store = {};
 
     _manager = null;
 
-    _schema = [ 'enabled' ];
+    _schema = ['enabled'];
 
     constructor(app, manager) {
         super(app);
@@ -17,20 +16,16 @@ class JoltComponentSystem extends ComponentSystem {
         this._manager = manager;
     }
 
-    get schema() {
-        return this._schema;
-    }
-
     set schema(newSchema) {
         this._schema = newSchema;
     }
 
-    get manager() {
-        return this._manager;
+    get schema() {
+        return this._schema;
     }
 
-    get store() {
-        return this._store;
+    get manager() {
+        return this._manager;
     }
 
     // PlayCanvas compatibility
@@ -38,9 +33,13 @@ class JoltComponentSystem extends ComponentSystem {
         this._store = obj;
     }
 
+    get store() {
+        return this._store;
+    }
+
     addCommand() {
         const cb = this._manager.commandsBuffer;
-        
+
         cb.writeOperator(arguments[0]);
         cb.writeCommand(arguments[1]);
 
@@ -85,9 +84,10 @@ class JoltComponentSystem extends ComponentSystem {
         component.enabled = true;
 
         for (const [key, value] of Object.entries(data)) {
-            $_DEBUG && Debug.assert(value != null, 
-                `Trying to initialize a component with invalid value for property "${ key }": ${ value }`, data);
-            component[`_${ key }`] = value;
+            if ($_DEBUG) {
+                Debug.assert(value != null, `Trying to initialize a component with invalid value for property "${key}": ${value}`, data);
+            }
+            component[`_${key}`] = value;
         }
 
         if (component.entity.enabled && !component.isCompoundChild) {
@@ -97,4 +97,3 @@ class JoltComponentSystem extends ComponentSystem {
 }
 
 export { JoltComponentSystem };
-

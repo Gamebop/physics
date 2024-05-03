@@ -3,7 +3,7 @@ import { Debug } from '../debug.mjs';
 import { ShapeComponentSystem } from './shape/system.mjs';
 import {
     BUFFER_READ_BOOL, BUFFER_READ_FLOAT32, BUFFER_READ_UINT16, BUFFER_READ_UINT32,
-    BUFFER_READ_UINT8, FLOAT32_SIZE, UINT8_SIZE
+    BUFFER_READ_UINT8, CONTACT_TYPE_ADDED, CONTACT_TYPE_PERSISTED, CONTACT_TYPE_REMOVED, FLOAT32_SIZE, UINT8_SIZE
 } from '../constants.mjs';
 
 class ContactResult {
@@ -89,13 +89,11 @@ class ResponseHandler {
 
                     const event = 'contact:added';
                     if (entity1?.hasEvent(event)) {
-                        const contactResult = new ContactResult(entity2, normal, depth, point,
-                            offset, points1, points2);
+                        const contactResult = new ContactResult(entity2, normal, depth, point, offset, points1, points2);
                         entity1.fire(event, contactResult);
                     }
                     if (entity2?.hasEvent(event)) {
-                        const contactResult = new ContactResult(entity1, normal, depth, point,
-                            offset, points1, points2);
+                        const contactResult = new ContactResult(entity1, normal, depth, point, offset, points1, points2);
                         entity2.fire(event, contactResult);
                     }
                     break;
@@ -148,13 +146,13 @@ class ResponseHandler {
                 if (isValidBody2) {
                     otherEntity = map.get(otherIndex) || null;
                 }
-    
+
                 const cp = Vec3.fromBuffer(cb); // contact position
                 const cn = Vec3.fromBuffer(cb); // contact normal
                 const cv = Vec3.fromBuffer(cb); // contact velocity
                 const nv = Vec3.fromBuffer(cb); // new char velocity
-    
-                const result = new CharContactResult(otherEntity, cp, cn, cv, nv);    
+
+                const result = new CharContactResult(otherEntity, cp, cn, cv, nv);
                 results.push(result);
             }
 
@@ -163,8 +161,6 @@ class ResponseHandler {
     }
 
     static handleQuery(buffer, queryMap) {
-        const results = [];
-
         const queryIndex = buffer.read(BUFFER_READ_UINT16);
         const firstOnly = buffer.read(BUFFER_READ_BOOL);
         const hitsCount = buffer.read(BUFFER_READ_UINT16);
@@ -215,7 +211,7 @@ class ResponseHandler {
         const callback = queryMap.get(cbIndex);
 
         if ($_DEBUG && !callback) {
-            Debug.warn(`Unable to locate callback with index: ${ cbIndex }`);
+            Debug.warn(`Unable to locate callback with index: ${cbIndex}`);
             return;
         }
 

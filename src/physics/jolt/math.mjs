@@ -3,7 +3,7 @@ import { Debug } from './debug.mjs';
 import { BUFFER_READ_FLOAT32 } from './constants.mjs';
 
 function extendPCMath() {
-    Vec3.fromBuffer = function(buffer) {
+    Vec3.fromBuffer = function (buffer) {
         return new Vec3(
             buffer.read(BUFFER_READ_FLOAT32),
             buffer.read(BUFFER_READ_FLOAT32),
@@ -13,7 +13,7 @@ function extendPCMath() {
 }
 
 function extendJoltMath(Jolt) {
-    Jolt.Vec3.prototype.FromBuffer = function(buffer, isPositive) {
+    Jolt.Vec3.prototype.FromBuffer = function (buffer, isPositive) {
         if ($_DEBUG) {
             const x = buffer.read(BUFFER_READ_FLOAT32);
             const y = buffer.read(BUFFER_READ_FLOAT32);
@@ -21,9 +21,9 @@ function extendJoltMath(Jolt) {
 
             const test = isPositive ? Debug.checkFloatPositive : Debug.checkFloat;
 
-            let ok = test(x, `invalid vector X component: ${ x }`);
-            ok = ok && test(y, `invalid vector Y component: ${ y }`);
-            ok = ok && test(z, `invalid vector Z component: ${ z }`);
+            let ok = test(x, `invalid vector X component: ${x}`);
+            ok = ok && test(y, `invalid vector Y component: ${y}`);
+            ok = ok && test(z, `invalid vector Z component: ${z}`);
             if (!ok) return this;
 
             this.Set(x, y, z);
@@ -38,26 +38,26 @@ function extendJoltMath(Jolt) {
         return this;
     };
 
-    Jolt.Vec3.prototype.set = function(x, y, z) {
+    Jolt.Vec3.prototype.set = function (x, y, z) {
         this.Set(x, y, z);
         return this;
     };
 
-    Jolt.Vec3.prototype.print = function() {
+    Jolt.Vec3.prototype.print = function () {
         console.log(this.GetX(), this.GetY(), this.GetZ());
     };
 
-    Jolt.Quat.prototype.FromBuffer = function(buffer) {
+    Jolt.Quat.prototype.FromBuffer = function (buffer) {
         if ($_DEBUG) {
             const x = buffer.read(BUFFER_READ_FLOAT32);
             const y = buffer.read(BUFFER_READ_FLOAT32);
             const z = buffer.read(BUFFER_READ_FLOAT32);
             const w = buffer.read(BUFFER_READ_FLOAT32);
 
-            let ok = Debug.checkFloat(x, `invalid quaternion X component: ${ x }`);
-            ok = ok && Debug.checkFloat(y, `invalid quaternion Y component: ${ y }`);
-            ok = ok && Debug.checkFloat(z, `invalid quaternion Z component: ${ z }`);
-            ok = ok && Debug.checkFloat(w, `invalid quaternion W component: ${ w }`);
+            let ok = Debug.checkFloat(x, `invalid quaternion X component: ${x}`);
+            ok = ok && Debug.checkFloat(y, `invalid quaternion Y component: ${y}`);
+            ok = ok && Debug.checkFloat(z, `invalid quaternion Z component: ${z}`);
+            ok = ok && Debug.checkFloat(w, `invalid quaternion W component: ${w}`);
             if (!ok) return this;
 
             this.Set(x, y, z, w);
@@ -73,12 +73,12 @@ function extendJoltMath(Jolt) {
         return this;
     };
 
-    Jolt.Quat.prototype.set = function(x, y, z, w) {
+    Jolt.Quat.prototype.set = function (x, y, z, w) {
         this.Set(x, y, z, w);
         return this;
     };
 
-    Jolt.Quat.prototype.print = function() {
+    Jolt.Quat.prototype.print = function () {
         console.log(this.GetX(), this.GetY(), this.GetZ(), this.GetW());
     };
 }

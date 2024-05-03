@@ -23,10 +23,10 @@ class FixedConstraint extends Constraint {
 
         this._autoDetectPoint = opts.autoDetectPoint ?? this._autoDetectPoint;
 
-        opts.axisX1 && (this._axisX1 = opts.axisX1);
-        opts.axisX2 && (this._axisX2 = opts.axisX2);
-        opts.axisY1 && (this._axisY1 = opts.axisY1);
-        opts.axisY2 && (this._axisY2 = opts.axisY2);
+        if (opts.axisX1) this._axisX1 = opts.axisX1;
+        if (opts.axisX2) this._axisX2 = opts.axisX2;
+        if (opts.axisY1) this._axisY1 = opts.axisY1;
+        if (opts.axisY2) this._axisY2 = opts.axisY2;
     }
 
     get autoDetectPoint() {
@@ -52,10 +52,8 @@ class FixedConstraint extends Constraint {
     write(cb) {
         const auto = this._autoDetectPoint;
         if ($_DEBUG && !auto) {
-            let ok = Debug.checkVec(this._point1, 
-                'Fixed constraint has disabled autoDetectPoint, but point1 was not provided');
-            ok = ok && Debug.checkVec(this._point2,
-                'Fixed constraint has disabled autoDetectPoint, but point2 was not provided');
+            let ok = Debug.checkVec(this._point1, 'Fixed constraint has disabled autoDetectPoint, but point1 was not provided');
+            ok = ok && Debug.checkVec(this._point2, 'Fixed constraint has disabled autoDetectPoint, but point2 was not provided');
             if (!ok) {
                 return;
             }
@@ -73,8 +71,6 @@ class FixedConstraint extends Constraint {
         cb.write(this._axisX2, BUFFER_WRITE_VEC32);
         cb.write(this._axisY2, BUFFER_WRITE_VEC32);
     }
-
-
 }
 
 export { FixedConstraint };

@@ -61,7 +61,7 @@ class JoltBackend {
             contactRemovedEventsEnabled: true,
             contactPoints: true,
             contactPointsAveraged: true,
-            broadPhaseLayers: [ BP_LAYER_NON_MOVING, BP_LAYER_MOVING ],
+            broadPhaseLayers: [BP_LAYER_NON_MOVING, BP_LAYER_MOVING],
             // object layer vs object layer
             objectLayerPairs: [
                 OBJ_LAYER_NON_MOVING, OBJ_LAYER_MOVING,
@@ -101,11 +101,11 @@ class JoltBackend {
                     locateFile: () => {
                         return data.wasmUrl;
                     }
-                }).then(Jolt => {
+                }).then((Jolt) => {
                     this.Jolt = Jolt;
-                    this.onLibLoad(Jolt);
+                    this.onLibLoad(Jolt, config);
                 });
-            }
+            };
             loadJolt();
         }
     }
@@ -118,12 +118,13 @@ class JoltBackend {
         return this._joltInterface;
     }
 
-    get physicsSystem() {
-        return this._physicsSystem;
-    }
     set physicsSystem(system) {
         this._physicsSystem = system;
         this._bodyInterface = system.GetBodyInterface();
+    }
+
+    get physicsSystem() {
+        return this._physicsSystem;
     }
 
     get groupFilterTables() {
@@ -162,55 +163,55 @@ class JoltBackend {
         return this._querier;
     }
 
-    get bpFilter() {
-        return this._bpFilter;
-    }
-
     set bpFilter(filter) {
         this._bpFilter = filter;
     }
 
-    get objFilter() {
-        return this._objFilter;
+    get bpFilter() {
+        return this._bpFilter;
     }
 
     set objFilter(filter) {
         this._objFilter = filter;
     }
 
-    get bodyFilter() {
-        return this._bodyFilter;
+    get objFilter() {
+        return this._objFilter;
     }
 
     set bodyFilter(filter) {
         this._bodyFilter = filter;
     }
 
-    get shapeFilter() {
-        return this._shapeFilter;
+    get bodyFilter() {
+        return this._bodyFilter;
     }
 
     set shapeFilter(filter) {
         this._shapeFilter = filter;
     }
 
-    get bodyList() {
-        return this._bodyList;
+    get shapeFilter() {
+        return this._shapeFilter;
     }
 
     set bodyList(list) {
         this._bodyList = list;
     }
 
-    get updateCallback() {
-        return this._updateCallback;
+    get bodyList() {
+        return this._bodyList;
     }
 
     set updateCallback(func) {
         this._updateCallback = func;
     }
 
-    onLibLoad(Jolt) {
+    get updateCallback() {
+        return this._updateCallback;
+    }
+
+    onLibLoad(Jolt, config) {
         // Util
         extendJoltMath(Jolt);
 
@@ -224,7 +225,7 @@ class JoltBackend {
         if ($_DEBUG) {
             this._drawer = new Drawer(Jolt);
         }
-        
+
         const listener = new Listener(this);
 
         if (config.contactEventsEnabled) {
@@ -233,7 +234,7 @@ class JoltBackend {
 
         this._listener = listener;
 
-        this._outBuffer = new CommandsBuffer({ ...this._config, commandsBufferSize: 2000 });
+        this._outBuffer = new CommandsBuffer({ ...config, commandsBufferSize: 2000 });
 
         this._stepTime = 0;
         this._steps = 0;
@@ -265,33 +266,35 @@ class JoltBackend {
 
     step(data) {
         if (this._fatalError) return;
-        
+
         if ($_DEBUG) {
             this._stepTime = performance.now();
             this._perfIndex = data.perfIndex;
         }
-        
+
         const { buffer, meshBuffers, dt } = data;
         const outBuffer = this._outBuffer;
         let inBuffer = this._inBuffer;
 
         if (data.inBuffer) {
             outBuffer.buffer = data.inBuffer;
-        }  
+        }
 
         let ok = true;
         if (buffer) {
             if (!inBuffer) {
                 inBuffer = this._inBuffer = new CommandsBuffer();
             }
-            
+
             inBuffer.buffer = buffer;
 
             // If commands buffer is provided, then execute commands, before stepping
             try {
                 ok = ok && this._executeCommands(meshBuffers);
             } catch (e) {
-                $_DEBUG && Debug.error(e);
+                if ($_DEBUG) {
+                    Debug.error(e);
+                }
                 ok = false;
             }
         }
@@ -324,13 +327,15 @@ class JoltBackend {
         if ($_DEBUG && !this._config.useWebWorker) {
             // Write debug draw data
             ok = ok && this._drawer.write(this._tracker);
-        }     
+        }
 
         // report sim results to frontend
         ok = ok && this._send();
 
         if (!ok) {
-            $_DEBUG && Debug.error('Backend fatal error :(');
+            if ($_DEBUG) {
+                Debug.error('Backend fatal error :(');
+            }
             this._fatalError = true;
         }
     }
@@ -396,7 +401,6 @@ class JoltBackend {
         const fixedStep = config.fixedStep;
         const subSteps = config.subSteps;
         const jolt = this._joltInterface;
-        const maxStepSize = fixedStep * config.maxSkippedSteps;
 
         let time = this._time;
         let stepped = false;
@@ -407,7 +411,7 @@ class JoltBackend {
         }
 
         time += dt;
-        
+
         while (ok && time >= fixedStep) {
             try {
                 // Execute callbacks, if any
@@ -416,12 +420,16 @@ class JoltBackend {
                 // update characters before stepping
                 ok = this._stepCharacters(fixedStep);
                 // step the physics world
-                
-                ok && jolt.Step(fixedStep, subSteps);
+
+                if (ok) {
+                    jolt.Step(fixedStep, subSteps);
+                }
                 this._steps++;
                 stepped = true;
             } catch (e) {
-                $_DEBUG && Debug.error(e);
+                if ($_DEBUG) {
+                    Debug.error(e);
+                }
                 ok = false;
             }
 
@@ -453,7 +461,7 @@ class JoltBackend {
 
             bodyList.clear();
             system.GetActiveBodies(dynamicType, bodyList);
-            
+
             for (let i = 0; i < numActiveBodies; i++) {
                 const bodyID = bodyList.at(i);
                 const body = system.GetBodyLockInterface().TryGetBody(bodyID);
@@ -503,11 +511,11 @@ class JoltBackend {
             // TODO
             // make it customizable, like the raycast
             // const objectVsBroadPhaseLayerFilter = joltInterface.GetObjectVsBroadPhaseLayerFilter();
-			// const objectLayerPairFilter = joltInterface.GetObjectLayerPairFilter();
-			// const movingBPFilter = new Jolt.DefaultBroadPhaseLayerFilter(objectVsBroadPhaseLayerFilter, BP_LAYER_MOVING);
-			// const movingLayerFilter = new Jolt.DefaultObjectLayerFilter(objectLayerPairFilter, 2);
-    
-            characters.forEach(char => {
+            // const objectLayerPairFilter = joltInterface.GetObjectLayerPairFilter();
+            // const movingBPFilter = new Jolt.DefaultBroadPhaseLayerFilter(objectVsBroadPhaseLayerFilter, BP_LAYER_MOVING);
+            // const movingLayerFilter = new Jolt.DefaultObjectLayerFilter(objectLayerPairFilter, 2);
+
+            characters.forEach((char) => {
                 const bFilter = char.bodyFilter || bodyFilter;
 
                 char.ExtendedUpdate(
@@ -535,7 +543,9 @@ class JoltBackend {
             // Jolt.destroy(movingBPFilter);
             // Jolt.destroy(movingLayerFilter);
         } catch (e) {
-            $_DEBUG && Debug.error(e);
+            if ($_DEBUG) {
+                Debug.error(e);
+            }
             return false;
         }
 
@@ -573,7 +583,9 @@ class JoltBackend {
                     break;
 
                 default:
-                    $_DEBUG && Debug.error(`Invalid operator: ${ operator }`);
+                    if ($_DEBUG) {
+                        Debug.error(`Invalid operator: ${operator}`);
+                    }
                     return false;
             }
         }
@@ -621,7 +633,7 @@ class JoltBackend {
         cb.write(count, BUFFER_WRITE_UINT32, false);
 
         try {
-            characters.forEach(char => {
+            characters.forEach((char) => {
                 const index = tracker.getPCID(Jolt.getPointer(char));
                 const isSupported = char.IsSupported();
                 const state = char.GetGroundState();
@@ -664,7 +676,9 @@ class JoltBackend {
                 }
             });
         } catch (e) {
-            $_DEBUG && Debug.error(e);
+            if ($_DEBUG) {
+                Debug.error(e);
+            }
             return false;
         }
 
@@ -725,9 +739,9 @@ class JoltBackend {
         if (!useSAB && buffer.byteLength > 0) {
             buffers.push(buffer);
         }
-        
+
         dispatcher.respond(msg, buffers);
-        
+
         if (debugDraw) {
             drawer.reset();
         }
@@ -736,7 +750,6 @@ class JoltBackend {
     }
 
     _exposeConstants() {
-        const Jolt = this.Jolt;
         const dispatcher = this._dispatcher;
         const msg = this._responseMessage;
 
@@ -763,7 +776,7 @@ class JoltBackend {
 
             // 'JOLT_BFM_IGNORE_BACK_FACES', Jolt.EBackFaceMode_IgnoreBackFaces,
             // 'JOLT_BFM_COLLIDE_BACK_FACES', Jolt.EBackFaceMode_CollideWithBackFaces,
-            
+
             // 'JOLT_GROUND_STATE_ON_GROUND', Jolt.EGroundState_OnGround,
             // 'JOLT_GROUND_STATE_ON_STEEP_GROUND', Jolt.EGroundState_OnSteepGround,
             // 'JOLT_GROUND_STATE_NOT_SUPPORTED', Jolt.EGroundState_NotSupported,
@@ -798,7 +811,7 @@ class JoltBackend {
                 if (pointer === 0 || body.isCharPaired || body.GetMotionType() !== Jolt.EMotionType_Dynamic) {
                     continue;
                 }
-                
+
                 // If body was added by user using Jolt API directly, then backend is not aware of it.
                 // We skip it, assuming user handles its tracking himself.
                 const index = tracker.getPCID(Jolt.getPointer(body));
@@ -810,7 +823,7 @@ class JoltBackend {
                 cb.writeCommand(CMD_REPORT_TRANSFORMS);
 
                 cb.write(index, BUFFER_WRITE_UINT32, false);
-                
+
                 const ms = body.motionState;
                 if (useMotionStates && ms) {
                     cb.write(ms.position, BUFFER_WRITE_VEC32, false);
@@ -837,7 +850,7 @@ class JoltBackend {
                     jv2.Set(1, 0, 0);
 
                     for (let i = 0; i < wheelsCount; i++) {
-                        const transform = constraint.GetWheelLocalTransform(i, jv1, jv2);                        
+                        const transform = constraint.GetWheelLocalTransform(i, jv1, jv2);
                         const wheel = Jolt.castObject(constraint.GetWheel(i), Jolt.WheelWV);
 
                         cb.write(wheel.mLongitudinalSlip, BUFFER_WRITE_FLOAT32, false);
@@ -852,7 +865,9 @@ class JoltBackend {
             }
 
         } catch (e) {
-            $_DEBUG && Debug.error(e);
+            if ($_DEBUG) {
+                Debug.error(e);
+            }
             return false;
         }
 
@@ -891,7 +906,9 @@ class JoltBackend {
                 }
             }
         } catch (e) {
-            $_DEBUG && Debug.error(e);
+            if ($_DEBUG) {
+                Debug.error(e);
+            }
             return false;
         }
 

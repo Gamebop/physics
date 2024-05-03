@@ -50,7 +50,7 @@ function setSixDOFAxes(cb, settings, type, Jolt, isLimited) {
             case CONSTRAINT_SIX_DOF_TRANSLATION_Y:
                 settings[type](Jolt.SixDOFConstraintSettings_EAxis_TranslationY, min, max);
                 break;
-            
+
             case CONSTRAINT_SIX_DOF_TRANSLATION_Z:
                 settings[type](Jolt.SixDOFConstraintSettings_EAxis_TranslationZ, min, max);
                 break;
@@ -58,7 +58,7 @@ function setSixDOFAxes(cb, settings, type, Jolt, isLimited) {
             case CONSTRAINT_SIX_DOF_ROTATION_X:
                 settings[type](Jolt.SixDOFConstraintSettings_EAxis_RotationX, min, max);
                 break;
-            
+
             case CONSTRAINT_SIX_DOF_ROTATION_Y:
                 settings[type](Jolt.SixDOFConstraintSettings_EAxis_RotationY, min, max);
                 break;
@@ -66,9 +66,11 @@ function setSixDOFAxes(cb, settings, type, Jolt, isLimited) {
             case CONSTRAINT_SIX_DOF_ROTATION_Z:
                 settings[type](Jolt.SixDOFConstraintSettings_EAxis_RotationZ, min, max);
                 break;
-            
+
             default:
-                $_DEBUG && Debug.error(`Unrecognized six dof constraint axis setting: ${ axis }`);
+                if ($_DEBUG) {
+                    Debug.error(`Unrecognized six dof constraint axis setting: ${axis}`);
+                }
                 return false;
         }
     }

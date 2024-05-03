@@ -56,7 +56,7 @@ class JoltManager extends PhysicsManager {
         app.systems.add(new CharComponentSystem(app, this, COMPONENT_SYSTEM_CHAR));
         app.systems.add(new VehicleComponentSystem(app, this, COMPONENT_SYSTEM_VEHICLE));
         app.systems.add(new SoftBodyComponentSystem(app, this, COMPONENT_SYSTEM_SOFT_BODY));
-        app.systems.add(new ConstraintComponentSystem(app, this, COMPONENT_SYSTEM_CONSTRAINT))
+        app.systems.add(new ConstraintComponentSystem(app, this, COMPONENT_SYSTEM_CONSTRAINT));
 
         this._queryMap = new IndexedCache();
         this._shapeMap = new IndexedCache();
@@ -69,7 +69,7 @@ class JoltManager extends PhysicsManager {
         msg.type = 'create-backend';
         msg.glueUrl = null;
         msg.wasmUrl = null;
-        
+
         // TODO
         // this needs a better handling
         if (opts.glueUrl && opts.wasmUrl) {
@@ -145,7 +145,9 @@ class JoltManager extends PhysicsManager {
 
     addUpdateCallback(func) {
         if (this._config.useWebWorker) {
-            $_DEBUG && Debug.warn('Physics update callback is not supported when Web Worker is enabled.');
+            if ($_DEBUG) {
+                Debug.warn('Physics update callback is not supported when Web Worker is enabled.');
+            }
             return;
         }
 
@@ -154,17 +156,19 @@ class JoltManager extends PhysicsManager {
 
     removeUpdateCallback() {
         if (this._config.useWebWorker) {
-            $_DEBUG && Debug.warn('Physics update callback is not supported when Web Worker is enabled.');
+            if ($_DEBUG) {
+                Debug.warn('Physics update callback is not supported when Web Worker is enabled.');
+            }
             return;
         }
-                
+
         this._backend.updateCallback = null;
     }
 
     createShape(type, options = {}) {
         const cb = this._outBuffer;
 
-        // TODO 
+        // TODO
         // expose to docs?
         const opts = {
             // defaults
@@ -200,7 +204,7 @@ class JoltManager extends PhysicsManager {
 
     destroyShape(index) {
         if ($_DEBUG) {
-            const ok = Debug.checkUint(index, `Invalid shape number: ${ index }`);
+            const ok = Debug.checkUint(index, `Invalid shape number: ${index}`);
             if (!ok)
                 return;
         }
@@ -212,7 +216,7 @@ class JoltManager extends PhysicsManager {
         cb.write(index, BUFFER_WRITE_UINT32, false);
 
         this._shapeMap.free(index);
-    }    
+    }
 
     createFilterGroups(groups) {
         const cb = this._outBuffer;
@@ -230,10 +234,10 @@ class JoltManager extends PhysicsManager {
 
     toggleGroupPair(group, subGroup1, subGroup2, enable) {
         if ($_DEBUG) {
-            let ok = Debug.checkUint(group, `Invalid group 1: ${ group }`);
-            ok = ok && Debug.checkUint(subGroup1, `Invalid group 1: ${ subGroup1 }`);
-            ok = ok && Debug.checkUint(subGroup2, `Invalid group 2: ${ subGroup2 }`);
-            ok = ok && Debug.checkBool(enable, `Invalid toggle flag: ${ enable }`);
+            let ok = Debug.checkUint(group, `Invalid group 1: ${group}`);
+            ok = ok && Debug.checkUint(subGroup1, `Invalid group 1: ${subGroup1}`);
+            ok = ok && Debug.checkUint(subGroup2, `Invalid group 2: ${subGroup2}`);
+            ok = ok && Debug.checkBool(enable, `Invalid toggle flag: ${enable}`);
             if (!ok) {
                 return;
             }
@@ -247,11 +251,11 @@ class JoltManager extends PhysicsManager {
         cb.write(group, BUFFER_WRITE_UINT16, false);
         cb.write(subGroup1, BUFFER_WRITE_UINT16, false);
         cb.write(subGroup2, BUFFER_WRITE_UINT16, false);
-    }    
+    }
 
     castRay(origin, dir, callback, opts) {
         if ($_DEBUG) {
-            let ok = Debug.checkVec(origin,`Invalid origin vector`);
+            let ok = Debug.checkVec(origin, `Invalid origin vector`);
             ok = ok && Debug.checkVec(dir, `Invalid direction vector`);
             ok = ok && Debug.assert(callback, 'castRay requires a callback function castRay(origin, dir, callback, opts)');
             if (ok && opts?.firstOnly != null) ok = Debug.checkBool(opts.firstOnly);

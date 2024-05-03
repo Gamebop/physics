@@ -1,13 +1,12 @@
 import { JoltComponentSystem } from '../system.mjs';
 import { ConstraintComponent } from './component.mjs';
 import { IndexedCache } from '../../../indexed-cache.mjs';
-import { Debug } from '../../debug.mjs';
 import {
     BUFFER_WRITE_UINT32, CMD_CREATE_CONSTRAINT, CMD_DESTROY_CONSTRAINT, OPERATOR_CLEANER,
     OPERATOR_CREATOR
 } from '../../constants.mjs';
 
-const schema = [ 'list' ];
+const schema = ['list'];
 
 class ConstraintComponentSystem extends JoltComponentSystem {
     _constraintMap = new IndexedCache();

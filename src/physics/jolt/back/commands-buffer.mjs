@@ -14,7 +14,7 @@ import {
  * A commands buffer that is used by the framework to communicate between frontend application and
  * a physics backend. Using a commands buffer allows to decouple them and to run the backend in a
  * Web Worker.
- * 
+ *
  * @group Utilities
  */
 class CommandsBuffer {
@@ -40,13 +40,13 @@ class CommandsBuffer {
         this._meshBuffers = [];
     }
 
-    get buffer() {
-        return this._buffer;
-    }
-
     set buffer(b) {
         this._buffer = b;
         this._view = new DataView(b);
+    }
+
+    get buffer() {
+        return this._buffer;
     }
 
     get dirty() {
@@ -97,7 +97,7 @@ class CommandsBuffer {
 
     writeReserved(value, offset, method) {
         this[method](value, offset);
-    }    
+    }
 
     updateBuffer(buffer) {
         if (this._buffer.byteLength !== buffer.byteLength) {
@@ -107,26 +107,24 @@ class CommandsBuffer {
     }
 
     read(method) {
-        $_DEBUG && Debug.assert(
-            method === BUFFER_READ_BOOL ||
-            method === BUFFER_READ_FLOAT32 ||
-            method === BUFFER_READ_UINT8 ||
-            method === BUFFER_READ_UINT16 ||
-            method === BUFFER_READ_UINT32 ||
-            method === BUFFER_READ_INT32,
-            `Invalid write command method: ${ method }`
-        );
+        if ($_DEBUG) {
+            Debug.assert(
+                method === BUFFER_READ_BOOL ||
+                method === BUFFER_READ_FLOAT32 ||
+                method === BUFFER_READ_UINT8 ||
+                method === BUFFER_READ_UINT16 ||
+                method === BUFFER_READ_UINT32 ||
+                method === BUFFER_READ_INT32,
+                `Invalid write command method: ${method}`);
+        }
 
         return this[method]();
     }
 
-    /**
-     * Writes value to buffer. Skips flag for uint8 values.
-     */
     write(value, method, addFlag = true) {
         if ($_DEBUG) {
             Debug.assert(
-                method === BUFFER_WRITE_BOOL || 
+                method === BUFFER_WRITE_BOOL ||
                 method === BUFFER_WRITE_FLOAT32 ||
                 method === BUFFER_WRITE_UINT8 ||
                 method === BUFFER_WRITE_UINT16 ||
@@ -135,7 +133,7 @@ class CommandsBuffer {
                 method === BUFFER_WRITE_VEC32 ||
                 method === BUFFER_WRITE_JOLTVEC32 ||
                 method === BUFFER_WRITE_PLANE,
-                `Invalid write command method: ${ method }`
+                `Invalid write command method: ${method}`
             );
         }
 
@@ -151,10 +149,6 @@ class CommandsBuffer {
         return this.readUint16();
     }
 
-    /**
-     * 
-     * @param {Number} command Number in [0-255] range specifying a command variant for backend
-     */
     writeCommand(command) {
         this._increment();
         this.writeUint16(command);
@@ -184,23 +178,25 @@ class CommandsBuffer {
             return 0;
         }
         const value = this._view.getFloat32(this._bytesOffset);
-        $_DEBUG && Debug.checkFloat(value, `Got invalid value from buffer: ${ value }`);
+        if ($_DEBUG) {
+            Debug.checkFloat(value, `Got invalid value from buffer: ${value}`);
+        }
         this._bytesOffset += FLOAT32_SIZE;
         return value;
     }
 
-    /**
-     * 
-     * @param {Number} value 
-     */
     writeFloat32(value, offset) {
         if (!this._canWrite(FLOAT32_SIZE)) return;
-        $_DEBUG && Debug.checkFloat(value, `Trying to write invalid value to buffer: ${ value }`);
+        if ($_DEBUG) {
+            Debug.checkFloat(value, `Trying to write invalid value to buffer: ${value}`);
+        }
         if (offset == null) {
             this._view.setFloat32(this._bytesOffset, value);
             this._bytesOffset += FLOAT32_SIZE;
         } else {
-            $_DEBUG && Debug.assert(this._buffer.byteLength >= (offset + FLOAT32_SIZE), 'Trying to write outside of buffer bounds.');
+            if ($_DEBUG) {
+                Debug.assert(this._buffer.byteLength >= (offset + FLOAT32_SIZE), 'Trying to write outside of buffer bounds.');
+            }
             this._view.setFloat32(offset, value);
         }
     }
@@ -211,23 +207,25 @@ class CommandsBuffer {
             return 0;
         }
         const value = this._view.getUint8(this._bytesOffset);
-        $_DEBUG && Debug.checkUint(value, `Got invalid value from buffer: ${ value }`);
+        if ($_DEBUG) {
+            Debug.checkUint(value, `Got invalid value from buffer: ${value}`);
+        }
         this._bytesOffset += UINT8_SIZE;
         return value;
     }
 
-    /**
-     * 
-     * @param {Number} value 
-     */
     writeUint8(value, offset) {
         if (!this._canWrite(UINT8_SIZE)) return;
-        $_DEBUG && Debug.checkUint(value, `Trying to write invalid value to buffer: ${ value }`);
+        if ($_DEBUG) {
+            Debug.checkUint(value, `Trying to write invalid value to buffer: ${value}`);
+        }
         if (offset == null) {
             this._view.setUint8(this._bytesOffset, value);
             this._bytesOffset += UINT8_SIZE;
         } else {
-            $_DEBUG && Debug.assert(this._buffer.byteLength >= (offset + UINT8_SIZE), 'Trying to write outside of buffer bounds.');
+            if ($_DEBUG) {
+                Debug.assert(this._buffer.byteLength >= (offset + UINT8_SIZE), 'Trying to write outside of buffer bounds.');
+            }
             this._view.setUint8(offset, value);
         }
     }
@@ -238,23 +236,25 @@ class CommandsBuffer {
             return 0;
         }
         const value = this._view.getUint16(this._bytesOffset);
-        $_DEBUG && Debug.checkUint(value, `Got invalid value from buffer: ${ value }`);
+        if ($_DEBUG) {
+            Debug.checkUint(value, `Got invalid value from buffer: ${value}`);
+        }
         this._bytesOffset += UINT16_SIZE;
         return value;
     }
 
-    /**
-     * 
-     * @param {Number} value 
-     */
     writeUint16(value, offset) {
         if (!this._canWrite(UINT16_SIZE)) return;
-        $_DEBUG && Debug.checkUint(value, `Trying to write invalid value to buffer: ${ value }`);
+        if ($_DEBUG) {
+            Debug.checkUint(value, `Trying to write invalid value to buffer: ${value}`);
+        }
         if (offset == null) {
             this._view.setUint16(this._bytesOffset, value);
             this._bytesOffset += UINT16_SIZE;
         } else {
-            $_DEBUG && Debug.assert(this._buffer.byteLength >= (offset + UINT16_SIZE), 'Trying to write outside of buffer bounds.');
+            if ($_DEBUG) {
+                Debug.assert(this._buffer.byteLength >= (offset + UINT16_SIZE), 'Trying to write outside of buffer bounds.');
+            }
             this._view.setUint16(offset, value);
         }
     }
@@ -265,19 +265,25 @@ class CommandsBuffer {
             return 0;
         }
         const value = this._view.getUint32(this._bytesOffset);
-        $_DEBUG && Debug.checkUint(value, `Got invalid value from buffer: ${ value }`);
+        if ($_DEBUG) {
+            Debug.checkUint(value, `Got invalid value from buffer: ${value}`);
+        }
         this._bytesOffset += UINT32_SIZE;
         return value;
     }
 
     writeUint32(value, offset) {
-        $_DEBUG && Debug.checkUint(value, `Trying to write invalid value to buffer: ${ value }`);
+        if ($_DEBUG) {
+            Debug.checkUint(value, `Trying to write invalid value to buffer: ${value}`);
+        }
         if (offset == null) {
             if (!this._canWrite(UINT32_SIZE)) return;
             this._view.setUint32(this._bytesOffset, value);
             this._bytesOffset += UINT32_SIZE;
         } else {
-            $_DEBUG && Debug.assert(this._buffer.byteLength >= (offset + UINT32_SIZE), 'Trying to write outside of buffer bounds.');
+            if ($_DEBUG) {
+                Debug.assert(this._buffer.byteLength >= (offset + UINT32_SIZE), 'Trying to write outside of buffer bounds.');
+            }
             this._view.setUint32(offset, value);
         }
     }
@@ -288,31 +294,37 @@ class CommandsBuffer {
             return null;
         }
         const value = this._view.getInt32(this._bytesOffset);
-        $_DEBUG && Debug.checkInt(value, `Got invalid value from buffer: ${ value }`);
+        if ($_DEBUG) {
+            Debug.checkInt(value, `Got invalid value from buffer: ${value}`);
+        }
         this._bytesOffset += INT32_SIZE;
         return value;
     }
 
     writeInt32(value, offset) {
-        $_DEBUG && Debug.checkInt(value, `Trying to write invalid value to buffer: ${ value }`);
+        if ($_DEBUG) {
+            Debug.checkInt(value, `Trying to write invalid value to buffer: ${value}`);
+        }
         if (offset == null) {
             if (!this._canWrite(INT32_SIZE)) return;
             this._view.setInt32(this._bytesOffset, value);
             this._bytesOffset += INT32_SIZE;
         } else {
-            $_DEBUG && Debug.assert(this._buffer.byteLength >= (offset + INT32_SIZE), 'Trying to write outside of buffer bounds.');
+            if ($_DEBUG) {
+                Debug.assert(this._buffer.byteLength >= (offset + INT32_SIZE), 'Trying to write outside of buffer bounds.');
+            }
             this._view.setInt32(offset, value);
         }
-    }    
-
-    readBool() {
-        return this.readUint8() ? true : false;
     }
 
-    /**
-     * 
-     * @param {Boolean} value 
-     */
+    readBool() {
+        if (this.readUint8()) {
+            return true;
+        }
+
+        return false;
+    }
+
     writeBool(value) {
         this.writeUint8(value ? 1 : 0);
     }
@@ -350,10 +362,12 @@ class CommandsBuffer {
             if (this._allowGrowth) {
                 this._resize();
             } else {
-                $_DEBUG && Debug.warnOnce('Commands Buffer: reached capacity limits. Not allowed to grow.' +
+                if ($_DEBUG) {
+                    Debug.warnOnce('Commands Buffer: reached capacity limits. Not allowed to grow.' +
                     ' Consider using "allowCommandsBufferResize" option or allocate a larger buffer' +
                     ' using "commandsBufferSize". Current buffer' +
                     ' size (bytes):', this._buffer.byteLength);
+                }
                 return false;
             }
         }

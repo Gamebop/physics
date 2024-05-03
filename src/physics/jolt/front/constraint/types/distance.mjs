@@ -4,6 +4,7 @@ import {
     BUFFER_WRITE_VEC32, CMD_JNT_D_SET_DISTANCE, CMD_JNT_D_SET_SPRING_S,
     CONSTRAINT_TYPE_DISTANCE, OPERATOR_MODIFIER, SPRING_MODE_FREQUENCY
 } from '../../../constants.mjs';
+import { Debug } from '../../../debug.mjs';
 
 class DistanceConstraint extends Constraint {
     _type = CONSTRAINT_TYPE_DISTANCE;
@@ -19,14 +20,10 @@ class DistanceConstraint extends Constraint {
 
         this._minDistance = opts.minDistance ?? this._minDistance;
         this._maxDistance = opts.maxDistance ?? this._maxDistance;
-        
+
         if (opts.limitsSpringSettings) {
             this._limitsSpringSettings = new SpringSettings(opts.limitsSpringSettings);
         }
-    }
-
-    get limitsSpringSettings() {
-        return this._limitsSpringSettings;
     }
 
     set limitsSpringSettings(settings) {
@@ -54,16 +51,16 @@ class DistanceConstraint extends Constraint {
         );
     }
 
+    get limitsSpringSettings() {
+        return this._limitsSpringSettings;
+    }
+
     get minDistance() {
         return this._minDistance;
     }
 
     get maxDistance() {
         return this._maxDistance;
-    }
-
-    get limitsSpringSettings() {
-        return this._limitsSpringSettings;
     }
 
     write(cb) {
@@ -79,9 +76,9 @@ class DistanceConstraint extends Constraint {
 
     setDistance(min, max) {
         if ($_DEBUG) {
-            let ok = Debug.checkFloat(min, `Invalid min distance for constraint: ${ min }`);
-            ok = ok && Debug.checkFloat(max, `Invalid max distance for constraint: ${ max }`);
-            ok = ok && Debug.assert(min <= max, `Invalid min/max range: [${ min } : ${ max }]`);
+            let ok = Debug.checkFloat(min, `Invalid min distance for constraint: ${min}`);
+            ok = ok && Debug.checkFloat(max, `Invalid max distance for constraint: ${max}`);
+            ok = ok && Debug.assert(min <= max, `Invalid min/max range: [${min} : ${max}]`);
             if (!ok) {
                 return;
             }
@@ -95,7 +92,7 @@ class DistanceConstraint extends Constraint {
             min, BUFFER_WRITE_FLOAT32, false,
             max, BUFFER_WRITE_FLOAT32, false
         );
-    }    
+    }
 }
 
 export { DistanceConstraint };

@@ -8,11 +8,10 @@ import {
 
 /**
  * A SoftBody Component.
- * 
+ *
  * @category SoftBody Component
  */
 class SoftBodyComponent extends BodyComponent {
-
     _pressure = 0;
 
     _updatePosition = true;
@@ -29,10 +28,6 @@ class SoftBodyComponent extends BodyComponent {
 
     _fixedIndices = [];
 
-    constructor(system, entity) {
-        super(system, entity);
-    }
-
     /**
      * The pressure of the soft body. Calculated from:
      * ```text
@@ -40,8 +35,9 @@ class SoftBodyComponent extends BodyComponent {
      * (amount of substance * ideal gass constant * absolute temperature)
      * ```
      * see [Pressure](https://en.wikipedia.org/wiki/Pressure)
-     * 
+     *
      * @defaultValue 0
+     * @returns {number} - TODO
      */
     get pressure() {
         return this._pressure;
@@ -50,8 +46,9 @@ class SoftBodyComponent extends BodyComponent {
     /**
      * Update the position of the body while simulating (set to `false` for something that is
      * attached to the static world)
-     * 
+     *
      * @defaultValue true
+     * @returns {boolean} - TODO
      */
     get updatePosition() {
         return this._updatePosition;
@@ -60,8 +57,9 @@ class SoftBodyComponent extends BodyComponent {
     /**
      * Bake specified rotation in the vertices and set the body rotation to identity (simulation is
      * slightly more accurate if the rotation of a soft body is kept to identity)
-     * 
+     *
      * @defaultValue true
+     * @returns {boolean} - TODO
      */
     get makeRotationIdentity() {
         return this._makeRotationIdentity;
@@ -69,8 +67,9 @@ class SoftBodyComponent extends BodyComponent {
 
     /**
      * Number of solver iterations.
-     * 
+     *
      * @defaultValue 5
+     * @returns {number} - TODO
      */
     get numIterations() {
         return this._numIterations;
@@ -78,8 +77,9 @@ class SoftBodyComponent extends BodyComponent {
 
     /**
      * Inverse of the stiffness of the spring.
-     * 
+     *
      * @defaultValue 0
+     * @returns {number} - TODO
      */
     get compliance() {
         return this._compliance;
@@ -87,8 +87,9 @@ class SoftBodyComponent extends BodyComponent {
 
     /**
      * Number of cells comprising a row. Think of a grid divided plane.
-     * 
+     *
      * @defaultValue 0
+     * @returns {number} - TODO
      */
     get width() {
         return this._width;
@@ -96,6 +97,8 @@ class SoftBodyComponent extends BodyComponent {
 
     /**
      * Number of cells comprising a column. Think of a grid divided plane.
+     *
+     * @returns {number} - TODO
      */
     get length() {
         return this._length;
@@ -104,8 +107,9 @@ class SoftBodyComponent extends BodyComponent {
     /**
      * An array of indices that point to the vertices which will be static (e.g. attached to
      * something in the world).
-     * 
+     *
      * @defaultValue [] // plain JS Array of integers
+     * @returns {Array<number>} - TODO
      */
     get fixedIndices() {
         return this._fixedIndices;
@@ -144,7 +148,9 @@ class SoftBodyComponent extends BodyComponent {
         cb.write(this._makeRotationIdentity, BUFFER_WRITE_BOOL, false);
         cb.write(this._allowSleeping, BUFFER_WRITE_BOOL, false);
 
-        $_DEBUG && cb.write(this._debugDraw, BUFFER_WRITE_BOOL, false);
+        if ($_DEBUG) {
+            cb.write(this._debugDraw, BUFFER_WRITE_BOOL, false);
+        }
     }
 
     onEnable() {
@@ -181,7 +187,7 @@ class SoftBodyComponent extends BodyComponent {
             // Potential precision loss 64 -> 32
             cb.write(scale, BUFFER_WRITE_VEC32, false);
         }
-    
+
         ShapeComponent.addMeshes(this._meshes, cb);
 
         cb.write(this._width, BUFFER_WRITE_UINT32, false);
@@ -196,7 +202,6 @@ class SoftBodyComponent extends BodyComponent {
             cb.write(fixed[i], BUFFER_WRITE_UINT32, false);
         }
     }
-
 }
 
 export { SoftBodyComponent };

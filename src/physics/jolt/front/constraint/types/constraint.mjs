@@ -1,4 +1,4 @@
-import { Entity, Vec3 } from 'playcanvas';
+import { Vec3 } from 'playcanvas';
 import { Debug } from '../../../debug.mjs';
 import {
     BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT32,
@@ -8,8 +8,11 @@ import {
 
 class SpringSettings {
     springMode = SPRING_MODE_FREQUENCY;
+
     frequency = 0;
+
     stiffness = 1;
+
     damping = 0;
 
     constructor(opts = {}) {
@@ -22,9 +25,13 @@ class SpringSettings {
 
 class MotorSettings {
     minForceLimit = -Number.MAX_VALUE;
+
     maxForceLimit = Number.MAX_VALUE;
+
     minTorqueLimit = -Number.MAX_VALUE;
+
     maxTorqueLimit = Number.MAX_VALUE;
+
     springSettings = null;
 
     constructor(opts = {}) {
@@ -60,7 +67,7 @@ class Constraint {
                 }
             }
         }
-    }    
+    }
 
     static writeMotorSettings(cb, settings) {
         cb.write(!!settings, BUFFER_WRITE_BOOL, false);
@@ -106,17 +113,13 @@ class Constraint {
 
     constructor(entity1, entity2, opts = {}) {
         if ($_DEBUG) {
-            let ok = Debug.assert(!!entity1 && !!entity1.body,
-                'Invalid entity1 when adding a constraint', entity1);
-            ok = ok && Debug.assert(!!entity2 && !!entity2.body,
-                'Invalid entity1 when adding a constraint', entity2);
+            let ok = Debug.assert(!!entity1 && !!entity1.body, 'Invalid entity1 when adding a constraint', entity1);
+            ok = ok && Debug.assert(!!entity2 && !!entity2.body, 'Invalid entity1 when adding a constraint', entity2);
             if (opts.point1) {
-                ok = ok && Debug.assert(opts.point1 instanceof Vec3,
-                    'Invalid point1 when adding a constraint. Expected a vector.', opts.point1);
+                ok = ok && Debug.assert(opts.point1 instanceof Vec3, 'Invalid point1 when adding a constraint. Expected a vector.', opts.point1);
             }
             if (opts.point2) {
-                ok = ok && Debug.assert(opts.point2 instanceof Vec3,
-                    'Invalid point1 when adding a constraint. Expected a vector.', opts.point2);
+                ok = ok && Debug.assert(opts.point2 instanceof Vec3, 'Invalid point1 when adding a constraint. Expected a vector.', opts.point2);
             }
             if (!ok) {
                 return;
@@ -125,19 +128,19 @@ class Constraint {
 
         this._entity1 = entity1;
         this._entity2 = entity2;
-        opts.point1 && this._point1.copy(opts.point1);
-        opts.point2 && this._point2.copy(opts.point2);
+        if (opts.point1) this._point1.copy(opts.point1);
+        if (opts.point2) this._point2.copy(opts.point2);
         this._numVelocityStepsOverride = opts.numVelocityStepsOverride ?? this._numVelocityStepsOverride;
         this._numPositionStepsOverride = opts.numPositionStepsOverride ?? this._numPositionStepsOverride;
         this._space = opts.space ?? this._space;
     }
 
-    get index() {
-        return this._index;
-    }
-
     set index(idx) {
         this._index = idx;
+    }
+
+    get index() {
+        return this._index;
     }
 
     get point1() {
@@ -192,10 +195,10 @@ class Constraint {
 
     setEnabled(enabled, activate = true) {
         if ($_DEBUG) {
-            let ok = Debug.checkBool(enabled, `Invalid constraint enable bool: ${ enabled }`);
-            ok = ok && Debug.checkBool(activate, `Invalid activate bool: ${ activate }`);
+            let ok = Debug.checkBool(enabled, `Invalid constraint enable bool: ${enabled}`);
+            ok = ok && Debug.checkBool(activate, `Invalid activate bool: ${activate}`);
             if (!ok) {
-                return;    
+                return;
             }
         }
 
@@ -208,4 +211,3 @@ class Constraint {
 }
 
 export { Constraint, MotorSettings, SpringSettings };
-

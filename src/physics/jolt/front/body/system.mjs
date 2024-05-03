@@ -33,12 +33,12 @@ const schema = [
     'allowDynamicOrKinematic',
     'isSensor',
     'motionQuality',
-    'allowSleeping',
+    'allowSleeping'
 ];
 
 /**
  * Body Component System description.
- * 
+ *
  * @category Body Component
  */
 class BodyComponentSystem extends ShapeComponentSystem {
@@ -62,10 +62,18 @@ class BodyComponentSystem extends ShapeComponentSystem {
 
     overrideContacts(callbacks = {}) {
         if ($_DEBUG) {
-            !!callbacks.OnContactValidate && Debug.assert(typeof callbacks.OnContactValidate === 'function', 'OnContactValidate must be a function', callbacks);
-            !!callbacks.OnContactAdded && Debug.assert(typeof callbacks.OnContactAdded === 'function', 'OnContactAdded must be a function', callbacks);
-            !!callbacks.OnContactPersisted && Debug.assert(typeof callbacks.OnContactPersisted === 'function', 'OnContactPersisted must be a function', callbacks);
-            !!callbacks.OnContactRemoved && Debug.assert(typeof callbacks.OnContactRemoved === 'function', 'OnContactRemoved must be a function', callbacks);
+            if (!!callbacks.OnContactValidate) {
+                Debug.assert(typeof callbacks.OnContactValidate === 'function', 'OnContactValidate must be a function', callbacks);
+            }
+            if (!!callbacks.OnContactAdded) {
+                Debug.assert(typeof callbacks.OnContactAdded === 'function', 'OnContactAdded must be a function', callbacks);
+            }
+            if (!!callbacks.OnContactPersisted) {
+                Debug.assert(typeof callbacks.OnContactPersisted === 'function', 'OnContactPersisted must be a function', callbacks);
+            }
+            if (!!callbacks.OnContactRemoved) {
+                Debug.assert(typeof callbacks.OnContactRemoved === 'function', 'OnContactRemoved must be a function', callbacks);
+            }
         }
 
         const overrides = Object.create(null);
@@ -144,4 +152,3 @@ class BodyComponentSystem extends ShapeComponentSystem {
 }
 
 export { BodyComponentSystem };
-

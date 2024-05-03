@@ -16,12 +16,7 @@ import {
 } from '../../constants.mjs';
 
 class ConstraintComponent extends Component {
-
     _list = new Set();
-
-    constructor(system, entity) {
-        super(system, entity);
-    }
 
     addJoint(type, otherEntity, opts = {}) {
         let JointConstructor;
@@ -54,32 +49,33 @@ class ConstraintComponent extends Component {
                 JointConstructor = PulleyConstraint;
                 break;
             default:
-                $_DEBUG && Debug.warn(`Trying to add unrecognized constraint type: ${ type }`);
+                if ($_DEBUG) {
+                    Debug.warn(`Trying to add unrecognized constraint type: ${type}`);
+                }
                 return;
         }
 
         const joint = new JointConstructor(this.entity, otherEntity, opts);
-        
+
         if (!otherEntity.constraint) {
             otherEntity.addComponent('constraint');
         }
 
         const index = this.system.constraintMap.add(joint);
         joint.index = index;
-        
+
         this._list.add(index);
         otherEntity.constraint.list.add(index);
 
         this.system.createConstraint(index, joint);
 
         return joint;
-    }   
+    }
 
     onDisable() {
-        const list = this._list;
         const system = this.system;
 
-        this._list.forEach(idx => {
+        this._list.forEach((idx) => {
             system.destroyConstraint(idx);
         });
     }

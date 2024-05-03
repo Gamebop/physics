@@ -10,7 +10,7 @@ import {
 } from '../../constants.mjs';
 
 class VehicleComponent extends BodyComponent {
-    // Used only when the constraint is active. Override for the number of solver 
+    // Used only when the constraint is active. Override for the number of solver
     // velocity iterations to run, 0 means use the default in PhysicsSettings.numVelocitySteps.
     // The number of iterations to use is the max of all contacts and constraints in the island.
     _numVelocityStepsOverride = 0;
@@ -45,7 +45,7 @@ class VehicleComponent extends BodyComponent {
 
     // Max amount of torque (Nm) that the engine can deliver.
     _maxTorque = 500;
-    
+
     // Min amount of revolutions per minute (rpm) the engine can produce without stalling.
     _minRPM = 1000;
 
@@ -85,7 +85,7 @@ class VehicleComponent extends BodyComponent {
     // If RPM of engine is smaller then this we will shift a gear down, only used in auto mode.
     _shiftDownRPM = 2000;
 
-    // Strength of the clutch when fully engaged. Total torque a clutch applies is 
+    // Strength of the clutch when fully engaged. Total torque a clutch applies is
     // Torque = ClutchStrength * (Velocity Engine - Avg Velocity Wheels At Clutch) (units: k m^2 s^-1)
     _clutchStrength = 10;
 
@@ -100,12 +100,12 @@ class VehicleComponent extends BodyComponent {
 
     // An anti rollbar is a stiff spring that connects two wheels to reduce the amount of roll the
     // vehicle makes in sharp corners See: https://en.wikipedia.org/wiki/Anti-roll_bar
-    _antiRollBars = [];    
+    _antiRollBars = [];
 
     // Collision tester that tests wheels collision.
     // - VEHICLE_CAST_TYPE_RAY
     // - VEHICLE_CAST_TYPE_SPHERE
-    // - VEHICLE_CAST_TYPE_CYLINDER 
+    // - VEHICLE_CAST_TYPE_CYLINDER
     _castType = VEHICLE_CAST_TYPE_RAY;
 
     // Object layer to test collision with.
@@ -128,7 +128,7 @@ class VehicleComponent extends BodyComponent {
 
     // How far we're willing to make the bike lean over in turns (in radians)
     _maxLeanAngle = 45;
-    
+
     // Spring constant for the lean spring.
     _leanSpringConstant = 5000;
 
@@ -146,10 +146,6 @@ class VehicleComponent extends BodyComponent {
     // How much to smooth the lean angle (0 = no smoothing, 1 = lean angle never changes). Note that this
     // is frame rate dependent because the formula is: smoothing_factor * previous + (1 - smoothing_factor) * current
     _leanSmoothingFactor = 0.8;
-
-    constructor(system, entity) {
-        super(system, entity);
-    }
 
     writeVehicleData(cb) {
         const type = this._type;
@@ -228,7 +224,7 @@ class VehicleComponent extends BodyComponent {
     }
 
     // Any type:
-    //      input0 - Value between -1 and 1 for auto transmission and value between 0 and 1 indicating 
+    //      input0 - Value between -1 and 1 for auto transmission and value between 0 and 1 indicating
     //              desired driving direction and amount the gas pedal is pressed
     // Wheeled:
     //      input1 - Value between -1 and 1 indicating desired steering angle (1 = right)
@@ -240,15 +236,15 @@ class VehicleComponent extends BodyComponent {
     //      input3 - Value between 0 and 1 indicating how strong the brake pedal is pressed
     setDriverInput(input0, input1, input2, input3) {
         if ($_DEBUG) {
-            let ok = Debug.checkRange(input0, -1, 1, `Invalid driver input for forward (input0). Expected a number in [-1:1] range. Received: ${ input0 }`);
+            let ok = Debug.checkRange(input0, -1, 1, `Invalid driver input for forward (input0). Expected a number in [-1:1] range. Received: ${input0}`);
             if (this._type === VEHICLE_TYPE_WHEEL || this._type === VEHICLE_TYPE_MOTORCYCLE) {
-                ok = ok && Debug.checkRange(input1, -1, 1, `Invalid driver input for right (input1). Expected a number in [-1:1] range. Received: ${ input1 }`);
-                ok = ok && Debug.checkRange(input2, 0, 1, `Invalid driver input for brake (input2). Expected a number in [0:1] range. Received: ${ input2 }`);
-                ok = ok && Debug.checkRange(input3, 0, 1, `Invalid driver input for hand brake (input3). Expected a number in [0:1] range. Received: ${ input3 }`);
+                ok = ok && Debug.checkRange(input1, -1, 1, `Invalid driver input for right (input1). Expected a number in [-1:1] range. Received: ${input1}`);
+                ok = ok && Debug.checkRange(input2, 0, 1, `Invalid driver input for brake (input2). Expected a number in [0:1] range. Received: ${input2}`);
+                ok = ok && Debug.checkRange(input3, 0, 1, `Invalid driver input for hand brake (input3). Expected a number in [0:1] range. Received: ${input3}`);
             } else {
-                ok = ok && Debug.checkRange(input1, -1, 1, `Invalid driver input for left ratio (input1). Expected a number in [-1:1] range. Received: ${ input1 }`);
-                ok = ok && Debug.checkRange(input2, -1, 1, `Invalid driver input for right ratio (input2). Expected a number in [-1:1] range. Received: ${ input2 }`);
-                ok = ok && Debug.checkRange(input3, 0, 1, `Invalid driver input for brake (input3). Expected a number in [0:1] range. Received: ${ input3 }`);
+                ok = ok && Debug.checkRange(input1, -1, 1, `Invalid driver input for left ratio (input1). Expected a number in [-1:1] range. Received: ${input1}`);
+                ok = ok && Debug.checkRange(input2, -1, 1, `Invalid driver input for right ratio (input2). Expected a number in [-1:1] range. Received: ${input2}`);
+                ok = ok && Debug.checkRange(input3, 0, 1, `Invalid driver input for brake (input3). Expected a number in [0:1] range. Received: ${input3}`);
             }
             if (!ok)
                 return;
@@ -283,7 +279,7 @@ class VehicleComponent extends BodyComponent {
         this._writeWheelsData(cb);
 
         cb.write(count, BUFFER_WRITE_UINT32, false);
-        
+
         for (let t = 0; t < count; t++) {
             const track = tracks[t];
             const wheelsCount = track.length;
@@ -306,9 +302,7 @@ class VehicleComponent extends BodyComponent {
             const desc = wheels[i];
 
             if ($_DEBUG) {
-                let ok = Debug.assert(desc.position, 
-                    'A wheel description requires an attachment position of wheel' +
-                    'suspension in local space of the vehicle', desc);
+                let ok = Debug.assert(desc.position, 'A wheel description requires an attachment position of wheel suspension in local space of the vehicle', desc);
                 if (desc.spring) {
                     ok = ok && Debug.checkSpringSettings(desc.spring);
                 }
@@ -331,22 +325,22 @@ class VehicleComponent extends BodyComponent {
             // Attachment point of wheel suspension in local space of the body.
             cb.write(desc.position, BUFFER_WRITE_VEC32, false);
 
-            // Where tire forces (suspension and traction) are applied, in local space of the body. 
+            // Where tire forces (suspension and traction) are applied, in local space of the body.
             // A good default is the center of the wheel in its neutral pose. See enableSuspensionForcePoint.
             cb.write(desc.suspensionForcePoint || Vec3.ZERO, BUFFER_WRITE_VEC32, false);
 
             // Direction of the suspension in local space of the body, should point down.
             cb.write(desc.suspensionDirection || Vec3.DOWN, BUFFER_WRITE_VEC32, false);
 
-            // Direction of the steering axis in local space of the body, should point up (e.g. for a 
+            // Direction of the steering axis in local space of the body, should point up (e.g. for a
             // bike would be -suspensionDirection)
             cb.write(desc.steeringAxis || Vec3.UP, BUFFER_WRITE_VEC32, false);
 
-            // Up direction when the wheel is in the neutral steering position (usually 
+            // Up direction when the wheel is in the neutral steering position (usually
             // component.up but can be used to give the wheel camber or for a bike would be -suspensionDirection)
             cb.write(desc.wheelUp || Vec3.UP, BUFFER_WRITE_VEC32, false);
 
-            // Forward direction when the wheel is in the neutral steering position (usually 
+            // Forward direction when the wheel is in the neutral steering position (usually
             // component.forward but can be used to give the wheel toe, does not need to be perpendicular
             // to wheelUp)
             cb.write(desc.wheelForward || Vec3.BACK, BUFFER_WRITE_VEC32, false);
@@ -357,7 +351,7 @@ class VehicleComponent extends BodyComponent {
             // How long the suspension is in max droop position relative to the attachment point (m)
             cb.write(desc.suspensionMaxLength ?? 0.5, BUFFER_WRITE_FLOAT32, false);
 
-            // The natural length (m) of the suspension spring is defined as suspensionMaxLength + 
+            // The natural length (m) of the suspension spring is defined as suspensionMaxLength +
             // suspensionPreloadLength. Can be used to preload the suspension as the spring is compressed
             // by suspensionPreloadLength when the suspension is in max droop position. Note that this means
             // when the vehicle touches the ground there is a discontinuity so it will also make the vehicle
@@ -392,7 +386,7 @@ class VehicleComponent extends BodyComponent {
 
             // Friction in sideway direction of tire as a function of the slip angle (degrees):
             // angle between relative contact velocity and vehicle direction.
-            // If tire forward matches the vehicle direction, then the angle is 0 degrees. If the 
+            // If tire forward matches the vehicle direction, then the angle is 0 degrees. If the
             // vehicle is sliding sideways, e.g. on ice, then the angle is 90 degrees. Example curve keys could
             // be: [[0, 1], [90, 0.3]] - full friction at zero degrees, and 0.3 friction at 90.
             // Default curve keys: [[0, 0], [3, 1.2], [20, 1]]
@@ -401,7 +395,7 @@ class VehicleComponent extends BodyComponent {
             const type = this._type;
             if (type === VEHICLE_TYPE_WHEEL || type === VEHICLE_TYPE_MOTORCYCLE) {
 
-                // Moment of inertia (kg m^2), for a cylinder this would be 0.5 * M * R^2 which is 
+                // Moment of inertia (kg m^2), for a cylinder this would be 0.5 * M * R^2 which is
                 // 0.9 for a wheel with a mass of 20 kg and radius 0.3 m.
                 cb.write(desc.inertia ?? 0.9, BUFFER_WRITE_FLOAT32, false);
 
@@ -410,7 +404,7 @@ class VehicleComponent extends BodyComponent {
 
                 // How much this wheel can steer (radians). Defaults to ~1.22 rad (70 degrees).
                 cb.write(desc.maxSteerAngle ?? 1.2217304763960306, BUFFER_WRITE_FLOAT32, false);
-                
+
                 // How much torque (Nm) the brakes can apply to this wheel.
                 cb.write(desc.maxBrakeTorque ?? 1500, BUFFER_WRITE_FLOAT32, false);
 
@@ -435,7 +429,7 @@ class VehicleComponent extends BodyComponent {
         for (let i = 0; i < count; i++) {
             const diff = differentials[i];
 
-            // Index (in mWheels) that represents the left wheel of this 
+            // Index (in mWheels) that represents the left wheel of this
             // differential (can be -1 to indicate no wheel)
             cb.write(diff.leftWheel ?? -1, BUFFER_WRITE_INT32, false);
 
@@ -445,7 +439,7 @@ class VehicleComponent extends BodyComponent {
             // Ratio between rotation speed of gear box and wheels.
             cb.write(diff.differentialRatio ?? 3.42, BUFFER_WRITE_FLOAT32, false);
 
-            // Defines how the engine torque is split across the left and right 
+            // Defines how the engine torque is split across the left and right
             // wheel (0 = left, 0.5 = center, 1 = right)
             cb.write(diff.leftRightSplit ?? 0.5, BUFFER_WRITE_FLOAT32, false);
 
@@ -505,8 +499,7 @@ class VehicleComponent extends BodyComponent {
         for (let i = 0; i < count; i++) {
             cb.write(gears[i], BUFFER_WRITE_FLOAT32, false);
         }
-    }    
+    }
 }
 
 export { VehicleComponent };
-
