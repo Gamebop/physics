@@ -250,7 +250,7 @@ class BodyComponent extends ShapeComponent {
     }
 
     /**
-     * @param {Vec3} vec - Linear velocity Vec3 (m/s per axis) to set this body to.
+     * @param {Vec3} velocity - Linear velocity Vec3 (m/s per axis) to set this body to.
      */
     set linearVelocity(velocity) {
         if ($_DEBUG) {

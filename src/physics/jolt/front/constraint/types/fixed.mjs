@@ -5,6 +5,12 @@ import {
     BUFFER_WRITE_BOOL, BUFFER_WRITE_VEC32, CONSTRAINT_TYPE_FIXED
 } from '../../../constants.mjs';
 
+/**
+ * Interface for fixed constraint.
+ *
+ * @group Utilities
+ * @category Constraints
+ */
 class FixedConstraint extends Constraint {
     _type = CONSTRAINT_TYPE_FIXED;
 

@@ -9,6 +9,12 @@ import {
     OPERATOR_MODIFIER
 } from '../../../constants.mjs';
 
+/**
+ * Interface for swing-twist constraint.
+ *
+ * @group Utilities
+ * @category Constraints
+ */
 class SwingTwistConstraint extends Constraint {
     _type = CONSTRAINT_TYPE_SWING_TWIST;
 

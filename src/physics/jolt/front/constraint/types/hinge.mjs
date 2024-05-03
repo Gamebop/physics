@@ -9,6 +9,12 @@ import {
     SPRING_MODE_FREQUENCY
 } from '../../../constants.mjs';
 
+/**
+ * Interface for hinge constraint.
+ *
+ * @group Utilities
+ * @category Constraints
+ */
 class HingeConstraint extends Constraint {
     _type = CONSTRAINT_TYPE_HINGE;
 

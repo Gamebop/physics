@@ -4,6 +4,12 @@ import {
     BUFFER_WRITE_FLOAT32, BUFFER_WRITE_VEC32, CONSTRAINT_TYPE_PULLEY
 } from '../../../constants.mjs';
 
+/**
+ * Interface for pulley constraint.
+ *
+ * @group Utilities
+ * @category Constraints
+ */
 class PulleyConstraint extends Constraint {
     _type = CONSTRAINT_TYPE_PULLEY;
 

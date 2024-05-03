@@ -24,6 +24,12 @@ function copySettings(Constructor, src) {
     return settings;
 }
 
+/**
+ * Interface for six degrees of freedom (six DOF) constraint.
+ *
+ * @group Utilities
+ * @category Constraints
+ */
 class SixDOFConstraint extends Constraint {
     _type = CONSTRAINT_TYPE_SIX_DOF;
 

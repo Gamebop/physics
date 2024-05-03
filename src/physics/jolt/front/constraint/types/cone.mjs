@@ -6,6 +6,12 @@ import {
 } from '../../../constants.mjs';
 import { Constraint } from './constraint.mjs';
 
+/**
+ * Interface for cone constraint.
+ *
+ * @group Utilities
+ * @category Constraints
+ */
 class ConeConstraint extends Constraint {
     _type = CONSTRAINT_TYPE_CONE;
 
