@@ -11,10 +11,6 @@ import {
     SHAPE_CONVEX_HULL, SHAPE_HEIGHTFIELD, SHAPE_MESH
 } from '../../constants.mjs';
 
-import {
-    ALLOWED_DOFS_TRANSLATION_X
-} from '../../constants.mjs';
-
 const vec3 = new Vec3();
 
 /**
@@ -262,7 +258,7 @@ class BodyComponent extends ShapeComponent {
             if (!ok) return;
         }
 
-        if (!vec.equals(this._linearVelocity)) {
+        if (!velocity.equals(this._linearVelocity)) {
             this._linearVelocity.copy(velocity);
             this.system.addCommand(
                 OPERATOR_MODIFIER, CMD_SET_LIN_VEL, this._index,
