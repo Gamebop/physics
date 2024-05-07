@@ -11,6 +11,11 @@ concurrency:
   group: ci-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
 jobs:
   build:
     name: Build
@@ -35,10 +40,6 @@ jobs:
   docs:
     name: Docs
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
     timeout-minutes: 10
     steps:
     - name: Checkout code
