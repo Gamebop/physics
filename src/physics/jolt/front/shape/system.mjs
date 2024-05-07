@@ -50,6 +50,15 @@ const schema = [
     'hfActiveEdgeCosThresholdAngle'
 ];
 
+/**
+ * Shape Component System. A base system for the most of the Jolt component systems. Most probably
+ * you don't need to use it directly.
+ *
+ * @see {@link BodyComponentSystem | Body Component System}
+ * @see {@link SoftBodyComponentSystem | SoftBody Component System}
+ *
+ * @category Shape Component
+ */
 class ShapeComponentSystem extends JoltComponentSystem {
     static entityMap = new IndexedCache();
 

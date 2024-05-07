@@ -13,6 +13,9 @@ export { ShapeComponentSystem } from './physics/jolt/front/shape/system.mjs';
 export { BodyComponent } from './physics/jolt/front/body/component.mjs';
 export { BodyComponentSystem } from './physics/jolt/front/body/system.mjs';
 
+export { CharComponent } from './physics/jolt/front/char/component.mjs';
+export { CharComponentSystem } from './physics/jolt/front/char/system.mjs';
+
 export { SoftBodyComponent } from './physics/jolt/front/softbody/component.mjs';
 export { SoftBodyComponentSystem } from './physics/jolt/front/softbody/system.mjs';
 
