@@ -64,15 +64,6 @@ class CharComponentSystem extends ShapeComponentSystem {
         return this._manager.queryMap.add(callback);
     }
 
-    // initializeComponentData(component, data) {
-    //     if ($_DEBUG) {
-    //         const ok = Debug.verifyProperties(data, this.schema);
-    //         if (!ok) return;
-    //     }
-
-    //     super.initializeComponentData(component, data);
-    // }
-
     processCommands(cb) {
         const command = cb.readCommand();
 
@@ -102,7 +93,7 @@ class CharComponentSystem extends ShapeComponentSystem {
 
     /**
      * Allows to override the JS callbacks that Jolt will call from Wasm instance. Important - do
-     * not use arrow functions! User regular ones.
+     * not use arrow functions! Use regular ones.
      *
      * Note that the functions will be re-evaluated and will lose their current scope, so don't
      * reference any existing variables outside these functions.
