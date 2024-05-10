@@ -407,7 +407,7 @@ class Modifier {
         const bodyFilter = new Jolt.BodyFilterJS();
 
         bodyFilter.ShouldCollide = (inBodyID) => {
-            if (body.GetID() === Jolt.wrapPointer(inBodyID, Jolt.BodyID)) {
+            if (body.GetID().GetIndexAndSequenceNumber() === Jolt.wrapPointer(inBodyID, Jolt.BodyID).GetIndexAndSequenceNumber()) {
                 return false;
             }
             return true;
