@@ -6,7 +6,7 @@ import {
     CONSTRAINT_TYPE_UNDEFINED, OPERATOR_MODIFIER, SPRING_MODE_FREQUENCY
 } from '../../../constants.mjs';
 
-class SpringSettings {
+class Spring {
     springMode = SPRING_MODE_FREQUENCY;
 
     frequency = 0;
@@ -23,7 +23,7 @@ class SpringSettings {
     }
 }
 
-class MotorSettings {
+class Motor {
     minForceLimit = -Number.MAX_VALUE;
 
     maxForceLimit = Number.MAX_VALUE;
@@ -34,6 +34,12 @@ class MotorSettings {
 
     springSettings = null;
 
+    /**
+     * Creates a motor.
+     *
+     * @param {import('./settings.mjs').MotorSettings} [opts] - Optional object, describing motor
+     * settings.
+     */
     constructor(opts = {}) {
         this.minForceLimit = opts.minForceLimit ?? this.minForceLimit;
         this.maxForceLimit = opts.maxForceLimit ?? this.maxForceLimit;
@@ -41,11 +47,17 @@ class MotorSettings {
         this.maxTorqueLimit = opts.maxTorqueLimit ?? this.maxTorqueLimit;
 
         if (opts.springSettings) {
-            this.springSettings = new SpringSettings(opts.springSettings);
+            this.springSettings = new Spring(opts.springSettings);
         }
     }
 }
 
+/**
+ * Base class for different types of constraint interfaces.
+ *
+ * @group Utilities
+ * @category Constraints
+ */
 class Constraint {
     static defaultMotor = new MotorSettings();
 
@@ -110,7 +122,7 @@ class Constraint {
     _numPositionStepsOverride = 0;
 
     _space = CONSTRAINT_SPACE_WORLD;
-
+    
     constructor(entity1, entity2, opts = {}) {
         if ($_DEBUG) {
             let ok = Debug.assert(!!entity1 && !!entity1.body, 'Invalid entity1 when adding a constraint', entity1);
@@ -135,46 +147,104 @@ class Constraint {
         this._space = opts.space ?? this._space;
     }
 
+    /**
+     * Unique constraint index to link to physics object. Index can be re-used by another constraint, when this one is
+     * destroyed.
+     *
+     * @hidden
+     */
     set index(idx) {
         this._index = idx;
     }
 
+    /** @hidden */
     get index() {
         return this._index;
     }
 
+    /**
+     * First body position in constraint reference frame. Space is determined by {@link space}
+     * property.
+     *
+     * @type {import('playcanvas').Vec3}
+     * @defaultValue Vec3(0, 0, 0)
+     */
     get point1() {
         return this._point1;
     }
 
+    /**
+     * Second body position in constraint reference frame. Space is determined by {@link space}
+     * property.
+     *
+     * @type {import('playcanvas').Vec3}
+     * @defaultValue Vec3(0, 0, 0)
+     */
     get point2() {
         return this._point2;
     }
 
+    /**
+     * First entity this joint is connected to.
+     *
+     * @returns {import('playcanvas').Entity} - First entity the joint is connected to.
+     */
     get entity1() {
         return this._entity1;
     }
 
+    /**
+     * Second entity this joint is connected to.
+     *
+     * @returns {import('playcanvas').Entity} - Second entity the joint is connected to.
+     */
     get entity2() {
         return this._entity2;
     }
 
+    /**
+     * Override for the number of solver velocity iterations to run. If set to `0`, the constraint
+     * will use global default set by Physics initialization setting (TODO add link).
+     *
+     * @returns {number}
+     * @defaultValue 0
+     */
     get numVelocityStepsOverride() {
         return this._numVelocityStepsOverride;
     }
 
+    /**
+     * Override for the number of solver position iterations to run. If set to `0`, the constraint
+     * will use global default set by Physics initialization setting (TODO add link).
+     *
+     * @returns {number}
+     * @defaultValue 0
+     */
     get numPositionStepsOverride() {
-        return this._numVelocityStepsOverride;
+        return this._numPositionStepsOverride;
     }
 
+    /**
+     * Reference frame space that `point1` and `point2` use.
+     *
+     * @returns {number} - Number, representing reference space.
+     * @defaultValue CONSTRAINT_SPACE_WORLD
+     */
     get space() {
         return this._space;
     }
 
+    /** @hidden */
     get system() {
         return this._entity1.constraint.system;
     }
 
+    /**
+     * Constraint type.
+     *
+     * @returns {number}
+     * @defaultValue CONSTRAINT_TYPE_UNDEFINED
+     */
     get type() {
         return this._type;
     }
@@ -210,4 +280,4 @@ class Constraint {
     }
 }
 
-export { Constraint, MotorSettings, SpringSettings };
+export { Constraint, Motor, Spring };

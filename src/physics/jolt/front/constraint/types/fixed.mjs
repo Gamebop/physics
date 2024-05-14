@@ -35,22 +35,34 @@ class FixedConstraint extends Constraint {
         if (opts.axisY2) this._axisY2 = opts.axisY2;
     }
 
-    get autoDetectPoint() {
-        return this._autoDetectPoint;
-    }
-
+    /**
+     * @returns {Vec3} - X axis 1
+     * @defaultValue Vec3(1, 0, 0)
+     */
     get axisX1() {
         return this._axisX1;
     }
 
+    /**
+     * @returns {Vec3} - X axis 2
+     * @defaultValue Vec3(1, 0, 0)
+     */
     get axisX2() {
         return this._axisX2;
     }
 
+    /**
+     * @returns {Vec3} - Y axis 1
+     * @defaultValue Vec3(0, 1, 0)
+     */
     get axisY1() {
         return this._axisY1;
     }
 
+    /**
+     * @returns {Vec3} - Y axis 2
+     * @defaultValue Vec3(0, 1, 0)
+     */
     get axisY2() {
         return this._axisY2;
     }

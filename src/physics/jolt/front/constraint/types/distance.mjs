@@ -1,4 +1,4 @@
-import { Constraint, SpringSettings } from './constraint.mjs';
+import { Constraint, Spring } from './constraint.mjs';
 import {
     BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT8,
     BUFFER_WRITE_VEC32, CMD_JNT_D_SET_DISTANCE, CMD_JNT_D_SET_SPRING_S,
@@ -28,7 +28,7 @@ class DistanceConstraint extends Constraint {
         this._maxDistance = opts.maxDistance ?? this._maxDistance;
 
         if (opts.limitsSpringSettings) {
-            this._limitsSpringSettings = new SpringSettings(opts.limitsSpringSettings);
+            this._limitsSpringSettings = new Spring(opts.limitsSpringSettings);
         }
     }
 

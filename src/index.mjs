@@ -19,8 +19,15 @@ export { CharComponentSystem } from './physics/jolt/front/char/system.mjs';
 export { SoftBodyComponent } from './physics/jolt/front/softbody/component.mjs';
 export { SoftBodyComponentSystem } from './physics/jolt/front/softbody/system.mjs';
 
-export { CommandsBuffer } from './physics/jolt/back/commands-buffer.mjs';
 
+export { ConstraintComponent } from './physics/jolt/front/constraint/component.mjs';
+export { ConstraintComponentSystem } from './physics/jolt/front/constraint/system.mjs';
+
+export { Constraint } from './physics/jolt/front/constraint/types/constraint.mjs';
+export {
+    SpringSettings, MotorSettings, ConstraintSettings, ConeConstraintSettings,
+    DistanceConstraintSettings, FixedConstraintSettings, HingeConstraintSettings
+} from './physics/jolt/front/constraint/types/settings.mjs';
 export { ConeConstraint } from './physics/jolt/front/constraint/types/cone.mjs';
 export { DistanceConstraint } from './physics/jolt/front/constraint/types/distance.mjs';
 export { FixedConstraint } from './physics/jolt/front/constraint/types/fixed.mjs';
@@ -30,6 +37,9 @@ export { PulleyConstraint } from './physics/jolt/front/constraint/types/pulley.m
 export { SixDOFConstraint } from './physics/jolt/front/constraint/types/six-dof.mjs';
 export { SliderConstraint } from './physics/jolt/front/constraint/types/slider.mjs';
 export { SwingTwistConstraint } from './physics/jolt/front/constraint/types/swing-twist.mjs';
+
+export { CommandsBuffer } from './physics/jolt/back/commands-buffer.mjs';
+export { IndexedCache } from './physics/indexed-cache.mjs';
 
 export * from './physics/jolt/constants.mjs';
 
