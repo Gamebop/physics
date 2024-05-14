@@ -42,6 +42,8 @@ function setSixDOFAxes(cb, settings, type, Jolt, isLimited) {
         const min = isLimited ? cb.read(BUFFER_READ_FLOAT32) : null;
         const max = isLimited ? cb.read(BUFFER_READ_FLOAT32) : null;
 
+        // TODO
+        // Fix this. Fixed and Free methods don't need scalars for value. Only axis.
         switch (axis) {
             case CONSTRAINT_SIX_DOF_TRANSLATION_X:
                 settings[type](Jolt.SixDOFConstraintSettings_EAxis_TranslationX, min, max);

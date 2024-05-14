@@ -249,6 +249,9 @@ class Constraint {
         return this._type;
     }
 
+    /**
+     * Destroy this joint. The connected bodies will be activated.
+     */
     destroy() {
         this.system.destroyConstraint(this._index);
     }
@@ -263,6 +266,12 @@ class Constraint {
         cb.write(this._space, BUFFER_WRITE_UINT8, false);
     }
 
+    /**
+     * Allows to enable/disable a constraint without destroying it.
+     *
+     * @param {boolean} enabled - `true` - enable constraint, `false` - disable.
+     * @param {boolean} [activate] - If `true`, activate connected bodies after changing the state.
+     */
     setEnabled(enabled, activate = true) {
         if ($_DEBUG) {
             let ok = Debug.checkBool(enabled, `Invalid constraint enable bool: ${enabled}`);

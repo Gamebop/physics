@@ -33,22 +33,57 @@ class PulleyConstraint extends Constraint {
         this._maxLength = opts.maxLength ?? this._maxLength;
     }
 
+    /**
+     * Fixed world point to which body 1 is connected (always in world space).
+     *
+     * @returns {import('playcanvas').Vec3} - World position of a point.
+     * @defaultValue Vec3(0, 0, 0)
+     */
     get fixedPoint1() {
         return this._fixedPoint1;
     }
 
+    /**
+     * Fixed world point to which body 2 is connected (always in world space).
+     *
+     * @returns {import('playcanvas').Vec3} - World position of a point.
+     * @defaultValue Vec3(0, 0, 0)
+     */
     get fixedPoint2() {
         return this._fixedPoint2;
     }
 
+    /**
+     * Ratio between the two line segments:
+     * ```
+     * MinDistance <= Length1 + Ratio * Length2 <= MaxDistance
+     * ```
+     *
+     * @returns {number} - Ratio between line segments.
+     * @defaultValue 1
+     */
     get ratio() {
         return this._ratio;
     }
 
+    /**
+     * The minimum length of the line segments. Use -1 to calculate the length based on the
+     * positions of the objects when the constraint is created.
+     *
+     * @returns {number} - Length of line segments (meters).
+     * @defaultValue 0
+     */
     get minLength() {
         return this._minLength;
     }
 
+    /**
+     * The maximum length of the line segments. Use -1 to calculate the length based on the
+     * positions of the objects when the constraint is created.
+     *
+     * @returns {number} - Length of line segments (meters).
+     * @defaultValue 0
+     */
     get maxLength() {
         return this._maxLength;
     }

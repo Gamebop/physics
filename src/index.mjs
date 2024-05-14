@@ -26,7 +26,8 @@ export { ConstraintComponentSystem } from './physics/jolt/front/constraint/syste
 export { Constraint } from './physics/jolt/front/constraint/types/constraint.mjs';
 export {
     SpringSettings, MotorSettings, ConstraintSettings, ConeConstraintSettings,
-    DistanceConstraintSettings, FixedConstraintSettings, HingeConstraintSettings
+    DistanceConstraintSettings, FixedConstraintSettings, HingeConstraintSettings,
+    PulleyConstraintSettings, SixDOFConstraintSettings
 } from './physics/jolt/front/constraint/types/settings.mjs';
 export { ConeConstraint } from './physics/jolt/front/constraint/types/cone.mjs';
 export { DistanceConstraint } from './physics/jolt/front/constraint/types/distance.mjs';

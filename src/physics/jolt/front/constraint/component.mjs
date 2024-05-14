@@ -57,10 +57,13 @@ class ConstraintComponent extends Component {
      * @param {number} type - Enum alias, representing joint type.
      * @param {import('playcanvas').Entity} otherEntity - The other entity that this entity will be
      * connected to with this joint.
-     * @param {import('./types/settings.mjs').ConeConstraintSettings |
+     * @param {import('./types/settings.mjs').ConstraintSettings |
+     * import('./types/settings.mjs').ConeConstraintSettings |
      * import('./types/settings.mjs').DistanceConstraintSettings |
      * import('./types/settings.mjs').FixedConstraintSettings |
-     * import('./types/settings.mjs').HingeConstraintSettings} [opts] - Optional joint options object.
+     * import('./types/settings.mjs').HingeConstraintSettings |
+     * import('./types/settings.mjs').PulleyConstraintSettings |
+     * import('./types/settings.mjs').SixDOFConstraintSettings} [opts] - Optional joint options object.
      * @returns {FixedConstraint | PointConstraint | DistanceConstraint | HingeConstraint |
      * SliderConstraint | ConeConstraint | SixDOFConstraint | SwingTwistConstraint |
      * PulleyConstraint} - A joint interface.

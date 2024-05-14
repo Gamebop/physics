@@ -211,7 +211,7 @@ class HingeConstraint extends Constraint {
     }
 
     /**
-     * Allows to change the motor state, e.g. turn it on/off. Following aliases available:
+     * Changes the motor state, e.g. turn it on/off. Following aliases available:
      * ```
      * MOTOR_STATE_OFF
      * ```

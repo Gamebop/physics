@@ -330,7 +330,217 @@ class HingeConstraintSettings extends ConstraintSettings {
     maxFrictionTorque = 0;
 }
 
+/**
+ * @interface
+ * @group Utilities
+ * @category Settings
+ */
+class PulleyConstraintSettings extends ConstraintSettings {
+    /**
+     * Fixed world point to which body 1 is connected (always in world space).
+     *
+     * @type {import('playcanvas').Vec3}
+     * @defaultValue Vec3(0, 0, 0)
+     */
+    fixedPoint1;
+
+    /**
+     * Fixed world point to which body 2 is connected (always in world space).
+     *
+     * @type {import('playcanvas').Vec3}
+     * @defaultValue Vec3(0, 0, 0)
+     */
+    fixedPoint2;
+
+    /**
+     * Ratio between the two line segments:
+     * ```
+     * MinDistance <= Length1 + Ratio * Length2 <= MaxDistance
+     * ```
+     *
+     * @type {number}
+     * @defaultValue 1
+     */
+    ratio;
+
+    /**
+     * The minimum length of the line segments. Use -1 to calculate the length based on the
+     * positions of the objects when the constraint is created.
+     *
+     * @type {number}
+     * @defaultValue 0
+     */
+    minLength;
+
+    /**
+     * The maximum length of the line segments. Use -1 to calculate the length based on the
+     * positions of the objects when the constraint is created.
+     *
+     * @type {number}
+     * @defaultValue -1
+     */
+    maxLength;
+}
+
+/**
+ * @interface
+ * @group Utilities
+ * @category Settings
+ */
+class SixDOFConstraintSettings extends ConstraintSettings {
+    /**
+     * @type {import('playcanvas').Vec3}
+     * @defaultValue Vec3(1, 0, 0)
+     */
+    axisX1;
+
+    /**
+     * @type {import('playcanvas').Vec3}
+     * @defaultValue Vec3(1, 0, 0)
+     */
+    axisX2;
+
+    /**
+     * @type {import('playcanvas').Vec3}
+     * @defaultValue Vec3(0, 1, 0)
+     */
+    axisY1;
+
+    /**
+     * @type {import('playcanvas').Vec3}
+     * @defaultValue Vec3(0, 1, 0)
+     */
+    axisY2;
+
+    /**
+     * Make one or more axis fixed (fixed at value 0). Provided as an array of numbers.
+     * @example
+     * ```js
+     * // Prevent translating along X axis and rotating around Y axis
+     * [CONSTRAINT_SIX_DOF_TRANSLATION_X, CONSTRAINT_SIX_DOF_ROTATION_Y]
+     * ```
+     *
+     * Following axis enum aliases available can be used:
+     * ```
+     * CONSTRAINT_SIX_DOF_TRANSLATION_X
+     * ```
+     * ```
+     * CONSTRAINT_SIX_DOF_TRANSLATION_Y
+     * ```
+     * ```
+     * CONSTRAINT_SIX_DOF_TRANSLATION_Z
+     * ```
+     * ```
+     * CONSTRAINT_SIX_DOF_ROTATION_X
+     * ```
+     * ```
+     * CONSTRAINT_SIX_DOF_ROTATION_Y
+     * ```
+     * ```
+     * CONSTRAINT_SIX_DOF_ROTATION_Z
+     * ```
+     *
+     * @type {number[] | null}
+     * @defaultValue null
+     */
+    fixedAxes;
+
+    /**
+     * Make one or more axis free (unconstrained). Provided as an array of numbers.
+     * See {@link fixedAxes}.
+     *
+     * @type {number[] | null}
+     * @defaultValue null
+     */
+    freeAxes;
+
+    /**
+     * Set limits to one or more axis. Provided as an array of non-interleaved values of axis and
+     * limits (meters for position, radians for rotation).
+     * ```
+     * [a1, min1, max1, a2, min2, max2, ..., aN, minN, maxN]
+     * ```
+     * where:
+     * - `aN` - axis alias number
+     * - `minN` - lower constraint limit
+     * - `maxN` - upper constraint limit
+     * 
+     * @example
+     * ```
+     * // Allow 0.2m movement on X axis and 10 degrees around Y
+     * [
+     *     CONSTRAINT_SIX_DOF_TRANSLATION_X, -0.1, 0.1,
+     *     CONSTRAINT_SIX_DOF_ROTATION_Y, -5*rads, 5*rads,
+     * ]
+     * ```
+     * 
+     * See available aliases in {@link fixedAxes}.
+     *
+     * @type {number[] | null}
+     * @defaultValue null
+     */
+    limitedAxes;
+
+    /**
+     * Upper limit for axis (meters for position, radians for rotation). Provided as an array with
+     * 6 float numbers:
+     * ```
+     * [posX, posY, posZ, rotX, rotY, rotZ]
+     * ```
+     * @type {number[] | null}
+     * @defaultValue null
+     */
+    limitMax;
+
+    /**
+     * Lower limit for axis. See {@link limitMax}.
+     *
+     * @type {number[] | null}
+     * @defaultValue null
+     */
+    limitMin;
+
+    /**
+     * Specifies friction values for each axis (friction force for translation, friction torque for
+     * rotation). Provided as an array with 6 float numbers. See {@link limitMax}.
+     *
+     * @type {number[] | null}
+     * @defaultValue null
+     */
+    maxFriction;
+
+    /**
+     * The type of swing constraint to use. Following aliases for types available:
+     * ```
+     * CONSTRAINT_SWING_TYPE_CONE
+     * ```
+     * ```
+     * CONSTRAINT_SWING_TYPE_PYRAMID
+     * ```
+     *
+     * @type {number}
+     * @defaultValue CONSTRAINT_SWING_TYPE_CONE
+     */
+    swingType;
+
+    /**
+     * Optional spring to use when applying positional and rotational limits.
+     *
+     * @type {SpringSettings}
+     * @defaultValue null
+     */
+    limitsSpringSettings;
+
+    /**
+     * Optional motor to power the constraint.
+     *
+     * @type {MotorSettings}
+     * @defaultValue null
+     */
+    motorSettings;
+}
+
 export {
     SpringSettings, MotorSettings, ConstraintSettings, ConeConstraintSettings, DistanceConstraintSettings,
-    FixedConstraintSettings, HingeConstraintSettings
+    FixedConstraintSettings, HingeConstraintSettings, PulleyConstraintSettings, SixDOFConstraintSettings
 };
