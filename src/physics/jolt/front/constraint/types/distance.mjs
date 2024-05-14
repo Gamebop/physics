@@ -74,7 +74,7 @@ class DistanceConstraint extends Constraint {
     /**
      * Current minimum distance that constraint will try to keep bodies apart. If set to negative
      * number, it uses initial distance between two bodies, when the joint was created.
-     * Only works when {@link SpringSettings.space} is set to `CONSTRAINT_SPACE_WORLD`.
+     * Only works when {@link space} is set to `CONSTRAINT_SPACE_WORLD`.
      *
      * @returns {number} - Minimum distance to keep bodies apart.
      * @defaultValue -1
@@ -86,7 +86,7 @@ class DistanceConstraint extends Constraint {
     /**
      * Current maximum distance that constraint will try to keep bodies apart. If set to negative
      * number, it uses initial distance between two bodies, when the joint was created.
-     * Only works when {@link SpringSettings.space} is set to `CONSTRAINT_SPACE_WORLD`.
+     * Only works when {@link space} is set to `CONSTRAINT_SPACE_WORLD`.
      *
      * @returns {number} - Maximum distance to keep bodies apart.
      * @defaultValue -1

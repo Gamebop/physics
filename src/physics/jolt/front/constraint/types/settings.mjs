@@ -611,8 +611,81 @@ class SliderConstraintSettings extends ConstraintSettings {
     motorSettings = null;
 }
 
+/**
+ * @interface
+ * @group Utilities
+ * @category Settings
+ */
+class SwingTwistConstraintSettings extends ConstraintSettings {
+    /**
+     * @type {import('playcanvas').Vec3}
+     * @defaultValue Vec3(1, 0, 0)
+     */
+    twistAxis1;
+
+    /**
+     * @type {import('playcanvas').Vec3}
+     * @defaultValue Vec3(1, 0, 0)
+     */
+    twistAxis2;
+
+    /**
+     * @type {import('playcanvas').Vec3}
+     * @defaultValue Vec3(0, 1, 0)
+     */
+    planeAxis1;
+
+    /**
+     * @type {import('playcanvas').Vec3}
+     * @defaultValue Vec3(0, 1, 0)
+     */
+    planeAxis2;
+
+    /**
+     * @type {number}
+     * @defaultValue 0
+     */
+    normalHalfConeAngle;
+
+    /**
+     * @type {number}
+     * @defaultValue 0
+     */
+    planeHalfConeAngle;
+
+    /**
+     * @type {number}
+     * @defaultValue 0
+     */
+    twistMinAngle;
+
+    /**
+     * @type {number}
+     * @defaultValue 0
+     */
+    twistMaxAngle;
+
+    /**
+     * @type {number}
+     * @defaultValue 0
+     */
+    maxFrictionTorque;
+
+    /**
+     * @type {MotorSettings | null}
+     * @defaultValue null
+     */
+    swingMotorSettings = null;
+
+    /**
+     * @type {MotorSettings | null}
+     * @defaultValue null
+     */
+    twistMotorSettings;
+}
+
 export {
     SpringSettings, MotorSettings, ConstraintSettings, ConeConstraintSettings, DistanceConstraintSettings,
     FixedConstraintSettings, HingeConstraintSettings, PulleyConstraintSettings, SixDOFConstraintSettings,
-    SliderConstraintSettings
+    SliderConstraintSettings, SwingTwistConstraintSettings
 };

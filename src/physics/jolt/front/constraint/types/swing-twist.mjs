@@ -58,6 +58,11 @@ class SwingTwistConstraint extends Constraint {
         }
     }
 
+    /**
+     * Sets max friction torque.
+     *
+     * @param {number} torque - Friction torque value.
+     */
     set maxFrictionTorque(torque) {
         if ($_DEBUG) {
             const ok = Debug.checkFloat(torque, `Invalid max friction torque scalar: ${torque}`);
@@ -78,10 +83,16 @@ class SwingTwistConstraint extends Constraint {
         );
     }
 
+    /**
+     * @returns {number} - Max friction torque value
+     */
     get maxFrictionTorque() {
         return this._maxFrictionTorque;
     }
 
+    /**
+     * @returns {number} - Max friction torque value
+     */
     get swingMotorSettings() {
         return this._swingMotorSettings;
     }

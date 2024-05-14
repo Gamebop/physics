@@ -115,6 +115,11 @@ class SliderConstraint extends Constraint {
     }
 
 
+    /**
+     * Sets max friction force on the constraint after it was created.
+     *
+     * @param {number} force - Friction force (newtons).
+     */
     set maxFrictionForce(force) {
         if ($_DEBUG) {
             const ok = Debug.checkFloat(force, `Invalid max friction force scalar value: ${force}`);
@@ -273,9 +278,9 @@ class SliderConstraint extends Constraint {
      *
      * @param {number} angle - Number, radians.
      */
-    setTargetPosition(pos) {
+    setTargetPosition(angle) {
         if ($_DEBUG) {
-            const ok = Debug.checkFloat(pos, `Invalid target position scalar for constraint:`, pos);
+            const ok = Debug.checkFloat(angle, `Invalid target position scalar for constraint:`, angle);
             if (!ok) {
                 return;
             }
@@ -283,7 +288,7 @@ class SliderConstraint extends Constraint {
 
         this.system.addCommand(
             OPERATOR_MODIFIER, CMD_JNT_S_SET_T_POS, this._index,
-            pos, BUFFER_WRITE_FLOAT32, false
+            angle, BUFFER_WRITE_FLOAT32, false
         );
     }
 
