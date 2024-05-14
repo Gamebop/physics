@@ -63,7 +63,8 @@ class ConstraintComponent extends Component {
      * import('./types/settings.mjs').FixedConstraintSettings |
      * import('./types/settings.mjs').HingeConstraintSettings |
      * import('./types/settings.mjs').PulleyConstraintSettings |
-     * import('./types/settings.mjs').SixDOFConstraintSettings} [opts] - Optional joint options object.
+     * import('./types/settings.mjs').SixDOFConstraintSettings |
+     * import('./types/settings.mjs').SliderConstraintSettings} [opts] - Optional joint options object.
      * @returns {FixedConstraint | PointConstraint | DistanceConstraint | HingeConstraint |
      * SliderConstraint | ConeConstraint | SixDOFConstraint | SwingTwistConstraint |
      * PulleyConstraint} - A joint interface.

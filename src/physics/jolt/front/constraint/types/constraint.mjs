@@ -239,12 +239,7 @@ class Constraint {
         return this._entity1.constraint.system;
     }
 
-    /**
-     * Constraint type.
-     *
-     * @returns {number}
-     * @defaultValue CONSTRAINT_TYPE_UNDEFINED
-     */
+    /** @hidden */
     get type() {
         return this._type;
     }

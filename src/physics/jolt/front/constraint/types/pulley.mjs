@@ -88,6 +88,14 @@ class PulleyConstraint extends Constraint {
         return this._maxLength;
     }
 
+    /**
+     * @returns {number} - Constraint type alias number.
+     * @defaultValue CONSTRAINT_TYPE_PULLEY
+     */
+    get type() {
+        return this._type;
+    }
+
     write(cb) {
         super.write(cb);
 

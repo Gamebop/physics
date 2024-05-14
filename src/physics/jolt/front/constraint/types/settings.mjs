@@ -540,7 +540,79 @@ class SixDOFConstraintSettings extends ConstraintSettings {
     motorSettings;
 }
 
+/**
+ * @interface
+ * @group Utilities
+ * @category Settings
+ */
+class SliderConstraintSettings extends ConstraintSettings {
+    /**
+     * @type {import('playcanvas').Vec3}
+     * @defaultValue Vec3(1, 0, 0)
+     */
+    sliderAxis1;
+
+    /**
+     * @type {import('playcanvas').Vec3}
+     * @defaultValue Vec3(1, 0, 0)
+     */
+    sliderAxis2;
+
+    /**
+     * @type {import('playcanvas').Vec3}
+     * @defaultValue Vec3(0, 1, 0)
+     */
+    normalAxis1;
+
+    /**
+     * @type {import('playcanvas').Vec3}
+     * @defaultValue Vec3(0, 1, 0)
+     */
+    normalAxis2;
+
+    /**
+     * Upper limit of the constraint. In meters.
+     *
+     * @type {number}
+     * @defaultValue +Infinity
+     */
+    limitsMax;
+
+    /**
+     * Lower limit of the constraint. In meters.
+     *
+     * @type {number}
+     * @defaultValue -Infinity
+     */
+    limitsMin;
+
+    /**
+     * Maximum amount of friction force to apply when not driven by a motor.
+     *
+     * @type {number}
+     * @defaultValue 0 (newtons)
+     */
+    maxFrictionForce;
+
+    /**
+     * Optional spring settings to use a spring when constraining limits.
+     *
+     * @type {SpringSettings | null}
+     * @defaultValue null
+     */
+    limitsSpringSettings = null;
+
+    /**
+     * Optional motor settings to use a motor that will drive the constraint.
+     *
+     * @type {MotorSettings}
+     * @defaultValue null
+     */
+    motorSettings = null;
+}
+
 export {
     SpringSettings, MotorSettings, ConstraintSettings, ConeConstraintSettings, DistanceConstraintSettings,
-    FixedConstraintSettings, HingeConstraintSettings, PulleyConstraintSettings, SixDOFConstraintSettings
+    FixedConstraintSettings, HingeConstraintSettings, PulleyConstraintSettings, SixDOFConstraintSettings,
+    SliderConstraintSettings
 };

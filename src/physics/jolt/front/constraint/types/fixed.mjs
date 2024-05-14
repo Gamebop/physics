@@ -67,6 +67,14 @@ class FixedConstraint extends Constraint {
         return this._axisY2;
     }
 
+    /**
+     * @returns {number} - Constraint type alias number.
+     * @defaultValue CONSTRAINT_TYPE_FIXED
+     */
+    get type() {
+        return this._type;
+    }
+
     write(cb) {
         const auto = this._autoDetectPoint;
         if ($_DEBUG && !auto) {

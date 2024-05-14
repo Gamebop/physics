@@ -30,6 +30,11 @@ class ConeConstraint extends Constraint {
         this._halfConeAngle = opts.halfConeAngle ?? this._halfConeAngle;
     }
 
+    /**
+     * Changes the half cone angle of the constraint.
+     *
+     * @param {number} angle - Angle in radians.
+     */
     set halfConeAngle(angle) {
         if ($_DEBUG) {
             const ok = Debug.checkFloat(angle, `Invalid half cone angle scalar: ${angle}`);
@@ -50,16 +55,36 @@ class ConeConstraint extends Constraint {
         );
     }
 
+    /**
+     * @returns {number} - Half cone angle in radians.
+     * @defaultValue 0
+     */
     get halfConeAngle() {
         return this._halfConeAngle;
     }
 
+    /**
+     * @returns {Vec3} - Twist axis 1.
+     * @defaultValue Vec3(1, 0, 0)
+     */
     get twistAxis1() {
         return this._twistAxis1;
     }
 
+    /**
+     * @returns {Vec3} - Twist axis 2.
+     * @defaultValue Vec3(1, 0, 0)
+     */
     get twistAxis2() {
         return this._twistAxis2;
+    }
+
+    /**
+     * @returns {number} - Constraint type alias number.
+     * @defaultValue CONSTRAINT_TYPE_CONE
+     */
+    get type() {
+        return this._type;
     }
 
     write(cb) {

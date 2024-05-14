@@ -137,6 +137,14 @@ class SixDOFConstraint extends Constraint {
     }
 
     /**
+     * @returns {number} - Constraint type alias number.
+     * @defaultValue CONSTRAINT_TYPE_SIX_DOF
+     */
+    get type() {
+        return this._type;
+    }
+
+    /**
      * Modifies translation limits of the constraint after it was created. In meters.
      *
      * @param {number} min - Lower limit of the constraint.
@@ -193,7 +201,7 @@ class SixDOFConstraint extends Constraint {
      * ```
      *
      * @param {number} axis - Axis number, zero-based.
-     * @param {import('./settings.mjs').SpringSettings} - Spring settings.
+     * @param {import('./settings.mjs').SpringSettings} settings - Spring settings.
      */
     setLimitsSpringSettings(axis, settings) {
         if ($_DEBUG) {
@@ -227,7 +235,7 @@ class SixDOFConstraint extends Constraint {
      * See {@link setLimitsSpringSettings} for example.
      *
      * @param {number} axis - Axis number, zero-based.
-     * @param {number} - Friction value.
+     * @param {number} friction - Friction value.
      */
     setMaxFriction(axis, friction) {
         if ($_DEBUG) {

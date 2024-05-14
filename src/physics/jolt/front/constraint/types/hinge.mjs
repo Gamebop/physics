@@ -98,9 +98,9 @@ class HingeConstraint extends Constraint {
     }
 
     /**
-     * Modifies the spring properties after the hinge constraint has been created.
+     * Modifies the spring properties after the constraint has been created.
      *
-     * @param {import('./settings.mjs').SpringSettings} - Object, describing spring settings.
+     * @param {import('./settings.mjs').SpringSettings} settings - Object, describing spring settings.
      */
     set limitsSpringSettings(settings) {
         if ($_DEBUG) {
@@ -139,7 +139,7 @@ class HingeConstraint extends Constraint {
     /**
      * Modifies maximum friction force after the constraint has been created.
      *
-     * @param {number} - Max friction force (N m).
+     * @param {number} torque - Max friction force (N m).
      */
     set maxFrictionTorque(torque) {
         if (this._maxFrictionTorque === torque) {
@@ -193,6 +193,14 @@ class HingeConstraint extends Constraint {
         return this._normalAxis2;
     }
 
+    /**
+     * @returns {number} - Constraint type alias number.
+     * @defaultValue CONSTRAINT_TYPE_HINGE
+     */
+    get type() {
+        return this._type;
+    }
+
     write(cb) {
         super.write(cb);
 
@@ -242,8 +250,8 @@ class HingeConstraint extends Constraint {
     }
 
     /**
-     * Sets motor's target angular velocity. The motor needs to be operating in velocity
-     * mode. See {@link setMotorState}.
+     * Sets motor's target angular velocity. The motor needs to be operating in velocity mode. See
+     * {@link setMotorState}.
      *
      * @param {number} velocity - Number, radians per second
      */
