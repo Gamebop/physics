@@ -1,6 +1,6 @@
 import { Vec3 } from 'playcanvas';
 import { Debug } from '../../../debug.mjs';
-import { Constraint, SpringSettings, MotorSettings } from './constraint.mjs';
+import { Constraint, Spring, Motor } from './constraint.mjs';
 import {
     BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT8,
     BUFFER_WRITE_VEC32, CMD_JNT_S_SET_LIMITS, CMD_JNT_S_SET_M_F_FORCE,
@@ -49,11 +49,11 @@ class SliderConstraint extends Constraint {
         this._maxFrictionForce = opts.maxFrictionForce ?? this._maxFrictionForce;
 
         if (opts.limitsSpringSettings) {
-            this._limitsSpringSettings = new SpringSettings(opts.limitsSpringSettings);
+            this._limitsSpringSettings = new Spring(opts.limitsSpringSettings);
         }
 
         if (opts.motorSettings) {
-            this._motorSettings = new MotorSettings(opts.motorSettings);
+            this._motorSettings = new Motor(opts.motorSettings);
         }
     }
 

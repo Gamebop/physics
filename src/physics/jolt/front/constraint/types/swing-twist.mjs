@@ -1,6 +1,6 @@
 import { Vec3 } from 'playcanvas';
 import { Debug } from '../../../debug.mjs';
-import { Constraint, MotorSettings } from './constraint.mjs';
+import { Constraint, Motor } from './constraint.mjs';
 import {
     BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32, CMD_JNT_ST_SET_M_F_TORQUE,
     CMD_JNT_ST_SET_N_H_C_ANGLE, CMD_JNT_ST_SET_P_H_C_ANGLE, CMD_JNT_ST_SET_SWING_M_S,
@@ -50,11 +50,11 @@ class SwingTwistConstraint extends Constraint {
         this._normalHalfConeAngle = opts.normalHalfConeAngle ?? this._normalHalfConeAngle;
 
         if (opts.swingMotorSettings) {
-            this._swingMotorSettings = new MotorSettings(opts.swingMotorSettings);
+            this._swingMotorSettings = new Motor(opts.swingMotorSettings);
         }
 
         if (opts.twistMotorSettings) {
-            this._twistMotorSettings = new MotorSettings(opts.twistMotorSettings);
+            this._twistMotorSettings = new Motor(opts.twistMotorSettings);
         }
     }
 

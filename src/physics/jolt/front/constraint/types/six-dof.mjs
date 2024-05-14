@@ -1,6 +1,6 @@
 import { Vec3 } from 'playcanvas';
 import { Debug } from '../../../debug.mjs';
-import { Constraint, SpringSettings, MotorSettings } from './constraint.mjs';
+import { Constraint } from './constraint.mjs';
 import {
     BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT8,
     BUFFER_WRITE_VEC32, CMD_JNT_SDF_SET_M_F, CMD_JNT_SDF_SET_M_STATE,
