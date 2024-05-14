@@ -7,7 +7,7 @@ import {
     CMD_CREATE_GROUPS, CMD_CREATE_SHAPE, CMD_CREATE_SOFT_BODY, CMD_CREATE_VEHICLE,
     CONSTRAINT_SPACE_WORLD, CONSTRAINT_TYPE_CONE, CONSTRAINT_TYPE_DISTANCE, CONSTRAINT_TYPE_FIXED,
     CONSTRAINT_TYPE_HINGE, CONSTRAINT_TYPE_POINT, CONSTRAINT_TYPE_PULLEY, CONSTRAINT_TYPE_SIX_DOF,
-    CONSTRAINT_TYPE_SLIDER, CONSTRAINT_TYPE_SWING_TWIST, SHAPE_BOX, SHAPE_CAPSULE, SHAPE_CONVEX_HULL,
+    CONSTRAINT_TYPE_SLIDER, CONSTRAINT_TYPE_SWING_TWIST, MOTION_TYPE_DYNAMIC, MOTION_TYPE_KINEMATIC, SHAPE_BOX, SHAPE_CAPSULE, SHAPE_CONVEX_HULL,
     SHAPE_CYLINDER, SHAPE_HEIGHTFIELD, SHAPE_MESH, SHAPE_SPHERE, SHAPE_STATIC_COMPOUND,
     VEHICLE_CAST_TYPE_CYLINDER, VEHICLE_CAST_TYPE_RAY, VEHICLE_CAST_TYPE_SPHERE,
     VEHICLE_TYPE_MOTORCYCLE, VEHICLE_TYPE_WHEEL
@@ -244,12 +244,16 @@ class Creator {
         // motion type
         const motionType = cb.read(BUFFER_READ_UINT8);
 
+        let jmt = Jolt.EMotionType_Static;
+        if (motionType === MOTION_TYPE_DYNAMIC) jmt = Jolt.EMotionType_Dynamic;
+        else if (motionType === MOTION_TYPE_KINEMATIC) jmt = Jolt.EMotionType_Kinematic;
+
         // use motion state
         const useMotionState = cb.read(BUFFER_READ_BOOL);
 
         // object layer
         const objectLayer = cb.read(BUFFER_READ_UINT32);
-        const bodyCreationSettings = new Jolt.BodyCreationSettings(shape, jv, jq, motionType, objectLayer);
+        const bodyCreationSettings = new Jolt.BodyCreationSettings(shape, jv, jq, jmt, objectLayer);
 
         bodyCreationSettings.mLinearVelocity = jv.FromBuffer(cb);
         bodyCreationSettings.mAngularVelocity = jv.FromBuffer(cb);
@@ -327,7 +331,7 @@ class Creator {
         Jolt.destroy(bodyCreationSettings);
 
         if (backend.config.useMotionStates) {
-            if (useMotionState && (motionType === Jolt.EMotionType_Dynamic || motionType === Jolt.EMotionType_Kinematic)) {
+            if (useMotionState && (jmt === Jolt.EMotionType_Dynamic || jmt === Jolt.EMotionType_Kinematic)) {
                 body.motionState = new MotionState(body);
             }
         }
