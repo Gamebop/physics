@@ -1,6 +1,6 @@
 import { Vec3 } from 'playcanvas';
 import { Debug } from '../../../debug.mjs';
-import { Constraint } from './constraint.mjs';
+import { Constraint, Motor, Spring } from './constraint.mjs';
 import {
     BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT8,
     BUFFER_WRITE_VEC32, CMD_JNT_SDF_SET_M_F, CMD_JNT_SDF_SET_M_STATE,
@@ -96,11 +96,11 @@ class SixDOFConstraint extends Constraint {
         }
 
         if (opts.limitsSpringSettings) {
-            this._limitsSpringSettings = copySettings(SpringSettings, opts.limitsSpringSettings);
+            this._limitsSpringSettings = copySettings(Spring, opts.limitsSpringSettings);
         }
 
         if (opts.motorSettings) {
-            this._motorSettings = copySettings(MotorSettings, opts.motorSettings);
+            this._motorSettings = copySettings(Motor, opts.motorSettings);
         }
     }
 
