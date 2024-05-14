@@ -98,4 +98,4 @@ class ConeConstraint extends Constraint {
     }
 }
 
-export { ConeConstraint, ConeConstraintSettings };
+export { ConeConstraint };

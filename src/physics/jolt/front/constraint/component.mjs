@@ -68,7 +68,7 @@ class ConstraintComponent extends Component {
      * import('./types/settings.mjs').SwingTwistConstraintSettings} [opts] - Optional joint options object.
      * @returns {FixedConstraint | PointConstraint | DistanceConstraint | HingeConstraint |
      * SliderConstraint | ConeConstraint | SixDOFConstraint | SwingTwistConstraint |
-     * PulleyConstraint} - A joint interface.
+     * PulleyConstraint | null} - A joint interface or `null`, if unable to create a joint.
      */
     addJoint(type, otherEntity, opts = {}) {
         let JointConstructor;
@@ -104,7 +104,7 @@ class ConstraintComponent extends Component {
                 if ($_DEBUG) {
                     Debug.warn(`Trying to add unrecognized constraint type: ${type}`);
                 }
-                return;
+                return null;
         }
 
         const joint = new JointConstructor(this.entity, otherEntity, opts);

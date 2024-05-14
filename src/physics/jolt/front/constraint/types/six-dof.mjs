@@ -269,7 +269,7 @@ class SixDOFConstraint extends Constraint {
      * - `MOTOR_STATE_VELOCITY`: Motor will drive to target velocity.
      *
      * See {@link setLimitsSpringSettings} for example.
-     * 
+     *
      * @param {number} axis - Axis number, zero-based.
      * @param {number} state - Enum alias, representing the state.
      */

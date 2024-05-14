@@ -285,7 +285,7 @@ class HingeConstraintSettings extends ConstraintSettings {
      * @type {import('playcanvas').Vec3}
      * @defaultValue Vec3(1, 0, 0)
      */
-    normalAxis2 = Vec3.RIGHT;
+    normalAxis2;
 
     /**
      * Bodies are assumed to be placed so that the hinge angle equals zero. Movement will be
@@ -464,7 +464,7 @@ class SixDOFConstraintSettings extends ConstraintSettings {
      * - `aN` - axis alias number
      * - `minN` - lower constraint limit
      * - `maxN` - upper constraint limit
-     * 
+     *
      * @example
      * ```
      * // Allow 0.2m movement on X axis and 10 degrees around Y
@@ -473,7 +473,7 @@ class SixDOFConstraintSettings extends ConstraintSettings {
      *     CONSTRAINT_SIX_DOF_ROTATION_Y, -5*rads, 5*rads,
      * ]
      * ```
-     * 
+     *
      * See available aliases in {@link fixedAxes}.
      *
      * @type {number[] | null}

@@ -84,19 +84,27 @@ class SwingTwistConstraint extends Constraint {
     }
 
     /**
-     * @returns {number} - Max friction torque value
+     * @returns {number} - Max friction torque value.
+     * @defaultValue 0
      */
     get maxFrictionTorque() {
         return this._maxFrictionTorque;
     }
 
     /**
-     * @returns {number} - Max friction torque value
+     * @returns {import('./settings.mjs').SpringSettings | null} - Returns {@link SpringSettings |
+     * Spring Settings} or `null`, if spring is not used.
+     * @defaultValue null
      */
     get swingMotorSettings() {
         return this._swingMotorSettings;
     }
 
+    /**
+     * Sets normal half cone angle. In radians.
+     *
+     * @param {number} angle - Normal half cone angle (rads).
+     */
     set normalHalfConeAngle(angle) {
         if ($_DEBUG) {
             const ok = Debug.checkFloat(angle, `Invalid half cone angle scalar: ${angle}`);
@@ -117,10 +125,19 @@ class SwingTwistConstraint extends Constraint {
         );
     }
 
+    /**
+     * @returns {number} - Normal half cone angle.
+     * @defaultValue 0
+     */
     get normalHalfConeAngle() {
         return this._normalHalfConeAngle;
     }
 
+    /**
+     * Sets plane half cone angle. In radians.
+     *
+     * @param {number} angle - Plane half cone angle (rads).
+     */
     set planeHalfConeAngle(angle) {
         if ($_DEBUG) {
             const ok = Debug.checkFloat(angle, `Invalid plane half cone angle scalar: ${angle}`);
@@ -141,18 +158,35 @@ class SwingTwistConstraint extends Constraint {
         );
     }
 
+    /**
+     * @returns {number} - Plane half cone angle.
+     * @defaultValue 0
+     */
     get planeHalfConeAngle() {
         return this._planeHalfConeAngle;
     }
 
+    /**
+     * @returns {Vec3} - Twist axis 1.
+     * @defaultValue Vec3(1, 0, 0)
+     */
     get twistAxis1() {
         return this._twistAxis1;
     }
 
+    /**
+     * @returns {Vec3} - Twist axis 2.
+     * @defaultValue Vec3(1, 0, 0)
+     */
     get twistAxis2() {
         return this._twistAxis2;
     }
 
+    /**
+     * Sets twist maximum angle. In radians.
+     *
+     * @param {number} angle - Max twist angle in radians.
+     */
     set twistMaxAngle(angle) {
         if ($_DEBUG) {
             const ok = Debug.checkFloat(angle, `Invalid twist max angle scalar: ${angle}`);
@@ -173,10 +207,18 @@ class SwingTwistConstraint extends Constraint {
         );
     }
 
+    /**
+     * @returns {number} - Max twist angle angle.
+     */
     get twistMaxAngle() {
         return this._twistMaxAngle;
     }
 
+    /**
+     * Sets minimum twist angle. In radians.
+     *
+     * @param {number} angle - Min twist angle in radians.
+     */
     set twistMinAngle(angle) {
         if ($_DEBUG) {
             const ok = Debug.checkFloat(angle, `Invalid twist min angle scalar: ${angle}`);
@@ -197,14 +239,27 @@ class SwingTwistConstraint extends Constraint {
         );
     }
 
+    /**
+     * @returns {number} - Min twist angle.
+     * @defaultValue 0
+     */
     get twistMinAngle() {
         return this._twistMinAngle;
     }
 
+    /**
+     * @returns {import('./settings.mjs').MotorSettings | null} - Returns {@link MotorSettings |
+     * Motor Settings} or `null`, if a motor is not used.
+     */
     get twistMotorSettings() {
         return this._twistMotorSettings;
     }
 
+    /**
+     * Set the target orientation in constraint space.
+     *
+     * @param {import('playcanvas').Quat} rotation - Target orientation.
+     */
     setTargetOrientationCS(rotation) {
         this.system.addCommand(
             OPERATOR_MODIFIER, CMD_JNT_ST_SET_T_O_CS, this._index,
@@ -212,6 +267,11 @@ class SwingTwistConstraint extends Constraint {
         );
     }
 
+    /**
+     * Set the target orientation in body space. Refer to Jolt documentation for details.
+     *
+     * @param {import('playcanvas').Quat} rotation - Target orientation.
+     */
     setTargetOrientationBS(rotation) {
         this.system.addCommand(
             OPERATOR_MODIFIER, CMD_JNT_ST_SET_T_O_BS, this._index,
@@ -219,6 +279,11 @@ class SwingTwistConstraint extends Constraint {
         );
     }
 
+    /**
+     * Set the target angular velocity of body 2 in constraint space of body 2.
+     *
+     * @param {Vec3} velocity - Target angular velocity.
+     */
     setTargetAngularVelocityCS(velocity) {
         this.system.addCommand(
             OPERATOR_MODIFIER, CMD_JNT_ST_SET_T_ANG_VEL_CS, this._index,
@@ -226,6 +291,23 @@ class SwingTwistConstraint extends Constraint {
         );
     }
 
+    /**
+     * Changes the swing motor state, e.g. turn it on/off. Following aliases available:
+     * ```
+     * MOTOR_STATE_OFF
+     * ```
+     * ```
+     * MOTOR_STATE_VELOCITY
+     * ```
+     * ```
+     * MOTOR_STATE_POSITION
+     * ```
+     *
+     * - `MOTOR_STATE_POSITION`: Motor will drive to target position.
+     * - `MOTOR_STATE_VELOCITY`: Motor will drive to target velocity.
+     *
+     * @param {number} state - Enum alias, representing the state.
+     */
     setSwingMotorState(state) {
         if ($_DEBUG) {
             const ok = Debug.checkUint(state, `Invalid motor state scalar: ${state}`);
@@ -239,6 +321,11 @@ class SwingTwistConstraint extends Constraint {
         );
     }
 
+    /**
+     * Sets twist motor state. See {@link setSwingMotorState} for description.
+     *
+     * @param {number} state - Enum alias, representing the state.
+     */
     setTwistMotorState(state) {
         if ($_DEBUG) {
             const ok = Debug.checkUint(state, `Invalid motor state scalar: ${state}`);

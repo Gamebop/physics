@@ -59,7 +59,7 @@ class Motor {
  * @category Constraints
  */
 class Constraint {
-    static defaultMotor = new MotorSettings();
+    static defaultMotor = new Motor();
 
     static writeAxes(cb, axes, limits) {
         cb.write(!!axes, BUFFER_WRITE_BOOL, false);
@@ -122,7 +122,7 @@ class Constraint {
     _numPositionStepsOverride = 0;
 
     _space = CONSTRAINT_SPACE_WORLD;
-    
+
     constructor(entity1, entity2, opts = {}) {
         if ($_DEBUG) {
             let ok = Debug.assert(!!entity1 && !!entity1.body, 'Invalid entity1 when adding a constraint', entity1);
@@ -157,7 +157,10 @@ class Constraint {
         this._index = idx;
     }
 
-    /** @hidden */
+    /**
+     * @hidden
+     * @returns {number} - Constraint unique integer index.
+     */
     get index() {
         return this._index;
     }
@@ -206,7 +209,7 @@ class Constraint {
      * Override for the number of solver velocity iterations to run. If set to `0`, the constraint
      * will use global default set by Physics initialization setting (TODO add link).
      *
-     * @returns {number}
+     * @returns {number} - Velocity steps override.
      * @defaultValue 0
      */
     get numVelocityStepsOverride() {
@@ -217,7 +220,7 @@ class Constraint {
      * Override for the number of solver position iterations to run. If set to `0`, the constraint
      * will use global default set by Physics initialization setting (TODO add link).
      *
-     * @returns {number}
+     * @returns {number} - Positions steps override.
      * @defaultValue 0
      */
     get numPositionStepsOverride() {
@@ -234,12 +237,18 @@ class Constraint {
         return this._space;
     }
 
-    /** @hidden */
+    /**
+     * @hidden
+     * @returns {import('../system.mjs').ConstraintComponentSystem} - Constraint component system.
+     */
     get system() {
         return this._entity1.constraint.system;
     }
 
-    /** @hidden */
+    /**
+     * @hidden
+     * @returns {number} - Constraint type.
+     */
     get type() {
         return this._type;
     }
