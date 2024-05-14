@@ -3,7 +3,7 @@
  * callback function to be called, once we get the result from the physics backend.
  * Indices can be freed and re-used.
  *
- * @hidden
+ * @group Utilities
  */
 class IndexedCache {
     constructor() {

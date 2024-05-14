@@ -14,6 +14,14 @@ class PointConstraint extends Constraint {
         super(entity1, entity2, opts);
     }
 
+    /**
+     * @returns {number} - Constraint type alias number.
+     * @defaultValue CONSTRAINT_TYPE_POINT
+     */
+    get type() {
+        return this._type;
+    }
+
     write(cb) {
         super.write(cb);
 

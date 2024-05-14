@@ -1,4 +1,4 @@
-import { Constraint, SpringSettings } from './constraint.mjs';
+import { Constraint, Spring } from './constraint.mjs';
 import {
     BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT8,
     BUFFER_WRITE_VEC32, CMD_JNT_D_SET_DISTANCE, CMD_JNT_D_SET_SPRING_S,
@@ -28,10 +28,15 @@ class DistanceConstraint extends Constraint {
         this._maxDistance = opts.maxDistance ?? this._maxDistance;
 
         if (opts.limitsSpringSettings) {
-            this._limitsSpringSettings = new SpringSettings(opts.limitsSpringSettings);
+            this._limitsSpringSettings = new Spring(opts.limitsSpringSettings);
         }
     }
 
+    /**
+     * Modifies the spring properties after the constraint has been created.
+     *
+     * @param {import('./settings.mjs').SpringSettings} settings - Object, describing spring settings.
+     */
     set limitsSpringSettings(settings) {
         if ($_DEBUG) {
             const ok = Debug.checkSpringSettings(settings);
@@ -57,16 +62,45 @@ class DistanceConstraint extends Constraint {
         );
     }
 
+    /**
+     * @returns {import('./settings.mjs').SpringSettings | null} - Returns limits spring settings
+     * or `null` if spring is not used.
+     * @defaultValue null
+     */
     get limitsSpringSettings() {
         return this._limitsSpringSettings;
     }
 
+    /**
+     * Current minimum distance that constraint will try to keep bodies apart. If set to negative
+     * number, it uses initial distance between two bodies, when the joint was created.
+     * Only works when {@link space} is set to `CONSTRAINT_SPACE_WORLD`.
+     *
+     * @returns {number} - Minimum distance to keep bodies apart.
+     * @defaultValue -1
+     */
     get minDistance() {
         return this._minDistance;
     }
 
+    /**
+     * Current maximum distance that constraint will try to keep bodies apart. If set to negative
+     * number, it uses initial distance between two bodies, when the joint was created.
+     * Only works when {@link space} is set to `CONSTRAINT_SPACE_WORLD`.
+     *
+     * @returns {number} - Maximum distance to keep bodies apart.
+     * @defaultValue -1
+     */
     get maxDistance() {
         return this._maxDistance;
+    }
+
+    /**
+     * @returns {number} - Constraint type alias number.
+     * @defaultValue CONSTRAINT_TYPE_DISTANCE
+     */
+    get type() {
+        return this._type;
     }
 
     write(cb) {
@@ -80,6 +114,12 @@ class DistanceConstraint extends Constraint {
         Constraint.writeSpringSettings(cb, this._limitsSpringSettings);
     }
 
+    /**
+     * Changes the distance limits for the constraint. In meters.
+     *
+     * @param {number} min - Lower distance limit.
+     * @param {number} max - Upper distance limit.
+     */
     setDistance(min, max) {
         if ($_DEBUG) {
             let ok = Debug.checkFloat(min, `Invalid min distance for constraint: ${min}`);

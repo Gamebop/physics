@@ -1,6 +1,6 @@
 import { Vec3 } from 'playcanvas';
 import { Debug } from '../../../debug.mjs';
-import { Constraint, SpringSettings, MotorSettings } from './constraint.mjs';
+import { Constraint, Spring, Motor } from './constraint.mjs';
 import {
     BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT8,
     BUFFER_WRITE_VEC32, CMD_JNT_H_SET_LIMITS, CMD_JNT_H_SET_M_F_TORQUE,
@@ -49,30 +49,59 @@ class HingeConstraint extends Constraint {
         this._maxFrictionTorque = opts.maxFrictionTorque ?? this._maxFrictionTorque;
 
         if (opts.limitsSpringSettings) {
-            this._limitsSpringSettings = new SpringSettings(opts.limitsSpringSettings);
+            this._limitsSpringSettings = new Spring(opts.limitsSpringSettings);
         }
 
         if (opts.motorSettings) {
-            this._motorSettings = new MotorSettings(opts.motorSettings);
+            this._motorSettings = new Motor(opts.motorSettings);
         }
     }
 
+    /**
+     * Hinge axis 1.
+     *
+     * @returns {Vec3} - Vector with hinge axis 1.
+     * @defaultValue Vec3(0, 1, 0)
+     */
     get hingeAxis1() {
         return this._hingeAxis1;
     }
 
+    /**
+     * Hinge axis 1.
+     *
+     * @returns {Vec3} - Vector with hinge axis 2.
+     * @defaultValue Vec3(0, 1, 0)
+     */
     get hingeAxis2() {
         return this._hingeAxis2;
     }
 
+    /**
+     * Upper limit of the hinge angle.
+     *
+     * @returns {number} - Angle in radians.
+     * @defaultValue +Math.PI
+     */
     get limitsMax() {
         return this._limitsMax;
     }
 
+    /**
+     * Lower limit of the hinge angle.
+     *
+     * @returns {number} - Angle in radians.
+     * @defaultValue -Math.PI
+     */
     get limitsMin() {
         return this._limitsMin;
     }
 
+    /**
+     * Modifies the spring properties after the constraint has been created.
+     *
+     * @param {import('./settings.mjs').SpringSettings} settings - Object, describing spring settings.
+     */
     set limitsSpringSettings(settings) {
         if ($_DEBUG) {
             const ok = Debug.checkSpringSettings(settings);
@@ -98,10 +127,20 @@ class HingeConstraint extends Constraint {
         );
     }
 
+    /**
+     * @returns {import('./settings.mjs').SpringSettings | null} - If spring is used, returns
+     * current spring settings. Otherwise `null`.
+     * @defaultValue null
+     */
     get limitsSpringSettings() {
         return this._limitsSpringSettings;
     }
 
+    /**
+     * Modifies maximum friction force after the constraint has been created.
+     *
+     * @param {number} torque - Max friction force (N m).
+     */
     set maxFrictionTorque(torque) {
         if (this._maxFrictionTorque === torque) {
             return;
@@ -115,20 +154,51 @@ class HingeConstraint extends Constraint {
         );
     }
 
+    /**
+     * Returns the maximum amount of torque that is applied as friction when the constraint is not
+     * powered by a motor.
+     *
+     * @returns {number} - Max friction force (N m).
+     * @defaultValue 0
+     */
     get maxFrictionTorque() {
         return this._maxFrictionTorque;
     }
 
+    /**
+     * If a motor is used, returns the motor settings that were used when constraint was created.
+     * You cannot create a motor after the constraint has been created - you can only modify
+     * existing one.
+     *
+     * @returns {import('./settings.mjs').MotorSettings | null} - Returns motor settings or null,
+     * if motor is not used.
+     */
     get motorSettings() {
         return this._motorSettings;
     }
 
+    /**
+     * @returns {Vec3} Normal axis 1.
+     * @defaultValue Vec3(1, 0, 0)
+     */
     get normalAxis1() {
         return this._normalAxis1;
     }
 
+    /**
+     * @returns {Vec3} Normal axis 1.
+     * @defaultValue Vec3(1, 0, 0)
+     */
     get normalAxis2() {
         return this._normalAxis2;
+    }
+
+    /**
+     * @returns {number} - Constraint type alias number.
+     * @defaultValue CONSTRAINT_TYPE_HINGE
+     */
+    get type() {
+        return this._type;
     }
 
     write(cb) {
@@ -148,6 +218,23 @@ class HingeConstraint extends Constraint {
         Constraint.writeMotorSettings(cb, this._motorSettings);
     }
 
+    /**
+     * Changes the motor state, e.g. turn it on/off. Following aliases available:
+     * ```
+     * MOTOR_STATE_OFF
+     * ```
+     * ```
+     * MOTOR_STATE_VELOCITY
+     * ```
+     * ```
+     * MOTOR_STATE_POSITION
+     * ```
+     *
+     * - `MOTOR_STATE_POSITION`: Motor will drive to target position.
+     * - `MOTOR_STATE_VELOCITY`: Motor will drive to target velocity.
+     *
+     * @param {number} state - Enum alias, representing the state.
+     */
     setMotorState(state) {
         if ($_DEBUG) {
             const ok = Debug.checkUint(state, `Invalid motor state for constraint:`, state);
@@ -162,6 +249,12 @@ class HingeConstraint extends Constraint {
         );
     }
 
+    /**
+     * Sets motor's target angular velocity. The motor needs to be operating in velocity mode. See
+     * {@link setMotorState}.
+     *
+     * @param {number} velocity - Number, radians per second
+     */
     setTargetAngularVelocity(velocity) {
         if ($_DEBUG) {
             const ok = Debug.checkFloat(velocity, `Invalid target velocity for constraint:`, velocity);
@@ -176,6 +269,12 @@ class HingeConstraint extends Constraint {
         );
     }
 
+    /**
+     * Sets a target angle for the motor to drive to. The motor needs to be operating in position
+     * mode. See {@link setMotorState}.
+     *
+     * @param {number} angle - Number, radians
+     */
     setTargetAngle(angle) {
         if ($_DEBUG) {
             const ok = Debug.checkFloat(angle, `Invalid target radians for constraint:`, angle);
@@ -190,6 +289,12 @@ class HingeConstraint extends Constraint {
         );
     }
 
+    /**
+     * Update the rotation limits of the hinge after the constraint has been created.
+     *
+     * @param {number} min - Lower limit of the hinge angle.
+     * @param {number} max - Upper limit of the hinge angle.
+     */
     setLimits(min, max) {
         if ($_DEBUG) {
             let ok = Debug.checkFloat(min, `Invalid min scalar limit for constraint: ${min}`);

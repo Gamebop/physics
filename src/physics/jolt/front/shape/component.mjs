@@ -12,9 +12,6 @@ import {
  * This is a base component for other components. Most probably you don't need to use it directly,
  * but use a derived component instead.
  *
- * @see {@link BodyComponent | Body Component}
- * @see {@link SoftBodyComponent | SoftBody Component}
- *
  * @category Shape Component
  */
 class ShapeComponent extends Component {

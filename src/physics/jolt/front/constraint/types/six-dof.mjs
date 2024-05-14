@@ -1,6 +1,6 @@
 import { Vec3 } from 'playcanvas';
 import { Debug } from '../../../debug.mjs';
-import { Constraint, SpringSettings, MotorSettings } from './constraint.mjs';
+import { Constraint, Motor, Spring } from './constraint.mjs';
 import {
     BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT8,
     BUFFER_WRITE_VEC32, CMD_JNT_SDF_SET_M_F, CMD_JNT_SDF_SET_M_STATE,
@@ -96,30 +96,60 @@ class SixDOFConstraint extends Constraint {
         }
 
         if (opts.limitsSpringSettings) {
-            this._limitsSpringSettings = copySettings(SpringSettings, opts.limitsSpringSettings);
+            this._limitsSpringSettings = copySettings(Spring, opts.limitsSpringSettings);
         }
 
         if (opts.motorSettings) {
-            this._motorSettings = copySettings(MotorSettings, opts.motorSettings);
+            this._motorSettings = copySettings(Motor, opts.motorSettings);
         }
     }
 
+    /**
+     * @returns {Vec3} - X axis 1.
+     * @defaultValue Vec3(1, 0, 0)
+     */
     get axisX1() {
         return this._axisX1;
     }
 
+    /**
+     * @returns {Vec3} - X axis 2.
+     * @defaultValue Vec3(1, 0, 0)
+     */
     get axisX2() {
         return this._axisX2;
     }
 
+    /**
+     * @returns {Vec3} - Y axis 1.
+     * @defaultValue Vec3(0, 1, 0)
+     */
     get axisY1() {
         return this._axisY1;
     }
 
+    /**
+     * @returns {Vec3} - Y axis 1.
+     * @defaultValue Vec3(0, 1, 0)
+     */
     get axisY2() {
         return this._axisY2;
     }
 
+    /**
+     * @returns {number} - Constraint type alias number.
+     * @defaultValue CONSTRAINT_TYPE_SIX_DOF
+     */
+    get type() {
+        return this._type;
+    }
+
+    /**
+     * Modifies translation limits of the constraint after it was created. In meters.
+     *
+     * @param {number} min - Lower limit of the constraint.
+     * @param {number} max - Upper limit of the constraint.
+     */
     setTranslationLimits(min, max) {
         if ($_DEBUG) {
             let ok = Debug.checkVec(min, 'Invalid min vector for constraint limits', min);
@@ -136,6 +166,12 @@ class SixDOFConstraint extends Constraint {
         );
     }
 
+    /**
+     * Modifies rotation limits of the constraint after it was created. In radians.
+     *
+     * @param {number} min - Lower limit of the constraint.
+     * @param {number} max - Upper limit of the constraint.
+     */
     setRotationLimits(min, max) {
         if ($_DEBUG) {
             let ok = Debug.checkVec(min, 'Invalid min vector for constraint limits', min);
@@ -152,6 +188,21 @@ class SixDOFConstraint extends Constraint {
         );
     }
 
+    /**
+     * Modifies a spring of the constraint for the selected axis, after it was created.
+     * ```
+     * // axis
+     * [posX, posY, posZ, rotX, rotY, rotZ]
+     * ```
+     * @example
+     * ```
+     * // change the spring settings used on X axis of rotation
+     * constraint.setLimitsSpringSettings(3, springSettings);
+     * ```
+     *
+     * @param {number} axis - Axis number, zero-based.
+     * @param {import('./settings.mjs').SpringSettings} settings - Spring settings.
+     */
     setLimitsSpringSettings(axis, settings) {
         if ($_DEBUG) {
             let ok = Debug.checkUint(axis, `Invalid axis uint scalar: ${axis}`);
@@ -177,6 +228,15 @@ class SixDOFConstraint extends Constraint {
         );
     }
 
+    /**
+     * Modifies the max friction for selected axis (friction force for translation, friction torque
+     * for rotation).
+     *
+     * See {@link setLimitsSpringSettings} for example.
+     *
+     * @param {number} axis - Axis number, zero-based.
+     * @param {number} friction - Friction value.
+     */
     setMaxFriction(axis, friction) {
         if ($_DEBUG) {
             let ok = Debug.checkUint(axis, `Invalid axis uint scalar: ${axis}`);
@@ -193,6 +253,26 @@ class SixDOFConstraint extends Constraint {
         );
     }
 
+    /**
+     * Changes the motor state, e.g. turn it on/off. Following aliases available:
+     * ```
+     * MOTOR_STATE_OFF
+     * ```
+     * ```
+     * MOTOR_STATE_VELOCITY
+     * ```
+     * ```
+     * MOTOR_STATE_POSITION
+     * ```
+     *
+     * - `MOTOR_STATE_POSITION`: Motor will drive to target position.
+     * - `MOTOR_STATE_VELOCITY`: Motor will drive to target velocity.
+     *
+     * See {@link setLimitsSpringSettings} for example.
+     *
+     * @param {number} axis - Axis number, zero-based.
+     * @param {number} state - Enum alias, representing the state.
+     */
     setMotorState(axis, state) {
         if ($_DEBUG) {
             let ok = Debug.checkUint(axis, `Invalid axis uint scalar: ${axis}`);
@@ -209,6 +289,11 @@ class SixDOFConstraint extends Constraint {
         );
     }
 
+    /**
+     * Sets the target velocity for the constraint (constraint space).
+     *
+     * @param {Vec3} velocity - Target velocity.
+     */
     setTargetVelocityCS(velocity) {
         if ($_DEBUG) {
             const ok = Debug.checkVec(velocity, 'Invalid velocity vector:', velocity);
@@ -223,6 +308,11 @@ class SixDOFConstraint extends Constraint {
         );
     }
 
+    /**
+     * Sets the target angular velocity for the constraint (constraint space).
+     *
+     * @param {Vec3} velocity - Target velocity.
+     */
     setTargetAngularVelocityCS(velocity) {
         if ($_DEBUG) {
             const ok = Debug.checkVec(velocity, 'Invalid velocity vector:', velocity);
@@ -237,6 +327,11 @@ class SixDOFConstraint extends Constraint {
         );
     }
 
+    /**
+     * Sets the target position for the constraint (constraint space).
+     *
+     * @param {Vec3} position - Target position.
+     */
     setTargetPositionCS(position) {
         if ($_DEBUG) {
             const ok = Debug.checkVec(position, 'Invalid position vector:', position);
@@ -251,6 +346,11 @@ class SixDOFConstraint extends Constraint {
         );
     }
 
+    /**
+     * Sets the target orientation for the constraint (constraint space).
+     *
+     * @param {import('playcanvas').Quat} rotation - Target orientation.
+     */
     setTargetOrientationCS(rotation) {
         if ($_DEBUG) {
             const ok = Debug.checkQuat(rotation, 'Invalid rotation quaternion:', rotation);
@@ -265,6 +365,12 @@ class SixDOFConstraint extends Constraint {
         );
     }
 
+    /**
+     * Sets the target orientation for the constraint (body space). Refer to Jolt documentation
+     * for details.
+     *
+     * @param {import('playcanvas').Quat} rotation - Target orientation.
+     */
     setTargetOrientationBS(rotation) {
         if ($_DEBUG) {
             const ok = Debug.checkQuat(rotation, 'Invalid rotation quaternion:', rotation);
