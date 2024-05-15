@@ -46,12 +46,6 @@ class JoltManager extends PhysicsManager {
 
         super(app, config);
 
-        // TODO
-        // component systems will use Jolt constants, which
-        // are not available until webworker responds with them.
-        // TODO
-        // now that we moved to modules, this needs an update
-
         app.systems.add(new BodyComponentSystem(app, this, COMPONENT_SYSTEM_BODY));
         app.systems.add(new CharComponentSystem(app, this, COMPONENT_SYSTEM_CHAR));
         app.systems.add(new VehicleComponentSystem(app, this, COMPONENT_SYSTEM_VEHICLE));
@@ -123,7 +117,11 @@ class JoltManager extends PhysicsManager {
 
         super.onMessage(data);
 
-        if (data.constants) {
+        if (data.initDone) {
+            this._updateEvent = this._app.systems.on('postUpdate', this.onUpdate, this);
+            if ($_DEBUG) {
+                console.log('Physics Components:', $_VERSION);
+            }
             this._resolve();
         }
 
