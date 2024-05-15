@@ -2,13 +2,23 @@ import { Debug } from '../../debug.mjs';
 import { MotionState } from '../motion-state.mjs';
 import { createSpringSettings, createMotorSettings, setSixDOFAxes } from '../utils.mjs';
 import {
+    ALLOWED_DOFS_ALL,
+    ALLOWED_DOFS_PLANE_2D,
+    ALLOWED_DOFS_ROTATION_X,
+    ALLOWED_DOFS_ROTATION_Y,
+    ALLOWED_DOFS_ROTATION_Z,
+    ALLOWED_DOFS_TRANSLATION_X,
+    ALLOWED_DOFS_TRANSLATION_Y,
+    ALLOWED_DOFS_TRANSLATION_Z,
+    BFM_IGNORE_BACK_FACES,
     BUFFER_READ_BOOL, BUFFER_READ_FLOAT32, BUFFER_READ_INT32, BUFFER_READ_UINT16,
     BUFFER_READ_UINT32, BUFFER_READ_UINT8, CMD_CREATE_BODY, CMD_CREATE_CHAR, CMD_CREATE_CONSTRAINT,
     CMD_CREATE_GROUPS, CMD_CREATE_SHAPE, CMD_CREATE_SOFT_BODY, CMD_CREATE_VEHICLE,
     CONSTRAINT_SPACE_WORLD, CONSTRAINT_TYPE_CONE, CONSTRAINT_TYPE_DISTANCE, CONSTRAINT_TYPE_FIXED,
     CONSTRAINT_TYPE_HINGE, CONSTRAINT_TYPE_POINT, CONSTRAINT_TYPE_PULLEY, CONSTRAINT_TYPE_SIX_DOF,
-    CONSTRAINT_TYPE_SLIDER, CONSTRAINT_TYPE_SWING_TWIST, MOTION_TYPE_DYNAMIC, MOTION_TYPE_KINEMATIC, SHAPE_BOX, SHAPE_CAPSULE, SHAPE_CONVEX_HULL,
+    CONSTRAINT_TYPE_SLIDER, CONSTRAINT_TYPE_SWING_TWIST, MOTION_QUALITY_DISCRETE, MOTION_TYPE_DYNAMIC, MOTION_TYPE_KINEMATIC, OMP_CALCULATE_MASS_AND_INERTIA, OMP_MASS_AND_INERTIA_PROVIDED, SHAPE_BOX, SHAPE_CAPSULE, SHAPE_CONVEX_HULL,
     SHAPE_CYLINDER, SHAPE_HEIGHTFIELD, SHAPE_MESH, SHAPE_SPHERE, SHAPE_STATIC_COMPOUND,
+    TRANSMISSION_AUTO,
     VEHICLE_CAST_TYPE_CYLINDER, VEHICLE_CAST_TYPE_RAY, VEHICLE_CAST_TYPE_SPHERE,
     VEHICLE_TYPE_MOTORCYCLE, VEHICLE_TYPE_WHEEL
 } from '../../constants.mjs';
@@ -265,10 +275,44 @@ class Creator {
         bodyCreationSettings.mAngularDamping = cb.read(BUFFER_READ_FLOAT32);
         bodyCreationSettings.mGravityFactor = cb.read(BUFFER_READ_FLOAT32);
         bodyCreationSettings.mInertiaMultiplier = cb.read(BUFFER_READ_FLOAT32);
-        bodyCreationSettings.mAllowedDOFs = cb.read(BUFFER_READ_UINT8);
+
+        const allowedDOFs = cb.read(BUFFER_READ_UINT8);
+        let jaDOFs;
+        switch (allowedDOFs) {
+            case ALLOWED_DOFS_TRANSLATION_X:
+                jaDOFs = Jolt.EAllowedDOFs_TranslationX;
+                break;
+            case ALLOWED_DOFS_TRANSLATION_Y:
+                jaDOFs = Jolt.EAllowedDOFs_TranslationY;
+                break;
+            case ALLOWED_DOFS_TRANSLATION_Z:
+                jaDOFs = Jolt.EAllowedDOFs_TranslationZ;
+                break;
+            case ALLOWED_DOFS_ROTATION_X:
+                jaDOFs = Jolt.EAllowedDOFs_RotationX;
+                break;
+            case ALLOWED_DOFS_ROTATION_Y:
+                jaDOFs = Jolt.EAllowedDOFs_RotationY;
+                break;
+            case ALLOWED_DOFS_ROTATION_Z:
+                jaDOFs = Jolt.EAllowedDOFs_RotationZ;
+                break;
+            case ALLOWED_DOFS_PLANE_2D:
+                jaDOFs = Jolt.EAllowedDOFs_Plane2D;
+                break;
+            case ALLOWED_DOFS_ALL:
+                jaDOFs = Jolt.EAllowedDOFs_All;
+                break;
+        }
+
+        bodyCreationSettings.mAllowedDOFs = jaDOFs;
         bodyCreationSettings.mAllowDynamicOrKinematic = cb.read(BUFFER_READ_BOOL);
         bodyCreationSettings.mIsSensor = cb.read(BUFFER_READ_BOOL);
-        bodyCreationSettings.mMotionQuality = cb.read(BUFFER_READ_UINT8);
+
+        const motionQuality = cb.read(BUFFER_READ_UINT8);
+        bodyCreationSettings.mMotionQuality = motionQuality === MOTION_QUALITY_DISCRETE ?
+            Jolt.EMotionQuality_Discrete : Jolt.EMotionQuality_LinearCast;
+
         bodyCreationSettings.mAllowSleeping = cb.read(BUFFER_READ_BOOL);
 
         // collision group
@@ -296,8 +340,10 @@ class Creator {
 
         // override mass properties
         const selectedMethod = cb.read(BUFFER_READ_UINT8);
-        if (selectedMethod !== Jolt.EOverrideMassProperties_CalculateMassAndInertia) {
-            bodyCreationSettings.mOverrideMassProperties = selectedMethod;
+        if (selectedMethod !== OMP_CALCULATE_MASS_AND_INERTIA) {
+            bodyCreationSettings.mOverrideMassProperties = selectedMethod === OMP_MASS_AND_INERTIA_PROVIDED ?
+                Jolt.EOverrideMassProperties_MassAndInertiaProvided :
+                Jolt.EOverrideMassProperties_CalculateInertia;
 
             const mass = cb.read(BUFFER_READ_FLOAT32);
             if ($_DEBUG) {
@@ -308,7 +354,7 @@ class Creator {
             }
             bodyCreationSettings.mMassPropertiesOverride.mMass = mass;
 
-            if (selectedMethod === Jolt.EOverrideMassProperties_MassAndInertiaProvided) {
+            if (selectedMethod === OMP_MASS_AND_INERTIA_PROVIDED) {
                 jv.FromBuffer(cb);
                 jq.FromBuffer(cb);
 
@@ -533,7 +579,11 @@ class Creator {
 
             // transmission
             const transmission = controllerSettings.mTransmission;
-            transmission.mMode = cb.read(BUFFER_READ_UINT8);
+            const mode = cb.read(BUFFER_READ_UINT8);
+
+            transmission.mMode = mode === TRANSMISSION_AUTO ?
+                Jolt.ETransmissionMode_Auto : Jolt.ETransmissionMode_Manual;
+
             transmission.mSwitchTime = cb.read(BUFFER_READ_FLOAT32);
             transmission.mClutchReleaseTime = cb.read(BUFFER_READ_FLOAT32);
             transmission.mSwitchLatency = cb.read(BUFFER_READ_FLOAT32);
@@ -1257,7 +1307,11 @@ class Creator {
 
         jv.FromBuffer(cb);
         settings.mShapeOffset = jv;
-        settings.mBackFaceMode = cb.read(BUFFER_READ_UINT8);
+
+        const backFaceMode = cb.read(BUFFER_READ_UINT8);
+        settings.mBackFaceMode = backFaceMode === BFM_IGNORE_BACK_FACES ?
+            Jolt.EBackFaceMode_IgnoreBackFaces : Jolt.EBackFaceMode_CollideWithBackFaces;
+
         settings.mPredictiveContactDistance = cb.read(BUFFER_READ_FLOAT32);
         settings.mMaxCollisionIterations = cb.read(BUFFER_READ_UINT32);
         settings.mMaxConstraintIterations = cb.read(BUFFER_READ_UINT32);

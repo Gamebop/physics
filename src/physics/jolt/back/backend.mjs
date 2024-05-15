@@ -11,7 +11,7 @@ import { Tracker } from './operators/tracker.mjs';
 import {
     BP_LAYER_MOVING, BP_LAYER_NON_MOVING, BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_JOLTVEC32,
     BUFFER_WRITE_UINT32, BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32, CMD_REPORT_TRANSFORMS, COMPONENT_SYSTEM_BODY,
-    COMPONENT_SYSTEM_CHAR, COMPONENT_SYSTEM_SOFT_BODY, OBJ_LAYER_MOVING, OBJ_LAYER_NON_MOVING, OPERATOR_CLEANER,
+    COMPONENT_SYSTEM_CHAR, COMPONENT_SYSTEM_SOFT_BODY, GROUND_STATE_IN_AIR, GROUND_STATE_NOT_SUPPORTED, GROUND_STATE_ON_GROUND, GROUND_STATE_ON_STEEP_GROUND, OBJ_LAYER_MOVING, OBJ_LAYER_NON_MOVING, OPERATOR_CLEANER,
     OPERATOR_CREATOR, OPERATOR_MODIFIER, OPERATOR_QUERIER
 } from '../constants.mjs';
 
@@ -621,11 +621,27 @@ class JoltBackend {
             characters.forEach((char) => {
                 const index = tracker.getPCID(Jolt.getPointer(char));
                 const isSupported = char.IsSupported();
-                const state = char.GetGroundState();
+                const jState = char.GetGroundState();
                 const linVel = char.GetLinearVelocity();
                 const groundVelocity = char.GetGroundVelocity();
                 const groundNormal = char.GetGroundNormal();
                 const isTooSteep = char.IsSlopeTooSteep(groundNormal);
+
+                let state;
+                switch (jState) {
+                    case Jolt.EGroundState_OnGround:
+                        state = GROUND_STATE_ON_GROUND;
+                        break;
+                    case Jolt.EGroundState_OnSteepGround:
+                        state = GROUND_STATE_ON_STEEP_GROUND;
+                        break;
+                    case Jolt.EGroundState_NotSupported:
+                        state = GROUND_STATE_NOT_SUPPORTED;
+                        break;
+                    case Jolt.EGroundState_InAir:
+                        state = GROUND_STATE_IN_AIR;
+                        break;
+                }
 
                 cb.write(index, BUFFER_WRITE_UINT32, false);
 
