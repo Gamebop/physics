@@ -1,4 +1,3 @@
-// import joltInfo from 'jolt-physics/package.json';
 import { Debug } from '../debug.mjs';
 import { extendJoltMath } from '../math.mjs';
 import { CommandsBuffer } from './commands-buffer.mjs';
@@ -15,9 +14,6 @@ import {
     COMPONENT_SYSTEM_CHAR, COMPONENT_SYSTEM_SOFT_BODY, OBJ_LAYER_MOVING, OBJ_LAYER_NON_MOVING, OPERATOR_CLEANER,
     OPERATOR_CREATOR, OPERATOR_MODIFIER, OPERATOR_QUERIER
 } from '../constants.mjs';
-
-// TODO
-// const joltInfo = require("jolt-physics/package.json");
 
 class JoltBackend {
     constructor(messenger, data) {
@@ -221,46 +217,35 @@ class JoltBackend {
         this._cleaner = new Cleaner(this);
         this._querier = new Querier(this);
         this._tracker = new Tracker(Jolt);
-
-        if ($_DEBUG) {
-            this._drawer = new Drawer(Jolt);
-        }
-
-        const listener = new Listener(this);
-
-        if (config.contactEventsEnabled) {
-            listener.initEvents(config);
-        }
-
-        this._listener = listener;
-
+        this._listener = new Listener(this);
         this._outBuffer = new CommandsBuffer({ ...config, commandsBufferSize: 2000 });
-
         this._stepTime = 0;
         this._steps = 0;
-
-        // TODO
-        // remove softBodies default array
-        this._responseMessage = {
-            buffer: null,
-            inBuffer: null,
-            softBodies: [],
-            origin: 'physics-worker'
-        };
-
         this._inBuffer = null;
         this._fatalError = false;
 
+        if (config.contactEventsEnabled) {
+            this._listener.initEvents(config);
+        }
+
         if ($_DEBUG) {
+            this._drawer = new Drawer(Jolt);
             this._perfIndex = null;
         }
 
-        // TODO
-        // remove
-        this._exposeConstants();
+        this._responseMessage = {
+            buffer: null,
+            inBuffer: null,
+            origin: 'physics-worker'
+        };
+
+        this._dispatcher.respond({
+            origin: 'physics-worker',
+            initDone: true
+        }, null);
 
         if ($_DEBUG) {
-            // console.log('Jolt Physics:', joltInfo.version);
+            console.log('Jolt Physics:', $_JOLT_VERSION);
         }
     }
 
@@ -747,51 +732,6 @@ class JoltBackend {
         }
 
         return true;
-    }
-
-    _exposeConstants() {
-        const dispatcher = this._dispatcher;
-        const msg = this._responseMessage;
-
-        msg.constants = [
-            // 'JOLT_MOTION_TYPE_STATIC', Jolt.EMotionType_Static,
-            // 'JOLT_MOTION_TYPE_DYNAMIC', Jolt.EMotionType_Dynamic,
-            // 'JOLT_MOTION_TYPE_KINEMATIC', Jolt.EMotionType_Kinematic,
-
-            // 'JOLT_OMP_CALCULATE_INERTIA', Jolt.EOverrideMassProperties_CalculateInertia,
-            // 'JOLT_OMP_CALCULATE_MASS_AND_INERTIA', Jolt.EOverrideMassProperties_CalculateMassAndInertia,
-            // 'JOLT_OMP_MASS_AND_INERTIA_PROVIDED', Jolt.EOverrideMassProperties_MassAndInertiaProvided,
-
-            // 'JOLT_ALLOWED_DOFS_TRANSLATION_X', Jolt.EAllowedDOFs_TranslationX,
-            // 'JOLT_ALLOWED_DOFS_TRANSLATION_Y', Jolt.EAllowedDOFs_TranslationY,
-            // 'JOLT_ALLOWED_DOFS_TRANSLATION_Z', Jolt.EAllowedDOFs_TranslationZ,
-            // 'JOLT_ALLOWED_DOFS_ROTATION_X', Jolt.EAllowedDOFs_RotationX,
-            // 'JOLT_ALLOWED_DOFS_ROTATION_Y', Jolt.EAllowedDOFs_RotationY,
-            // 'JOLT_ALLOWED_DOFS_ROTATION_Z', Jolt.EAllowedDOFs_RotationZ,
-            // 'JOLT_ALLOWED_DOFS_PLANE_2D', Jolt.EAllowedDOFs_Plane2D,
-            // 'JOLT_ALLOWED_DOFS_ALL', Jolt.EAllowedDOFs_All,
-
-            // 'JOLT_MOTION_QUALITY_DISCRETE', Jolt.EMotionQuality_Discrete,
-            // 'JOLT_MOTION_QUALITY_LINEAR_CAST', Jolt.EMotionQuality_LinearCast,
-
-            // 'JOLT_BFM_IGNORE_BACK_FACES', Jolt.EBackFaceMode_IgnoreBackFaces,
-            // 'JOLT_BFM_COLLIDE_BACK_FACES', Jolt.EBackFaceMode_CollideWithBackFaces,
-
-            // 'JOLT_GROUND_STATE_ON_GROUND', Jolt.EGroundState_OnGround,
-            // 'JOLT_GROUND_STATE_ON_STEEP_GROUND', Jolt.EGroundState_OnSteepGround,
-            // 'JOLT_GROUND_STATE_NOT_SUPPORTED', Jolt.EGroundState_NotSupported,
-            // 'JOLT_GROUND_STATE_IN_AIR', Jolt.EGroundState_InAir,
-
-            // 'JOLT_TRANSMISSION_AUTO', Jolt.ETransmissionMode_Auto,
-            // 'JOLT_TRANSMISSION_MANUAL', Jolt.ETransmissionMode_Manual,
-
-            // 'JOLT_SPRING_MODE_FREQUENCY', Jolt.ESpringMode_FrequencyAndDamping,
-            // 'JOLT_SPRING_MODE_STIFFNESS', Jolt.ESpringMode_StiffnessAndDamping,
-        ];
-
-        dispatcher.respond(msg, null);
-
-        msg.constants = null;
     }
 
     _writeRigidBodiesIsometry(count, system, cb) {
