@@ -51,7 +51,6 @@ const jscOptsDev = {
     }
 };
 
-
 export default (args) => {
     const isDev = args.config_dev;
     const file = isDev ? 'dist/physics.dbg.mjs' : 'dist/physics.min.mjs';

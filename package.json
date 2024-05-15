@@ -41,7 +41,9 @@
         },
         "globals": {
             "Jolt": "readonly",
-            "$_DEBUG": "readonly"
+            "$_DEBUG": "readonly",
+            "$_VERSION": "readonly",
+            "$_JOLT_VERSION": "readonly"
         }
     },
     "files": [

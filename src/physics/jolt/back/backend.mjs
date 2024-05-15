@@ -237,7 +237,7 @@ class JoltBackend {
             buffer: null,
             inBuffer: null,
             origin: 'physics-worker'
-        };        
+        };
 
         this._dispatcher.respond({
             origin: 'physics-worker',
