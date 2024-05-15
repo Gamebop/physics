@@ -141,20 +141,6 @@ class PhysicsManager {
 
         this._steps = msg.steps ?? 0;
 
-        // TODO
-        // handle properly when we are in a module, e.g. engine only
-        const constants = msg.constants;
-        if (constants) {
-            for (let i = 0, end = constants.length; i < end; i += 2) {
-                const key = constants[i];
-                const value = constants[i + 1];
-
-                window.pc[key] = value;
-            }
-
-            this._updateEvent = this._app.systems.on('postUpdate', this.onUpdate, this);
-        }
-
         if ($_DEBUG) {
             const perfIndex = msg.perfIndex;
 
