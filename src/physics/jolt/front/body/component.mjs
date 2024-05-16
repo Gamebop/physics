@@ -5,7 +5,7 @@ import {
     ALLOWED_DOFS_ALL, BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT32,
     BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32, CMD_ADD_FORCE, CMD_ADD_IMPULSE, CMD_APPLY_BUOYANCY_IMPULSE,
     CMD_DESTROY_BODY, CMD_MOVE_BODY, CMD_MOVE_KINEMATIC, CMD_RESET_VELOCITIES, CMD_SET_ANG_VEL,
-    CMD_SET_LIN_VEL, CMD_SET_MOTION_TYPE, CMD_USE_MOTION_STATE, MOTION_QUALITY_DISCRETE, MOTION_TYPE_DYNAMIC,
+    CMD_SET_LIN_VEL, CMD_SET_MOTION_TYPE, CMD_SET_OBJ_LAYER, CMD_USE_MOTION_STATE, MOTION_QUALITY_DISCRETE, MOTION_TYPE_DYNAMIC,
     MOTION_TYPE_KINEMATIC, MOTION_TYPE_STATIC, OBJ_LAYER_NON_MOVING, OMP_CALCULATE_MASS_AND_INERTIA,
     OMP_MASS_AND_INERTIA_PROVIDED, OPERATOR_CLEANER, OPERATOR_MODIFIER,
     SHAPE_CONVEX_HULL, SHAPE_HEIGHTFIELD, SHAPE_MESH
@@ -351,14 +351,41 @@ class BodyComponent extends ShapeComponent {
     }
 
     /**
-     * The collision layer this body belongs to (determines if two objects can collide). Allows
-     * cheap filtering. Following aliases available:
+     * Changes the object layer that this body belongs to. Allows cheap filtering. Following
+     * default aliases available:
      * ```
      * OBJ_LAYER_NON_MOVING
      * ```
      * ```
      * OBJ_LAYER_MOVING
      * ```
+     * Where:
+     * - `OBJ_LAYER_NON_MOVING` = 0
+     * - `OBJ_LAYER_MOVING` = 1
+     *
+     * @param {number} layerNumber - Layer number.
+     */
+    set objectLayer(layerNumber) {
+        if (this._objectLayer === layerNumber) {
+            return;
+        }
+
+        if ($_DEBUG) {
+            const ok = Debug.checkInt(layerNumber, `Invalid layer number: ${layerNumber}`);
+            if (!ok) {
+                return;
+            }
+        }
+
+        this._objectLayer = layerNumber;
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_SET_OBJ_LAYER, this._index,
+            layerNumber, BUFFER_WRITE_UINT32, false
+        );
+    }
+
+    /**
+     * The collision layer this body belongs to (determines if two objects can collide).
      *
      * @returns {number} Number, representing the object layer this body belongs to.
      * @defaultValue OBJ_LAYER_NON_MOVING
