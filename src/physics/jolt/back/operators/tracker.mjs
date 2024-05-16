@@ -91,7 +91,7 @@ class Tracker {
     }
 
     update(body, index) {
-        this.remove(body);
+        this.stopTrackingBody(body);
         this.add(body, index);
     }
 
