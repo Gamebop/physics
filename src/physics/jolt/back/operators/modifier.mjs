@@ -8,7 +8,9 @@ import {
     CMD_CHAR_SET_LIN_VEL, CMD_CHAR_SET_SHAPE, CMD_MOVE_BODY, CMD_MOVE_KINEMATIC, CMD_PAIR_BODY,
     CMD_REPORT_SET_SHAPE, CMD_RESET_VELOCITIES, CMD_SET_ANG_VEL, CMD_SET_DRIVER_INPUT, CMD_SET_LIN_VEL,
     CMD_SET_MOTION_TYPE, CMD_SET_OBJ_LAYER, CMD_SET_USER_DATA, CMD_TOGGLE_GROUP_PAIR, CMD_USE_MOTION_STATE,
-    COMPONENT_SYSTEM_CHAR
+    COMPONENT_SYSTEM_CHAR,
+    MOTION_TYPE_DYNAMIC,
+    MOTION_TYPE_KINEMATIC
 } from '../../constants.mjs';
 
 class Modifier {
@@ -524,8 +526,15 @@ class Modifier {
         const body = tracker.getBodyByPCID(index);
         const type = cb.read(BUFFER_READ_UINT8);
 
+        let jType = Jolt.EMotionType_Static;
+        if (type === MOTION_TYPE_DYNAMIC) {
+            jType = Jolt.EMotionType_Dynamic;
+        } else if (type === MOTION_TYPE_KINEMATIC) {
+            jType = Jolt.EMotionType_Kinematic;
+        }
+
         try {
-            bodyInterface.SetMotionType(body.GetID(), type, Jolt.Activate);
+            bodyInterface.SetMotionType(body.GetID(), jType, Jolt.EActivation_Activate);
             tracker.update(body, index);
         } catch (e) {
             if ($_DEBUG) {
