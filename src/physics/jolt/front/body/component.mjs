@@ -5,6 +5,7 @@ import {
     ALLOWED_DOFS_ALL, BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT32,
     BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32, CMD_ADD_FORCE, CMD_ADD_IMPULSE, CMD_APPLY_BUOYANCY_IMPULSE,
     CMD_DESTROY_BODY, CMD_MOVE_BODY, CMD_MOVE_KINEMATIC, CMD_RESET_VELOCITIES, CMD_SET_ANG_VEL,
+    CMD_SET_GRAVITY_FACTOR,
     CMD_SET_LIN_VEL, CMD_SET_MOTION_TYPE, CMD_SET_OBJ_LAYER, CMD_USE_MOTION_STATE, MOTION_QUALITY_DISCRETE, MOTION_TYPE_DYNAMIC,
     MOTION_TYPE_KINEMATIC, MOTION_TYPE_STATIC, OBJ_LAYER_NON_MOVING, OMP_CALCULATE_MASS_AND_INERTIA,
     OMP_MASS_AND_INERTIA_PROVIDED, OPERATOR_CLEANER, OPERATOR_MODIFIER,
@@ -199,6 +200,30 @@ class BodyComponent extends ShapeComponent {
      */
     get friction() {
         return this._friction;
+    }
+
+    /**
+     * Changes the gravity factor of a body.
+     *
+     * @param {number} factor - Gravity factor to multiply.
+     */
+    set gravityFactor(factor) {
+        if (this._gravityFactor === factor) {
+            return;
+        }
+
+        if ($_DEBUG) {
+            const ok = Debug.checkFloat(factor, `Invalid gravity factor: ${factor}`);
+            if (!ok) {
+                return;
+            }
+        }
+
+        this._gravityFactor = factor;
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_SET_GRAVITY_FACTOR, this._index,
+            factor, BUFFER_WRITE_FLOAT32, false
+        );
     }
 
     /**
