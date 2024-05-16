@@ -162,6 +162,8 @@ export const CMD_REPORT_TRANSFORMS = 31;
 export const CMD_REPORT_CONTACTS = 32;
 export const CMD_REPORT_SET_SHAPE = 33;
 
+export const CMD_SET_OBJ_LAYER = 34;
+
 // Constraints 500+
 
 export const CMD_JNT_SET_ENABLED = 500;

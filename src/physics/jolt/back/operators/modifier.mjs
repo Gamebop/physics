@@ -7,7 +7,7 @@ import {
     CMD_ADD_IMPULSE, CMD_ADD_TORQUE, CMD_APPLY_BUOYANCY_IMPULSE, CMD_CHANGE_GRAVITY,
     CMD_CHAR_SET_LIN_VEL, CMD_CHAR_SET_SHAPE, CMD_MOVE_BODY, CMD_MOVE_KINEMATIC, CMD_PAIR_BODY,
     CMD_REPORT_SET_SHAPE, CMD_RESET_VELOCITIES, CMD_SET_ANG_VEL, CMD_SET_DRIVER_INPUT, CMD_SET_LIN_VEL,
-    CMD_SET_MOTION_TYPE, CMD_SET_USER_DATA, CMD_TOGGLE_GROUP_PAIR, CMD_USE_MOTION_STATE,
+    CMD_SET_MOTION_TYPE, CMD_SET_OBJ_LAYER, CMD_SET_USER_DATA, CMD_TOGGLE_GROUP_PAIR, CMD_USE_MOTION_STATE,
     COMPONENT_SYSTEM_CHAR
 } from '../../constants.mjs';
 
@@ -107,6 +107,10 @@ class Modifier {
 
             case CMD_SET_MOTION_TYPE:
                 ok = this._setMotionType(cb);
+                break;
+
+            case CMD_SET_OBJ_LAYER:
+                ok = this._setObjectLayer(cb);
                 break;
 
             case CMD_TOGGLE_GROUP_PAIR:
@@ -516,20 +520,31 @@ class Modifier {
         const Jolt = backend.Jolt;
         const tracker = backend.tracker;
         const bodyInterface = backend.bodyInterface;
-        const index = cb.read(BUFFER_READ_UINT16);
+        const index = cb.read(BUFFER_READ_UINT32);
         const body = tracker.getBodyByPCID(index);
         const type = cb.read(BUFFER_READ_UINT8);
-
-        if ($_DEBUG) {
-            const ok = Debug.checkUint(type);
-            if (!ok) {
-                return false;
-            }
-        }
 
         try {
             bodyInterface.SetMotionType(body.GetID(), type, Jolt.Activate);
             tracker.update(body, index);
+        } catch (e) {
+            if ($_DEBUG) {
+                Debug.error(e);
+            }
+            return false;
+        }
+
+        return true;
+    }
+
+    _setObjectLayer(cb) {
+        const backend = this._backend;
+        const index = cb.read(BUFFER_READ_UINT32);
+        const body = backend.tracker.getBodyByPCID(index);
+        const layer = cb.read(BUFFER_READ_UINT32);
+
+        try {
+            backend.bodyInterface.SetObjectLayer(body.GetID(), layer);
         } catch (e) {
             if ($_DEBUG) {
                 Debug.error(e);
