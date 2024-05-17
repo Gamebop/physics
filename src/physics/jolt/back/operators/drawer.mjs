@@ -1,4 +1,4 @@
-import { FLOAT32_SIZE } from '../../constants.mjs';
+import { FLOAT32_SIZE, MOTION_TYPE_DYNAMIC, MOTION_TYPE_KINEMATIC, MOTION_TYPE_STATIC } from '../../constants.mjs';
 import { Debug } from '../../debug.mjs';
 
 class Drawer {
@@ -65,10 +65,17 @@ class Drawer {
         const Jolt = this._Jolt;
 
         try {
-            const motionType = body.isCharacter ? Jolt.EMotionType_Kinematic : body.GetMotionType();
+            const jmt = body.isCharacter ? Jolt.EMotionType_Kinematic : body.GetMotionType();
             const isRigidBody = body.isCharacter ? true : (body.GetBodyType() === Jolt.EBodyType_RigidBody);
             const pos = body.GetPosition();
             const rot = body.GetRotation();
+
+            let motionType = MOTION_TYPE_STATIC;
+            if (jmt === Jolt.EMotionType_Kinematic) {
+                motionType = MOTION_TYPE_KINEMATIC;
+            } else if (jmt === Jolt.EMotionType_Dynamic) {
+                motionType = MOTION_TYPE_DYNAMIC;
+            }
 
             const data = body.debugDrawData;
             if (data) {

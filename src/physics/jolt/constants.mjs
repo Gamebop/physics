@@ -164,6 +164,7 @@ export const CMD_REPORT_SET_SHAPE = 33;
 
 export const CMD_SET_OBJ_LAYER = 34;
 export const CMD_SET_GRAVITY_FACTOR = 35;
+export const CMD_SET_DOF = 36;
 
 // Constraints 500+
 

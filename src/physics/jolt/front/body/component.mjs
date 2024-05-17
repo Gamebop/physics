@@ -3,13 +3,13 @@ import { Debug } from '../../debug.mjs';
 import { ShapeComponent } from '../shape/component.mjs';
 import {
     ALLOWED_DOFS_ALL, BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT32,
-    BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32, CMD_ADD_FORCE, CMD_ADD_IMPULSE, CMD_APPLY_BUOYANCY_IMPULSE,
-    CMD_DESTROY_BODY, CMD_MOVE_BODY, CMD_MOVE_KINEMATIC, CMD_RESET_VELOCITIES, CMD_SET_ANG_VEL,
-    CMD_SET_GRAVITY_FACTOR,
-    CMD_SET_LIN_VEL, CMD_SET_MOTION_TYPE, CMD_SET_OBJ_LAYER, CMD_USE_MOTION_STATE, MOTION_QUALITY_DISCRETE, MOTION_TYPE_DYNAMIC,
-    MOTION_TYPE_KINEMATIC, MOTION_TYPE_STATIC, OBJ_LAYER_NON_MOVING, OMP_CALCULATE_MASS_AND_INERTIA,
-    OMP_MASS_AND_INERTIA_PROVIDED, OPERATOR_CLEANER, OPERATOR_MODIFIER,
-    SHAPE_CONVEX_HULL, SHAPE_HEIGHTFIELD, SHAPE_MESH
+    BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32, CMD_ADD_FORCE, CMD_ADD_IMPULSE,
+    CMD_APPLY_BUOYANCY_IMPULSE, CMD_DESTROY_BODY, CMD_MOVE_BODY, CMD_MOVE_KINEMATIC,
+    CMD_RESET_VELOCITIES, CMD_SET_ANG_VEL, CMD_SET_DOF, CMD_SET_GRAVITY_FACTOR, CMD_SET_LIN_VEL,
+    CMD_SET_MOTION_TYPE, CMD_SET_OBJ_LAYER, CMD_USE_MOTION_STATE, MOTION_QUALITY_DISCRETE,
+    MOTION_TYPE_DYNAMIC, MOTION_TYPE_KINEMATIC, MOTION_TYPE_STATIC, OBJ_LAYER_NON_MOVING,
+    OMP_CALCULATE_MASS_AND_INERTIA, OMP_MASS_AND_INERTIA_PROVIDED, OPERATOR_CLEANER,
+    OPERATOR_MODIFIER, SHAPE_CONVEX_HULL, SHAPE_HEIGHTFIELD, SHAPE_MESH
 } from '../../constants.mjs';
 
 const vec3 = new Vec3();
@@ -88,8 +88,7 @@ class BodyComponent extends ShapeComponent {
     }
 
     /**
-     * Which degrees of freedom this body has (can be used to limit simulation to 2D).
-     * You can use following enum aliases:
+     * Changes the allowed degrees of freedom. You can use following enum aliases:
      * ```
      * ALLOWED_DOFS_TRANSLATION_X
      * ```
@@ -114,6 +113,32 @@ class BodyComponent extends ShapeComponent {
      * ```
      * ALLOWED_DOFS_ALL
      * ```
+     *
+     * `ALLOWED_DOFS_PLANE_2D` will restrict body to `X` and `Y` axis.
+     *
+     * @param {number} degree - Enum number, representing a degree of freedom.
+     */
+    set allowedDOFs(degree) {
+        if (this._allowedDOFs === degree) {
+            return;
+        }
+
+        if ($_DEBUG) {
+            const ok = Debug.checkInt(degree, `Invalid degree of freedom: ${degree}`);
+            if (!ok) {
+                return;
+            }
+        }
+
+        this._allowedDOFs = degree;
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_SET_DOF, this._index,
+            degree, BUFFER_WRITE_UINT8, false
+        );
+    }
+
+    /**
+     * Which degrees of freedom this body has (can be used to limit simulation to 2D).
      * For example, using `ALLOWED_DOFS_TRANSLATION_X` allows a body to move in world space X axis.
      *
      * @returns {number} Enum number, representing the degrees of freedom.
@@ -590,7 +615,7 @@ class BodyComponent extends ShapeComponent {
 
         vec3.copy(offset);
 
-        if (!vec3.equals(Vec3.ZERO) && isOffsetLocal) {
+        if (isOffsetLocal) {
             this._localToWorld(vec3);
         }
 
@@ -627,7 +652,7 @@ class BodyComponent extends ShapeComponent {
 
         vec3.set(offsetX, offsetY, offsetZ);
 
-        if (offsetX !== 0 || offsetY !== 0 || offsetZ !== 0 && isOffsetLocal) {
+        if (isOffsetLocal) {
             this._localToWorld(vec3);
         }
 
@@ -658,7 +683,7 @@ class BodyComponent extends ShapeComponent {
 
         vec3.copy(offset);
 
-        if (!vec3.equals(Vec3.ZERO) && isOffsetLocal) {
+        if (isOffsetLocal) {
             this._localToWorld(vec3);
         }
 
@@ -695,7 +720,7 @@ class BodyComponent extends ShapeComponent {
 
         vec3.set(offsetX, offsetY, offsetZ);
 
-        if (offsetX !== 0 || offsetY !== 0 || offsetZ !== 0 && isOffsetLocal) {
+        if (isOffsetLocal) {
             this._localToWorld(vec3);
         }
 
