@@ -231,6 +231,12 @@ class PhysicsManager {
             msg.meshBuffers = null;
         }
 
+        // Must reset before we post message to backend. This is because when executing on main
+        // thread, the postMessage will synchronously step the physics, and possibly execute
+        // user and contact callbacks. If user uses these callbacks to issue new commands to the
+        // backend, they will be ignored, if we reset the commands buffer right after.
+        cb.reset();
+
         if (useSAB) {
             this._dispatcher.postMessage(msg);
         } else {
@@ -244,7 +250,6 @@ class PhysicsManager {
         }
 
         cb.meshBuffers.length = 0;
-        cb.reset();
     }
 
     _createDispatcher(config) {

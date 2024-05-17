@@ -345,9 +345,14 @@ class BodyComponent extends ShapeComponent {
      * @param {number} type - Number, representing motion quality enum.
      */
     set motionType(type) {
+        if (this._motionType === type) {
+            return;
+        }
+
         if ($_DEBUG) {
             Debug.checkUint(type, `Invalid motion type: ${type}`);
         }
+
         this._motionType = type;
         this.system.addCommand(
             OPERATOR_MODIFIER, CMD_SET_MOTION_TYPE, this._index,
@@ -592,7 +597,7 @@ class BodyComponent extends ShapeComponent {
         this.system.addCommand(
             OPERATOR_MODIFIER, CMD_ADD_FORCE, this._index,
             force, BUFFER_WRITE_VEC32, false,
-            vec3, BUFFER_WRITE_VEC32, false
+            vec3, BUFFER_WRITE_VEC32, true
         );
     }
 
@@ -631,7 +636,7 @@ class BodyComponent extends ShapeComponent {
             forceX, BUFFER_WRITE_FLOAT32, false,
             forceY, BUFFER_WRITE_FLOAT32, false,
             forceZ, BUFFER_WRITE_FLOAT32, false,
-            vec3, BUFFER_WRITE_VEC32, false
+            vec3, BUFFER_WRITE_VEC32, true
         );
     }
 
@@ -660,7 +665,7 @@ class BodyComponent extends ShapeComponent {
         this.system.addCommand(
             OPERATOR_MODIFIER, CMD_ADD_IMPULSE, this._index,
             impulse, BUFFER_WRITE_VEC32, false,
-            vec3, BUFFER_WRITE_VEC32, false
+            vec3, BUFFER_WRITE_VEC32, true
         );
     }
 
@@ -699,7 +704,7 @@ class BodyComponent extends ShapeComponent {
             impulseX, BUFFER_WRITE_FLOAT32, false,
             impulseY, BUFFER_WRITE_FLOAT32, false,
             impulseZ, BUFFER_WRITE_FLOAT32, false,
-            vec3, BUFFER_WRITE_VEC32, false
+            vec3, BUFFER_WRITE_VEC32, true
         );
     }
 

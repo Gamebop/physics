@@ -366,7 +366,7 @@ class Creator {
 
         const bodyInterface = backend.bodyInterface;
         const body = bodyInterface.CreateBody(bodyCreationSettings);
-        bodyInterface.AddBody(body.GetID(), Jolt.Activate);
+        bodyInterface.AddBody(body.GetID(), Jolt.EActivation_Activate);
 
         if ($_DEBUG) {
             this._addDebugDraw(cb.read(BUFFER_READ_BOOL), body);
@@ -459,7 +459,7 @@ class Creator {
 
         const bodyInterface = backend.bodyInterface;
         const body = bodyInterface.CreateSoftBody(bodyCreationSettings);
-        bodyInterface.AddBody(body.GetID(), Jolt.Activate);
+        bodyInterface.AddBody(body.GetID(), Jolt.EActivation_Activate);
 
         if ($_DEBUG) {
             this._addDebugDraw(cb.read(BUFFER_READ_BOOL), body);
