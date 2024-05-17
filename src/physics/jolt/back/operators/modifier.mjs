@@ -389,12 +389,12 @@ class Modifier {
             if ($_DEBUG) {
                 const type = body.GetMotionType();
                 if (type === Jolt.EMotionType_Dynamic || type === Jolt.EMotionType_Kinematic) {
-                    backend.bodyInterface.SetPositionAndRotation(body.GetID(), jv, jq, Jolt.Activate);
+                    backend.bodyInterface.SetPositionAndRotation(body.GetID(), jv, jq, Jolt.EActivation_Activate);
                 } else {
                     Debug.warnOnce('Trying to move a static body.');
                 }
             } else {
-                backend.bodyInterface.SetPositionAndRotation(body.GetID(), jv, jq, Jolt.Activate);
+                backend.bodyInterface.SetPositionAndRotation(body.GetID(), jv, jq, Jolt.EActivation_Activate);
             }
         } catch (e) {
             if ($_DEBUG) {

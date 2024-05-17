@@ -549,6 +549,9 @@ class JoltBackend {
 
         for (let i = 0; i < count; i++) {
             const operator = cb.readOperator();
+            if (!ok) {
+                return false;
+            }
 
             switch (operator) {
                 case OPERATOR_CREATOR:
