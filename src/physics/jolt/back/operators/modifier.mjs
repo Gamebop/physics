@@ -2,15 +2,16 @@ import { Debug } from '../../debug.mjs';
 import { MotionState } from '../motion-state.mjs';
 import { ConstraintModifier } from './helpers/constraint-modifier.mjs';
 import {
-    BUFFER_READ_BOOL, BUFFER_READ_FLOAT32, BUFFER_READ_UINT16, BUFFER_READ_UINT32,
-    BUFFER_READ_UINT8, BUFFER_WRITE_UINT32, CMD_ADD_ANGULAR_IMPULSE, CMD_ADD_FORCE,
-    CMD_ADD_IMPULSE, CMD_ADD_TORQUE, CMD_APPLY_BUOYANCY_IMPULSE, CMD_CHANGE_GRAVITY,
+    ALLOWED_DOFS_ALL, ALLOWED_DOFS_PLANE_2D, ALLOWED_DOFS_ROTATION_X, ALLOWED_DOFS_ROTATION_Y,
+    ALLOWED_DOFS_ROTATION_Z, ALLOWED_DOFS_TRANSLATION_X, ALLOWED_DOFS_TRANSLATION_Y,
+    ALLOWED_DOFS_TRANSLATION_Z, BUFFER_READ_BOOL, BUFFER_READ_FLOAT32, BUFFER_READ_UINT16,
+    BUFFER_READ_UINT32, BUFFER_READ_UINT8, BUFFER_WRITE_UINT32, CMD_ADD_ANGULAR_IMPULSE,
+    CMD_ADD_FORCE, CMD_ADD_IMPULSE, CMD_ADD_TORQUE, CMD_APPLY_BUOYANCY_IMPULSE, CMD_CHANGE_GRAVITY,
     CMD_CHAR_SET_LIN_VEL, CMD_CHAR_SET_SHAPE, CMD_MOVE_BODY, CMD_MOVE_KINEMATIC, CMD_PAIR_BODY,
-    CMD_REPORT_SET_SHAPE, CMD_RESET_VELOCITIES, CMD_SET_ANG_VEL, CMD_SET_DRIVER_INPUT, CMD_SET_GRAVITY_FACTOR, CMD_SET_LIN_VEL,
-    CMD_SET_MOTION_TYPE, CMD_SET_OBJ_LAYER, CMD_SET_USER_DATA, CMD_TOGGLE_GROUP_PAIR, CMD_USE_MOTION_STATE,
-    COMPONENT_SYSTEM_CHAR,
-    MOTION_TYPE_DYNAMIC,
-    MOTION_TYPE_KINEMATIC
+    CMD_REPORT_SET_SHAPE, CMD_RESET_VELOCITIES, CMD_SET_ANG_VEL, CMD_SET_DOF, CMD_SET_DRIVER_INPUT,
+    CMD_SET_GRAVITY_FACTOR, CMD_SET_LIN_VEL, CMD_SET_MOTION_TYPE, CMD_SET_OBJ_LAYER,
+    CMD_SET_USER_DATA, CMD_TOGGLE_GROUP_PAIR, CMD_USE_MOTION_STATE, COMPONENT_SYSTEM_CHAR,
+    MOTION_TYPE_DYNAMIC, MOTION_TYPE_KINEMATIC
 } from '../../constants.mjs';
 
 class Modifier {
@@ -137,6 +138,10 @@ class Modifier {
 
             case CMD_SET_GRAVITY_FACTOR:
                 ok = this._setGravityFactor(cb);
+                break;
+
+            case CMD_SET_DOF:
+                ok = this._setDOF(cb);
                 break;
         }
 
@@ -576,6 +581,55 @@ class Modifier {
 
         try {
             backend.bodyInterface.SetGravityFactor(body.GetID(), factor);
+        } catch (e) {
+            if ($_DEBUG) {
+                Debug.error(e);
+            }
+            return false;
+        }
+
+        return true;
+    }
+
+    _setDOF(cb) {
+        const backend = this._backend;
+        const Jolt = backend.Jolt;
+        const index = cb.read(BUFFER_READ_UINT32);
+        const body = backend.tracker.getBodyByPCID(index);
+        const allowedDOFs = cb.read(BUFFER_READ_UINT8);
+
+        let jaDOFs;
+        switch (allowedDOFs) {
+            case ALLOWED_DOFS_TRANSLATION_X:
+                jaDOFs = Jolt.EAllowedDOFs_TranslationX;
+                break;
+            case ALLOWED_DOFS_TRANSLATION_Y:
+                jaDOFs = Jolt.EAllowedDOFs_TranslationY;
+                break;
+            case ALLOWED_DOFS_TRANSLATION_Z:
+                jaDOFs = Jolt.EAllowedDOFs_TranslationZ;
+                break;
+            case ALLOWED_DOFS_ROTATION_X:
+                jaDOFs = Jolt.EAllowedDOFs_RotationX;
+                break;
+            case ALLOWED_DOFS_ROTATION_Y:
+                jaDOFs = Jolt.EAllowedDOFs_RotationY;
+                break;
+            case ALLOWED_DOFS_ROTATION_Z:
+                jaDOFs = Jolt.EAllowedDOFs_RotationZ;
+                break;
+            case ALLOWED_DOFS_PLANE_2D:
+                jaDOFs = Jolt.EAllowedDOFs_Plane2D;
+                break;
+            case ALLOWED_DOFS_ALL:
+                jaDOFs = Jolt.EAllowedDOFs_All;
+                break;
+        }
+
+        try {
+            const motionProperties = body.GetMotionProperties();
+            const massProperties = body.GetBodyCreationSettings().GetMassProperties();
+            motionProperties.SetMassProperties(jaDOFs, massProperties);
         } catch (e) {
             if ($_DEBUG) {
                 Debug.error(e);
