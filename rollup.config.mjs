@@ -73,6 +73,7 @@ export default (args) => {
             format: 'es',
             sourcemap: isDev ? 'inline' : false
         },
+        external: ['playcanvas'],
         plugins
     };
 };

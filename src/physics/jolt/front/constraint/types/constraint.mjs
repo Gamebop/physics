@@ -127,16 +127,12 @@ class Constraint {
         if ($_DEBUG) {
             let ok = Debug.assert(!!entity1 && !!entity1.body, 'Invalid entity1 when adding a constraint', entity1);
             ok = ok && Debug.assert(!!entity2 && !!entity2.body, 'Invalid entity1 when adding a constraint', entity2);
-
-            // TODO
-            // opts.point1 instanceof Vec3 fails for some reason
-
-            // if (opts.point1) {
-            //     ok = ok && Debug.assert(opts.point1 instanceof Vec3, 'Invalid point1 when adding a constraint. Expected a vector.', opts.point1);
-            // }
-            // if (opts.point2) {
-            //     ok = ok && Debug.assert(opts.point2 instanceof Vec3, 'Invalid point1 when adding a constraint. Expected a vector.', opts.point2);
-            // }
+            if (opts.point1) {
+                ok = ok && Debug.assert(opts.point1 instanceof Vec3, 'Invalid point1 when adding a constraint. Expected a vector.', opts.point1);
+            }
+            if (opts.point2) {
+                ok = ok && Debug.assert(opts.point2 instanceof Vec3, 'Invalid point1 when adding a constraint. Expected a vector.', opts.point2);
+            }
             if (!ok) {
                 return;
             }
