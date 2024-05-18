@@ -1,6 +1,5 @@
 import { Debug } from './jolt/debug.mjs';
 import { JoltManager } from './jolt/manager.mjs';
-import { extendPCMath } from './jolt/math.mjs';
 
 /**
  * Components initialization method.
@@ -281,8 +280,6 @@ function init(app, opts = {}) {
             reject(new Error('Selected backend is not supported'));
             return;
         }
-
-        extendPCMath();
 
         if (app[propertyName]) {
             if ($_DEBUG) {

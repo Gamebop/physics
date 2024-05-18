@@ -5,6 +5,7 @@ import {
     BUFFER_READ_BOOL, BUFFER_READ_FLOAT32, BUFFER_READ_UINT16, BUFFER_READ_UINT32,
     BUFFER_READ_UINT8, CONTACT_TYPE_ADDED, CONTACT_TYPE_PERSISTED, CONTACT_TYPE_REMOVED, FLOAT32_SIZE, UINT8_SIZE
 } from '../constants.mjs';
+import { fromBuffer } from '../../util.mjs';
 
 class ContactResult {
     constructor(entity, normal, depth, point = null, offset = null, points1 = null, points2 = null) {
@@ -62,7 +63,7 @@ class ResponseHandler {
 
             switch (type) {
                 case CONTACT_TYPE_ADDED: {
-                    const normal = Vec3.fromBuffer(cb);
+                    const normal = fromBuffer(cb);
                     const depth = cb.read(BUFFER_READ_FLOAT32);
                     const contactPoints = cb.read(BUFFER_READ_BOOL);
                     let point, points1, points2, offset;
@@ -71,18 +72,18 @@ class ResponseHandler {
                         const averaged = cb.read(BUFFER_READ_BOOL);
 
                         if (averaged) {
-                            point = Vec3.fromBuffer(cb);
+                            point = fromBuffer(cb);
                         } else {
-                            offset = Vec3.fromBuffer(cb);
+                            offset = fromBuffer(cb);
                             const count1 = cb.read(BUFFER_READ_UINT32);
                             const count2 = cb.read(BUFFER_READ_UINT32);
                             points1 = [];
                             points2 = [];
                             for (let i = 0; i < count1; i++) {
-                                points1.push(Vec3.fromBuffer(cb));
+                                points1.push(fromBuffer(cb));
                             }
                             for (let i = 0; i < count2; i++) {
-                                points2.push(Vec3.fromBuffer(cb));
+                                points2.push(fromBuffer(cb));
                             }
                         }
                     }
@@ -147,10 +148,10 @@ class ResponseHandler {
                     otherEntity = map.get(otherIndex) || null;
                 }
 
-                const cp = Vec3.fromBuffer(cb); // contact position
-                const cn = Vec3.fromBuffer(cb); // contact normal
-                const cv = Vec3.fromBuffer(cb); // contact velocity
-                const nv = Vec3.fromBuffer(cb); // new char velocity
+                const cp = fromBuffer(cb); // contact position
+                const cn = fromBuffer(cb); // contact normal
+                const cv = fromBuffer(cb); // contact velocity
+                const nv = fromBuffer(cb); // new char velocity
 
                 const result = new CharContactResult(otherEntity, cp, cn, cv, nv);
                 results.push(result);

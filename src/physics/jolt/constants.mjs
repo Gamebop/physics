@@ -177,6 +177,8 @@ export const CMD_JNT_ST_SET_M_F_TORQUE = 514;
 export const CMD_JNT_ST_SET_SWING_M_S = 515;
 export const CMD_JNT_ST_SET_TWIST_M_S = 516;
 export const CMD_JNT_ST_SET_T_ANG_VEL_CS = 517;
+export const CMD_JNT_ST_SET_T_O_BS = 518;
+export const CMD_JNT_ST_SET_T_O_CS = 519;
 
 export const CMD_JNT_D_SET_DISTANCE = 520;
 export const CMD_JNT_D_SET_SPRING_S = 521;
@@ -187,9 +189,6 @@ export const CMD_JNT_H_SET_M_S = 532;
 export const CMD_JNT_H_SET_T_ANG_VEL = 533;
 export const CMD_JNT_H_SET_T_ANGLE = 534;
 export const CMD_JNT_H_SET_LIMITS = 535;
-
-export const CMD_JNT_ST_SET_T_O_BS = 540;
-export const CMD_JNT_ST_SET_T_O_CS = 541;
 
 export const CMD_JNT_S_SET_M_F_FORCE = 550;
 export const CMD_JNT_S_SET_M_STATE = 551;

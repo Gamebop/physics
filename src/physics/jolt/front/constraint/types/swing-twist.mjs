@@ -48,6 +48,11 @@ class SwingTwistConstraint extends Constraint {
         this._planeAxis1 = opts.planeAxis1 || this._planeAxis1;
         this._planeAxis2 = opts.planeAxis2 || this._planeAxis2;
         this._normalHalfConeAngle = opts.normalHalfConeAngle ?? this._normalHalfConeAngle;
+        this._planeHalfConeAngle = opts.planeHalfConeAngle ?? this._planeHalfConeAngle;
+
+        this._twistMinAngle = opts.twistMinAngle ?? this._twistMinAngle;
+        this._twistMaxAngle = opts.twistMaxAngle ?? this._twistMaxAngle;
+        this._maxFrictionTorque = opts.maxFrictionTorque ?? this._maxFrictionTorque;
 
         if (opts.swingMotorSettings) {
             this._swingMotorSettings = new Motor(opts.swingMotorSettings);
