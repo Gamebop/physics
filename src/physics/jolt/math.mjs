@@ -1,16 +1,5 @@
-import { Vec3 } from 'playcanvas';
 import { Debug } from './debug.mjs';
 import { BUFFER_READ_FLOAT32 } from './constants.mjs';
-
-function extendPCMath() {
-    Vec3.fromBuffer = function (buffer) {
-        return new Vec3(
-            buffer.read(BUFFER_READ_FLOAT32),
-            buffer.read(BUFFER_READ_FLOAT32),
-            buffer.read(BUFFER_READ_FLOAT32)
-        );
-    };
-}
 
 function extendJoltMath(Jolt) {
     Jolt.Vec3.prototype.FromBuffer = function (buffer, isPositive) {
@@ -83,4 +72,4 @@ function extendJoltMath(Jolt) {
     };
 }
 
-export { extendJoltMath, extendPCMath };
+export { extendJoltMath };

@@ -198,10 +198,10 @@ class ConstraintModifier {
                         constraint.SetMaxFrictionTorque(cb.read(BUFFER_READ_FLOAT32));
                         break;
                     case CMD_JNT_ST_SET_SWING_M_S:
-                        constraint.SetSwingMotorState(cb.read(BUFFER_READ_FLOAT32));
+                        constraint.SetSwingMotorState(cb.read(BUFFER_READ_UINT8));
                         break;
                     case CMD_JNT_ST_SET_TWIST_M_S:
-                        constraint.SetTwistMotorState(cb.read(BUFFER_READ_FLOAT32));
+                        constraint.SetTwistMotorState(cb.read(BUFFER_READ_UINT8));
                         break;
                     case CMD_JNT_ST_SET_T_O_CS:
                         jq.FromBuffer(cb);

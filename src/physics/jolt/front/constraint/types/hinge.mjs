@@ -32,9 +32,9 @@ class HingeConstraint extends Constraint {
 
     _limitsSpringSettings = null;
 
-    _motorSettings = null;
-
     _maxFrictionTorque = 0;
+
+    _motorSettings = null;
 
     constructor(entity1, entity2, opts = {}) {
         super(entity1, entity2, opts);
