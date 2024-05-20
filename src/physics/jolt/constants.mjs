@@ -166,6 +166,8 @@ export const CMD_SET_OBJ_LAYER = 34;
 export const CMD_SET_GRAVITY_FACTOR = 35;
 export const CMD_SET_DOF = 36;
 
+export const CMD_COLLIDE_POINT = 37;
+
 // Constraints 500+
 
 export const CMD_JNT_SET_ENABLED = 500;

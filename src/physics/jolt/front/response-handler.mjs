@@ -161,28 +161,28 @@ class ResponseHandler {
         }
     }
 
-    static handleQuery(buffer, queryMap) {
-        const queryIndex = buffer.read(BUFFER_READ_UINT16);
-        const firstOnly = buffer.read(BUFFER_READ_BOOL);
-        const hitsCount = buffer.read(BUFFER_READ_UINT16);
+    static handleCastQuery(cb, queryMap) {
+        const queryIndex = cb.read(BUFFER_READ_UINT16);
+        const firstOnly = cb.read(BUFFER_READ_BOOL);
+        const hitsCount = cb.read(BUFFER_READ_UINT16);
 
         let result = firstOnly ? null : [];
 
         for (let i = 0; i < hitsCount; i++) {
-            const bodyIndex = buffer.read(BUFFER_READ_UINT32);
+            const bodyIndex = cb.read(BUFFER_READ_UINT32);
 
             const point = new Vec3(
-                buffer.read(BUFFER_READ_FLOAT32),
-                buffer.read(BUFFER_READ_FLOAT32),
-                buffer.read(BUFFER_READ_FLOAT32)
+                cb.read(BUFFER_READ_FLOAT32),
+                cb.read(BUFFER_READ_FLOAT32),
+                cb.read(BUFFER_READ_FLOAT32)
             );
 
             let normal;
-            if (buffer.flag) {
+            if (cb.flag) {
                 normal = new Vec3(
-                    buffer.read(BUFFER_READ_FLOAT32),
-                    buffer.read(BUFFER_READ_FLOAT32),
-                    buffer.read(BUFFER_READ_FLOAT32)
+                    cb.read(BUFFER_READ_FLOAT32),
+                    cb.read(BUFFER_READ_FLOAT32),
+                    cb.read(BUFFER_READ_FLOAT32)
                 );
             }
 
@@ -200,6 +200,28 @@ class ResponseHandler {
             } else {
                 result.push(r);
             }
+        }
+
+        const callback = queryMap.get(queryIndex);
+        queryMap.free(queryIndex);
+        callback?.(result);
+    }
+
+    static handleCollidePointQuery(cb, queryMap) {
+        const queryIndex = cb.read(BUFFER_READ_UINT16);
+        const hitsCount = cb.read(BUFFER_READ_UINT16);
+
+        const result = [];
+
+        for (let i = 0; i < hitsCount; i++) {
+            const bodyIndex = cb.read(BUFFER_READ_UINT32);
+
+            const entity = ShapeComponentSystem.entityMap.get(bodyIndex);
+            if (!entity) {
+                continue;
+            }
+
+            result.push(entity);
         }
 
         const callback = queryMap.get(queryIndex);

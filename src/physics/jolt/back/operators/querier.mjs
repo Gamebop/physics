@@ -2,9 +2,11 @@ import { Debug } from '../../debug.mjs';
 import {
     BUFFER_READ_BOOL, BUFFER_READ_UINT32, BUFFER_READ_UINT8, BUFFER_WRITE_BOOL,
     BUFFER_WRITE_JOLTVEC32, BUFFER_WRITE_UINT16, BUFFER_WRITE_UINT32, CMD_CAST_RAY, CMD_CAST_SHAPE,
+    CMD_COLLIDE_POINT,
     COMPONENT_SYSTEM_MANAGER
 } from '../../constants.mjs';
 
+let collidePointResult;
 let params = [];
 
 class Querier {
@@ -27,6 +29,7 @@ class Querier {
 
         this._collectorRayFirst = new Jolt.CastRayClosestHitCollisionCollector();
         this._collectorRayAll = new Jolt.CastRayAllHitCollisionCollector();
+        this._collectorPoint = null;
 
         this._collectorShapeFirst = new Jolt.CastShapeClosestHitCollisionCollector();
         this._collectorShapeAll = new Jolt.CastShapeAllHitCollisionCollector();
@@ -46,6 +49,10 @@ class Querier {
 
             case CMD_CAST_SHAPE:
                 ok = this._castShape(cb);
+                break;
+
+            case CMD_COLLIDE_POINT:
+                ok = this._collidePoint(cb);
                 break;
 
             default:
@@ -78,6 +85,11 @@ class Querier {
 
         Jolt.destroy(this._collectorRayAll);
         this._collectorRayAll = null;
+
+        if (this._collectorPoint) {
+            Jolt.destroy(this._collectorPoint);
+            this._collectorPoint = null;
+        }
 
         this._commandsBuffer.destroy();
         this._commandsBuffer = null;
@@ -265,6 +277,73 @@ class Querier {
                 Debug.error(e);
             }
             return false;
+        }
+
+        return true;
+    }
+
+    _collidePoint(cb) {
+        const backend = this._backend;
+        const jv = this._tempVectors[1];
+        const buffer = backend.outBuffer;
+        const tracker = backend.tracker;
+        const system = backend.physicsSystem;
+        const Jolt = backend.Jolt;
+        const joltInterface = backend.joltInterface;
+        const { bodyFilter, shapeFilter } = backend;
+
+        buffer.writeOperator(COMPONENT_SYSTEM_MANAGER);
+        buffer.writeCommand(CMD_COLLIDE_POINT);
+
+        const queryIndex = cb.read(BUFFER_READ_UINT32);
+        buffer.write(queryIndex, BUFFER_WRITE_UINT16, false);
+
+        if (!collidePointResult) {
+            collidePointResult = [];
+        }
+        collidePointResult.length = 0;
+
+        let collector = this._collectorPoint;
+        if (!collector) {
+            collector = this._collectorPoint = new Jolt.CollidePointCollectorJS();
+            collector.Reset = function () {
+                collector.ResetEarlyOutFraction();
+            };
+            collector.AddHit = function () {};
+            collector.OnBody = function (bodyPointer) {
+                collidePointResult.push(tracker.getPCID(bodyPointer));
+            };
+        }
+
+        const customBPFilter = cb.flag;
+        const bpFilter = customBPFilter ? new Jolt.DefaultBroadPhaseLayerFilter(joltInterface.GetObjectVsBroadPhaseLayerFilter(), cb.read(BUFFER_READ_UINT32)) : backend.bpFilter;
+
+        const customObjFilter = cb.flag;
+        const objFilter = customObjFilter ? new Jolt.DefaultObjectLayerFilter(joltInterface.GetObjectLayerPairFilter(), cb.read(BUFFER_READ_UINT32)) : backend.objFilter;
+
+        try {
+            jv.FromBuffer(cb);
+            system.GetNarrowPhaseQuery().CollidePoint(jv, collector, bpFilter, objFilter, bodyFilter, shapeFilter);
+            collector.Reset();
+
+            if (customBPFilter) {
+                Jolt.destroy(customBPFilter);
+            }
+
+            if (customObjFilter) {
+                Jolt.destroy(customObjFilter);
+            }
+        } catch (e) {
+            if ($_DEBUG) {
+                Debug.error(e);
+            }
+            return false;
+        }
+
+        const count = collidePointResult.length;
+        buffer.write(count, BUFFER_WRITE_UINT16, false);
+        for (let i = 0; i < count; i++) {
+            buffer.write(collidePointResult[i], BUFFER_WRITE_UINT32, false);
         }
 
         return true;
