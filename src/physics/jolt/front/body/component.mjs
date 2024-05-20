@@ -6,10 +6,10 @@ import {
     BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32, CMD_ADD_FORCE, CMD_ADD_IMPULSE,
     CMD_APPLY_BUOYANCY_IMPULSE, CMD_DESTROY_BODY, CMD_MOVE_BODY, CMD_MOVE_KINEMATIC,
     CMD_RESET_VELOCITIES, CMD_SET_ANG_VEL, CMD_SET_DOF, CMD_SET_GRAVITY_FACTOR, CMD_SET_LIN_VEL,
-    CMD_SET_MOTION_TYPE, CMD_SET_OBJ_LAYER, CMD_USE_MOTION_STATE, MOTION_QUALITY_DISCRETE,
-    MOTION_TYPE_DYNAMIC, MOTION_TYPE_KINEMATIC, MOTION_TYPE_STATIC, OBJ_LAYER_NON_MOVING,
-    OMP_CALCULATE_MASS_AND_INERTIA, OMP_MASS_AND_INERTIA_PROVIDED, OPERATOR_CLEANER,
-    OPERATOR_MODIFIER, SHAPE_CONVEX_HULL, SHAPE_HEIGHTFIELD, SHAPE_MESH
+    CMD_SET_MOTION_QUALITY, CMD_SET_MOTION_TYPE, CMD_SET_OBJ_LAYER, CMD_USE_MOTION_STATE,
+    MOTION_QUALITY_DISCRETE, MOTION_TYPE_DYNAMIC, MOTION_TYPE_KINEMATIC, MOTION_TYPE_STATIC,
+    OBJ_LAYER_NON_MOVING, OMP_CALCULATE_MASS_AND_INERTIA, OMP_MASS_AND_INERTIA_PROVIDED,
+    OPERATOR_CLEANER, OPERATOR_MODIFIER, SHAPE_CONVEX_HULL, SHAPE_HEIGHTFIELD, SHAPE_MESH
 } from '../../constants.mjs';
 
 const vec3 = new Vec3();
@@ -348,16 +348,37 @@ class BodyComponent extends ShapeComponent {
     }
 
     /**
-     * Motion quality, or how well it detects collisions when it has a high velocity.
-     * Following enum aliases available:
+     * Changes the body motion quality. Following constants available:
      * ```
      * MOTION_QUALITY_DISCRETE
      * ```
      * ```
      * MOTION_QUALITY_LINEAR_CAST
      * ```
+     *
      * Use linear cast (CCD) for fast moving objects, in other cases prefer discrete one since it
      * is cheaper.
+     *
+     * @param {number} quality - Quality constant.
+     */
+    set motionQuality(quality) {
+        if (this._motionQuality === quality) {
+            return;
+        }
+
+        if ($_DEBUG) {
+            Debug.checkUint(quality, `Invalid motion quality: ${quality}`);
+        }
+
+        this._motionQuality = quality;
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_SET_MOTION_QUALITY, this._index,
+            quality, BUFFER_WRITE_UINT8, false
+        );
+    }
+
+    /**
+     * Motion quality, or how well it detects collisions when it has a high velocity.
      *
      * @returns {number} Enum number, representing the collision detection algorithm for this body.
      * @defaultValue MOTION_QUALITY_DISCRETE
