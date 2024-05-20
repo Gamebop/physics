@@ -348,16 +348,24 @@ class BodyComponent extends ShapeComponent {
     }
 
     /**
-     * Motion quality, or how well it detects collisions when it has a high velocity.
-     * Following enum aliases available:
+     * Changes the body motion quality. Following constants available:
      * ```
      * MOTION_QUALITY_DISCRETE
      * ```
      * ```
      * MOTION_QUALITY_LINEAR_CAST
      * ```
+     *
      * Use linear cast (CCD) for fast moving objects, in other cases prefer discrete one since it
      * is cheaper.
+     *
+     * @param {number} quality - Quality constant.
+     */
+    set motionQuality(quality) {
+        
+    }
+    /**
+     * Motion quality, or how well it detects collisions when it has a high velocity.
      *
      * @returns {number} Enum number, representing the collision detection algorithm for this body.
      * @defaultValue MOTION_QUALITY_DISCRETE
