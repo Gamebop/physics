@@ -265,6 +265,9 @@ class JoltBackend {
             outBuffer.buffer = data.inBuffer;
         }
 
+        // Make sure there are no lingering command counters before we start writing new ones.
+        outBuffer.init();
+
         let ok = true;
         if (buffer) {
             if (!inBuffer) {

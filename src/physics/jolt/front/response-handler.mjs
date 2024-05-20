@@ -5,7 +5,7 @@ import {
     BUFFER_READ_BOOL, BUFFER_READ_FLOAT32, BUFFER_READ_UINT16, BUFFER_READ_UINT32,
     BUFFER_READ_UINT8, CONTACT_TYPE_ADDED, CONTACT_TYPE_PERSISTED, CONTACT_TYPE_REMOVED, FLOAT32_SIZE, UINT8_SIZE
 } from '../constants.mjs';
-import { fromBuffer } from '../../util.mjs';
+import { fromBuffer } from '../math.mjs';
 
 class ContactResult {
     constructor(entity, normal, depth, point = null, offset = null, points1 = null, points2 = null) {
