@@ -1,5 +1,3 @@
-import { Vec3 } from 'playcanvas';
-
 function buildAccessors(obj, schema) {
     // Create getter/setter pairs for each property defined in the schema
     for (let i = 0, end = schema.length; i < end; i++) {

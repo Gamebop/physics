@@ -1,3 +1,4 @@
+import { Vec3 } from 'playcanvas';
 import { Debug } from './debug.mjs';
 import { BUFFER_READ_FLOAT32 } from './constants.mjs';
 
