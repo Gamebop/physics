@@ -11,10 +11,10 @@ import { ShapeComponentSystem } from './front/shape/system.mjs';
 import { VehicleComponentSystem } from './front/vehicle/system.mjs';
 import { Quat, Vec3, Color, LAYERID_IMMEDIATE } from 'playcanvas';
 import {
-    BUFFER_WRITE_BOOL, BUFFER_WRITE_UINT16, BUFFER_WRITE_UINT32, BUFFER_WRITE_UINT8,
-    BUFFER_WRITE_VEC32, CMD_CAST_RAY, CMD_CAST_SHAPE, CMD_CHANGE_GRAVITY, CMD_COLLIDE_POINT, CMD_CREATE_GROUPS,
-    CMD_CREATE_SHAPE, CMD_DESTROY_SHAPE, CMD_TOGGLE_GROUP_PAIR, COMPONENT_SYSTEM_BODY,
-    COMPONENT_SYSTEM_CHAR, COMPONENT_SYSTEM_CONSTRAINT, COMPONENT_SYSTEM_MANAGER,
+    BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT16, BUFFER_WRITE_UINT32, BUFFER_WRITE_UINT8,
+    BUFFER_WRITE_VEC32, CMD_CAST_RAY, CMD_CAST_SHAPE, CMD_CHANGE_GRAVITY, CMD_COLLIDE_POINT,
+    CMD_COLLIDE_SHAPE_IDX, CMD_CREATE_GROUPS, CMD_CREATE_SHAPE, CMD_DESTROY_SHAPE, CMD_TOGGLE_GROUP_PAIR,
+    COMPONENT_SYSTEM_BODY, COMPONENT_SYSTEM_CHAR, COMPONENT_SYSTEM_CONSTRAINT, COMPONENT_SYSTEM_MANAGER,
     COMPONENT_SYSTEM_SOFT_BODY, COMPONENT_SYSTEM_VEHICLE, OPERATOR_CLEANER, OPERATOR_CREATOR,
     OPERATOR_MODIFIER, OPERATOR_QUERIER
 } from './constants.mjs';
@@ -140,6 +140,9 @@ class JoltManager extends PhysicsManager {
                 break;
             case CMD_COLLIDE_POINT:
                 ResponseHandler.handleCollidePointQuery(cb, this._queryMap);
+                break;
+            case CMD_COLLIDE_SHAPE_IDX:
+                ResponseHandler.handleCollideShapeQuery(cb, this._queryMap);
                 break;
         }
     }
@@ -332,8 +335,12 @@ class JoltManager extends PhysicsManager {
     collidePoint(point, callback, opts) {
         if ($_DEBUG) {
             let ok = Debug.checkVec(point, `Invalid point vector`);
-            if (ok && opts?.bpFilterLayer != null) ok = Debug.checkUint(opts.bpFilterLayer);
-            if (ok && opts?.objFilterLayer != null) ok = Debug.checkUint(opts.objFilterLayer);
+            if (ok && opts?.bpFilterLayer != null) {
+                ok = Debug.checkUint(opts.bpFilterLayer, `Invalid broadphase filter layer`);
+            }
+            if (ok && opts?.objFilterLayer != null) {
+                ok = Debug.checkUint(opts.objFilterLayer, `Invalid object filter layer`);
+            }
             if (!ok) {
                 return;
             }
@@ -348,6 +355,53 @@ class JoltManager extends PhysicsManager {
         cb.write(opts?.bpFilterLayer, BUFFER_WRITE_UINT32);
         cb.write(opts?.objFilterLayer, BUFFER_WRITE_UINT32);
         cb.write(point, BUFFER_WRITE_VEC32, false);
+    }
+
+    collideShape(shapeIndex, position, rotation, callback, opts) {
+        if ($_DEBUG) {
+            let ok = Debug.checkInt(shapeIndex, `Invalid shape index`);
+            ok = ok && Debug.checkVec(position, `Invalid shape position vector`);
+            ok = ok && Debug.checkQuat(rotation, `Invalid rotation quaternion`);
+            if (ok && opts?.scale) {
+                ok = Debug.checkVec(opts.scale, `Invalid shape scale`);
+            }
+            if (ok && opts?.maxSeparationDistance != null) {
+                ok = Debug.checkFloat(opts.maxSeparationDistance, `Invalid max separation distance`);
+            }
+            if (ok && opts?.backFaceMode != null) {
+                ok = Debug.checkUint(opts?.backFaceMode, `Invalid back face mode`);
+            }
+            if (ok && opts?.offset) {
+                ok = Debug.checkVec(opts.offset, `Invalid shape position linear offset vector`);
+            }
+            if (ok && opts?.bpFilterLayer != null) {
+                ok = Debug.checkUint(opts.bpFilterLayer, `Invalid broadphase filter layer`);
+            }
+            if (ok && opts?.objFilterLayer != null) {
+                ok = Debug.checkUint(opts.objFilterLayer, `Invalid object filter layer`);
+            }
+            if (!ok) {
+                return;
+            }
+        }
+
+        const cb = this._outBuffer;
+        const queryIndex = this._queryMap.add(callback);
+
+        cb.writeOperator(OPERATOR_QUERIER);
+        cb.writeCommand(CMD_COLLIDE_SHAPE_IDX);
+        cb.write(queryIndex, BUFFER_WRITE_UINT32, false);
+        cb.write(opts?.firstOnly, BUFFER_WRITE_BOOL);
+        cb.write(shapeIndex, BUFFER_WRITE_UINT32, false);
+        cb.write(position, BUFFER_WRITE_VEC32, false);
+        cb.write(rotation, BUFFER_WRITE_VEC32, false);
+        cb.write(opts?.scale, BUFFER_WRITE_VEC32);
+        cb.write(opts?.maxSeparationDistance, BUFFER_WRITE_FLOAT32);
+        cb.write(opts?.ignoreBackFaces, BUFFER_WRITE_BOOL);
+        cb.write(opts?.calculateNormal, BUFFER_WRITE_BOOL);
+        cb.write(opts?.offset, BUFFER_WRITE_VEC32);
+        cb.write(opts?.bpFilterLayer, BUFFER_WRITE_UINT32);
+        cb.write(opts?.objFilterLayer, BUFFER_WRITE_UINT32);
     }
 }
 

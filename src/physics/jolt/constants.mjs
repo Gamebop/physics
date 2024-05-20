@@ -167,6 +167,7 @@ export const CMD_SET_GRAVITY_FACTOR = 35;
 export const CMD_SET_DOF = 36;
 
 export const CMD_COLLIDE_POINT = 37;
+export const CMD_COLLIDE_SHAPE_IDX = 38;
 
 // Constraints 500+
 
