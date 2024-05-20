@@ -3,8 +3,7 @@ import { ResponseHandler } from '../response-handler.mjs';
 import { ShapeComponentSystem } from '../shape/system.mjs';
 import { BodyComponent } from './component.mjs';
 import {
-    CMD_CAST_RAY, CMD_CAST_SHAPE, CMD_CREATE_BODY, CMD_REPORT_CONTACTS,
-    CMD_REPORT_TRANSFORMS, OPERATOR_CREATOR
+    CMD_CREATE_BODY, CMD_REPORT_CONTACTS, CMD_REPORT_TRANSFORMS, OPERATOR_CREATOR
 } from '../../constants.mjs';
 
 const schema = [
@@ -114,13 +113,6 @@ class BodyComponentSystem extends ShapeComponentSystem {
                 // TODO
                 // move to ResponseHandler
                 ShapeComponentSystem.updateDynamic(cb);
-                break;
-
-            // TODO
-            // handle by manager directly
-            case CMD_CAST_RAY:
-            case CMD_CAST_SHAPE:
-                ResponseHandler.handleQuery(cb, this.entityMap, this._manager.queryMap);
                 break;
 
             case CMD_REPORT_CONTACTS:

@@ -12,7 +12,7 @@ import { VehicleComponentSystem } from './front/vehicle/system.mjs';
 import { Quat, Vec3, Color, LAYERID_IMMEDIATE } from 'playcanvas';
 import {
     BUFFER_WRITE_BOOL, BUFFER_WRITE_UINT16, BUFFER_WRITE_UINT32, BUFFER_WRITE_UINT8,
-    BUFFER_WRITE_VEC32, CMD_CAST_RAY, CMD_CAST_SHAPE, CMD_CHANGE_GRAVITY, CMD_CREATE_GROUPS,
+    BUFFER_WRITE_VEC32, CMD_CAST_RAY, CMD_CAST_SHAPE, CMD_CHANGE_GRAVITY, CMD_COLLIDE_POINT, CMD_CREATE_GROUPS,
     CMD_CREATE_SHAPE, CMD_DESTROY_SHAPE, CMD_TOGGLE_GROUP_PAIR, COMPONENT_SYSTEM_BODY,
     COMPONENT_SYSTEM_CHAR, COMPONENT_SYSTEM_CONSTRAINT, COMPONENT_SYSTEM_MANAGER,
     COMPONENT_SYSTEM_SOFT_BODY, COMPONENT_SYSTEM_VEHICLE, OPERATOR_CLEANER, OPERATOR_CREATOR,
@@ -136,7 +136,10 @@ class JoltManager extends PhysicsManager {
         switch (command) {
             case CMD_CAST_RAY:
             case CMD_CAST_SHAPE:
-                ResponseHandler.handleQuery(cb, this._queryMap);
+                ResponseHandler.handleCastQuery(cb, this._queryMap);
+                break;
+            case CMD_COLLIDE_POINT:
+                ResponseHandler.handleCollidePointQuery(cb, this._queryMap);
                 break;
         }
     }
@@ -260,6 +263,8 @@ class JoltManager extends PhysicsManager {
             if (ok && opts?.calculateNormal != null) ok = Debug.checkBool(opts.calculateNormal);
             if (ok && opts?.ignoreBackFaces != null) ok = Debug.checkBool(opts.ignoreBackFaces);
             if (ok && opts?.treatConvexAsSolid != null) ok = Debug.checkBool(opts.treatConvexAsSolid);
+            if (ok && opts?.bpFilterLayer != null) ok = Debug.checkUint(opts.bpFilterLayer);
+            if (ok && opts?.objFilterLayer != null) ok = Debug.checkUint(opts.objFilterLayer);
             if (!ok) {
                 return;
             }
@@ -322,6 +327,27 @@ class JoltManager extends PhysicsManager {
         cb.write(shapeIndex, BUFFER_WRITE_UINT32, false);
         cb.write(opts?.bpFilterLayer, BUFFER_WRITE_UINT32);
         cb.write(opts?.objFilterLayer, BUFFER_WRITE_UINT32);
+    }
+
+    collidePoint(point, callback, opts) {
+        if ($_DEBUG) {
+            let ok = Debug.checkVec(point, `Invalid point vector`);
+            if (ok && opts?.bpFilterLayer != null) ok = Debug.checkUint(opts.bpFilterLayer);
+            if (ok && opts?.objFilterLayer != null) ok = Debug.checkUint(opts.objFilterLayer);
+            if (!ok) {
+                return;
+            }
+        }
+
+        const cb = this._outBuffer;
+        const queryIndex = this._queryMap.add(callback);
+
+        cb.writeOperator(OPERATOR_QUERIER);
+        cb.writeCommand(CMD_COLLIDE_POINT);
+        cb.write(queryIndex, BUFFER_WRITE_UINT32, false);
+        cb.write(opts?.bpFilterLayer, BUFFER_WRITE_UINT32);
+        cb.write(opts?.objFilterLayer, BUFFER_WRITE_UINT32);
+        cb.write(point, BUFFER_WRITE_VEC32, false);
     }
 }
 
