@@ -5,7 +5,7 @@ import {
     BUFFER_READ_BOOL, BUFFER_READ_FLOAT32, BUFFER_READ_UINT16, BUFFER_READ_UINT32,
     BUFFER_READ_UINT8, CONTACT_TYPE_ADDED, CONTACT_TYPE_PERSISTED, CONTACT_TYPE_REMOVED, FLOAT32_SIZE, UINT8_SIZE
 } from '../constants.mjs';
-import { fromBuffer } from '../../util.mjs';
+import { fromBuffer } from '../math.mjs';
 
 class ContactResult {
     constructor(entity, normal, depth, point = null, offset = null, points1 = null, points2 = null) {
@@ -33,6 +33,19 @@ class RaycastResult {
     constructor(entity, point, normal) {
         this.entity = entity;
         this.point = point;
+        if (normal) {
+            this.normal = normal;
+        }
+    }
+}
+
+class CollideShapeResult {
+    constructor(entity, point1, point2, axis, depth, normal) {
+        this.entity = entity;
+        this.point1 = point1;
+        this.point2 = point2;
+        this.axis = axis;
+        this.depth = depth;
         if (normal) {
             this.normal = normal;
         }
@@ -222,6 +235,51 @@ class ResponseHandler {
             }
 
             result.push(entity);
+        }
+
+        const callback = queryMap.get(queryIndex);
+        queryMap.free(queryIndex);
+        callback?.(result);
+    }
+
+    static handleCollideShapeQuery(cb, queryMap) {
+        const queryIndex = cb.read(BUFFER_READ_UINT16);
+        const firstOnly = cb.read(BUFFER_READ_BOOL);
+        const hitsCount = cb.read(BUFFER_READ_UINT16);
+
+        let result = null;
+
+        if (firstOnly) {
+            if (hitsCount > 0) {
+                const bodyIndex = cb.read(BUFFER_READ_UINT32);
+                const entity = ShapeComponentSystem.entityMap.get(bodyIndex);
+                if (entity) {
+                    result = new CollideShapeResult(
+                        entity,
+                        fromBuffer(cb),
+                        fromBuffer(cb),
+                        fromBuffer(cb),
+                        cb.read(BUFFER_READ_FLOAT32),
+                        cb.flag ? fromBuffer(cb) : null
+                    );
+                }
+            }
+        } else {
+            result = [];
+            for (let i = 0; i < hitsCount; i++) {
+                const bodyIndex = cb.read(BUFFER_READ_UINT32);
+                const entity = ShapeComponentSystem.entityMap.get(bodyIndex);
+                if (entity) {
+                    result.push(new CollideShapeResult(
+                        entity,
+                        fromBuffer(cb),
+                        fromBuffer(cb),
+                        fromBuffer(cb),
+                        cb.read(BUFFER_READ_FLOAT32),
+                        cb.flag ? fromBuffer(cb) : null
+                    ));
+                }
+            }
         }
 
         const callback = queryMap.get(queryIndex);

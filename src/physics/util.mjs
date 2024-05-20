@@ -1,6 +1,3 @@
-import { Vec3 } from 'playcanvas';
-import { BUFFER_READ_FLOAT32 } from '../index.mjs';
-
 function buildAccessors(obj, schema) {
     // Create getter/setter pairs for each property defined in the schema
     for (let i = 0, end = schema.length; i < end; i++) {
@@ -26,12 +23,4 @@ function buildAccessors(obj, schema) {
     obj.accessorsBuilt = true;
 }
 
-function fromBuffer(buffer) {
-    return new Vec3(
-        buffer.read(BUFFER_READ_FLOAT32),
-        buffer.read(BUFFER_READ_FLOAT32),
-        buffer.read(BUFFER_READ_FLOAT32)
-    );
-}
-
-export { buildAccessors, fromBuffer };
+export { buildAccessors };

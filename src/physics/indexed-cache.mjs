@@ -8,7 +8,7 @@
 class IndexedCache {
     constructor() {
         this._index = 0;
-        this._freed = [];
+        this._freed = new Set();
         this._storage = [];
     }
 
@@ -19,7 +19,12 @@ class IndexedCache {
      * @returns {number} - TODO
      */
     add(element) {
-        const index = this._freed.pop() ?? this._index++;
+        const freed = this._freed;
+        const [idx] = freed;
+        if (idx !== undefined) {
+            freed.delete(idx);
+        }
+        const index = idx ?? this._index++;
         this._storage[index] = element;
         return index;
     }
@@ -41,7 +46,7 @@ class IndexedCache {
      */
     free(index) {
         this._storage[index] = null;
-        this._freed.push(index);
+        this._freed.add(index);
     }
 
     /**
@@ -49,7 +54,7 @@ class IndexedCache {
      */
     clear() {
         this._index = 0;
-        this._freed.length = 0;
+        this._freed.clear();
         this._storage.length = 0;
     }
 }

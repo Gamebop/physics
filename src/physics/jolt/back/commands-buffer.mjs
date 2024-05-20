@@ -342,6 +342,10 @@ class CommandsBuffer {
         this._bytesOffset += (bytes * size);
     }
 
+    init() {
+        this._view.setUint16(0, 0);
+    }
+
     reset() {
         this._commandsCount = 0;
         this._bytesOffset = UINT16_SIZE;
