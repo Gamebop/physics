@@ -1,4 +1,4 @@
-import { Quat, Vec3 } from 'playcanvas';
+import { Asset, Quat, Vec3 } from 'playcanvas';
 import { Debug } from '../../debug.mjs';
 import { ShapeComponent } from '../shape/component.mjs';
 import {
@@ -1037,7 +1037,7 @@ class BodyComponent extends ShapeComponent {
     }
 
     _addMeshes() {
-        const id = this._renderAsset;
+        const id = this._renderAsset instanceof Asset ? this._renderAsset.id : this._renderAsset;
         const assets = this.system.app.assets;
 
         const onAssetFullyReady = (asset) => {
