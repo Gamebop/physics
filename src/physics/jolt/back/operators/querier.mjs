@@ -197,17 +197,8 @@ class Querier {
             if (ignoreSensors) {
                 bodyFilter = this._ignoreSensorsBodyFilter;
                 if (!bodyFilter) {
-                    bodyFilter = this._ignoreSensorsBodyFilter = new Jolt.BodyFilterJS();
-                    bodyFilter.ShouldCollide = (inBodyID) => {
-                        const body = system.GetBodyLockInterfaceNoLock().TryGetBody(Jolt.wrapPointer(inBodyID, Jolt.BodyID));
-                        if (body.IsSensor()) {
-                            return false;
-                        }
-                        return true;
-                    };
-                    bodyFilter.ShouldCollideLocked = () => {
-                        return true;
-                    };
+                    this._createIgnoreSensorsBodyFilter(system);
+                    bodyFilter = this._ignoreSensorsBodyFilter;
                 }
             } else {
                 bodyFilter = backend.bodyFilter;
@@ -303,6 +294,7 @@ class Querier {
 
             const firstOnly = cb.flag ? cb.read(BUFFER_READ_BOOL) : true;
             const calculateNormal = cb.flag ? cb.read(BUFFER_READ_BOOL) : false;
+            const ignoreSensors = cb.flag ? cb.read(BUFFER_READ_BOOL) : false;
             const collector = firstOnly ? this._collectorShapeFirst : this._collectorShapeAll;
             const shapeIndex = cb.read(BUFFER_READ_UINT32);
 
@@ -318,7 +310,17 @@ class Querier {
 
             const transform = Jolt.Mat44.prototype.sRotationTranslation(rotation, position);
             const shapeCast = new Jolt.RShapeCast(shape, scale, transform, direction);
-            const { bodyFilter, shapeFilter } = backend;
+
+            let bodyFilter;
+            if (ignoreSensors) {
+                bodyFilter = this._ignoreSensorsBodyFilter;
+                if (!bodyFilter) {
+                    this._createIgnoreSensorsBodyFilter(system);
+                    bodyFilter = this._ignoreSensorsBodyFilter;
+                }
+            } else {
+                bodyFilter = backend.bodyFilter;
+            }
 
             const customBPFilter = cb.flag;
             const bpFilter = customBPFilter ? new Jolt.DefaultBroadPhaseLayerFilter(joltInterface.GetObjectVsBroadPhaseLayerFilter(), cb.read(BUFFER_READ_UINT32)) : backend.bpFilter;
@@ -326,7 +328,7 @@ class Querier {
             const customObjFilter = cb.flag;
             const objFilter = customObjFilter ? new Jolt.DefaultObjectLayerFilter(joltInterface.GetObjectLayerPairFilter(), cb.read(BUFFER_READ_UINT32)) : backend.objFilter;
 
-            system.GetNarrowPhaseQuery().CastShape(shapeCast, castSettings, offset, collector, bpFilter, objFilter, bodyFilter, shapeFilter);
+            system.GetNarrowPhaseQuery().CastShape(shapeCast, castSettings, offset, collector, bpFilter, objFilter, bodyFilter, backend.shapeFilter);
 
             if (firstOnly) {
                 if (collector.HadHit()) {
@@ -374,7 +376,6 @@ class Querier {
         const system = backend.physicsSystem;
         const Jolt = backend.Jolt;
         const joltInterface = backend.joltInterface;
-        const { bodyFilter, shapeFilter } = backend;
 
         buffer.writeOperator(COMPONENT_SYSTEM_MANAGER);
         buffer.writeCommand(CMD_COLLIDE_POINT);
@@ -400,6 +401,19 @@ class Querier {
                 };
             }
 
+            const ignoreSensors = cb.flag ? cb.read(BUFFER_READ_BOOL) : false;
+
+            let bodyFilter;
+            if (ignoreSensors) {
+                bodyFilter = this._ignoreSensorsBodyFilter;
+                if (!bodyFilter) {
+                    this._createIgnoreSensorsBodyFilter(system);
+                    bodyFilter = this._ignoreSensorsBodyFilter;
+                }
+            } else {
+                bodyFilter = backend.bodyFilter;
+            }
+
             const customBPFilter = cb.flag;
             const bpFilter = customBPFilter ? new Jolt.DefaultBroadPhaseLayerFilter(joltInterface.GetObjectVsBroadPhaseLayerFilter(), cb.read(BUFFER_READ_UINT32)) : backend.bpFilter;
 
@@ -407,7 +421,7 @@ class Querier {
             const objFilter = customObjFilter ? new Jolt.DefaultObjectLayerFilter(joltInterface.GetObjectLayerPairFilter(), cb.read(BUFFER_READ_UINT32)) : backend.objFilter;
 
             jv.FromBuffer(cb);
-            system.GetNarrowPhaseQuery().CollidePoint(jv, collector, bpFilter, objFilter, bodyFilter, shapeFilter);
+            system.GetNarrowPhaseQuery().CollidePoint(jv, collector, bpFilter, objFilter, bodyFilter, backend.shapeFilter);
             collector.Reset();
 
             if (customBPFilter) {
@@ -444,7 +458,6 @@ class Querier {
         const system = backend.physicsSystem;
         const Jolt = backend.Jolt;
         const joltInterface = backend.joltInterface;
-        const { bodyFilter, shapeFilter } = backend;
 
         buffer.writeOperator(COMPONENT_SYSTEM_MANAGER);
         buffer.writeCommand(CMD_COLLIDE_SHAPE_IDX);
@@ -455,20 +468,24 @@ class Querier {
         const firstOnly = cb.flag ? cb.read(BUFFER_READ_BOOL) : true;
         buffer.write(firstOnly, BUFFER_WRITE_BOOL, false);
 
+        const ignoreSensors = cb.flag ? cb.read(BUFFER_READ_BOOL) : false;
+
+        let bodyFilter;
+        if (ignoreSensors) {
+            bodyFilter = this._ignoreSensorsBodyFilter;
+            if (!bodyFilter) {
+                this._createIgnoreSensorsBodyFilter(system);
+                bodyFilter = this._ignoreSensorsBodyFilter;
+            }
+        } else {
+            bodyFilter = backend.bodyFilter;
+        }
+
         try {
             let collector = firstOnly ? this._collectorCollideShapeFirst : this._collectorCollideShapeAll;
             if (!collector) {
                 collector = this._collectorPoint = firstOnly ?
                     new Jolt.CollideShapeClosestHitCollisionCollector() : new Jolt.CollideShapeAllHitCollisionCollector();
-                // collector.Reset = function () {
-                //     collector.ResetEarlyOutFraction();
-                // };
-                // collector.AddHit = function (contactResultPtr) {
-                //     console.log('add hit');
-                // };
-                // collector.OnBody = function (bodyPtr) {
-                //     console.log('on body');
-                // };
             }
 
             const shapeIndex = cb.read(BUFFER_READ_UINT32);
@@ -511,7 +528,7 @@ class Querier {
             const customObjFilter = cb.flag;
             const objFilter = customObjFilter ? new Jolt.DefaultObjectLayerFilter(joltInterface.GetObjectLayerPairFilter(), cb.read(BUFFER_READ_UINT32)) : backend.objFilter;
 
-            system.GetNarrowPhaseQuery().CollideShape(shape, jv2, Jolt.Mat44.prototype.sRotationTranslation(jq, jv1), settings, jv3, collector, bpFilter, objFilter, bodyFilter, shapeFilter);
+            system.GetNarrowPhaseQuery().CollideShape(shape, jv2, Jolt.Mat44.prototype.sRotationTranslation(jq, jv1), settings, jv3, collector, bpFilter, objFilter, bodyFilter, backend.shapeFilter);
 
             if (firstOnly) {
                 if (collector.HadHit()) {
@@ -547,6 +564,23 @@ class Querier {
         }
 
         return true;
+    }
+
+    _createIgnoreSensorsBodyFilter(system) {
+        const Jolt = this._backend.Jolt;
+        const bodyFilter = new Jolt.BodyFilterJS();
+        bodyFilter.ShouldCollide = (inBodyID) => {
+            const body = system.GetBodyLockInterfaceNoLock().TryGetBody(Jolt.wrapPointer(inBodyID, Jolt.BodyID));
+            if (body.IsSensor()) {
+                return false;
+            }
+            return true;
+        };
+        bodyFilter.ShouldCollideLocked = () => {
+            return true;
+        };
+
+        this._ignoreSensorsBodyFilter = bodyFilter;
     }
 }
 
