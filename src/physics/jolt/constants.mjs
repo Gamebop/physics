@@ -10,14 +10,13 @@ export const MOTION_TYPE_KINEMATIC = 2;
 export const MOTION_QUALITY_DISCRETE = 0;
 export const MOTION_QUALITY_LINEAR_CAST = 1;
 
-export const ALLOWED_DOFS_TRANSLATION_X = 0;
-export const ALLOWED_DOFS_TRANSLATION_Y = 1;
-export const ALLOWED_DOFS_TRANSLATION_Z = 2;
-export const ALLOWED_DOFS_ROTATION_X = 3;
-export const ALLOWED_DOFS_ROTATION_Y = 4;
-export const ALLOWED_DOFS_ROTATION_Z = 5;
-export const ALLOWED_DOFS_PLANE_2D = 6;
-export const ALLOWED_DOFS_ALL = 7;
+export const DOF_TRANSLATION_X = 1;
+export const DOF_TRANSLATION_Y = 2;
+export const DOF_TRANSLATION_Z = 4;
+export const DOF_ROTATION_X = 8;
+export const DOF_ROTATION_Y = 16;
+export const DOF_ROTATION_Z = 32;
+export const DOF_ALL = 63;
 
 export const OMP_CALCULATE_MASS_AND_INERTIA = 0;
 export const OMP_CALCULATE_INERTIA = 1;
