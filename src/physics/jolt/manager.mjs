@@ -262,12 +262,27 @@ class JoltManager extends PhysicsManager {
             let ok = Debug.checkVec(origin, `Invalid origin vector`);
             ok = ok && Debug.checkVec(dir, `Invalid direction vector`);
             ok = ok && Debug.assert(callback, 'castRay requires a callback function castRay(origin, dir, callback, opts)');
-            if (ok && opts?.firstOnly != null) ok = Debug.checkBool(opts.firstOnly);
-            if (ok && opts?.calculateNormal != null) ok = Debug.checkBool(opts.calculateNormal);
-            if (ok && opts?.ignoreBackFaces != null) ok = Debug.checkBool(opts.ignoreBackFaces);
-            if (ok && opts?.treatConvexAsSolid != null) ok = Debug.checkBool(opts.treatConvexAsSolid);
-            if (ok && opts?.bpFilterLayer != null) ok = Debug.checkUint(opts.bpFilterLayer);
-            if (ok && opts?.objFilterLayer != null) ok = Debug.checkUint(opts.objFilterLayer);
+            if (ok && opts?.firstOnly != null) {
+                ok = Debug.checkBool(opts.firstOnly, `Invalid first only boolean`);
+            }
+            if (ok && opts?.calculateNormal != null) {
+                ok = Debug.checkBool(opts.calculateNormal, `Invalid calculate normal boolean`);
+            }
+            if (ok && opts?.ignoreBackFaces != null) {
+                ok = Debug.checkBool(opts.ignoreBackFaces, `Invalid ignore backfaces boolean`);
+            }
+            if (ok && opts?.treatConvexAsSolid != null) {
+                ok = Debug.checkBool(opts.treatConvexAsSolid, `Invalid treat convex as solid boolean`);
+            }
+            if (ok && opts?.bpFilterLayer != null) {
+                ok = Debug.checkUint(opts.bpFilterLayer, `Invalid bpFilterLayer number`);
+            }
+            if (ok && opts?.objFilterLayer != null) {
+                ok = Debug.checkUint(opts.objFilterLayer, `Invalid objFilterLayer number`);
+            }
+            if (ok && opts?.ignoreSensors != null) {
+                ok = Debug.checkBool(opts.ignoreSensors, `Invalid ignoreSensors boolean`);
+            }
             if (!ok) {
                 return;
             }
@@ -288,6 +303,7 @@ class JoltManager extends PhysicsManager {
         cb.write(opts?.calculateNormal, BUFFER_WRITE_BOOL);
         cb.write(opts?.ignoreBackFaces, BUFFER_WRITE_BOOL);
         cb.write(opts?.treatConvexAsSolid, BUFFER_WRITE_BOOL);
+        cb.write(opts?.ignoreSensors, BUFFER_WRITE_BOOL);
         cb.write(opts?.bpFilterLayer, BUFFER_WRITE_UINT32);
         cb.write(opts?.objFilterLayer, BUFFER_WRITE_UINT32);
     }

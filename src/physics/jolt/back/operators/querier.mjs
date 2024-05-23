@@ -74,6 +74,7 @@ class Querier {
         this._collectorPoint = null;
         this._collectorCollideShapeFirst = null;
         this._collectorCollideShapeAll = null;
+        this._ignoreSensorsBodyFilter = null;
 
         this._collectorShapeFirst = new Jolt.CastShapeClosestHitCollisionCollector();
         this._collectorShapeAll = new Jolt.CastShapeAllHitCollisionCollector();
@@ -149,6 +150,11 @@ class Querier {
             this._collectorCollideShapeAll = null;
         }
 
+        if (this._ignoreSensorsBodyFilter) {
+            Jolt.destroy(this._ignoreSensorsBodyFilter);
+            this._ignoreSensorsBodyFilter = null;
+        }
+
         this._commandsBuffer.destroy();
         this._commandsBuffer = null;
 
@@ -184,8 +190,28 @@ class Querier {
             const calculateNormal = cb.flag ? cb.read(BUFFER_READ_BOOL) : false;
             const ignoreBackFaces = cb.flag ? cb.read(BUFFER_READ_BOOL) : true;
             const solidConvex = cb.flag ? cb.read(BUFFER_READ_BOOL) : true;
+            const ignoreSensors = cb.flag ? cb.read(BUFFER_READ_BOOL) : false;
             const collector = firstOnly ? this._collectorRayFirst : this._collectorRayAll;
-            const { bodyFilter, shapeFilter } = this._backend;
+
+            let bodyFilter;
+            if (ignoreSensors) {
+                bodyFilter = this._ignoreSensorsBodyFilter;
+                if (!bodyFilter) {
+                    bodyFilter = this._ignoreSensorsBodyFilter = new Jolt.BodyFilterJS();
+                    bodyFilter.ShouldCollide = (inBodyID) => {
+                        const body = system.GetBodyLockInterfaceNoLock().TryGetBody(Jolt.wrapPointer(inBodyID, Jolt.BodyID));
+                        if (body.IsSensor()) {
+                            return false;
+                        }
+                        return true;
+                    };
+                    bodyFilter.ShouldCollideLocked = () => {
+                        return true;
+                    };
+                }
+            } else {
+                bodyFilter = backend.bodyFilter;
+            }
 
             buffer.write(firstOnly, BUFFER_WRITE_BOOL, false);
 
@@ -198,7 +224,7 @@ class Querier {
             const customObjFilter = cb.flag;
             const objFilter = customObjFilter ? new Jolt.DefaultObjectLayerFilter(joltInterface.GetObjectLayerPairFilter(), cb.read(BUFFER_READ_UINT32)) : backend.objFilter;
 
-            system.GetNarrowPhaseQuery().CastRay(cast, castSettings, collector, bpFilter, objFilter, bodyFilter, shapeFilter);
+            system.GetNarrowPhaseQuery().CastRay(cast, castSettings, collector, bpFilter, objFilter, bodyFilter, backend.shapeFilter);
 
             if (firstOnly) {
                 if (collector.HadHit()) {
