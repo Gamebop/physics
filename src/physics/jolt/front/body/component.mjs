@@ -116,7 +116,7 @@ class BodyComponent extends ShapeComponent {
      * entity.body.allowedDOFs = DOF_TRANSLATION_X | DOF_TRANSLATION_Z | DOF_ROTATION_Y;
      * ```
      *
-     * @param {number} degree - Enum number, representing a degree of freedom.
+     * @param {number} degree - Constant number, representing a degree of freedom.
      */
     set allowedDOFs(degree) {
         if (this._allowedDOFs === degree) {
