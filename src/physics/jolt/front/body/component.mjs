@@ -118,7 +118,7 @@ class BodyComponent extends ShapeComponent {
      * entity.body.allowedDOFs = DOF_TRANSLATION_X | DOF_TRANSLATION_Z | DOF_ROTATION_Y;
      * ```
      *
-     * @param {number} degree - Enum number, representing a degree of freedom.
+     * @param {number} degree - Constant number, representing a degree of freedom.
      */
     set allowedDOFs(degree) {
         if (this._allowedDOFs === degree) {
@@ -449,7 +449,7 @@ class BodyComponent extends ShapeComponent {
     /**
      * Motion quality, or how well it detects collisions when it has a high velocity.
      *
-     * @returns {number} Enum number, representing the collision detection algorithm for this body.
+     * @returns {number} Constant number, representing the collision detection algorithm for this body.
      * @defaultValue MOTION_QUALITY_DISCRETE
      */
     get motionQuality() {
@@ -457,7 +457,7 @@ class BodyComponent extends ShapeComponent {
     }
 
     /**
-     * @param {number} type - Number, representing motion quality enum.
+     * @param {number} type - Number, representing motion quality constant.
      */
     set motionType(type) {
         if (this._motionType === type) {
@@ -477,7 +477,7 @@ class BodyComponent extends ShapeComponent {
 
     /**
      * Motion type, determines if the object is static, dynamic or kinematic. You can use the
-     * following enum aliases:
+     * following constants:
      * ```
      * MOTION_TYPE_STATIC
      * ```
@@ -576,7 +576,7 @@ class BodyComponent extends ShapeComponent {
     /**
      * Determines how a body mass and inertia is calculated. By default it uses
      * `OMP_CALCULATE_MASS_AND_INERTIA`, which tells Jolt to auto-calculate those based the collider
-     * shape. You can use following enum aliases:
+     * shape. You can use following constants:
      * ```
      * OMP_CALCULATE_INERTIA
      * ```
@@ -592,7 +592,7 @@ class BodyComponent extends ShapeComponent {
      * If you select `OMP_MASS_AND_INERTIA_PROVIDED`, you must also specify {@link overrideMass},
      * {@link overrideInertiaPosition} and {@link overrideInertiaRotation}.
      *
-     * @returns {number} Number, representing the mass calculation method enum.
+     * @returns {number} Number, representing the mass calculation method constant.
      * @defaultValue OMP_CALCULATE_MASS_AND_INERTIA (calculates automatically)
      */
     get overrideMassProperties() {

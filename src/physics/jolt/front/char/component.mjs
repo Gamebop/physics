@@ -72,8 +72,8 @@ class CharComponent extends ShapeComponent {
 
     /**
      * When colliding with back faces, the character will not be able to move through back facing
-     * triangles. Use this if you have triangles that need to collide on both sides. Following enum
-     * aliases available:
+     * triangles. Use this if you have triangles that need to collide on both sides. Following
+     * constants available:
      * ```
      * BFM_IGNORE_BACK_FACES
      * ```
@@ -81,7 +81,7 @@ class CharComponent extends ShapeComponent {
      * BFM_COLLIDE_BACK_FACES
      * ```
      *
-     * @returns {number} Enum alias, representing the back face collision mode.
+     * @returns {number} Constant number, representing the back face collision mode.
      * @defaultValue BFM_COLLIDE_BACK_FACES
      */
     get backFaceMode() {
@@ -142,7 +142,7 @@ class CharComponent extends ShapeComponent {
     }
 
     /**
-     * Ground state. Following enum aliases available:
+     * Ground state. Following constants available:
      * ```
      * GROUND_STATE_ON_GROUND
      * ```
@@ -352,7 +352,7 @@ class CharComponent extends ShapeComponent {
     /**
      * Returns the default collision shape type of the character (the one it was created with).
      *
-     * @returns {number} A shape type enum number.
+     * @returns {number} A shape type constant number.
      * @defaultValue SHAPE_CAPSULE
      */
     get shape() {

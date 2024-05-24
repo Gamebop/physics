@@ -267,7 +267,7 @@ class ShapeComponent extends Component {
     }
 
     /**
-     * Shape type. Following enum aliases available:
+     * Shape type. Following constants available:
      * ```
      * SHAPE_BOX
      * ```

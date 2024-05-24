@@ -271,7 +271,7 @@ class SixDOFConstraint extends Constraint {
      * See {@link setLimitsSpringSettings} for example.
      *
      * @param {number} axis - Axis number, zero-based.
-     * @param {number} state - Enum alias, representing the state.
+     * @param {number} state - Constants, representing the state.
      */
     setMotorState(axis, state) {
         if ($_DEBUG) {
