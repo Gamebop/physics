@@ -32,7 +32,8 @@ const schema = [
     'allowDynamicOrKinematic',
     'isSensor',
     'motionQuality',
-    'allowSleeping'
+    'allowSleeping',
+    'autoUpdateIsometry'
 ];
 
 /**

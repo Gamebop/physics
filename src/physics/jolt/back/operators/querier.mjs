@@ -13,6 +13,7 @@ function writeRayHit(cb, system, tracker, cast, calculateNormal, hit, Jolt) {
     const index = tracker.getPCID(Jolt.getPointer(body));
     cb.write(index, BUFFER_WRITE_UINT32, false);
     cb.write(point, BUFFER_WRITE_JOLTVEC32, false);
+    cb.write(hit.mFraction, BUFFER_WRITE_FLOAT32, false);
     cb.write(normal, BUFFER_WRITE_JOLTVEC32);
 }
 
@@ -30,6 +31,7 @@ function writeShapeHit(cb, system, tracker, cast, calculateNormal, hit, Jolt) {
     const index = tracker.getPCID(Jolt.getPointer(body));
     cb.write(index, BUFFER_WRITE_UINT32, false);
     cb.write(point, BUFFER_WRITE_JOLTVEC32, false);
+    cb.write(hit.mFraction, BUFFER_WRITE_FLOAT32, false);
     cb.write(normal, BUFFER_WRITE_JOLTVEC32);
 }
 

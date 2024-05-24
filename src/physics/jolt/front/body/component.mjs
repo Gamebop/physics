@@ -9,7 +9,7 @@ import {
     CMD_SET_MOTION_TYPE, CMD_SET_OBJ_LAYER, CMD_USE_MOTION_STATE, MOTION_QUALITY_DISCRETE,
     MOTION_TYPE_DYNAMIC, MOTION_TYPE_KINEMATIC, MOTION_TYPE_STATIC, OBJ_LAYER_NON_MOVING,
     OMP_CALCULATE_MASS_AND_INERTIA, OMP_MASS_AND_INERTIA_PROVIDED, OPERATOR_CLEANER,
-    OPERATOR_MODIFIER, SHAPE_CONVEX_HULL, SHAPE_HEIGHTFIELD, SHAPE_MESH
+    OPERATOR_MODIFIER, SHAPE_CONVEX_HULL, SHAPE_HEIGHTFIELD, SHAPE_MESH, CMD_SET_AUTO_UPDATE_ISOMETRY
 } from '../../constants.mjs';
 
 const vec3 = new Vec3();
@@ -31,6 +31,8 @@ class BodyComponent extends ShapeComponent {
     _allowSleeping = true;
 
     _angularDamping = 0;
+
+    _autoUpdateIsometry = true;
 
     _collisionGroup = null;
 
@@ -116,7 +118,7 @@ class BodyComponent extends ShapeComponent {
      * entity.body.allowedDOFs = DOF_TRANSLATION_X | DOF_TRANSLATION_Z | DOF_ROTATION_Y;
      * ```
      *
-     * @param {number} degree - Enum number, representing a degree of freedom.
+     * @param {number} degree - Constant number, representing a degree of freedom.
      */
     set allowedDOFs(degree) {
         if (this._allowedDOFs === degree) {
@@ -198,6 +200,73 @@ class BodyComponent extends ShapeComponent {
      */
     get angularVelocity() {
         return this._angularVelocity;
+    }
+
+    /**
+     * Changes the isometry update method:
+     * - `true`: framework will synchronize entity position/rotation in visual world with a
+     * physical body in physics world automatically.
+     * - `false`: framework expects a user to do it manually.
+     *
+     * If `false` is set, then physics will no longer auto-update entity/body position/rotation.
+     * - Backend will not tell frontend where dynamic body is.
+     * - Frontend will not tell backend where kinematic body is.
+     * - This setting has no effect on a static body.
+     *
+     * This is useful, for example, when you have many kinematic objects and you rarely change
+     * their isometry. In some cases this is also useful for dynamic bodies, e.g. when their
+     * gravity factor is set to zero, and you use {@link moveKinematic} to translate it manually.
+     *
+     * @example
+     * ```js
+     * entity.addComponent('body', {
+     *     motionType: MOTION_TYPE_KINEMATIC,
+     *     objectLayer: OBJ_LAYER_MOVING,
+     *     autoUpdateIsometry: false
+     * });
+     *
+     * // then on frame update, or when needed, move both - body and entity
+     * entity.setPosition(newPosition);
+     * entity.body.teleport(newPosition);
+     * // or any of the body movement methods, e.g.
+     * // entity.body.moveKinematic(newPosition, Quat.IDENTITY, time);
+     * ```
+     */
+    set autoUpdateIsometry(bool) {
+        if ($_DEBUG) {
+            const ok = Debug.checkBool(bool, `Invalid manual isometry update state boolean`);
+            if (!ok) return;
+        }
+
+        if (this._autoUpdateIsometry === bool) {
+            return;
+        }
+
+        this._autoUpdateIsometry = bool;
+
+        const type = this._motionType;
+        if (bool && type === MOTION_TYPE_DYNAMIC || type === MOTION_TYPE_KINEMATIC) {
+            this._isometryEvent = this.system.on('write-isometry', this.writeIsometry, this);
+        } else {
+            this._isometryEvent?.off();
+            this._isometryEvent = null;
+        }
+
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_SET_AUTO_UPDATE_ISOMETRY, this._index,
+            bool, BUFFER_WRITE_BOOL, false
+        );
+    }
+
+    /**
+     * Returns a boolean, telling if the position and rotation of this body is updated
+     * automatically.
+     *
+     * @returns {boolean} - Boolean, telling the isometry update state.
+     * @defaultValue false
+     */
+    get autoUpdateIsometry() {
+        return this._autoUpdateIsometry;
     }
 
     /**
@@ -380,7 +449,7 @@ class BodyComponent extends ShapeComponent {
     /**
      * Motion quality, or how well it detects collisions when it has a high velocity.
      *
-     * @returns {number} Enum number, representing the collision detection algorithm for this body.
+     * @returns {number} Constant number, representing the collision detection algorithm for this body.
      * @defaultValue MOTION_QUALITY_DISCRETE
      */
     get motionQuality() {
@@ -388,7 +457,7 @@ class BodyComponent extends ShapeComponent {
     }
 
     /**
-     * @param {number} type - Number, representing motion quality enum.
+     * @param {number} type - Number, representing motion quality constant.
      */
     set motionType(type) {
         if (this._motionType === type) {
@@ -408,7 +477,7 @@ class BodyComponent extends ShapeComponent {
 
     /**
      * Motion type, determines if the object is static, dynamic or kinematic. You can use the
-     * following enum aliases:
+     * following constants:
      * ```
      * MOTION_TYPE_STATIC
      * ```
@@ -507,7 +576,7 @@ class BodyComponent extends ShapeComponent {
     /**
      * Determines how a body mass and inertia is calculated. By default it uses
      * `OMP_CALCULATE_MASS_AND_INERTIA`, which tells Jolt to auto-calculate those based the collider
-     * shape. You can use following enum aliases:
+     * shape. You can use following constants:
      * ```
      * OMP_CALCULATE_INERTIA
      * ```
@@ -523,7 +592,7 @@ class BodyComponent extends ShapeComponent {
      * If you select `OMP_MASS_AND_INERTIA_PROVIDED`, you must also specify {@link overrideMass},
      * {@link overrideInertiaPosition} and {@link overrideInertiaRotation}.
      *
-     * @returns {number} Number, representing the mass calculation method enum.
+     * @returns {number} Number, representing the mass calculation method constant.
      * @defaultValue OMP_CALCULATE_MASS_AND_INERTIA (calculates automatically)
      */
     get overrideMassProperties() {
@@ -909,22 +978,16 @@ class BodyComponent extends ShapeComponent {
     }
 
     writeIsometry() {
-        if (this._motionType === MOTION_TYPE_DYNAMIC) {
-            return;
-        }
-
         const entity = this.entity;
 
-        if (entity._dirtyWorld) {
-            const position = entity.getPosition();
-            const rotation = entity.getRotation();
+        const position = entity.getPosition();
+        const rotation = entity.getRotation();
 
-            this.system.addCommand(
-                OPERATOR_MODIFIER, CMD_MOVE_BODY, this._index,
-                position, BUFFER_WRITE_VEC32, false,
-                rotation, BUFFER_WRITE_VEC32, false
-            );
-        }
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_MOVE_BODY, this._index,
+            position, BUFFER_WRITE_VEC32, false,
+            rotation, BUFFER_WRITE_VEC32, false
+        );
     }
 
     writeComponentData(cb) {
@@ -985,6 +1048,8 @@ class BodyComponent extends ShapeComponent {
             }
         }
 
+        cb.write(this._autoUpdateIsometry, BUFFER_WRITE_BOOL, false);
+
         if ($_DEBUG) {
             cb.write(this._debugDraw, BUFFER_WRITE_BOOL, false);
         }
@@ -1006,7 +1071,8 @@ class BodyComponent extends ShapeComponent {
 
         if (!isCompoundChild) {
             const motionType = this._motionType;
-            if ((motionType === MOTION_TYPE_DYNAMIC && this._trackDynamic) || motionType === MOTION_TYPE_KINEMATIC) {
+            if (this._autoUpdateIsometry &&
+                    (motionType === MOTION_TYPE_DYNAMIC || motionType === MOTION_TYPE_KINEMATIC)) {
                 this._isometryEvent = this.system.on('write-isometry', this.writeIsometry, this);
             }
         }

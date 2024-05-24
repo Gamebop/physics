@@ -584,8 +584,7 @@ class JoltBackend {
             }
         }
 
-        // Reset the cursors, so we can start from the buffer beginning on
-        // the next step request
+        // Reset the cursors, so we can start from the buffer beginning on the next step request
         cb.reset();
 
         return ok;
@@ -772,8 +771,11 @@ class JoltBackend {
             for (let i = 0; i < count; i++) {
                 const bodyID = bodyList.at(i);
                 const body = system.GetBodyLockInterface().TryGetBody(bodyID);
-                const pointer = Jolt.getPointer(body);
-                if (pointer === 0 || body.isCharPaired || body.GetMotionType() !== Jolt.EMotionType_Dynamic) {
+
+                if (!body.autoUpdateIsometry ||
+                        body.isCharPaired ||
+                        body.GetMotionType() !== Jolt.EMotionType_Dynamic ||
+                        Jolt.getPointer(body) === 0) {
                     continue;
                 }
 

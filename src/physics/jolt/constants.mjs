@@ -169,6 +169,7 @@ export const CMD_COLLIDE_POINT = 37;
 export const CMD_COLLIDE_SHAPE_IDX = 38;
 
 export const CMD_SET_MOTION_QUALITY = 39;
+export const CMD_SET_AUTO_UPDATE_ISOMETRY = 40;
 
 // Constraints 500+
 
