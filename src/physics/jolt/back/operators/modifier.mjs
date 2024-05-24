@@ -6,7 +6,7 @@ import {
     BUFFER_READ_UINT8, BUFFER_WRITE_UINT32, CMD_ADD_ANGULAR_IMPULSE, CMD_ADD_FORCE,
     CMD_ADD_IMPULSE, CMD_ADD_TORQUE, CMD_APPLY_BUOYANCY_IMPULSE, CMD_CHANGE_GRAVITY,
     CMD_CHAR_SET_LIN_VEL, CMD_CHAR_SET_SHAPE, CMD_MOVE_BODY, CMD_MOVE_KINEMATIC, CMD_PAIR_BODY,
-    CMD_REPORT_SET_SHAPE, CMD_RESET_VELOCITIES, CMD_SET_ANG_VEL, CMD_SET_DOF, CMD_SET_DRIVER_INPUT,
+    CMD_REPORT_SET_SHAPE, CMD_RESET_VELOCITIES, CMD_SET_ANG_VEL, CMD_SET_AUTO_UPDATE_ISOMETRY, CMD_SET_DOF, CMD_SET_DRIVER_INPUT,
     CMD_SET_GRAVITY_FACTOR, CMD_SET_LIN_VEL, CMD_SET_MOTION_QUALITY, CMD_SET_MOTION_TYPE,
     CMD_SET_OBJ_LAYER, CMD_SET_USER_DATA, CMD_TOGGLE_GROUP_PAIR, CMD_USE_MOTION_STATE,
     COMPONENT_SYSTEM_CHAR, MOTION_QUALITY_DISCRETE, MOTION_TYPE_DYNAMIC, MOTION_TYPE_KINEMATIC
@@ -144,6 +144,10 @@ class Modifier {
 
             case CMD_SET_MOTION_QUALITY:
                 ok = this._setMotionQuality(cb);
+                break;
+
+            case CMD_SET_AUTO_UPDATE_ISOMETRY:
+                ok = this._setAutoUpdateIsometry(cb);
                 break;
         }
 
@@ -476,8 +480,7 @@ class Modifier {
         const backend = this._backend;
         const tracker = backend.tracker;
         const index = cb.read(BUFFER_READ_UINT32);
-
-        const body = tracker.getBodyByPCID(index);
+        const body = backend.tracker.getBodyByPCID(index);
         const data = tracker.constraintMap.get(index);
         if (!data || !body) {
             return true;
@@ -534,7 +537,7 @@ class Modifier {
         const tracker = backend.tracker;
         const bodyInterface = backend.bodyInterface;
         const index = cb.read(BUFFER_READ_UINT32);
-        const body = tracker.getBodyByPCID(index);
+        const body = backend.tracker.getBodyByPCID(index);
         const type = cb.read(BUFFER_READ_UINT8);
 
         let jType = Jolt.EMotionType_Static;
@@ -559,8 +562,7 @@ class Modifier {
 
     _setObjectLayer(cb) {
         const backend = this._backend;
-        const index = cb.read(BUFFER_READ_UINT32);
-        const body = backend.tracker.getBodyByPCID(index);
+        const body = this._getBody(cb);
         const layer = cb.read(BUFFER_READ_UINT32);
 
         try {
@@ -577,8 +579,7 @@ class Modifier {
 
     _setGravityFactor(cb) {
         const backend = this._backend;
-        const index = cb.read(BUFFER_READ_UINT32);
-        const body = backend.tracker.getBodyByPCID(index);
+        const body = this._getBody(cb);
         const factor = cb.read(BUFFER_READ_FLOAT32);
 
         try {
@@ -594,9 +595,7 @@ class Modifier {
     }
 
     _setDOF(cb) {
-        const backend = this._backend;
-        const index = cb.read(BUFFER_READ_UINT32);
-        const body = backend.tracker.getBodyByPCID(index);
+        const body = this._getBody(cb);
 
         try {
             const motionProperties = body.GetMotionProperties();
@@ -615,8 +614,7 @@ class Modifier {
     _setMotionQuality(cb) {
         const backend = this._backend;
         const Jolt = backend.Jolt;
-        const index = cb.read(BUFFER_READ_UINT32);
-        const body = backend.tracker.getBodyByPCID(index);
+        const body = this._getBody(cb);
         const quality = cb.read(BUFFER_READ_UINT8);
 
         const jQuality = quality === MOTION_QUALITY_DISCRETE ?
@@ -630,6 +628,14 @@ class Modifier {
             }
             return false;
         }
+
+        return true;
+    }
+
+    _setAutoUpdateIsometry(cb) {
+        const body = this._getBody(cb);
+
+        body.autoUpdateIsometry = cb.read(BUFFER_READ_BOOL);
 
         return true;
     }
