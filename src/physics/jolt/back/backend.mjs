@@ -51,7 +51,6 @@ class JoltBackend {
             // contact events
             charContactEventsEnabled: true,
             vehicleContactEventsEnabled: false,
-            contactEventsEnabled: true,
             contactAddedEventsEnabled: true,
             contactPersistedEventsEnabled: false,
             contactRemovedEventsEnabled: true,
@@ -70,6 +69,10 @@ class JoltBackend {
             ],
             ...data.config
         };
+        
+        config.contactEventsEnabled = config.contactAddedEventsEnabled ||
+            config.contactPersistedEventsEnabled || config.contactRemovedEventsEnabled;
+
         this._config = config;
         this._dispatcher = messenger;
         this._time = 0;
