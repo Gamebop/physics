@@ -41,7 +41,7 @@ class ConstraintSettings {
     point2;
 
     /**
-     * Reference frame that `point1` and `point2` use. Following enum aliases available:
+     * Reference frame that `point1` and `point2` use. Following constants available:
      * ```
      * CONSTRAINT_SPACE_LOCAL
      * ```
@@ -62,7 +62,7 @@ class ConstraintSettings {
  */
 class SpringSettings {
     /**
-     * Selects the spring mode. Following enum aliases available:
+     * Selects the spring mode. Following constants available:
      * ```
      * SPRING_MODE_FREQUENCY
      * ```
@@ -420,7 +420,7 @@ class SixDOFConstraintSettings extends ConstraintSettings {
      * [CONSTRAINT_SIX_DOF_TRANSLATION_X, CONSTRAINT_SIX_DOF_ROTATION_Y]
      * ```
      *
-     * Following axis enum aliases available can be used:
+     * Following axis constants available can be used:
      * ```
      * CONSTRAINT_SIX_DOF_TRANSLATION_X
      * ```
