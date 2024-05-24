@@ -2,14 +2,14 @@ import { Asset, Quat, Vec3 } from 'playcanvas';
 import { Debug } from '../../debug.mjs';
 import { ShapeComponent } from '../shape/component.mjs';
 import {
-    ALLOWED_DOFS_ALL, BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT32,
-    BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32, CMD_ADD_FORCE, CMD_ADD_IMPULSE,
-    CMD_APPLY_BUOYANCY_IMPULSE, CMD_DESTROY_BODY, CMD_MOVE_BODY, CMD_MOVE_KINEMATIC,
-    CMD_RESET_VELOCITIES, CMD_SET_ANG_VEL, CMD_SET_DOF, CMD_SET_GRAVITY_FACTOR, CMD_SET_LIN_VEL,
-    CMD_SET_MOTION_QUALITY, CMD_SET_MOTION_TYPE, CMD_SET_OBJ_LAYER, CMD_USE_MOTION_STATE,
-    MOTION_QUALITY_DISCRETE, MOTION_TYPE_DYNAMIC, MOTION_TYPE_KINEMATIC, MOTION_TYPE_STATIC,
-    OBJ_LAYER_NON_MOVING, OMP_CALCULATE_MASS_AND_INERTIA, OMP_MASS_AND_INERTIA_PROVIDED,
-    OPERATOR_CLEANER, OPERATOR_MODIFIER, SHAPE_CONVEX_HULL, SHAPE_HEIGHTFIELD, SHAPE_MESH
+    DOF_ALL, BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT32, BUFFER_WRITE_UINT8,
+    BUFFER_WRITE_VEC32, CMD_ADD_FORCE, CMD_ADD_IMPULSE, CMD_APPLY_BUOYANCY_IMPULSE,
+    CMD_DESTROY_BODY, CMD_MOVE_BODY, CMD_MOVE_KINEMATIC, CMD_RESET_VELOCITIES, CMD_SET_ANG_VEL,
+    CMD_SET_DOF, CMD_SET_GRAVITY_FACTOR, CMD_SET_LIN_VEL, CMD_SET_MOTION_QUALITY,
+    CMD_SET_MOTION_TYPE, CMD_SET_OBJ_LAYER, CMD_USE_MOTION_STATE, MOTION_QUALITY_DISCRETE,
+    MOTION_TYPE_DYNAMIC, MOTION_TYPE_KINEMATIC, MOTION_TYPE_STATIC, OBJ_LAYER_NON_MOVING,
+    OMP_CALCULATE_MASS_AND_INERTIA, OMP_MASS_AND_INERTIA_PROVIDED, OPERATOR_CLEANER,
+    OPERATOR_MODIFIER, SHAPE_CONVEX_HULL, SHAPE_HEIGHTFIELD, SHAPE_MESH
 } from '../../constants.mjs';
 
 const vec3 = new Vec3();
@@ -24,7 +24,7 @@ class BodyComponent extends ShapeComponent {
 
     _angularVelocity = new Vec3();
 
-    _allowedDOFs = ALLOWED_DOFS_ALL;
+    _allowedDOFs = DOF_ALL;
 
     _allowDynamicOrKinematic = false;
 
@@ -88,33 +88,33 @@ class BodyComponent extends ShapeComponent {
     }
 
     /**
-     * Changes the allowed degrees of freedom. You can use following enum aliases:
+     * Changes the allowed degrees of freedom. You can use a combination of following bits:
      * ```
-     * ALLOWED_DOFS_TRANSLATION_X
-     * ```
-     * ```
-     * ALLOWED_DOFS_TRANSLATION_Y
+     * DOF_TRANSLATION_X
      * ```
      * ```
-     * ALLOWED_DOFS_TRANSLATION_Z
+     * DOF_TRANSLATION_Y
      * ```
      * ```
-     * ALLOWED_DOFS_ROTATION_X
+     * DOF_TRANSLATION_Z
      * ```
      * ```
-     * ALLOWED_DOFS_ROTATION_Y
+     * DOF_ROTATION_X
      * ```
      * ```
-     * ALLOWED_DOFS_ROTATION_Z
+     * DOF_ROTATION_Y
      * ```
      * ```
-     * ALLOWED_DOFS_PLANE_2D
+     * DOF_ROTATION_Z
      * ```
      * ```
-     * ALLOWED_DOFS_ALL
+     * DOF_ALL
      * ```
-     *
-     * `ALLOWED_DOFS_PLANE_2D` will restrict body to `X` and `Y` axis.
+     * @example
+     * ```javascript
+     * // lock translation to X and Z axis and rotation to Y axis
+     * entity.body.allowedDOFs = DOF_TRANSLATION_X | DOF_TRANSLATION_Z | DOF_ROTATION_Y;
+     * ```
      *
      * @param {number} degree - Enum number, representing a degree of freedom.
      */
@@ -139,10 +139,10 @@ class BodyComponent extends ShapeComponent {
 
     /**
      * Which degrees of freedom this body has (can be used to limit simulation to 2D).
-     * For example, using `ALLOWED_DOFS_TRANSLATION_X` allows a body to move in world space X axis.
+     * For example, using `DOF_TRANSLATION_X` restricts a body to move in world space X axis.
      *
-     * @returns {number} Enum number, representing the degrees of freedom.
-     * @defaultValue ALLOWED_DOFS_ALL
+     * @returns {number} Bit number, representing the degrees of freedom.
+     * @defaultValue DOF_ALL
      */
     get allowedDOFs() {
         return this._allowedDOFs;
