@@ -9,15 +9,74 @@ import { ResponseHandler } from './front/response-handler.mjs';
 import { SoftBodyComponentSystem } from './front/softbody/system.mjs';
 import { ShapeComponentSystem } from './front/shape/system.mjs';
 import { VehicleComponentSystem } from './front/vehicle/system.mjs';
-import { Quat, Vec3, Color, LAYERID_IMMEDIATE } from 'playcanvas';
+import { Quat, Vec3, Color, LAYERID_IMMEDIATE, KEY_Q, EVENT_KEYDOWN } from 'playcanvas';
 import {
     BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT16, BUFFER_WRITE_UINT32, BUFFER_WRITE_UINT8,
     BUFFER_WRITE_VEC32, CMD_CAST_RAY, CMD_CAST_SHAPE, CMD_CHANGE_GRAVITY, CMD_COLLIDE_POINT,
     CMD_COLLIDE_SHAPE_IDX, CMD_CREATE_GROUPS, CMD_CREATE_SHAPE, CMD_DESTROY_SHAPE, CMD_TOGGLE_GROUP_PAIR,
     COMPONENT_SYSTEM_BODY, COMPONENT_SYSTEM_CHAR, COMPONENT_SYSTEM_CONSTRAINT, COMPONENT_SYSTEM_MANAGER,
-    COMPONENT_SYSTEM_SOFT_BODY, COMPONENT_SYSTEM_VEHICLE, OPERATOR_CLEANER, OPERATOR_CREATOR,
-    OPERATOR_MODIFIER, OPERATOR_QUERIER
+    COMPONENT_SYSTEM_SOFT_BODY, COMPONENT_SYSTEM_VEHICLE, MOTION_TYPE_DYNAMIC, MOTION_TYPE_KINEMATIC,
+    MOTION_TYPE_STATIC, OPERATOR_CLEANER, OPERATOR_CREATOR, OPERATOR_MODIFIER, OPERATOR_QUERIER
 } from './constants.mjs';
+
+function getColor(type, config) {
+    switch (type) {
+        case MOTION_TYPE_STATIC:
+            return config.debugColorStatic;
+        case MOTION_TYPE_KINEMATIC:
+            return config.debugColorKinematic;
+        case MOTION_TYPE_DYNAMIC:
+            return config.debugColorDynamic;
+        default:
+            return Color.WHITE;
+    }
+}
+
+function debugDraw(app, data, config) {
+    const useDepth = config.debugDrawDepth;
+    const layer = app.scene.layers.getLayerById(config.debugDrawLayerId);
+    const tempVectors = ShapeComponentSystem.tempVectors;
+
+    if (tempVectors.length === 0) {
+        tempVectors.push(new Vec3(), new Vec3(), new Vec3(), new Vec3(), new Quat());
+    }
+
+    const v1 = tempVectors[0];
+    const v2 = tempVectors[1];
+    const v3 = tempVectors[2];
+    const v4 = tempVectors[3];
+    const q1 = tempVectors[4];
+
+    for (let d = 0, total = data.length; d < total; d += 12) {
+        const length = data[d + 1];
+        const byteOffset = data[d + 2];
+        const motionType = data[d + 3];
+        const buffer = data[d + 4];
+
+        const view = new Float32Array(buffer, byteOffset, length);
+        const color = getColor(motionType, config);
+
+        const p = v4.set(data[d + 5], data[d + 6], data[d + 7]);
+        const r = q1.set(data[d + 8], data[d + 9], data[d + 10], data[d + 11]);
+
+        for (let i = 0, end = view.length; i < end; i += 9) {
+            v1.set(view[i], view[i + 1], view[i + 2]);
+            v2.set(view[i + 3], view[i + 4], view[i + 5]);
+            v3.set(view[i + 6], view[i + 7], view[i + 8]);
+
+            r.transformVector(v1, v1);
+            r.transformVector(v2, v2);
+            r.transformVector(v3, v3);
+            v1.add(p);
+            v2.add(p);
+            v3.add(p);
+
+            app.drawLine(v1, v2, color, useDepth, layer);
+            app.drawLine(v2, v3, color, useDepth, layer);
+            app.drawLine(v3, v1, color, useDepth, layer);
+        }
+    }
+}
 
 const halfExtent = new Vec3(0.5, 0.5, 0.5);
 
@@ -36,6 +95,7 @@ class JoltManager extends PhysicsManager {
             debugColorDynamic: Color.YELLOW,
             debugDrawLayerId: LAYERID_IMMEDIATE,
             debugDrawDepth: true,
+            debugDrawKey: KEY_Q,
             ...opts
         };
 
@@ -79,6 +139,16 @@ class JoltManager extends PhysicsManager {
                 msg.glueUrl = glueAsset.getFileUrl();
                 msg.wasmUrl = wasmAsset.getFileUrl();
             }
+        }
+
+        // toggle debug draw view
+        if ($_DEBUG) {
+            this._draw = true;
+            app.keyboard.on(EVENT_KEYDOWN, (e) => {
+                if (e.key === config.debugDrawKey) {
+                    this._draw = !this._draw;
+                }
+            });
         }
 
         msg.backendName = 'jolt';
@@ -125,8 +195,8 @@ class JoltManager extends PhysicsManager {
             this._resolve();
         }
 
-        if (data.drawViews) {
-            ShapeComponentSystem.debugDraw(this._app, data.drawViews, this._config);
+        if ($_DEBUG && data.drawViews && this._draw) {
+            debugDraw(this._app, data.drawViews, this._config);
         }
     }
 
