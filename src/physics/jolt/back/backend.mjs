@@ -69,7 +69,7 @@ class JoltBackend {
             ],
             ...data.config
         };
-        
+
         config.contactEventsEnabled = config.contactAddedEventsEnabled ||
             config.contactPersistedEventsEnabled || config.contactRemovedEventsEnabled;
 
