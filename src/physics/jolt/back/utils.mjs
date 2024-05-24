@@ -42,31 +42,53 @@ function setSixDOFAxes(cb, settings, type, Jolt, isLimited) {
         const min = isLimited ? cb.read(BUFFER_READ_FLOAT32) : null;
         const max = isLimited ? cb.read(BUFFER_READ_FLOAT32) : null;
 
-        // TODO
-        // Fix this. Fixed and Free methods don't need scalars for value. Only axis.
         switch (axis) {
             case CONSTRAINT_SIX_DOF_TRANSLATION_X:
-                settings[type](Jolt.SixDOFConstraintSettings_EAxis_TranslationX, min, max);
+                if (isLimited) {
+                    settings[type](Jolt.SixDOFConstraintSettings_EAxis_TranslationX, min, max);
+                } else {
+                    settings[type](Jolt.SixDOFConstraintSettings_EAxis_TranslationX);
+                }
                 break;
 
             case CONSTRAINT_SIX_DOF_TRANSLATION_Y:
-                settings[type](Jolt.SixDOFConstraintSettings_EAxis_TranslationY, min, max);
+                if (isLimited) {
+                    settings[type](Jolt.SixDOFConstraintSettings_EAxis_TranslationY, min, max);
+                } else {
+                    settings[type](Jolt.SixDOFConstraintSettings_EAxis_TranslationY);
+                }
                 break;
 
             case CONSTRAINT_SIX_DOF_TRANSLATION_Z:
-                settings[type](Jolt.SixDOFConstraintSettings_EAxis_TranslationZ, min, max);
+                if (isLimited) {
+                    settings[type](Jolt.SixDOFConstraintSettings_EAxis_TranslationZ, min, max);
+                } else {
+                    settings[type](Jolt.SixDOFConstraintSettings_EAxis_TranslationZ);
+                }
                 break;
 
             case CONSTRAINT_SIX_DOF_ROTATION_X:
-                settings[type](Jolt.SixDOFConstraintSettings_EAxis_RotationX, min, max);
+                if (isLimited) {
+                    settings[type](Jolt.SixDOFConstraintSettings_EAxis_RotationX, min, max);
+                } else {
+                    settings[type](Jolt.SixDOFConstraintSettings_EAxis_RotationX);
+                }
                 break;
 
             case CONSTRAINT_SIX_DOF_ROTATION_Y:
-                settings[type](Jolt.SixDOFConstraintSettings_EAxis_RotationY, min, max);
+                if (isLimited) {
+                    settings[type](Jolt.SixDOFConstraintSettings_EAxis_RotationY, min, max);
+                } else {
+                    settings[type](Jolt.SixDOFConstraintSettings_EAxis_RotationY);
+                }
                 break;
 
             case CONSTRAINT_SIX_DOF_ROTATION_Z:
-                settings[type](Jolt.SixDOFConstraintSettings_EAxis_RotationZ, min, max);
+                if (isLimited) {
+                    settings[type](Jolt.SixDOFConstraintSettings_EAxis_RotationZ, min, max);
+                } else {
+                    settings[type](Jolt.SixDOFConstraintSettings_EAxis_RotationZ);
+                }
                 break;
 
             default:
