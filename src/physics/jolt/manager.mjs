@@ -144,7 +144,7 @@ class JoltManager extends PhysicsManager {
         // toggle debug draw view
         if ($_DEBUG) {
             this._draw = true;
-            app.on(EVENT_KEYDOWN, (e) => {
+            app.keyboard.on(EVENT_KEYDOWN, (e) => {
                 if (e.key === config.debugDrawKey) {
                     this._draw = !this._draw;
                 }
