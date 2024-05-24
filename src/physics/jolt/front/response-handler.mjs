@@ -29,10 +29,11 @@ class CharContactResult {
     }
 }
 
-class RaycastResult {
-    constructor(entity, point, normal) {
+class CastResult {
+    constructor(entity, point, fraction, normal) {
         this.entity = entity;
         this.point = point;
+        this.fraction = fraction;
         if (normal) {
             this.normal = normal;
         }
@@ -190,6 +191,8 @@ class ResponseHandler {
                 cb.read(BUFFER_READ_FLOAT32)
             );
 
+            const fraction = cb.read(BUFFER_READ_FLOAT32);
+
             let normal;
             if (cb.flag) {
                 normal = new Vec3(
@@ -206,7 +209,7 @@ class ResponseHandler {
                 continue;
             }
 
-            const r = new RaycastResult(entity, point, normal);
+            const r = new CastResult(entity, point, fraction, normal);
 
             if (firstOnly) {
                 result = r;
