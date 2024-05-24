@@ -330,6 +330,8 @@ class Creator {
         const body = bodyInterface.CreateBody(bodyCreationSettings);
         bodyInterface.AddBody(body.GetID(), Jolt.EActivation_Activate);
 
+        body.autoUpdateIsometry = cb.read(BUFFER_READ_BOOL);
+
         if ($_DEBUG) {
             this._addDebugDraw(cb.read(BUFFER_READ_BOOL), body);
         }

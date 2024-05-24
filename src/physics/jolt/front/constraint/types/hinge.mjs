@@ -233,7 +233,7 @@ class HingeConstraint extends Constraint {
      * - `MOTOR_STATE_POSITION`: Motor will drive to target position.
      * - `MOTOR_STATE_VELOCITY`: Motor will drive to target velocity.
      *
-     * @param {number} state - Enum alias, representing the state.
+     * @param {number} state - Constant number, representing the state.
      */
     setMotorState(state) {
         if ($_DEBUG) {

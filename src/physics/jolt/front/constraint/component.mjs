@@ -25,7 +25,7 @@ class ConstraintComponent extends Component {
     _list = new Set();
 
     /**
-     * Adds a joint to this entity. Following enum aliases available:
+     * Adds a joint to this entity. Following constants available:
      * ```
      * CONSTRAINT_TYPE_FIXED
      * ```
@@ -54,7 +54,7 @@ class ConstraintComponent extends Component {
      * CONSTRAINT_TYPE_PULLEY
      * ```
      *
-     * @param {number} type - Enum alias, representing joint type.
+     * @param {number} type - Constant number, representing joint type.
      * @param {import('playcanvas').Entity} otherEntity - The other entity that this entity will be
      * connected to with this joint.
      * @param {import('./types/settings.mjs').ConstraintSettings |

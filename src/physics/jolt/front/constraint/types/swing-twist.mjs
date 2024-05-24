@@ -311,7 +311,7 @@ class SwingTwistConstraint extends Constraint {
      * - `MOTOR_STATE_POSITION`: Motor will drive to target position.
      * - `MOTOR_STATE_VELOCITY`: Motor will drive to target velocity.
      *
-     * @param {number} state - Enum alias, representing the state.
+     * @param {number} state - Constant number, representing the state.
      */
     setSwingMotorState(state) {
         if ($_DEBUG) {
@@ -329,7 +329,7 @@ class SwingTwistConstraint extends Constraint {
     /**
      * Sets twist motor state. See {@link setSwingMotorState} for description.
      *
-     * @param {number} state - Enum alias, representing the state.
+     * @param {number} state - Constant number, representing the state.
      */
     setTwistMotorState(state) {
         if ($_DEBUG) {
