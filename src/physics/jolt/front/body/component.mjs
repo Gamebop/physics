@@ -13,7 +13,7 @@ import {
     CMD_SET_AUTO_UPDATE_ISOMETRY, CMD_SET_ALLOW_SLEEPING, CMD_SET_ANG_FACTOR, BUFFER_WRITE_INT32,
     CMD_SET_COL_GROUP, CMD_SET_FRICTION, CMD_SET_IS_SENSOR, CMD_SET_RESTITUTION,
     CMD_SET_KIN_COL_NON_DYN, CMD_SET_APPLY_GYRO_FORCE, CMD_SET_INTERNAL_EDGE,
-    CMD_RESET_SLEEP_TIMER, CMD_SET_LIN_VEL_CLAMPED, CMD_SET_ANG_VEL_CLAMPED, CMD_RESET_MOTION, CMD_SET_MAX_ANG_VEL, CMD_SET_MAX_LIN_VEL
+    CMD_RESET_SLEEP_TIMER, CMD_SET_LIN_VEL_CLAMPED, CMD_SET_ANG_VEL_CLAMPED, CMD_RESET_MOTION, CMD_SET_MAX_ANG_VEL, CMD_SET_MAX_LIN_VEL, CMD_CLAMP_ANG_VEL, CMD_CLAMP_LIN_VEL
 } from '../../constants.mjs';
 
 const vec3 = new Vec3();
@@ -1066,6 +1066,20 @@ class BodyComponent extends ShapeComponent {
             OPERATOR_MODIFIER, CMD_ADD_FORCE, this._index,
             torque, BUFFER_WRITE_VEC32, false
         );
+    }
+
+    /**
+     * Clamps angular velocity according to the limit set by {@link maxAngularVelocity}.
+     */
+    clampAngularVelocity() {
+        this.system.addCommand(OPERATOR_MODIFIER, CMD_CLAMP_ANG_VEL, this._index);
+    }
+
+    /**
+     * Clamps linear velocity according to the limit set by {@link maxLinearVelocity}.
+     */
+    clampLinearVelocity() {
+        this.system.addCommand(OPERATOR_MODIFIER, CMD_CLAMP_LIN_VEL, this._index);
     }
 
     /**

@@ -5,7 +5,7 @@ import {
     BUFFER_READ_BOOL, BUFFER_READ_FLOAT32, BUFFER_READ_INT32, BUFFER_READ_UINT16,
     BUFFER_READ_UINT32, BUFFER_READ_UINT8, BUFFER_WRITE_UINT32, CMD_ADD_ANGULAR_IMPULSE,
     CMD_ADD_FORCE, CMD_ADD_IMPULSE, CMD_ADD_TORQUE, CMD_APPLY_BUOYANCY_IMPULSE, CMD_CHANGE_GRAVITY,
-    CMD_CHAR_SET_LIN_VEL, CMD_CHAR_SET_SHAPE, CMD_MOVE_BODY, CMD_MOVE_KINEMATIC, CMD_PAIR_BODY,
+    CMD_CHAR_SET_LIN_VEL, CMD_CHAR_SET_SHAPE, CMD_CLAMP_ANG_VEL, CMD_CLAMP_LIN_VEL, CMD_MOVE_BODY, CMD_MOVE_KINEMATIC, CMD_PAIR_BODY,
     CMD_REPORT_SET_SHAPE, CMD_RESET_MOTION, CMD_RESET_SLEEP_TIMER, CMD_SET_ALLOW_SLEEPING,
     CMD_SET_ANG_FACTOR, CMD_SET_ANG_VEL, CMD_SET_ANG_VEL_CLAMPED, CMD_SET_APPLY_GYRO_FORCE,
     CMD_SET_AUTO_UPDATE_ISOMETRY, CMD_SET_COL_GROUP, CMD_SET_DOF, CMD_SET_DRIVER_INPUT,
@@ -211,6 +211,14 @@ class Modifier {
 
             case CMD_SET_MAX_LIN_VEL:
                 ok = this._setMaxLinVel(cb);
+                break;
+
+            case CMD_CLAMP_LIN_VEL:
+                ok = this._clampLinVel(cb);
+                break;
+
+            case CMD_CLAMP_ANG_VEL:
+                ok = this._clampAngVel(cb);
                 break;
         }
 
@@ -884,6 +892,36 @@ class Modifier {
 
         try {
             body.GetMotionProperties().SetMaxLinearVelocity(cb.read(BUFFER_READ_FLOAT32));
+        } catch (e) {
+            if ($_DEBUG) {
+                Debug.error(e);
+            }
+            return false;
+        }
+
+        return true;
+    }
+
+    _clampLinVel(cb) {
+        const body = this._getBody(cb);
+
+        try {
+            body.GetMotionProperties().ClampLinearVelocity();
+        } catch (e) {
+            if ($_DEBUG) {
+                Debug.error(e);
+            }
+            return false;
+        }
+
+        return true;
+    }
+
+    _clampAngVel(cb) {
+        const body = this._getBody(cb);
+
+        try {
+            body.GetMotionProperties().ClampAngularVelocity();
         } catch (e) {
             if ($_DEBUG) {
                 Debug.error(e);
