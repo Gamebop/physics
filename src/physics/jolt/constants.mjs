@@ -180,6 +180,7 @@ export const CMD_SET_KIN_COL_NON_DYN = 47;
 export const CMD_SET_APPLY_GYRO_FORCE = 48;
 export const CMD_SET_INTERNAL_EDGE = 49;
 export const CMD_RESET_SLEEP_TIMER = 50;
+export const CMD_SET_LIN_VEL_CLAMPED = 51;
 
 // Constraints 500+
 
