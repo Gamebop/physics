@@ -6,7 +6,7 @@ import {
     BUFFER_READ_UINT8, BUFFER_WRITE_UINT32, CMD_ADD_ANGULAR_IMPULSE, CMD_ADD_FORCE,
     CMD_ADD_IMPULSE, CMD_ADD_TORQUE, CMD_APPLY_BUOYANCY_IMPULSE, CMD_CHANGE_GRAVITY,
     CMD_CHAR_SET_LIN_VEL, CMD_CHAR_SET_SHAPE, CMD_MOVE_BODY, CMD_MOVE_KINEMATIC, CMD_PAIR_BODY,
-    CMD_REPORT_SET_SHAPE, CMD_RESET_VELOCITIES, CMD_SET_ALLOW_SLEEPING, CMD_SET_ANG_VEL, CMD_SET_AUTO_UPDATE_ISOMETRY, CMD_SET_DOF, CMD_SET_DRIVER_INPUT,
+    CMD_REPORT_SET_SHAPE, CMD_RESET_VELOCITIES, CMD_SET_ALLOW_SLEEPING, CMD_SET_ANG_FACTOR, CMD_SET_ANG_VEL, CMD_SET_AUTO_UPDATE_ISOMETRY, CMD_SET_DOF, CMD_SET_DRIVER_INPUT,
     CMD_SET_GRAVITY_FACTOR, CMD_SET_LIN_VEL, CMD_SET_MOTION_QUALITY, CMD_SET_MOTION_TYPE,
     CMD_SET_OBJ_LAYER, CMD_SET_USER_DATA, CMD_TOGGLE_GROUP_PAIR, CMD_USE_MOTION_STATE,
     COMPONENT_SYSTEM_CHAR, MOTION_QUALITY_DISCRETE, MOTION_TYPE_DYNAMIC, MOTION_TYPE_KINEMATIC
@@ -153,6 +153,10 @@ class Modifier {
             case CMD_SET_ALLOW_SLEEPING:
                 ok = this._setAllowSleeping(cb);
                 break;
+
+            case CMD_SET_ANG_FACTOR:
+                ok = this._setAngularFactor(cb);
+                return;
         }
 
         return ok;
@@ -648,6 +652,14 @@ class Modifier {
         const body = this._getBody(cb);
 
         body.SetAllowSleeping(cb.read(BUFFER_READ_BOOL));
+
+        return true;
+    }
+
+    _setAngularFactor(cb) {
+        const body = this._getBody(cb);
+
+        body.GetMotionProperties().SetAngularDamping(cb.read(BUFFER_READ_FLOAT32));
 
         return true;
     }

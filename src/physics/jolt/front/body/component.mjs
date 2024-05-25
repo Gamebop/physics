@@ -10,7 +10,8 @@ import {
     MOTION_TYPE_DYNAMIC, MOTION_TYPE_KINEMATIC, MOTION_TYPE_STATIC, OBJ_LAYER_NON_MOVING,
     OMP_CALCULATE_MASS_AND_INERTIA, OMP_MASS_AND_INERTIA_PROVIDED, OPERATOR_CLEANER,
     OPERATOR_MODIFIER, SHAPE_CONVEX_HULL, SHAPE_HEIGHTFIELD, SHAPE_MESH, CMD_SET_AUTO_UPDATE_ISOMETRY,
-    CMD_SET_ALLOW_SLEEPING
+    CMD_SET_ALLOW_SLEEPING,
+    CMD_SET_ANG_FACTOR
 } from '../../constants.mjs';
 
 const vec3 = new Vec3();
@@ -188,11 +189,35 @@ class BodyComponent extends ShapeComponent {
     }
 
     /**
-     * Specifies how quickly a body loses angular velocity. The formula used:
+     * Sets angular damping factor. The formula used:
      * ```
-     * dw/dt = -c * w
+     * dw/dt = -factor * w
      * ```
-     * `c` must be between 0 and 1 but is usually close to 0.
+     * `factor` must be between `0` and `1` but is usually close to `0`.
+     *
+     * @param {number} factor - Factor number.
+     */
+    set angularDamping(factor) {
+        if (this._angularDamping === factor) {
+            return;
+        }
+
+        if ($_DEBUG) {
+            const ok = Debug.checkFloat(factor, `Invalid angular factor float: ${factor}`);
+            if (!ok) {
+                return;
+            }
+        }
+
+        this._angularDamping = factor;
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_SET_ANG_FACTOR, this._index,
+            factor, BUFFER_WRITE_BOOL, false
+        );
+    }
+
+    /**
+     * Tells how quickly a body loses angular velocity.
      *
      * @returns {number} Number, representing angular damping.
      * @defaultValue 0
