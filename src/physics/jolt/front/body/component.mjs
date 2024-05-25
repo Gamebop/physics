@@ -699,6 +699,8 @@ class BodyComponent extends ShapeComponent {
      * If you select `OMP_MASS_AND_INERTIA_PROVIDED`, you must also specify {@link overrideMass},
      * {@link overrideInertiaPosition} and {@link overrideInertiaRotation}.
      *
+     * Cannot be changed after the body is created.
+     *
      * @returns {number} Number, representing the mass calculation method constant.
      * @defaultValue OMP_CALCULATE_MASS_AND_INERTIA (calculates automatically)
      */
