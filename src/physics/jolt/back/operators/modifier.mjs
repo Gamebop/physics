@@ -7,6 +7,7 @@ import {
     CMD_ADD_IMPULSE, CMD_ADD_TORQUE, CMD_APPLY_BUOYANCY_IMPULSE, CMD_CHANGE_GRAVITY,
     CMD_CHAR_SET_LIN_VEL, CMD_CHAR_SET_SHAPE, CMD_MOVE_BODY, CMD_MOVE_KINEMATIC, CMD_PAIR_BODY,
     CMD_REPORT_SET_SHAPE, CMD_RESET_VELOCITIES, CMD_SET_ALLOW_SLEEPING, CMD_SET_ANG_FACTOR, CMD_SET_ANG_VEL,
+    CMD_SET_APPLY_GYRO_FORCE,
     CMD_SET_AUTO_UPDATE_ISOMETRY, CMD_SET_COL_GROUP, CMD_SET_DOF, CMD_SET_DRIVER_INPUT,
     CMD_SET_FRICTION,
     CMD_SET_GRAVITY_FACTOR, CMD_SET_IS_SENSOR, CMD_SET_KIN_COL_NON_DYN, CMD_SET_LIN_VEL, CMD_SET_MOTION_QUALITY, CMD_SET_MOTION_TYPE,
@@ -178,6 +179,10 @@ class Modifier {
 
             case CMD_SET_KIN_COL_NON_DYN:
                 ok = this._setKinematicCollideNonDynamic(cb);
+                break;
+
+            case CMD_SET_APPLY_GYRO_FORCE:
+                ok = this._setApplyGyroForce(cb);
                 break;
         }
 
@@ -780,6 +785,21 @@ class Modifier {
 
         try {
             body.SetCollideKinematicVsNonDynamic(cb.read(BUFFER_READ_BOOL));
+        } catch (e) {
+            if ($_DEBUG) {
+                Debug.error(e);
+            }
+            return false;
+        }
+
+        return true;
+    }
+
+    _setApplyGyroForce(cb) {
+        const body = this._getBody(cb);
+
+        try {
+            body.SetApplyGyroscopicForce(cb.read(BUFFER_READ_BOOL));
         } catch (e) {
             if ($_DEBUG) {
                 Debug.error(e);

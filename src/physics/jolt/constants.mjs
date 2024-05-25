@@ -177,6 +177,7 @@ export const CMD_SET_FRICTION = 44;
 export const CMD_SET_IS_SENSOR = 45;
 export const CMD_SET_RESTITUTION = 46;
 export const CMD_SET_KIN_COL_NON_DYN = 47;
+export const CMD_SET_APPLY_GYRO_FORCE = 48;
 
 // Constraints 500+
 

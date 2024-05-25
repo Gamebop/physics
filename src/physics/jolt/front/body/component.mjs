@@ -10,7 +10,8 @@ import {
     MOTION_TYPE_DYNAMIC, MOTION_TYPE_KINEMATIC, MOTION_TYPE_STATIC, OBJ_LAYER_NON_MOVING,
     OMP_CALCULATE_MASS_AND_INERTIA, OMP_MASS_AND_INERTIA_PROVIDED, OPERATOR_CLEANER,
     OPERATOR_MODIFIER, SHAPE_CONVEX_HULL, SHAPE_HEIGHTFIELD, SHAPE_MESH, CMD_SET_AUTO_UPDATE_ISOMETRY,
-    CMD_SET_ALLOW_SLEEPING, CMD_SET_ANG_FACTOR, BUFFER_WRITE_INT32, CMD_SET_COL_GROUP, CMD_SET_FRICTION, CMD_SET_IS_SENSOR, CMD_SET_RESTITUTION, CMD_SET_KIN_COL_NON_DYN
+    CMD_SET_ALLOW_SLEEPING, CMD_SET_ANG_FACTOR, BUFFER_WRITE_INT32, CMD_SET_COL_GROUP, CMD_SET_FRICTION,
+    CMD_SET_IS_SENSOR, CMD_SET_RESTITUTION, CMD_SET_KIN_COL_NON_DYN, CMD_SET_APPLY_GYRO_FORCE
 } from '../../constants.mjs';
 
 const vec3 = new Vec3();
@@ -1023,6 +1024,27 @@ class BodyComponent extends ShapeComponent {
         this.system.addCommand(
             OPERATOR_MODIFIER, CMD_ADD_FORCE, this._index,
             torque, BUFFER_WRITE_VEC32, false
+        );
+    }
+
+    /**
+     * Set to indicate that the gyroscopic force should be applied to this body (aka Dzhanibekov
+     * effect, see {@link https://en.wikipedia.org/wiki/Tennis_racket_theorem | Tennis Racket
+     * Theorem}.
+     *
+     * @param {boolean} bool - Boolean, whether to apply gyroscopic force
+     */
+    setApplyGyroscopicForce(bool) {
+        if ($_DEBUG) {
+            const ok = Debug.checkBool(bool, `Invalid boolean: ${bool}`);
+            if (!ok) {
+                return;
+            }
+        }
+
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_SET_APPLY_GYRO_FORCE, this._index,
+            bool, BUFFER_WRITE_BOOL, false
         );
     }
 
