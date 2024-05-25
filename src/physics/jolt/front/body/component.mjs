@@ -9,7 +9,8 @@ import {
     CMD_SET_MOTION_TYPE, CMD_SET_OBJ_LAYER, CMD_USE_MOTION_STATE, MOTION_QUALITY_DISCRETE,
     MOTION_TYPE_DYNAMIC, MOTION_TYPE_KINEMATIC, MOTION_TYPE_STATIC, OBJ_LAYER_NON_MOVING,
     OMP_CALCULATE_MASS_AND_INERTIA, OMP_MASS_AND_INERTIA_PROVIDED, OPERATOR_CLEANER,
-    OPERATOR_MODIFIER, SHAPE_CONVEX_HULL, SHAPE_HEIGHTFIELD, SHAPE_MESH, CMD_SET_AUTO_UPDATE_ISOMETRY
+    OPERATOR_MODIFIER, SHAPE_CONVEX_HULL, SHAPE_HEIGHTFIELD, SHAPE_MESH, CMD_SET_AUTO_UPDATE_ISOMETRY,
+    CMD_SET_ALLOW_SLEEPING
 } from '../../constants.mjs';
 
 const vec3 = new Vec3();
@@ -148,6 +149,32 @@ class BodyComponent extends ShapeComponent {
      */
     get allowedDOFs() {
         return this._allowedDOFs;
+    }
+
+    /**
+     * Specifies, whether a body can go to sleep or not.
+     * - `true`: allow sleeping
+     * - `false`: do not allow to go sleep
+     *
+     * @param {boolean} bool - Boolean, telling if a body may go to sleep
+     */
+    set allowSleeping(bool) {
+        if (this._allowSleeping === bool) {
+            return;
+        }
+
+        if ($_DEBUG) {
+            const ok = Debug.checkBool(bool, `Invalid allow sleeping bool: ${bool}`);
+            if (!ok) {
+                return;
+            }
+        }
+
+        this._allowSleeping = bool;
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_SET_ALLOW_SLEEPING, this._index,
+            bool, BUFFER_WRITE_BOOL, false
+        );
     }
 
     /**
