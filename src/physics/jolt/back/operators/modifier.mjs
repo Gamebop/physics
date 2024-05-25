@@ -7,6 +7,7 @@ import {
     CMD_ADD_IMPULSE, CMD_ADD_TORQUE, CMD_APPLY_BUOYANCY_IMPULSE, CMD_CHANGE_GRAVITY,
     CMD_CHAR_SET_LIN_VEL, CMD_CHAR_SET_SHAPE, CMD_MOVE_BODY, CMD_MOVE_KINEMATIC, CMD_PAIR_BODY,
     CMD_REPORT_SET_SHAPE, CMD_RESET_SLEEP_TIMER, CMD_RESET_VELOCITIES, CMD_SET_ALLOW_SLEEPING, CMD_SET_ANG_FACTOR, CMD_SET_ANG_VEL,
+    CMD_SET_ANG_VEL_CLAMPED,
     CMD_SET_APPLY_GYRO_FORCE,
     CMD_SET_AUTO_UPDATE_ISOMETRY, CMD_SET_COL_GROUP, CMD_SET_DOF, CMD_SET_DRIVER_INPUT,
     CMD_SET_FRICTION,
@@ -195,6 +196,10 @@ class Modifier {
 
             case CMD_SET_LIN_VEL_CLAMPED:
                 ok = this._applyForces(cb, 'SetLinearVelocityClamped', true);
+                break;
+
+            case CMD_SET_ANG_VEL_CLAMPED:
+                ok = this._applyForces(cb, 'SetAngularVelocityClamped', true);
                 break;
         }
 

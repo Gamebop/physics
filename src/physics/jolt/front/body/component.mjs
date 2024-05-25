@@ -11,7 +11,7 @@ import {
     OMP_CALCULATE_MASS_AND_INERTIA, OMP_MASS_AND_INERTIA_PROVIDED, OPERATOR_CLEANER,
     OPERATOR_MODIFIER, SHAPE_CONVEX_HULL, SHAPE_HEIGHTFIELD, SHAPE_MESH, CMD_SET_AUTO_UPDATE_ISOMETRY,
     CMD_SET_ALLOW_SLEEPING, CMD_SET_ANG_FACTOR, BUFFER_WRITE_INT32, CMD_SET_COL_GROUP, CMD_SET_FRICTION,
-    CMD_SET_IS_SENSOR, CMD_SET_RESTITUTION, CMD_SET_KIN_COL_NON_DYN, CMD_SET_APPLY_GYRO_FORCE, CMD_SET_INTERNAL_EDGE, CMD_RESET_SLEEP_TIMER, CMD_SET_LIN_VEL_CLAMPED
+    CMD_SET_IS_SENSOR, CMD_SET_RESTITUTION, CMD_SET_KIN_COL_NON_DYN, CMD_SET_APPLY_GYRO_FORCE, CMD_SET_INTERNAL_EDGE, CMD_RESET_SLEEP_TIMER, CMD_SET_LIN_VEL_CLAMPED, CMD_SET_ANG_VEL_CLAMPED
 } from '../../constants.mjs';
 
 const vec3 = new Vec3();
@@ -1031,6 +1031,24 @@ class BodyComponent extends ShapeComponent {
     }
 
     /**
+     * Set world space linear velocity of the center of mass, will make sure the value is clamped
+     * against the maximum linear velocity.
+     *
+     * @param {Vec3} velocity - Angular velocity vector.
+     */
+    setAngularVelocityClamped(velocity) {
+        if ($_DEBUG) {
+            const ok = Debug.checkVec(velocity, `Invalid angular velocity vector`);
+            if (!ok) return;
+        }
+
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_SET_ANG_VEL_CLAMPED, this._index,
+            velocity, BUFFER_WRITE_VEC32, false
+        );
+    }
+
+    /**
      * Set to indicate that the gyroscopic force should be applied to this body (aka Dzhanibekov
      * effect, see {@link https://en.wikipedia.org/wiki/Tennis_racket_theorem | Tennis Racket
      * Theorem}.
@@ -1127,6 +1145,12 @@ class BodyComponent extends ShapeComponent {
         );
     }
 
+    /**
+     * Set world space linear velocity of the center of mass, will make sure the value is clamped
+     * against the maximum linear velocity.
+     *
+     * @param {Vec3} velocity - Linear velocity vector.
+     */
     setLinearVelocityClamped(velocity) {
         if ($_DEBUG) {
             const ok = Debug.checkVec(velocity, `Invalid linear velocity vector`);
