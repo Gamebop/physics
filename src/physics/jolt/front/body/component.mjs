@@ -11,7 +11,7 @@ import {
     OMP_CALCULATE_MASS_AND_INERTIA, OMP_MASS_AND_INERTIA_PROVIDED, OPERATOR_CLEANER,
     OPERATOR_MODIFIER, SHAPE_CONVEX_HULL, SHAPE_HEIGHTFIELD, SHAPE_MESH, CMD_SET_AUTO_UPDATE_ISOMETRY,
     CMD_SET_ALLOW_SLEEPING, CMD_SET_ANG_FACTOR, BUFFER_WRITE_INT32, CMD_SET_COL_GROUP, CMD_SET_FRICTION,
-    CMD_SET_IS_SENSOR, CMD_SET_RESTITUTION, CMD_SET_KIN_COL_NON_DYN, CMD_SET_APPLY_GYRO_FORCE, CMD_SET_INTERNAL_EDGE
+    CMD_SET_IS_SENSOR, CMD_SET_RESTITUTION, CMD_SET_KIN_COL_NON_DYN, CMD_SET_APPLY_GYRO_FORCE, CMD_SET_INTERNAL_EDGE, CMD_RESET_SLEEP_TIMER
 } from '../../constants.mjs';
 
 const vec3 = new Vec3();
@@ -1122,6 +1122,14 @@ class BodyComponent extends ShapeComponent {
             OPERATOR_MODIFIER, CMD_SET_INTERNAL_EDGE, this._index,
             bool, BUFFER_WRITE_BOOL, false
         );
+    }
+
+    /**
+     * If a body is allowed to sleep, this method will reset the sleep timer. Does not wake up a
+     * body that is already sleeping.
+     */
+    resetSleepTimer() {
+        this.system.addCommand(OPERATOR_MODIFIER, CMD_RESET_SLEEP_TIMER, this._index);
     }
 
     /**

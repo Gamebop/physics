@@ -6,7 +6,7 @@ import {
     BUFFER_READ_UINT8, BUFFER_WRITE_UINT32, CMD_ADD_ANGULAR_IMPULSE, CMD_ADD_FORCE,
     CMD_ADD_IMPULSE, CMD_ADD_TORQUE, CMD_APPLY_BUOYANCY_IMPULSE, CMD_CHANGE_GRAVITY,
     CMD_CHAR_SET_LIN_VEL, CMD_CHAR_SET_SHAPE, CMD_MOVE_BODY, CMD_MOVE_KINEMATIC, CMD_PAIR_BODY,
-    CMD_REPORT_SET_SHAPE, CMD_RESET_VELOCITIES, CMD_SET_ALLOW_SLEEPING, CMD_SET_ANG_FACTOR, CMD_SET_ANG_VEL,
+    CMD_REPORT_SET_SHAPE, CMD_RESET_SLEEP_TIMER, CMD_RESET_VELOCITIES, CMD_SET_ALLOW_SLEEPING, CMD_SET_ANG_FACTOR, CMD_SET_ANG_VEL,
     CMD_SET_APPLY_GYRO_FORCE,
     CMD_SET_AUTO_UPDATE_ISOMETRY, CMD_SET_COL_GROUP, CMD_SET_DOF, CMD_SET_DRIVER_INPUT,
     CMD_SET_FRICTION,
@@ -187,6 +187,10 @@ class Modifier {
 
             case CMD_SET_INTERNAL_EDGE:
                 ok = this._setInternalEdge(cb);
+                break;
+
+            case CMD_RESET_SLEEP_TIMER:
+                ok = this._resetSleepTimer(cb);
                 break;
         }
 
@@ -819,6 +823,21 @@ class Modifier {
 
         try {
             body.SetEnhancedInternalEdgeRemoval(cb.read(BUFFER_READ_BOOL));
+        } catch (e) {
+            if ($_DEBUG) {
+                Debug.error(e);
+            }
+            return false;
+        }
+
+        return true;
+    }
+
+    _resetSleepTimer(cb) {
+        const body = this._getBody(cb);
+
+        try {
+            body.ResetSleepTimer();
         } catch (e) {
             if ($_DEBUG) {
                 Debug.error(e);
