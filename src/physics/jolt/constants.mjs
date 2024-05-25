@@ -182,6 +182,8 @@ export const CMD_SET_INTERNAL_EDGE = 49;
 export const CMD_RESET_SLEEP_TIMER = 50;
 export const CMD_SET_LIN_VEL_CLAMPED = 51;
 export const CMD_SET_ANG_VEL_CLAMPED = 51;
+export const CMD_SET_MAX_ANG_VEL = 52;
+export const CMD_SET_MAX_LIN_VEL = 52;
 
 // Constraints 500+
 

@@ -13,7 +13,7 @@ import {
     CMD_SET_AUTO_UPDATE_ISOMETRY, CMD_SET_ALLOW_SLEEPING, CMD_SET_ANG_FACTOR, BUFFER_WRITE_INT32,
     CMD_SET_COL_GROUP, CMD_SET_FRICTION, CMD_SET_IS_SENSOR, CMD_SET_RESTITUTION,
     CMD_SET_KIN_COL_NON_DYN, CMD_SET_APPLY_GYRO_FORCE, CMD_SET_INTERNAL_EDGE,
-    CMD_RESET_SLEEP_TIMER, CMD_SET_LIN_VEL_CLAMPED, CMD_SET_ANG_VEL_CLAMPED, CMD_RESET_MOTION
+    CMD_RESET_SLEEP_TIMER, CMD_SET_LIN_VEL_CLAMPED, CMD_SET_ANG_VEL_CLAMPED, CMD_RESET_MOTION, CMD_SET_MAX_ANG_VEL, CMD_SET_MAX_LIN_VEL
 } from '../../constants.mjs';
 
 const vec3 = new Vec3();
@@ -510,6 +510,24 @@ class BodyComponent extends ShapeComponent {
     }
 
     /**
+     * Sets maximum angular velocity a body can reach. Use {@link setAngularVelocityClamped} to not
+     * go over this limit.
+     *
+     * @param {number} velocity - Maximum angular velocity scalar (rad/s).
+     */
+    set maxAngularVelocity(velocity) {
+        if ($_DEBUG) {
+            const ok = Debug.checkFloat(velocity, `Invalid angular velocity scalar`);
+            if (!ok) return;
+        }
+
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_SET_MAX_ANG_VEL, this._index,
+            velocity, BUFFER_WRITE_FLOAT32, false
+        );
+    }
+
+    /**
      * Maximum angular velocity that this body can reach.
      *
      * @returns {number} Number, representing maximum angular velocity this body can reach.
@@ -517,6 +535,24 @@ class BodyComponent extends ShapeComponent {
      */
     get maxAngularVelocity() {
         return this._maxAngularVelocity;
+    }
+
+    /**
+     * Sets maximum linear velocity a body can reach. Use {@link setLinearVelocityClamped} to not
+     * go over this limit.
+     *
+     * @param {number} velocity - Maximum linear velocity scalar (m/s).
+     */
+    set maxLinearVelocity(velocity) {
+        if ($_DEBUG) {
+            const ok = Debug.checkFloat(velocity, `Invalid linear velocity scalar`);
+            if (!ok) return;
+        }
+
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_SET_MAX_LIN_VEL, this._index,
+            velocity, BUFFER_WRITE_FLOAT32, false
+        );
     }
 
     /**
