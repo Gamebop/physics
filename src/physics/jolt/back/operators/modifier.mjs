@@ -8,6 +8,7 @@ import {
     CMD_CHAR_SET_LIN_VEL, CMD_CHAR_SET_SHAPE, CMD_MOVE_BODY, CMD_MOVE_KINEMATIC, CMD_PAIR_BODY,
     CMD_REPORT_SET_SHAPE, CMD_RESET_VELOCITIES, CMD_SET_ALLOW_SLEEPING, CMD_SET_ANG_FACTOR, CMD_SET_ANG_VEL,
     CMD_SET_AUTO_UPDATE_ISOMETRY, CMD_SET_COL_GROUP, CMD_SET_DOF, CMD_SET_DRIVER_INPUT,
+    CMD_SET_FRICTION,
     CMD_SET_GRAVITY_FACTOR, CMD_SET_LIN_VEL, CMD_SET_MOTION_QUALITY, CMD_SET_MOTION_TYPE,
     CMD_SET_OBJ_LAYER, CMD_SET_USER_DATA, CMD_TOGGLE_GROUP_PAIR, CMD_USE_MOTION_STATE,
     COMPONENT_SYSTEM_CHAR, MOTION_QUALITY_DISCRETE, MOTION_TYPE_DYNAMIC, MOTION_TYPE_KINEMATIC
@@ -161,6 +162,10 @@ class Modifier {
 
             case CMD_SET_COL_GROUP:
                 ok = this._setCollisionGroup(cb);
+                break;
+
+            case CMD_SET_FRICTION:
+                ok = this._setFriction(cb);
                 break;
         }
 
@@ -689,6 +694,14 @@ class Modifier {
         cg.SetGroupFilter(table);
         cg.SetGroupID(group);
         cg.SetSubGroupID(subGroup);
+
+        return true;
+    }
+
+    _setFriction(cb) {
+        const body = this._getBody(cb);
+
+        body.SetFriction(cb.read(BUFFER_READ_FLOAT32));
 
         return true;
     }

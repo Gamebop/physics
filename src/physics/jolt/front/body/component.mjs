@@ -10,7 +10,7 @@ import {
     MOTION_TYPE_DYNAMIC, MOTION_TYPE_KINEMATIC, MOTION_TYPE_STATIC, OBJ_LAYER_NON_MOVING,
     OMP_CALCULATE_MASS_AND_INERTIA, OMP_MASS_AND_INERTIA_PROVIDED, OPERATOR_CLEANER,
     OPERATOR_MODIFIER, SHAPE_CONVEX_HULL, SHAPE_HEIGHTFIELD, SHAPE_MESH, CMD_SET_AUTO_UPDATE_ISOMETRY,
-    CMD_SET_ALLOW_SLEEPING, CMD_SET_ANG_FACTOR, BUFFER_WRITE_INT32, CMD_SET_COL_GROUP
+    CMD_SET_ALLOW_SLEEPING, CMD_SET_ANG_FACTOR, BUFFER_WRITE_INT32, CMD_SET_COL_GROUP, CMD_SET_FRICTION
 } from '../../constants.mjs';
 
 const vec3 = new Vec3();
@@ -334,12 +334,36 @@ class BodyComponent extends ShapeComponent {
     }
 
     /**
-     * Friction of the body. Dimensionless number, usually between 0 and 1:
+     * Sets friction. Dimensionless number, usually between `0` and `1`:
      * - `0`: no friction
      * - `1`: friction force equals force that presses the two bodies together
      *
      * Note: bodies can have negative friction, but the combined friction should never go below
      * zero.
+     *
+     * @param {number} friction - Friction scalar.
+     */
+    set friction(friction) {
+        if (this._friction === friction) {
+            return;
+        }
+
+        if ($_DEBUG) {
+            const ok = Debug.checkFloat(friction, `Invalid friction scalar: ${friction}`);
+            if (!ok) {
+                return;
+            }
+        }
+
+        this._friction = friction;
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_SET_FRICTION, this._index,
+            friction, BUFFER_WRITE_FLOAT32, false
+        );
+    }
+
+    /**
+     * Friction of the body.
      *
      * @returns {number} Number, representing friction factor.
      * @defaultValue 0.2
