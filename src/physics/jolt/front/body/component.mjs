@@ -411,6 +411,7 @@ class BodyComponent extends ShapeComponent {
      * factor is ignored when {@link overrideMassProperties} is set to
      * `OMP_MASS_AND_INERTIA_PROVIDED` - you are expected to calculate inertia yourself in that
      * case.
+     * Cannot be changed after a body is created.
      *
      * @returns {number} Number, representing inertia factor.
      * @defaultValue 1
