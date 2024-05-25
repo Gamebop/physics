@@ -10,7 +10,7 @@ import {
     MOTION_TYPE_DYNAMIC, MOTION_TYPE_KINEMATIC, MOTION_TYPE_STATIC, OBJ_LAYER_NON_MOVING,
     OMP_CALCULATE_MASS_AND_INERTIA, OMP_MASS_AND_INERTIA_PROVIDED, OPERATOR_CLEANER,
     OPERATOR_MODIFIER, SHAPE_CONVEX_HULL, SHAPE_HEIGHTFIELD, SHAPE_MESH, CMD_SET_AUTO_UPDATE_ISOMETRY,
-    CMD_SET_ALLOW_SLEEPING, CMD_SET_ANG_FACTOR, BUFFER_WRITE_INT32, CMD_SET_COL_GROUP, CMD_SET_FRICTION
+    CMD_SET_ALLOW_SLEEPING, CMD_SET_ANG_FACTOR, BUFFER_WRITE_INT32, CMD_SET_COL_GROUP, CMD_SET_FRICTION, CMD_SET_IS_SENSOR
 } from '../../constants.mjs';
 
 const vec3 = new Vec3();
@@ -418,6 +418,25 @@ class BodyComponent extends ShapeComponent {
      */
     get inertiaMultiplier() {
         return this._inertiaMultiplier;
+    }
+
+    set isSensor(bool) {
+        if (this._isSensor === bool) {
+            return;
+        }
+
+        if ($_DEBUG) {
+            const ok = Debug.checkBool(bool, `Invalid isSensor bool: ${bool}`);
+            if (!ok) {
+                return;
+            }
+        }
+
+        this._isSensor = bool;
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_SET_IS_SENSOR, this._index,
+            bool, BUFFER_WRITE_BOOL, false
+        );
     }
 
     /**
