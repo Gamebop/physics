@@ -292,7 +292,7 @@ class JoltManager extends PhysicsManager {
         this._shapeMap.free(index);
     }
 
-    createFilterGroups(groups) {
+    createCollisionGroups(groups) {
         const cb = this._outBuffer;
         const groupsCount = groups.length;
 

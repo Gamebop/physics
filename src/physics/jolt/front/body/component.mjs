@@ -10,8 +10,7 @@ import {
     MOTION_TYPE_DYNAMIC, MOTION_TYPE_KINEMATIC, MOTION_TYPE_STATIC, OBJ_LAYER_NON_MOVING,
     OMP_CALCULATE_MASS_AND_INERTIA, OMP_MASS_AND_INERTIA_PROVIDED, OPERATOR_CLEANER,
     OPERATOR_MODIFIER, SHAPE_CONVEX_HULL, SHAPE_HEIGHTFIELD, SHAPE_MESH, CMD_SET_AUTO_UPDATE_ISOMETRY,
-    CMD_SET_ALLOW_SLEEPING,
-    CMD_SET_ANG_FACTOR
+    CMD_SET_ALLOW_SLEEPING, CMD_SET_ANG_FACTOR, BUFFER_WRITE_INT32, CMD_SET_COL_GROUP
 } from '../../constants.mjs';
 
 const vec3 = new Vec3();
@@ -36,7 +35,7 @@ class BodyComponent extends ShapeComponent {
 
     _autoUpdateIsometry = true;
 
-    _collisionGroup = null;
+    _collisionGroup = -1;
 
     _friction = 0.2;
 
@@ -74,7 +73,7 @@ class BodyComponent extends ShapeComponent {
 
     _restitution = 0;
 
-    _subGroup = null;
+    _subGroup = -1;
 
     _useMotionState = true;
 
@@ -322,12 +321,13 @@ class BodyComponent extends ShapeComponent {
     }
 
     /**
-     * The collision group this body belongs to (determines if two objects can collide). Expensive,
-     * so disabled by default. Prefer to use broadphase and object layers instead for filtering.
+     * The collision group this body belongs to (determines if two objects can collide).
+     * Expensive, so disabled by default. Prefer to use broadphase and object layers instead for
+     * filtering.
      *
-     * @returns {number | null} returns a number, representing a collision group
-     * this body belongs to. If no group is set, returns `null`;
-     * @defaultValue null
+     * @returns {number} returns a number, representing a collision group this body belongs to. If
+     * no group is set, returns `-1`;
+     * @defaultValue -1 (disabled)
      */
     get collisionGroup() {
         return this._collisionGroup;
@@ -686,13 +686,13 @@ class BodyComponent extends ShapeComponent {
     }
 
     /**
-     * The collision sub group (within {@link collisionGroup}) this body belongs to (determines if
-     * two objects can collide). Expensive, so disabled by default. Prefer to use broadphase and
-     * object layers instead for filtering.
+     * The collision sub group  this body belongs to (determines if two objects can collide).
+     * Expensive, so disabled by default. Prefer to use broadphase and object layers instead for
+     * filtering.
      *
      * @returns {number} If set, will return a number, representing the sub group this body belongs
-     * to. Otherwise, will return `null`;
-     * @defaultValue null
+     * to. Otherwise, will return `-1`;
+     * @defaultValue -1 (disabled)
      */
     get subGroup() {
         return this._subGroup;
@@ -942,6 +942,35 @@ class BodyComponent extends ShapeComponent {
     }
 
     /**
+     * Changes the collision group and sub group this body belongs to. Using collision groups is expensive,
+     * so it is disabled by default. Prefer to use broadphase and object layers instead for filtering.
+     *
+     * @param {number} collisionGroup - Collision group number. Use `-1` to disable.
+     * @param {number} subGroup - Sub group number. Use `-1` to disable.
+     */
+    setCollisionGroup(collisionGroup, subGroup) {
+        if (this._collisionGroup === collisionGroup && this._subGroup === subGroup) {
+            return;
+        }
+
+        if ($_DEBUG) {
+            let ok = Debug.checkInt(collisionGroup, `Invalid collision group int: ${collisionGroup}`);
+            ok = ok && Debug.checkInt(subGroup, `Invalid sub group int: ${subGroup}`);
+            if (!ok) {
+                return;
+            }
+        }
+
+        this._collisionGroup = collisionGroup;
+        this._subGroup = subGroup;
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_SET_COL_GROUP, this._index,
+            collisionGroup, BUFFER_WRITE_INT32, false,
+            subGroup, BUFFER_WRITE_INT32, false
+        );
+    }
+
+    /**
      * Intantenous placement of a body to a new position/rotation (i.e. teleport). Will ignore any
      * bodies between old and new position.
      *
@@ -1083,8 +1112,18 @@ class BodyComponent extends ShapeComponent {
         cb.write(this._isSensor, BUFFER_WRITE_BOOL, false);
         cb.write(this._motionQuality, BUFFER_WRITE_UINT8, false);
         cb.write(this._allowSleeping, BUFFER_WRITE_BOOL, false);
-        cb.write(this._collisionGroup, BUFFER_WRITE_UINT32);
-        cb.write(this._subGroup, BUFFER_WRITE_UINT32);
+
+        const hasCollisionGroup = this._collisionGroup >= 0;
+        cb.write(hasCollisionGroup, BUFFER_WRITE_BOOL, false);
+        if (hasCollisionGroup) {
+            cb.write(this._collisionGroup, BUFFER_WRITE_UINT32, false);
+        }
+
+        const hasSubGroup = this._subGroup >= 0;
+        cb.write(hasSubGroup, BUFFER_WRITE_BOOL, false);
+        if (hasSubGroup) {
+            cb.write(this._subGroup, BUFFER_WRITE_UINT32, false);
+        }
 
         const massProps = this._overrideMassProperties;
         cb.write(massProps, BUFFER_WRITE_UINT8, false);

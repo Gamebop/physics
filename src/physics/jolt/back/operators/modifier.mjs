@@ -2,11 +2,12 @@ import { Debug } from '../../debug.mjs';
 import { MotionState } from '../motion-state.mjs';
 import { ConstraintModifier } from './helpers/constraint-modifier.mjs';
 import {
-    BUFFER_READ_BOOL, BUFFER_READ_FLOAT32, BUFFER_READ_UINT16, BUFFER_READ_UINT32,
+    BUFFER_READ_BOOL, BUFFER_READ_FLOAT32, BUFFER_READ_INT32, BUFFER_READ_UINT16, BUFFER_READ_UINT32,
     BUFFER_READ_UINT8, BUFFER_WRITE_UINT32, CMD_ADD_ANGULAR_IMPULSE, CMD_ADD_FORCE,
     CMD_ADD_IMPULSE, CMD_ADD_TORQUE, CMD_APPLY_BUOYANCY_IMPULSE, CMD_CHANGE_GRAVITY,
     CMD_CHAR_SET_LIN_VEL, CMD_CHAR_SET_SHAPE, CMD_MOVE_BODY, CMD_MOVE_KINEMATIC, CMD_PAIR_BODY,
-    CMD_REPORT_SET_SHAPE, CMD_RESET_VELOCITIES, CMD_SET_ALLOW_SLEEPING, CMD_SET_ANG_FACTOR, CMD_SET_ANG_VEL, CMD_SET_AUTO_UPDATE_ISOMETRY, CMD_SET_DOF, CMD_SET_DRIVER_INPUT,
+    CMD_REPORT_SET_SHAPE, CMD_RESET_VELOCITIES, CMD_SET_ALLOW_SLEEPING, CMD_SET_ANG_FACTOR, CMD_SET_ANG_VEL,
+    CMD_SET_AUTO_UPDATE_ISOMETRY, CMD_SET_COL_GROUP, CMD_SET_DOF, CMD_SET_DRIVER_INPUT,
     CMD_SET_GRAVITY_FACTOR, CMD_SET_LIN_VEL, CMD_SET_MOTION_QUALITY, CMD_SET_MOTION_TYPE,
     CMD_SET_OBJ_LAYER, CMD_SET_USER_DATA, CMD_TOGGLE_GROUP_PAIR, CMD_USE_MOTION_STATE,
     COMPONENT_SYSTEM_CHAR, MOTION_QUALITY_DISCRETE, MOTION_TYPE_DYNAMIC, MOTION_TYPE_KINEMATIC
@@ -156,7 +157,11 @@ class Modifier {
 
             case CMD_SET_ANG_FACTOR:
                 ok = this._setAngularFactor(cb);
-                return;
+                break;
+
+            case CMD_SET_COL_GROUP:
+                ok = this._setCollisionGroup(cb);
+                break;
         }
 
         return ok;
@@ -660,6 +665,30 @@ class Modifier {
         const body = this._getBody(cb);
 
         body.GetMotionProperties().SetAngularDamping(cb.read(BUFFER_READ_FLOAT32));
+
+        return true;
+    }
+
+    _setCollisionGroup(cb) {
+        const body = this._getBody(cb);
+        const cg = body.GetCollisionGroup();
+
+        const group = cb.read(BUFFER_READ_INT32);
+        const subGroup = cb.read(BUFFER_READ_INT32);
+        const table = this._backend.groupFilterTables[group];
+
+        if ($_DEBUG) {
+            let ok = Debug.assert(!!table, `Trying to set a filter group that does not exist: ${group}`);
+            ok = ok && Debug.assert((subGroup <= table.maxIndex),
+                                    `Trying to set sub group that is over the filter group table size: ${subGroup}`);
+            if (!ok) {
+                return false;
+            }
+        }
+
+        cg.SetGroupFilter(table);
+        cg.SetGroupID(group);
+        cg.SetSubGroupID(subGroup);
 
         return true;
     }

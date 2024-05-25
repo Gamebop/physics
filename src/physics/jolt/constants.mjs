@@ -172,6 +172,7 @@ export const CMD_SET_MOTION_QUALITY = 39;
 export const CMD_SET_AUTO_UPDATE_ISOMETRY = 40;
 export const CMD_SET_ALLOW_SLEEPING = 41;
 export const CMD_SET_ANG_FACTOR = 42;
+export const CMD_SET_COL_GROUP = 43;
 
 // Constraints 500+
 
