@@ -11,7 +11,7 @@ import {
     OMP_CALCULATE_MASS_AND_INERTIA, OMP_MASS_AND_INERTIA_PROVIDED, OPERATOR_CLEANER,
     OPERATOR_MODIFIER, SHAPE_CONVEX_HULL, SHAPE_HEIGHTFIELD, SHAPE_MESH, CMD_SET_AUTO_UPDATE_ISOMETRY,
     CMD_SET_ALLOW_SLEEPING, CMD_SET_ANG_FACTOR, BUFFER_WRITE_INT32, CMD_SET_COL_GROUP, CMD_SET_FRICTION,
-    CMD_SET_IS_SENSOR, CMD_SET_RESTITUTION, CMD_SET_KIN_COL_NON_DYN, CMD_SET_APPLY_GYRO_FORCE
+    CMD_SET_IS_SENSOR, CMD_SET_RESTITUTION, CMD_SET_KIN_COL_NON_DYN, CMD_SET_APPLY_GYRO_FORCE, CMD_SET_INTERNAL_EDGE
 } from '../../constants.mjs';
 
 const vec3 = new Vec3();
@@ -1100,6 +1100,27 @@ class BodyComponent extends ShapeComponent {
             OPERATOR_MODIFIER, CMD_SET_COL_GROUP, this._index,
             collisionGroup, BUFFER_WRITE_INT32, false,
             subGroup, BUFFER_WRITE_INT32, false
+        );
+    }
+
+    /**
+     * Set to indicate that extra effort should be made to try to remove ghost contacts (collisions
+     * with internal edges of a mesh). This is more expensive but makes bodies move smoother over a
+     * mesh with convex edges.
+     *
+     * @param {boolean} bool - State boolean
+     */
+    setEnhancedInternalEdgeRemoval(bool) {
+        if ($_DEBUG) {
+            const ok = Debug.checkBool(bool, `Invalid boolean: ${bool}`);
+            if (!ok) {
+                return;
+            }
+        }
+
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_SET_INTERNAL_EDGE, this._index,
+            bool, BUFFER_WRITE_BOOL, false
         );
     }
 
