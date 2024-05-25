@@ -4,14 +4,16 @@ import { ShapeComponent } from '../shape/component.mjs';
 import {
     DOF_ALL, BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT32, BUFFER_WRITE_UINT8,
     BUFFER_WRITE_VEC32, CMD_ADD_FORCE, CMD_ADD_IMPULSE, CMD_APPLY_BUOYANCY_IMPULSE,
-    CMD_DESTROY_BODY, CMD_MOVE_BODY, CMD_MOVE_KINEMATIC, CMD_RESET_VELOCITIES, CMD_SET_ANG_VEL,
-    CMD_SET_DOF, CMD_SET_GRAVITY_FACTOR, CMD_SET_LIN_VEL, CMD_SET_MOTION_QUALITY,
-    CMD_SET_MOTION_TYPE, CMD_SET_OBJ_LAYER, CMD_USE_MOTION_STATE, MOTION_QUALITY_DISCRETE,
-    MOTION_TYPE_DYNAMIC, MOTION_TYPE_KINEMATIC, MOTION_TYPE_STATIC, OBJ_LAYER_NON_MOVING,
+    CMD_DESTROY_BODY, CMD_MOVE_BODY, CMD_MOVE_KINEMATIC, CMD_SET_ANG_VEL, CMD_SET_DOF,
+    CMD_SET_GRAVITY_FACTOR, CMD_SET_LIN_VEL, CMD_SET_MOTION_QUALITY, CMD_SET_MOTION_TYPE,
+    CMD_SET_OBJ_LAYER, CMD_USE_MOTION_STATE, MOTION_QUALITY_DISCRETE, MOTION_TYPE_DYNAMIC,
+    MOTION_TYPE_KINEMATIC, MOTION_TYPE_STATIC, OBJ_LAYER_NON_MOVING,
     OMP_CALCULATE_MASS_AND_INERTIA, OMP_MASS_AND_INERTIA_PROVIDED, OPERATOR_CLEANER,
-    OPERATOR_MODIFIER, SHAPE_CONVEX_HULL, SHAPE_HEIGHTFIELD, SHAPE_MESH, CMD_SET_AUTO_UPDATE_ISOMETRY,
-    CMD_SET_ALLOW_SLEEPING, CMD_SET_ANG_FACTOR, BUFFER_WRITE_INT32, CMD_SET_COL_GROUP, CMD_SET_FRICTION,
-    CMD_SET_IS_SENSOR, CMD_SET_RESTITUTION, CMD_SET_KIN_COL_NON_DYN, CMD_SET_APPLY_GYRO_FORCE, CMD_SET_INTERNAL_EDGE, CMD_RESET_SLEEP_TIMER, CMD_SET_LIN_VEL_CLAMPED, CMD_SET_ANG_VEL_CLAMPED
+    OPERATOR_MODIFIER, SHAPE_CONVEX_HULL, SHAPE_HEIGHTFIELD, SHAPE_MESH,
+    CMD_SET_AUTO_UPDATE_ISOMETRY, CMD_SET_ALLOW_SLEEPING, CMD_SET_ANG_FACTOR, BUFFER_WRITE_INT32,
+    CMD_SET_COL_GROUP, CMD_SET_FRICTION, CMD_SET_IS_SENSOR, CMD_SET_RESTITUTION,
+    CMD_SET_KIN_COL_NON_DYN, CMD_SET_APPLY_GYRO_FORCE, CMD_SET_INTERNAL_EDGE,
+    CMD_RESET_SLEEP_TIMER, CMD_SET_LIN_VEL_CLAMPED, CMD_SET_ANG_VEL_CLAMPED, CMD_RESET_MOTION
 } from '../../constants.mjs';
 
 const vec3 = new Vec3();
@@ -1031,6 +1033,27 @@ class BodyComponent extends ShapeComponent {
     }
 
     /**
+     * Changes the position and rotation of a dynamic body. Unlike {@link teleport}, this method
+     * doesn't change the position/rotation instantenously, but instead calculates and sets linear
+     * and angular velocities for the body, so it can reach the target position and rotation in the
+     * specified delta time. If delta time is set to zero, the engine will use the current fixed
+     * timestep value.
+     *
+     * @param {Vec3} pos - Taret position the body should reach in given dt.
+     * @param {Quat} rot - Target rotation the body should reach in given dt.
+     * @param {number} [dt] - Time in which the body should reach target position and rotation
+     * (seconds).
+     */
+    moveKinematic(pos, rot, dt = 0) {
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_MOVE_KINEMATIC, this._index,
+            pos, BUFFER_WRITE_VEC32, false,
+            rot, BUFFER_WRITE_VEC32, false,
+            dt, BUFFER_WRITE_FLOAT32, false
+        );
+    }
+
+    /**
      * Set world space linear velocity of the center of mass, will make sure the value is clamped
      * against the maximum linear velocity.
      *
@@ -1172,6 +1195,13 @@ class BodyComponent extends ShapeComponent {
     }
 
     /**
+     * Reset the current velocity and accumulated force and torque.
+     */
+    resetMotion() {
+        this.system.addCommand(OPERATOR_MODIFIER, CMD_RESET_MOTION, this._index);
+    }
+
+    /**
      * Intantenous placement of a body to a new position/rotation (i.e. teleport). Will ignore any
      * bodies between old and new position.
      *
@@ -1229,34 +1259,6 @@ class BodyComponent extends ShapeComponent {
             rz, BUFFER_WRITE_FLOAT32, false,
             rw, BUFFER_WRITE_FLOAT32, false
         );
-    }
-
-    /**
-     * Changes the position and rotation of a dynamic body. Unlike {@link teleport}, this method
-     * doesn't change the position/rotation instantenously, but instead calculates and sets linear
-     * and angular velocities for the body, so it can reach the target position and rotation in the
-     * specified delta time. If delta time is set to zero, the engine will use the current fixed
-     * timestep value.
-     *
-     * @param {Vec3} pos - Taret position the body should reach in given dt.
-     * @param {Quat} rot - Target rotation the body should reach in given dt.
-     * @param {number} [dt] - Time in which the body should reach target position and rotation
-     * (seconds).
-     */
-    moveKinematic(pos, rot, dt = 0) {
-        this.system.addCommand(
-            OPERATOR_MODIFIER, CMD_MOVE_KINEMATIC, this._index,
-            pos, BUFFER_WRITE_VEC32, false,
-            rot, BUFFER_WRITE_VEC32, false,
-            dt, BUFFER_WRITE_FLOAT32, false
-        );
-    }
-
-    /**
-     * Resets both linear and angular velocities of a body to zero.
-     */
-    resetVelocities() {
-        this.system.addCommand(OPERATOR_MODIFIER, CMD_RESET_VELOCITIES, this._index);
     }
 
     writeIsometry() {

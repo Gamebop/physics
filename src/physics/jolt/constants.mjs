@@ -144,7 +144,7 @@ export const CMD_MOVE_KINEMATIC = 18;
 export const CMD_SET_LIN_VEL = 19;
 export const CMD_SET_ANG_VEL = 20;
 export const CMD_SET_MOTION_TYPE = 21;
-export const CMD_RESET_VELOCITIES = 22;
+export const CMD_RESET_MOTION = 22;
 
 export const CMD_CHAR_SET_LIN_VEL = 23;
 export const CMD_CHAR_SET_SHAPE = 24;
