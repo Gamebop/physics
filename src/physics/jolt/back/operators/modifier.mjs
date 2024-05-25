@@ -10,7 +10,7 @@ import {
     CMD_SET_AUTO_UPDATE_ISOMETRY, CMD_SET_COL_GROUP, CMD_SET_DOF, CMD_SET_DRIVER_INPUT,
     CMD_SET_FRICTION,
     CMD_SET_GRAVITY_FACTOR, CMD_SET_IS_SENSOR, CMD_SET_LIN_VEL, CMD_SET_MOTION_QUALITY, CMD_SET_MOTION_TYPE,
-    CMD_SET_OBJ_LAYER, CMD_SET_USER_DATA, CMD_TOGGLE_GROUP_PAIR, CMD_USE_MOTION_STATE,
+    CMD_SET_OBJ_LAYER, CMD_SET_RESTITUTION, CMD_SET_USER_DATA, CMD_TOGGLE_GROUP_PAIR, CMD_USE_MOTION_STATE,
     COMPONENT_SYSTEM_CHAR, MOTION_QUALITY_DISCRETE, MOTION_TYPE_DYNAMIC, MOTION_TYPE_KINEMATIC
 } from '../../constants.mjs';
 
@@ -170,6 +170,10 @@ class Modifier {
 
             case CMD_SET_IS_SENSOR:
                 ok = this._setIsSensor(cb);
+                break;
+
+            case CMD_SET_RESTITUTION:
+                ok = this._setRestitution(cb);
                 break;
         }
 
@@ -742,6 +746,21 @@ class Modifier {
 
         try {
             body.SetIsSensor(cb.read(BUFFER_READ_BOOL));
+        } catch (e) {
+            if ($_DEBUG) {
+                Debug.error(e);
+            }
+            return false;
+        }
+
+        return true;
+    }
+
+    _setRestitution(cb) {
+        const body = this._getBody(cb);
+
+        try {
+            body.SetRestitution(cb.read(BUFFER_READ_FLOAT32));
         } catch (e) {
             if ($_DEBUG) {
                 Debug.error(e);

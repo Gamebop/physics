@@ -10,7 +10,7 @@ import {
     MOTION_TYPE_DYNAMIC, MOTION_TYPE_KINEMATIC, MOTION_TYPE_STATIC, OBJ_LAYER_NON_MOVING,
     OMP_CALCULATE_MASS_AND_INERTIA, OMP_MASS_AND_INERTIA_PROVIDED, OPERATOR_CLEANER,
     OPERATOR_MODIFIER, SHAPE_CONVEX_HULL, SHAPE_HEIGHTFIELD, SHAPE_MESH, CMD_SET_AUTO_UPDATE_ISOMETRY,
-    CMD_SET_ALLOW_SLEEPING, CMD_SET_ANG_FACTOR, BUFFER_WRITE_INT32, CMD_SET_COL_GROUP, CMD_SET_FRICTION, CMD_SET_IS_SENSOR
+    CMD_SET_ALLOW_SLEEPING, CMD_SET_ANG_FACTOR, BUFFER_WRITE_INT32, CMD_SET_COL_GROUP, CMD_SET_FRICTION, CMD_SET_IS_SENSOR, CMD_SET_RESTITUTION
 } from '../../constants.mjs';
 
 const vec3 = new Vec3();
@@ -228,7 +228,7 @@ class BodyComponent extends ShapeComponent {
     /**
      * @param {Vec3} velocity - Angular velocity Vec3 (rad/s per axis) to set this body to.
      */
-    set angularVelocity(velocity) {        
+    set angularVelocity(velocity) {
         if ($_DEBUG) {
             const ok = Debug.checkVec(velocity, `Invalid angular velocity vector`);
             if (!ok) return;
@@ -237,7 +237,7 @@ class BodyComponent extends ShapeComponent {
         if (this._angularVelocity.equals(velocity)) {
             return;
         }
-        
+
         this._angularVelocity.copy(velocity);
         this.system.addCommand(
             OPERATOR_MODIFIER, CMD_SET_ANG_VEL, this._index,
@@ -485,7 +485,7 @@ class BodyComponent extends ShapeComponent {
         if (this._linearVelocity.equals(velocity)) {
             return;
         }
-        
+
         this._linearVelocity.copy(velocity);
         this.system.addCommand(
             OPERATOR_MODIFIER, CMD_SET_LIN_VEL, this._index,
@@ -729,12 +729,36 @@ class BodyComponent extends ShapeComponent {
     }
 
     /**
-     * Restitution of the body. Dimensionless number, usually between 0 and 1:
+     * Sets body restitution. Dimensionless number, usually between 0 and 1:
      * - `0`: completely inelastic collision response
      * - `1`: completely elastic collision response
      *
      * Note: bodies can have negative restitution but the combined restitution should never go
      * below zero.
+     *
+     * @param {number} factor - Restitution scalar.
+     */
+    set restitution(factor) {
+        if (this._restitution === factor) {
+            return;
+        }
+
+        if ($_DEBUG) {
+            const ok = Debug.checkFloat(factor, `Invalid restitution factor: ${factor}`);
+            if (!ok) {
+                return;
+            }
+        }
+
+        this._restitution = factor;
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_SET_RESTITUTION, this._index,
+            factor, BUFFER_WRITE_FLOAT32, false
+        );
+    }
+
+    /**
+     * Restitution of the body.
      *
      * @returns {number} Number, representing restitution factor for this body.
      */

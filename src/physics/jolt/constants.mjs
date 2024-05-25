@@ -175,6 +175,7 @@ export const CMD_SET_ANG_FACTOR = 42;
 export const CMD_SET_COL_GROUP = 43;
 export const CMD_SET_FRICTION = 44;
 export const CMD_SET_IS_SENSOR = 45;
+export const CMD_SET_RESTITUTION = 46;
 
 // Constraints 500+
 
