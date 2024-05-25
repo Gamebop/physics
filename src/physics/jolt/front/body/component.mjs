@@ -422,6 +422,13 @@ class BodyComponent extends ShapeComponent {
         return this._inertiaMultiplier;
     }
 
+    /**
+     * Specifies if the body is a sensor or not.
+     * - `true`: changes a body into a sensor
+     * - `false`: changes a body into a rigid body
+     *
+     * @param {boolean} bool - Boolean, telling if this body is a sensor.
+     */
     set isSensor(bool) {
         if (this._isSensor === bool) {
             return;
