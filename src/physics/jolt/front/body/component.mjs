@@ -785,6 +785,10 @@ class BodyComponent extends ShapeComponent {
      * @param {boolean} bool - Boolean to enable/disable the motion state.
      */
     set useMotionState(bool) {
+        if (this._useMotionState === bool) {
+            return;
+        }
+
         if ($_DEBUG) {
             const ok = Debug.checkBool(bool, `Invalid bool value for useMotionState property: ${bool}`);
             if (!ok)
