@@ -10,7 +10,7 @@ import {
     MOTION_TYPE_DYNAMIC, MOTION_TYPE_KINEMATIC, MOTION_TYPE_STATIC, OBJ_LAYER_NON_MOVING,
     OMP_CALCULATE_MASS_AND_INERTIA, OMP_MASS_AND_INERTIA_PROVIDED, OPERATOR_CLEANER,
     OPERATOR_MODIFIER, SHAPE_CONVEX_HULL, SHAPE_HEIGHTFIELD, SHAPE_MESH, CMD_SET_AUTO_UPDATE_ISOMETRY,
-    CMD_SET_ALLOW_SLEEPING, CMD_SET_ANG_FACTOR, BUFFER_WRITE_INT32, CMD_SET_COL_GROUP, CMD_SET_FRICTION, CMD_SET_IS_SENSOR, CMD_SET_RESTITUTION
+    CMD_SET_ALLOW_SLEEPING, CMD_SET_ANG_FACTOR, BUFFER_WRITE_INT32, CMD_SET_COL_GROUP, CMD_SET_FRICTION, CMD_SET_IS_SENSOR, CMD_SET_RESTITUTION, CMD_SET_KIN_COL_NON_DYN
 } from '../../constants.mjs';
 
 const vec3 = new Vec3();
@@ -1023,6 +1023,32 @@ class BodyComponent extends ShapeComponent {
         this.system.addCommand(
             OPERATOR_MODIFIER, CMD_ADD_FORCE, this._index,
             torque, BUFFER_WRITE_VEC32, false
+        );
+    }
+
+    /**
+     * Sets whether kinematic objects can generate contact points against other kinematic or
+     * static objects. Note that turning this on can be CPU intensive as much more collision
+     * detection work will be done without any effect on the simulation (kinematic objects are not
+     * affected by other kinematic/static objects).
+     *
+     * This can be used to make sensors detect static objects. Note that the sensor must be
+     * kinematic and active for it to detect static objects.
+     *
+     * @param {boolean} bool - Boolean, telling if we want kinematics contactact non-dynamic
+     * bodies.
+     */
+    setCollideKinematicVsNonDynamic(bool) {
+        if ($_DEBUG) {
+            const ok = Debug.checkBool(bool, `Invalid boolean: ${bool}`);
+            if (!ok) {
+                return;
+            }
+        }
+
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_SET_KIN_COL_NON_DYN, this._index,
+            bool, BUFFER_WRITE_BOOL, false
         );
     }
 
