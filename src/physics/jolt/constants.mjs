@@ -186,6 +186,8 @@ export const CMD_SET_MAX_ANG_VEL = 53;
 export const CMD_SET_MAX_LIN_VEL = 54;
 export const CMD_CLAMP_LIN_VEL = 55;
 export const CMD_CLAMP_ANG_VEL = 56;
+export const CMD_SET_VEL_STEPS = 57;
+export const CMD_SET_POS_STEPS = 58;
 
 // Constraints 500+
 

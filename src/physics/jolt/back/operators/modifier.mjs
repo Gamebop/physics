@@ -5,14 +5,15 @@ import {
     BUFFER_READ_BOOL, BUFFER_READ_FLOAT32, BUFFER_READ_INT32, BUFFER_READ_UINT16,
     BUFFER_READ_UINT32, BUFFER_READ_UINT8, BUFFER_WRITE_UINT32, CMD_ADD_ANGULAR_IMPULSE,
     CMD_ADD_FORCE, CMD_ADD_IMPULSE, CMD_ADD_TORQUE, CMD_APPLY_BUOYANCY_IMPULSE, CMD_CHANGE_GRAVITY,
-    CMD_CHAR_SET_LIN_VEL, CMD_CHAR_SET_SHAPE, CMD_CLAMP_ANG_VEL, CMD_CLAMP_LIN_VEL, CMD_MOVE_BODY, CMD_MOVE_KINEMATIC, CMD_PAIR_BODY,
-    CMD_REPORT_SET_SHAPE, CMD_RESET_MOTION, CMD_RESET_SLEEP_TIMER, CMD_SET_ALLOW_SLEEPING,
-    CMD_SET_ANG_FACTOR, CMD_SET_ANG_VEL, CMD_SET_ANG_VEL_CLAMPED, CMD_SET_APPLY_GYRO_FORCE,
-    CMD_SET_AUTO_UPDATE_ISOMETRY, CMD_SET_COL_GROUP, CMD_SET_DOF, CMD_SET_DRIVER_INPUT,
-    CMD_SET_FRICTION, CMD_SET_GRAVITY_FACTOR, CMD_SET_INTERNAL_EDGE, CMD_SET_IS_SENSOR,
-    CMD_SET_KIN_COL_NON_DYN, CMD_SET_LIN_VEL, CMD_SET_LIN_VEL_CLAMPED, CMD_SET_MAX_ANG_VEL, CMD_SET_MAX_LIN_VEL, CMD_SET_MOTION_QUALITY,
-    CMD_SET_MOTION_TYPE, CMD_SET_OBJ_LAYER, CMD_SET_RESTITUTION, CMD_SET_USER_DATA,
-    CMD_TOGGLE_GROUP_PAIR, CMD_USE_MOTION_STATE, COMPONENT_SYSTEM_CHAR, MOTION_QUALITY_DISCRETE,
+    CMD_CHAR_SET_LIN_VEL, CMD_CHAR_SET_SHAPE, CMD_CLAMP_ANG_VEL, CMD_CLAMP_LIN_VEL, CMD_MOVE_BODY,
+    CMD_MOVE_KINEMATIC, CMD_PAIR_BODY, CMD_REPORT_SET_SHAPE, CMD_RESET_MOTION,
+    CMD_RESET_SLEEP_TIMER, CMD_SET_ALLOW_SLEEPING, CMD_SET_ANG_FACTOR, CMD_SET_ANG_VEL,
+    CMD_SET_ANG_VEL_CLAMPED, CMD_SET_APPLY_GYRO_FORCE, CMD_SET_AUTO_UPDATE_ISOMETRY,
+    CMD_SET_COL_GROUP, CMD_SET_DOF, CMD_SET_DRIVER_INPUT, CMD_SET_FRICTION, CMD_SET_GRAVITY_FACTOR,
+    CMD_SET_INTERNAL_EDGE, CMD_SET_IS_SENSOR, CMD_SET_KIN_COL_NON_DYN, CMD_SET_LIN_VEL,
+    CMD_SET_LIN_VEL_CLAMPED, CMD_SET_MAX_ANG_VEL, CMD_SET_MAX_LIN_VEL, CMD_SET_MOTION_QUALITY,
+    CMD_SET_MOTION_TYPE, CMD_SET_OBJ_LAYER, CMD_SET_POS_STEPS, CMD_SET_RESTITUTION, CMD_SET_USER_DATA,
+    CMD_SET_VEL_STEPS, CMD_TOGGLE_GROUP_PAIR, CMD_USE_MOTION_STATE, COMPONENT_SYSTEM_CHAR, MOTION_QUALITY_DISCRETE,
     MOTION_TYPE_DYNAMIC, MOTION_TYPE_KINEMATIC
 } from '../../constants.mjs';
 
@@ -219,6 +220,14 @@ class Modifier {
 
             case CMD_CLAMP_ANG_VEL:
                 ok = this._clampAngVel(cb);
+                break;
+
+            case CMD_SET_VEL_STEPS:
+                ok = this._setVelSteps(cb);
+                break;
+
+            case CMD_SET_POS_STEPS:
+                ok = this._setPosSteps(cb);
                 break;
         }
 
@@ -922,6 +931,36 @@ class Modifier {
 
         try {
             body.GetMotionProperties().ClampAngularVelocity();
+        } catch (e) {
+            if ($_DEBUG) {
+                Debug.error(e);
+            }
+            return false;
+        }
+
+        return true;
+    }
+
+    _setVelSteps(cb) {
+        const body = this._getBody(cb);
+
+        try {
+            body.GetMotionProperties().SetNumVelocityStepsOverride(cb.read(BUFFER_READ_UINT32));
+        } catch (e) {
+            if ($_DEBUG) {
+                Debug.error(e);
+            }
+            return false;
+        }
+
+        return true;
+    }
+
+    _setPosSteps(cb) {
+        const body = this._getBody(cb);
+
+        try {
+            body.GetMotionProperties().SetNumPositionStepsOverride(cb.read(BUFFER_READ_UINT32));
         } catch (e) {
             if ($_DEBUG) {
                 Debug.error(e);

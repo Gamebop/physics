@@ -13,7 +13,9 @@ import {
     CMD_SET_AUTO_UPDATE_ISOMETRY, CMD_SET_ALLOW_SLEEPING, CMD_SET_ANG_FACTOR, BUFFER_WRITE_INT32,
     CMD_SET_COL_GROUP, CMD_SET_FRICTION, CMD_SET_IS_SENSOR, CMD_SET_RESTITUTION,
     CMD_SET_KIN_COL_NON_DYN, CMD_SET_APPLY_GYRO_FORCE, CMD_SET_INTERNAL_EDGE,
-    CMD_RESET_SLEEP_TIMER, CMD_SET_LIN_VEL_CLAMPED, CMD_SET_ANG_VEL_CLAMPED, CMD_RESET_MOTION, CMD_SET_MAX_ANG_VEL, CMD_SET_MAX_LIN_VEL, CMD_CLAMP_ANG_VEL, CMD_CLAMP_LIN_VEL
+    CMD_RESET_SLEEP_TIMER, CMD_SET_LIN_VEL_CLAMPED, CMD_SET_ANG_VEL_CLAMPED, CMD_RESET_MOTION,
+    CMD_SET_MAX_ANG_VEL, CMD_SET_MAX_LIN_VEL, CMD_CLAMP_ANG_VEL, CMD_CLAMP_LIN_VEL,
+    CMD_SET_VEL_STEPS, CMD_SET_POS_STEPS
 } from '../../constants.mjs';
 
 const vec3 = new Vec3();
@@ -1233,6 +1235,44 @@ class BodyComponent extends ShapeComponent {
         this.system.addCommand(
             OPERATOR_MODIFIER, CMD_SET_LIN_VEL_CLAMPED, this._index,
             velocity, BUFFER_WRITE_VEC32, false
+        );
+    }
+
+    /**
+     * Used only when this body is dynamic and colliding. Override for the number of solver
+     * position iterations to run, `0` means use the default in `settings.numPositionSteps`. The
+     * number of iterations to use is the max of all contacts and constraints in the island.
+     *
+     * @param {number} count - Number of velocity steps.
+     */
+    setNumPositionStepsOverride(count) {
+        if ($_DEBUG) {
+            const ok = Debug.checkUint(count, `Invalid steps count: ${count}`);
+            if (!ok) return;
+        }
+
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_SET_POS_STEPS, this._index,
+            count, BUFFER_WRITE_UINT32, false
+        );
+    }
+
+    /**
+     * Used only when this body is dynamic and colliding. Override for the number of solver
+     * velocity iterations to run, `0` means use the default in `settings.numVelocitySteps`. The
+     * number of iterations to use is the max of all contacts and constraints in the island.
+     *
+     * @param {number} count - Number of velocity steps.
+     */
+    setNumVelocityStepsOverride(count) {
+        if ($_DEBUG) {
+            const ok = Debug.checkUint(count, `Invalid steps count: ${count}`);
+            if (!ok) return;
+        }
+
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_SET_VEL_STEPS, this._index,
+            count, BUFFER_WRITE_UINT32, false
         );
     }
 
