@@ -598,10 +598,9 @@ class Modifier {
     _setGravityFactor(cb) {
         const backend = this._backend;
         const body = this._getBody(cb);
-        const factor = cb.read(BUFFER_READ_FLOAT32);
 
         try {
-            backend.bodyInterface.SetGravityFactor(body.GetID(), factor);
+            backend.bodyInterface.SetGravityFactor(body.GetID(), cb.read(BUFFER_READ_FLOAT32));
         } catch (e) {
             if ($_DEBUG) {
                 Debug.error(e);
@@ -661,7 +660,14 @@ class Modifier {
     _setAllowSleeping(cb) {
         const body = this._getBody(cb);
 
-        body.SetAllowSleeping(cb.read(BUFFER_READ_BOOL));
+        try {
+            body.SetAllowSleeping(cb.read(BUFFER_READ_BOOL));
+        } catch (e) {
+            if ($_DEBUG) {
+                Debug.error(e);
+            }
+            return false;
+        }
 
         return true;
     }
@@ -669,7 +675,14 @@ class Modifier {
     _setAngularFactor(cb) {
         const body = this._getBody(cb);
 
-        body.GetMotionProperties().SetAngularDamping(cb.read(BUFFER_READ_FLOAT32));
+        try {
+            body.GetMotionProperties().SetAngularDamping(cb.read(BUFFER_READ_FLOAT32));
+        } catch (e) {
+            if ($_DEBUG) {
+                Debug.error(e);
+            }
+            return false;
+        }
 
         return true;
     }
@@ -691,9 +704,16 @@ class Modifier {
             }
         }
 
-        cg.SetGroupFilter(table);
-        cg.SetGroupID(group);
-        cg.SetSubGroupID(subGroup);
+        try {
+            cg.SetGroupFilter(table);
+            cg.SetGroupID(group);
+            cg.SetSubGroupID(subGroup);
+        } catch (e) {
+            if ($_DEBUG) {
+                Debug.error(e);
+            }
+            return false;
+        }
 
         return true;
     }
@@ -701,7 +721,14 @@ class Modifier {
     _setFriction(cb) {
         const body = this._getBody(cb);
 
-        body.SetFriction(cb.read(BUFFER_READ_FLOAT32));
+        try {
+            body.SetFriction(cb.read(BUFFER_READ_FLOAT32));
+        } catch (e) {
+            if ($_DEBUG) {
+                Debug.error(e);
+            }
+            return false;
+        }
 
         return true;
     }
