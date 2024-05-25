@@ -228,19 +228,21 @@ class BodyComponent extends ShapeComponent {
     /**
      * @param {Vec3} velocity - Angular velocity Vec3 (rad/s per axis) to set this body to.
      */
-    set angularVelocity(velocity) {
+    set angularVelocity(velocity) {        
         if ($_DEBUG) {
             const ok = Debug.checkVec(velocity, `Invalid angular velocity vector`);
             if (!ok) return;
         }
 
-        if (!velocity.equals(this._angularVelocity)) {
-            this._angularVelocity.copy(velocity);
-            this.system.addCommand(
-                OPERATOR_MODIFIER, CMD_SET_ANG_VEL, this._index,
-                velocity, BUFFER_WRITE_VEC32, false
-            );
+        if (this._angularVelocity.equals(velocity)) {
+            return;
         }
+        
+        this._angularVelocity.copy(velocity);
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_SET_ANG_VEL, this._index,
+            velocity, BUFFER_WRITE_VEC32, false
+        );
     }
 
     /**
@@ -473,13 +475,15 @@ class BodyComponent extends ShapeComponent {
             if (!ok) return;
         }
 
-        if (!velocity.equals(this._linearVelocity)) {
-            this._linearVelocity.copy(velocity);
-            this.system.addCommand(
-                OPERATOR_MODIFIER, CMD_SET_LIN_VEL, this._index,
-                velocity, BUFFER_WRITE_VEC32, false
-            );
+        if (this._linearVelocity.equals(velocity)) {
+            return;
         }
+        
+        this._linearVelocity.copy(velocity);
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_SET_LIN_VEL, this._index,
+            velocity, BUFFER_WRITE_VEC32, false
+        );
     }
 
     /**
