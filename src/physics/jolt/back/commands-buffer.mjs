@@ -37,6 +37,9 @@ class CommandsBuffer {
         this._bytesOffset = UINT16_SIZE;
         this._commandsCount = 0;
         this._dirty = false;
+
+        // TODO
+        // lazy allocate
         this._meshBuffers = [];
     }
 
@@ -53,12 +56,14 @@ class CommandsBuffer {
         return this._dirty;
     }
 
+    // TODO
+    // remove flag usage
     get flag() {
         return this.readUint8();
     }
 
     get commandsCount() {
-        return this._view.getUint16(0);
+        return this._view?.getUint16(0) || 0;
     }
 
     get meshBuffers() {
