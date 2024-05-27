@@ -168,7 +168,9 @@ class SoftBodyComponent extends BodyComponent {
         this._index = system.getIndex(this.entity);
 
         if (this._renderAsset && !this._meshes) {
-            this._addMeshes();
+            this.getMeshes(() => {
+                system.createBody(this);
+            });
         } else {
             system.createBody(this);
         }

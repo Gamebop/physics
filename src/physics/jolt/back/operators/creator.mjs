@@ -915,7 +915,9 @@ class Creator {
 
         for (let i = 0; i < childrenCount; i++) {
             const settings = this._createShapeSettings(cb, meshBuffers);
-            if (!settings) return null;
+            if (!settings) {
+                return null;
+            }
 
             const pos = {};
             const rot = {};
@@ -1319,66 +1321,77 @@ class Creator {
     }
 
     _createMeshShapeSettings(cb, meshBuffers, shapeType) {
-        const {
-            base, stride, numIndices, triCount, positions, indices
-        } = Creator.readMeshBuffers(cb, meshBuffers);
-
+        const count = cb.read(BUFFER_READ_UINT32);
         const Jolt = this._backend.Jolt;
         const jv = this._joltVec3;
 
-        // TODO:
-        // add support for duplicate vertices test
+        // TODO
+        // do not use compound, merge buffers into a single one instead
+        const compoundSettings = count > 1 ? new Jolt.StaticCompoundShapeSettings() : null;
 
-        const p = positions;
-        let i1, i2, i3;
-        let settings;
+        let i1, i2, i3, v1, v2, v3;
+        let settings;        
 
-        if (shapeType === SHAPE_CONVEX_HULL) {
-            const cache = new Set();
+        for (let i = 0; i < count; i++) {
+            const {
+                base, stride, numIndices, triCount, positions, indices
+            } = Creator.readMeshBuffers(cb, meshBuffers);
+    
+            // TODO:
+            // add support for duplicate vertices test
 
-            settings = new Jolt.ConvexHullShapeSettings();
+            const p = positions;
 
-            for (let i = 0; i < numIndices; i++) {
-                const index = indices[i] * stride;
-                const x = p[index];
-                const y = p[index + 1];
-                const z = p[index + 2];
+            if (shapeType === SHAPE_CONVEX_HULL) {
+                const cache = new Set();
 
-                // deduplicate verts
-                const str = `${x}:${y}:${z}`;
-                if (!cache.has(str)) {
-                    cache.add(str);
+                settings = new Jolt.ConvexHullShapeSettings();
 
-                    jv.Set(x, y, z);
-                    settings.mPoints.push_back(jv);
+                for (let i = 0; i < numIndices; i++) {
+                    const index = indices[i] * stride;
+                    const x = p[index];
+                    const y = p[index + 1];
+                    const z = p[index + 2];
+
+                    // deduplicate verts
+                    const str = `${x}:${y}:${z}`;
+                    if (!cache.has(str)) {
+                        cache.add(str);
+    
+                        jv.Set(x, y, z);
+                        settings.mPoints.push_back(jv);
+                    }
                 }
+            } else if (shapeType === SHAPE_MESH) {
+                const triangles = new Jolt.TriangleList();
+
+                triangles.resize(triCount);
+
+                for (let i = 0; i < triCount; i++) {
+                    i1 = indices[base + i * 3] * stride;
+                    i2 = indices[base + i * 3 + 1] * stride;
+                    i3 = indices[base + i * 3 + 2] * stride;
+    
+                    const t = triangles.at(i);
+    
+                    v1 = t.get_mV(0);
+                    v2 = t.get_mV(1);
+                    v3 = t.get_mV(2);
+    
+                    v1.x = p[i1]; v1.y = p[i1 + 1]; v1.z = p[i1 + 2];
+                    v2.x = p[i2]; v2.y = p[i2 + 1]; v2.z = p[i2 + 2];
+                    v3.x = p[i3]; v3.y = p[i3 + 1]; v3.z = p[i3 + 2];
+                }
+
+                settings = new Jolt.MeshShapeSettings(triangles);
             }
-        } else if (shapeType === SHAPE_MESH) {
-            const triangles = new Jolt.TriangleList();
 
-            triangles.resize(triCount);
-
-            let v1, v2, v3;
-            for (let i = 0; i < triCount; i++) {
-                i1 = indices[base + i * 3] * stride;
-                i2 = indices[base + i * 3 + 1] * stride;
-                i3 = indices[base + i * 3 + 2] * stride;
-
-                const t = triangles.at(i);
-
-                v1 = t.get_mV(0);
-                v2 = t.get_mV(1);
-                v3 = t.get_mV(2);
-
-                v1.x = p[i1]; v1.y = p[i1 + 1]; v1.z = p[i1 + 2];
-                v2.x = p[i2]; v2.y = p[i2 + 1]; v2.z = p[i2 + 2];
-                v3.x = p[i3]; v3.y = p[i3 + 1]; v3.z = p[i3 + 2];
+            if (compoundSettings) {
+                compoundSettings.AddShape(Jolt.Vec3.prototype.sZero(), Jolt.Quat.prototype.sIdentity(), settings);
             }
-
-            settings = new Jolt.MeshShapeSettings(triangles);
         }
 
-        return settings;
+        return compoundSettings || settings;
     }
 
     _addDebugDraw(requested, body) {

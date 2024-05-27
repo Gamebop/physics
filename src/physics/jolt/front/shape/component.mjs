@@ -1,12 +1,45 @@
-import { Quat, SEMANTIC_POSITION, Vec3 } from 'playcanvas';
+import { Asset, Quat, SEMANTIC_POSITION, Vec3 } from 'playcanvas';
 import { Debug } from '../../debug.mjs';
 import { Component } from '../component.mjs';
 import {
     BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT32,
-    BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32, FLOAT32_SIZE, SHAPE_BOX,
+    BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32, FLOAT32_SIZE, OPERATOR_MODIFIER, SHAPE_BOX,
     SHAPE_CAPSULE, SHAPE_CONVEX_HULL, SHAPE_CYLINDER, SHAPE_HEIGHTFIELD,
     SHAPE_MESH, SHAPE_SPHERE, SHAPE_STATIC_COMPOUND
 } from '../../constants.mjs';
+
+function addCompoundChildren(cb, parent) {
+    const components = parent.findComponents('body');
+    const count = components.length;
+    const childrenCount = count - 1; // -1 to exclude the parent
+
+    if ($_DEBUG && childrenCount === 0) {
+        Debug.warn('Trying to create a static (immutable) compound body without children shapes. Aborting.');
+        return false;
+    }
+
+    cb.write(childrenCount, BUFFER_WRITE_UINT32, false);
+
+    for (let i = 0; i < count; i++) {
+        const component = components[i];
+        if (component.entity === parent) {
+            continue;
+        }
+
+        const ok = ShapeComponent.writeShapeData(cb, component);
+        if (!ok) {
+            return false;
+        }
+
+        // Loss of precision for pos/rot (64 -> 32)
+        cb.write(component.shapePosition, BUFFER_WRITE_VEC32, false);
+        cb.write(component.shapeRotation, BUFFER_WRITE_VEC32, false);
+    }
+
+    return true;
+}
+
+const defaultHalfExtent = new pc.Vec3(0.5, 0.5, 0.5);
 
 /**
  * This is a base component for other components. Most probably you don't need to use it directly,
@@ -16,9 +49,6 @@ import {
  */
 class ShapeComponent extends Component {
     _shape = SHAPE_BOX;
-
-    // TODO: remove
-    _trackDynamic = true;
 
     _index = -1;
 
@@ -36,7 +66,7 @@ class ShapeComponent extends Component {
 
     _debugDraw = false;
 
-    _halfExtent = new Vec3(0.5, 0.5, 0.5);
+    _halfExtent = defaultHalfExtent;
 
     _radius = 0.5;
 
@@ -256,10 +286,38 @@ class ShapeComponent extends Component {
     }
 
     /**
+     * Sets render asset as a collider.
+     *
+     * @param {Asset | number} asset - Render asset or its id number.
+     */
+    set renderAsset(asset) {
+        if ($_DEBUG) {
+            let ok = false;
+            if (typeof asset === 'number') {
+                ok = Debug.checkUint(asset, `Invalid asset id number: ${asset}`);
+            } else if (asset instanceof Asset) {
+                ok = true;
+            }
+            if (!ok) {
+                return;
+            }
+        }
+
+        this._renderAsset = asset;
+        this._meshes = null;
+
+        this.getMeshes(() => {
+            this.system.addCommand(OPERATOR_MODIFIER, CMD_SET_SHAPE, this._index);
+            ShapeComponent.writeShapeData(this);
+        });
+    }
+
+    /**
      * This field contains the render asset ID, when a render asset is used for collision mesh or a
      * convex hull.
      *
-     * @returns {number | null} Number, representing an ID of render asset.
+     * @returns { | number | null} Asset or its ID number. Will be `null` if render asset is
+     * not used.
      * @defaultValue null
      */
     get renderAsset() {
@@ -267,7 +325,7 @@ class ShapeComponent extends Component {
     }
 
     /**
-     * Shape type. Following constants available:
+     * Changes the shape type. Following constants available:
      * ```
      * SHAPE_BOX
      * ```
@@ -292,6 +350,37 @@ class ShapeComponent extends Component {
      * ```
      * SHAPE_STATIC_COMPOUND
      * ```
+     */
+    set shape(shapeNum) {
+        if (this._shape === shapeNum) {
+            return;
+        }
+
+        if ($_DEBUG) {
+            const ok = Debug.checkUint(shapeNum, `Invalid shape number: ${shapeNum}`);
+            if (!ok) {
+                return;
+            }
+        }
+
+        this._shape = shapeNum;
+
+        // If the shape is changed to mesh/c-hull/heightfield, don't change it in case no vertex
+        // data is available. Once the user assigns meshes or a render asset, then the vertex data
+        // will be written.
+        if ((shapeNum === SHAPE_MESH || shapeNum === SHAPE_CONVEX_HULL) &&
+            (!this._renderAsset || !this._meshes)) {
+            return;
+        } else if (shapeNum === SHAPE_HEIGHTFIELD && !this._hfSamples) {
+            return;
+        }
+
+        this.system.addCommand(OPERATOR_MODIFIER, CMD_SET_SHAPE, this._index);
+        ShapeComponent.writeShapeData(this);
+    }
+
+    /**
+     * Current shape type.
      *
      * @returns {number} Number, representing the shape type.
      * @defaultValue SHAPE_BOX
@@ -335,10 +424,54 @@ class ShapeComponent extends Component {
         return this._useEntityScale;
     }
 
+    getMeshes(cb) {
+        const id = this._renderAsset instanceof Asset ? this._renderAsset.id : this._renderAsset;
+        const assets = this.system.app.assets;
+
+        const onAssetFullyReady = (asset) => {
+            this._meshes = asset.resource.meshes;
+            cb();
+        };
+
+        const loadAndHandleAsset = (asset) => {
+            asset.ready((asset) => {
+                if (asset.data.containerAsset) {
+                    const containerAsset = assets.get(asset.data.containerAsset);
+                    if (containerAsset.loaded) {
+                        onAssetFullyReady(asset);
+                    } else {
+                        containerAsset.ready(() => {
+                            onAssetFullyReady(asset);
+                        });
+                        assets.load(containerAsset);
+                    }
+                } else {
+                    onAssetFullyReady(asset);
+                }
+            });
+
+            assets.load(asset);
+        };
+
+        const asset = assets.get(id);
+        if (asset) {
+            loadAndHandleAsset(asset);
+        } else {
+            assets.once('add:' + id, loadAndHandleAsset);
+        }
+    }
+
     static quat = new Quat();
 
     static writeShapeData(cb, props, forceWriteRotation = false) {
         const shape = props.shape;
+
+        if ((shape === SHAPE_MESH || shape === SHAPE_CONVEX_HULL) &&
+            (!this._renderAsset && !this._meshes)) {                
+            Debug.warn('No vertex data for collision mesh. Add renderAsset or meshes.');
+            return false;
+        }
+
         cb.write(shape, BUFFER_WRITE_UINT8, false);
 
         const scale = props.scale || props.entity.getLocalScale();
@@ -379,7 +512,7 @@ class ShapeComponent extends Component {
                 break;
 
             case SHAPE_STATIC_COMPOUND:
-                ok = ShapeComponent.addCompoundChildren(cb, props.entity);
+                ok = addCompoundChildren(cb, props.entity);
                 break;
 
             // intentional fall-through
@@ -433,39 +566,11 @@ class ShapeComponent extends Component {
         return ok;
     }
 
-    static addCompoundChildren(cb, parent) {
-        const components = parent.findComponents('body');
-        const count = components.length;
-        const childrenCount = count - 1; // -1 to exclude the parent
-
-        if ($_DEBUG && childrenCount === 0) {
-            Debug.warn('Trying to create a static (immutable) compound body without children shapes. Aborting.');
-            return false;
-        }
-
-        cb.write(childrenCount, BUFFER_WRITE_UINT32, false);
+    static addMeshes(meshes, cb) {
+        const count = meshes?.length || 0;
+        cb.write(count, BUFFER_WRITE_UINT32, false);
 
         for (let i = 0; i < count; i++) {
-            const component = components[i];
-            if (component.entity === parent) {
-                continue;
-            }
-
-            const ok = ShapeComponent.writeShapeData(cb, component);
-            if (!ok) {
-                return false;
-            }
-
-            // Loss of precision for pos/rot (64 -> 32)
-            cb.write(component.shapePosition, BUFFER_WRITE_VEC32, false);
-            cb.write(component.shapeRotation, BUFFER_WRITE_VEC32, false);
-        }
-
-        return true;
-    }
-
-    static addMeshes(meshes, cb) {
-        for (let i = 0; i < meshes.length; i++) {
             const mesh = meshes[i];
             const vb = mesh.vertexBuffer;
             const ib = mesh.indexBuffer[0];

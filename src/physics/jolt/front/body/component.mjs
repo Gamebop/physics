@@ -993,8 +993,7 @@ class BodyComponent extends ShapeComponent {
     writeComponentData(cb) {
         const ok = ShapeComponent.writeShapeData(cb, this);
         if ($_DEBUG && !ok) {
-            Debug.warn('Error creating a shape data.');
-            cb.reset();
+            Debug.warn('Error creating a shape.');
             return;
         }
 
@@ -1062,9 +1061,17 @@ class BodyComponent extends ShapeComponent {
 
         this._index = system.getIndex(this.entity);
 
-        if ((shape === SHAPE_MESH || shape === SHAPE_CONVEX_HULL || shape === SHAPE_HEIGHTFIELD) &&
-            this._renderAsset && !this._meshes) {
-            this._addMeshes();
+        if (shape === SHAPE_MESH || shape === SHAPE_CONVEX_HULL || shape === SHAPE_HEIGHTFIELD) {
+            if (!this._renderAsset && !this._meshes) {
+                if ($_DEBUG) {
+                    Debug.warn('Missing vertex data for collider. No render asset or meshes found.');
+                    return;
+                }
+            } else if (this._renderAsset && !this._meshes) {
+                this.getMeshes(() => {
+                    system.createBody(this);
+                });
+            }
         } else if (!isCompoundChild) {
             system.createBody(this);
         }
@@ -1100,43 +1107,6 @@ class BodyComponent extends ShapeComponent {
     _localToWorld(vec) {
         const m4 = this.entity.getWorldTransform();
         m4.transformPoint(vec, vec);
-    }
-
-    _addMeshes() {
-        const id = this._renderAsset instanceof Asset ? this._renderAsset.id : this._renderAsset;
-        const assets = this.system.app.assets;
-
-        const onAssetFullyReady = (asset) => {
-            this._meshes = asset.resource.meshes;
-            this.system.createBody(this);
-        };
-
-        const loadAndHandleAsset = (asset) => {
-            asset.ready((asset) => {
-                if (asset.data.containerAsset) {
-                    const containerAsset = assets.get(asset.data.containerAsset);
-                    if (containerAsset.loaded) {
-                        onAssetFullyReady(asset);
-                    } else {
-                        containerAsset.ready(() => {
-                            onAssetFullyReady(asset);
-                        });
-                        assets.load(containerAsset);
-                    }
-                } else {
-                    onAssetFullyReady(asset);
-                }
-            });
-
-            assets.load(asset);
-        };
-
-        const asset = assets.get(id);
-        if (asset) {
-            loadAndHandleAsset(asset);
-        } else {
-            assets.once('add:' + id, loadAndHandleAsset);
-        }
     }
 }
 
