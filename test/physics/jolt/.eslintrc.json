@@ -5,6 +5,10 @@
     "rules": {
         "no-unused-expressions": "off",
         "no-var": "error",
-        "quotes": ["error", "single"]
+        "quotes": ["error", "single"],
+        "import/extensions": [
+            "error",
+            "ignorePackages", { "js": "never" }
+        ]
     }
 }
