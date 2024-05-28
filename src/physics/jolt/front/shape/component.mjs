@@ -354,7 +354,7 @@ class ShapeComponent extends Component {
         }
 
         this.system.addCommand(OPERATOR_MODIFIER, CMD_SET_SHAPE, this._index);
-        ShapeComponent.writeShapeData(this);
+        ShapeComponent.writeShapeData(this.system.manager.commandsBuffer, this);
     }
 
     /**
