@@ -111,7 +111,7 @@ class ShapeComponent extends Component {
 
     /**
      * Sets the density of a convex shape.
-     * 
+     *
      * Note:
      * - Setting a density works only on convex non-transformed shapes.
      * - It won't have an effect on a scaled, mesh, compound or decorated shape (e.g. with a

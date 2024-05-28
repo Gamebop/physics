@@ -81,10 +81,10 @@ class MotionState {
                     r.w = 1;
                 } else {
                     const inv = 1 / len;
-                    r.x = r.x * inv;
-                    r.y = r.y * inv;
-                    r.z = r.z * inv;
-                    r.w = r.w * inv;
+                    r.x *= inv;
+                    r.y *= inv;
+                    r.z *= inv;
+                    r.w *= inv;
                 }
             }
         } catch (e) {
