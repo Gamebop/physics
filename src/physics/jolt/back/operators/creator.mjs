@@ -418,10 +418,12 @@ class Creator {
         bodyCreationSettings.mAllowSleeping = cb.read(BUFFER_READ_BOOL);
 
         // collision group
-        const group = cb.flag ? cb.read(BUFFER_READ_UINT32) : null;
+        const hasCollisionGroup = cb.read(BUFFER_READ_BOOL);
+        const group = hasCollisionGroup ? cb.read(BUFFER_READ_UINT32) : null;
 
         // collision sub group
-        const subGroup = cb.flag ? cb.read(BUFFER_READ_UINT32) : null;
+        const hasSubGroup = cb.read(BUFFER_READ_BOOL);
+        const subGroup = hasSubGroup ? cb.read(BUFFER_READ_UINT32) : null;
 
         if (group !== null && subGroup !== null) {
             const table = backend.groupFilterTables[group];

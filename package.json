@@ -11,9 +11,10 @@
         "build:dev": "rimraf dist && rollup -c --config_dev",
         "build:prod": "rimraf dist && rollup -c",
         "build:publish": "rimraf dist && rollup -c && rollup -c --config_dev && npm run publint",
-        "lint": "eslint --ext .mjs, src rollup.config.mjs",
+        "lint": "eslint --ext .mjs, src test rollup.config.mjs",
         "publint": "publint",
-        "docs": "typedoc"
+        "docs": "typedoc",
+        "test": "mocha --recursive"
     },
     "bugs": {
         "url": "https://github.com/gamebop/physics/issues"
@@ -51,7 +52,7 @@
     ],
     "peerDependencies": {
         "jolt-physics": "^0.23.0",
-        "playcanvas": "^1.66.1"
+        "playcanvas": "^1.71.3"
     },
     "devDependencies": {
         "@playcanvas/eslint-config": "^1.7.1",
@@ -59,7 +60,9 @@
         "@rollup/plugin-node-resolve": "^15.2.3",
         "@rollup/plugin-strip": "^3.0.4",
         "@rollup/plugin-terser": "^0.4.4",
+        "chai": "^5.1.1",
         "eslint": "^8.57.0",
+        "mocha": "^10.4.0",
         "publint": "^0.2.7",
         "rimraf": "^5.0.5",
         "rollup": "^4.17.1",

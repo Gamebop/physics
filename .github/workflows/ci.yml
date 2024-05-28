@@ -74,3 +74,23 @@ jobs:
 
     - name: Run ESLint
       run: npm run lint
+
+  unit-test-node:
+    name: Unit Test (Node)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js 18.x
+      uses: actions/setup-node@v4
+      with:
+        node-version: 18.x
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm clean-install --progress=false --no-fund
+
+    - name: Run unit tests
+      run: npm test

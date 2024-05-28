@@ -6,6 +6,7 @@ import {
     BUFFER_WRITE_UINT32, BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32, FLOAT32_SIZE, INT32_SIZE,
     UINT16_SIZE, UINT32_SIZE, UINT8_SIZE
 } from '../constants.mjs';
+import { Plane } from 'playcanvas';
 
 // TODO
 // hide from docs, after PhysicsManager stops using it directly
@@ -37,6 +38,9 @@ class CommandsBuffer {
         this._bytesOffset = UINT16_SIZE;
         this._commandsCount = 0;
         this._dirty = false;
+
+        // TODO
+        // lazy allocate
         this._meshBuffers = [];
     }
 
@@ -53,12 +57,14 @@ class CommandsBuffer {
         return this._dirty;
     }
 
+    // TODO
+    // remove flag usage
     get flag() {
         return this.readUint8();
     }
 
     get commandsCount() {
-        return this._view.getUint16(0);
+        return this._view?.getUint16(0) || 0;
     }
 
     get meshBuffers() {
@@ -121,9 +127,11 @@ class CommandsBuffer {
         return this[method]();
     }
 
+    // TODO
+    // remove flag
     write(value, method, addFlag = true) {
         if ($_DEBUG) {
-            Debug.assert(
+            const ok = Debug.assert(
                 method === BUFFER_WRITE_BOOL ||
                 method === BUFFER_WRITE_FLOAT32 ||
                 method === BUFFER_WRITE_UINT8 ||
@@ -135,14 +143,21 @@ class CommandsBuffer {
                 method === BUFFER_WRITE_PLANE,
                 `Invalid write command method: ${method}`
             );
+
+            if (!ok) {
+                return false;
+            }
         }
 
         if (value == null) {
-            this.writeUint8(0);
-        } else {
-            if (addFlag) this.writeUint8(1);
-            this[method](value);
+            return this.writeUint8(0);
         }
+
+        if (addFlag) {
+            return this.writeUint8(1);
+        }
+
+        return this[method](value);
     }
 
     readCommand() {
@@ -164,12 +179,13 @@ class CommandsBuffer {
     }
 
     writeVector32(vector) {
-        this.writeFloat32(vector.x);
-        this.writeFloat32(vector.y);
-        this.writeFloat32(vector.z);
+        let ok = this.writeFloat32(vector.x);
+        ok = ok && this.writeFloat32(vector.y);
+        ok = ok && this.writeFloat32(vector.z);
         if (vector.w !== undefined) {
-            this.writeFloat32(vector.w);
+            ok = ok && this.writeFloat32(vector.w);
         }
+        return ok;
     }
 
     readFloat32() {
@@ -186,19 +202,30 @@ class CommandsBuffer {
     }
 
     writeFloat32(value, offset) {
-        if (!this._canWrite(FLOAT32_SIZE)) return;
         if ($_DEBUG) {
-            Debug.checkFloat(value, `Trying to write invalid value to buffer: ${value}`);
+            const ok = Debug.checkFloat(value, `Trying to write invalid value to buffer: ${value}`);
+            if (!ok) {
+                return false;
+            }
         }
+
         if (offset == null) {
+            if (!this._canWrite(FLOAT32_SIZE)) {
+                return false;
+            }
             this._view.setFloat32(this._bytesOffset, value);
             this._bytesOffset += FLOAT32_SIZE;
         } else {
             if ($_DEBUG) {
-                Debug.assert(this._buffer.byteLength >= (offset + FLOAT32_SIZE), 'Trying to write outside of buffer bounds.');
+                const ok = Debug.assert(this._buffer.byteLength >= (offset + FLOAT32_SIZE), 'Trying to write outside of buffer bounds.');
+                if (!ok) {
+                    return false;
+                }
             }
             this._view.setFloat32(offset, value);
         }
+
+        return true;
     }
 
     readUint8() {
@@ -215,19 +242,31 @@ class CommandsBuffer {
     }
 
     writeUint8(value, offset) {
-        if (!this._canWrite(UINT8_SIZE)) return;
         if ($_DEBUG) {
-            Debug.checkUint(value, `Trying to write invalid value to buffer: ${value}`);
+            let ok = Debug.checkUint(value, `Trying to write invalid value to buffer: ${value}`);
+            ok = ok && Debug.assert(value <= 255, `Value is larger than int8: ${value}`);
+            if (!ok) {
+                return false;
+            }
         }
+
         if (offset == null) {
+            if (!this._canWrite(UINT8_SIZE)) {
+                return false;
+            }
             this._view.setUint8(this._bytesOffset, value);
             this._bytesOffset += UINT8_SIZE;
         } else {
             if ($_DEBUG) {
-                Debug.assert(this._buffer.byteLength >= (offset + UINT8_SIZE), 'Trying to write outside of buffer bounds.');
+                const ok = Debug.assert(this._buffer.byteLength >= (offset + UINT8_SIZE), 'Trying to write outside of buffer bounds.');
+                if (!ok) {
+                    return false;
+                }
             }
             this._view.setUint8(offset, value);
         }
+
+        return true;
     }
 
     readUint16() {
@@ -244,19 +283,31 @@ class CommandsBuffer {
     }
 
     writeUint16(value, offset) {
-        if (!this._canWrite(UINT16_SIZE)) return;
         if ($_DEBUG) {
-            Debug.checkUint(value, `Trying to write invalid value to buffer: ${value}`);
+            let ok = Debug.checkUint(value, `Trying to write invalid value to buffer: ${value}`);
+            ok = ok && Debug.assert(value <= 65535, `Value is larger than int16: ${value}`);
+            if (!ok) {
+                return false;
+            }
         }
+
         if (offset == null) {
+            if (!this._canWrite(UINT16_SIZE)) {
+                return false;
+            }
             this._view.setUint16(this._bytesOffset, value);
             this._bytesOffset += UINT16_SIZE;
         } else {
             if ($_DEBUG) {
-                Debug.assert(this._buffer.byteLength >= (offset + UINT16_SIZE), 'Trying to write outside of buffer bounds.');
+                const ok = Debug.assert(this._buffer.byteLength >= (offset + UINT16_SIZE), 'Trying to write outside of buffer bounds.');
+                if (!ok) {
+                    return false;
+                }
             }
             this._view.setUint16(offset, value);
         }
+
+        return true;
     }
 
     readUint32() {
@@ -274,18 +325,30 @@ class CommandsBuffer {
 
     writeUint32(value, offset) {
         if ($_DEBUG) {
-            Debug.checkUint(value, `Trying to write invalid value to buffer: ${value}`);
+            let ok = Debug.checkUint(value, `Trying to write invalid value to buffer: ${value}`);
+            ok = ok && Debug.assert(value <= 4294967295, `Value is larger than int32: ${value}`);
+            if (!ok) {
+                return false;
+            }
         }
+
         if (offset == null) {
-            if (!this._canWrite(UINT32_SIZE)) return;
+            if (!this._canWrite(UINT32_SIZE)) {
+                return false;
+            }
             this._view.setUint32(this._bytesOffset, value);
             this._bytesOffset += UINT32_SIZE;
         } else {
             if ($_DEBUG) {
-                Debug.assert(this._buffer.byteLength >= (offset + UINT32_SIZE), 'Trying to write outside of buffer bounds.');
+                const ok = Debug.assert(this._buffer.byteLength >= (offset + UINT32_SIZE), 'Trying to write outside of buffer bounds.');
+                if (!ok) {
+                    return false;
+                }
             }
             this._view.setUint32(offset, value);
         }
+
+        return true;
     }
 
     readInt32() {
@@ -303,18 +366,28 @@ class CommandsBuffer {
 
     writeInt32(value, offset) {
         if ($_DEBUG) {
-            Debug.checkInt(value, `Trying to write invalid value to buffer: ${value}`);
+            const ok = Debug.checkInt(value, `Trying to write invalid value to buffer: ${value}`);
+            if (!ok) {
+                return false;
+            }
         }
         if (offset == null) {
-            if (!this._canWrite(INT32_SIZE)) return;
+            if (!this._canWrite(INT32_SIZE)) {
+                return false;
+            }
             this._view.setInt32(this._bytesOffset, value);
             this._bytesOffset += INT32_SIZE;
         } else {
             if ($_DEBUG) {
-                Debug.assert(this._buffer.byteLength >= (offset + INT32_SIZE), 'Trying to write outside of buffer bounds.');
+                const ok = Debug.assert(this._buffer.byteLength >= (offset + INT32_SIZE), 'Trying to write outside of buffer bounds.');
+                if (!ok) {
+                    return false;
+                }
             }
             this._view.setInt32(offset, value);
         }
+
+        return true;
     }
 
     readBool() {
@@ -326,12 +399,19 @@ class CommandsBuffer {
     }
 
     writeBool(value) {
-        this.writeUint8(value ? 1 : 0);
+        return this.writeUint8(value ? 1 : 0);
     }
 
     writePlane(plane) {
-        this.writeVector32(plane.normal);
-        this.writeFloat32(plane.distance);
+        if ($_DEBUG) {
+            const ok = Debug.assert(!!plane && plane instanceof Plane, `Trying to write invalid Plane instance to buffer`, plane);
+            if (!ok) {
+                return false;
+            }
+        }
+        let ok = this.writeVector32(plane.normal);
+        ok = ok && this.writeFloat32(plane.distance);
+        return ok;
     }
 
     addBuffer(buffer) {
@@ -382,7 +462,7 @@ class CommandsBuffer {
     _resize(increment) {
         const old = this._buffer;
         const currentSize = old.byteLength;
-        const addendum = increment ? increment : currentSize * 0.5;
+        const addendum = increment ? increment : Math.floor(currentSize * 0.5);
         const buffer = new old.constructor(currentSize + addendum);
 
         new Uint8Array(buffer).set(new Uint8Array(old));
