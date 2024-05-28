@@ -90,7 +90,7 @@ import { JoltManager } from './jolt/manager.mjs';
  * Probably 2-5 is a good range to start with. Keep it low and experiment your app switching tabs.
  * The lower this number is the better.
  *
- * Default: `5`.
+ * Default: `3`.
  * @param {number} opts.bodyPairCacheCosMaxDeltaRotationDiv2 - Maximum relative delta orientation
  * for body pairs to be able to reuse collision results from last update, stored as
  * `cos(max angle / 2)`.

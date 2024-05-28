@@ -3,7 +3,7 @@ import { Debug } from '../../debug.mjs';
 import { Component } from '../component.mjs';
 import {
     BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT32,
-    BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32, CMD_SET_DEBUG_DRAW, CMD_SET_SHAPE, FLOAT32_SIZE, OPERATOR_MODIFIER, SHAPE_BOX,
+    BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32, CMD_SET_DEBUG_DRAW, CMD_SET_DENSITY, CMD_SET_SHAPE, FLOAT32_SIZE, OPERATOR_MODIFIER, SHAPE_BOX,
     SHAPE_CAPSULE, SHAPE_CONVEX_HULL, SHAPE_CYLINDER, SHAPE_HEIGHTFIELD,
     SHAPE_MESH, SHAPE_SPHERE, SHAPE_STATIC_COMPOUND
 } from '../../constants.mjs';
@@ -107,6 +107,35 @@ class ShapeComponent extends Component {
      */
     get debugDraw() {
         return this._debugDraw;
+    }
+
+    /**
+     * Sets the density of a convex shape.
+     * 
+     * Note:
+     * - Setting a density works only on convex non-transformed shapes.
+     * - It won't have an effect on a scaled, mesh, compound or decorated shape (e.g. with a
+     * changed center of mass, or if it has a local offset).
+     *
+     * @param {number} value - Shape density.
+     */
+    set density(value) {
+        if (this._density === value) {
+            return;
+        }
+
+        if ($_DEBUG) {
+            const ok = Debug.checkFloat(value, `Invalid density value: ${value}`);
+            if (!ok) {
+                return;
+            }
+        }
+
+        this._density = value;
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_SET_DENSITY, this._index,
+            value, BUFFER_WRITE_FLOAT32, false
+        );
     }
 
     /**

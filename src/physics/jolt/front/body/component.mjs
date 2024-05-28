@@ -1078,8 +1078,7 @@ class BodyComponent extends ShapeComponent {
 
         if (!isCompoundChild) {
             const motionType = this._motionType;
-            if (this._autoUpdateIsometry &&
-                    (motionType === MOTION_TYPE_DYNAMIC || motionType === MOTION_TYPE_KINEMATIC)) {
+            if (this._autoUpdateIsometry && motionType === MOTION_TYPE_KINEMATIC) {
                 this._isometryEvent = this.system.on('write-isometry', this.writeIsometry, this);
             }
         }

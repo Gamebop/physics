@@ -173,6 +173,7 @@ export const CMD_SET_AUTO_UPDATE_ISOMETRY = 40;
 
 export const CMD_SET_SHAPE = 59;
 export const CMD_SET_DEBUG_DRAW = 60;
+export const CMD_SET_DENSITY = 61;
 
 // Constraints 500+
 
