@@ -1228,12 +1228,21 @@ class Creator {
     }
 
     _addDebugDraw(requested, body) {
-        const isWorker = this._backend.config.useWebWorker;
+        const backend = this._backend;
+        const debugBodies = backend.tracker.debug;
+        const isWorker = backend.config.useWebWorker;
+
         if (requested && isWorker) {
-            Debug.warn('Debug draw was requested, but it is not supported, when running in WebWorker. Disable WebWorker (useWebWorker option) when you need to debug draw.');
-            body.debugDraw = false;
+            Debug.warn('Debug draw was requested, but it is not supported, when running in ' +
+                       'WebWorker. Disable WebWorker (useWebWorker option) when you need to ' +
+                       'debug draw.');
+            debugBodies.delete(body);
         } else {
-            body.debugDraw = requested;
+            if (requested) {
+                debugBodies.add(body);
+            } else {
+                debugBodies.delete(body);
+            }
         }
     }
 

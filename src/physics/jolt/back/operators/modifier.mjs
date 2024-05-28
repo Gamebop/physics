@@ -6,7 +6,7 @@ import {
     BUFFER_READ_UINT8, BUFFER_WRITE_UINT32, CMD_ADD_ANGULAR_IMPULSE, CMD_ADD_FORCE,
     CMD_ADD_IMPULSE, CMD_ADD_TORQUE, CMD_APPLY_BUOYANCY_IMPULSE, CMD_CHANGE_GRAVITY,
     CMD_CHAR_SET_LIN_VEL, CMD_CHAR_SET_SHAPE, CMD_MOVE_BODY, CMD_MOVE_KINEMATIC, CMD_PAIR_BODY,
-    CMD_REPORT_SET_SHAPE, CMD_RESET_VELOCITIES, CMD_SET_ANG_VEL, CMD_SET_AUTO_UPDATE_ISOMETRY, CMD_SET_DOF, CMD_SET_DRIVER_INPUT,
+    CMD_REPORT_SET_SHAPE, CMD_RESET_VELOCITIES, CMD_SET_ANG_VEL, CMD_SET_AUTO_UPDATE_ISOMETRY, CMD_SET_DEBUG_DRAW, CMD_SET_DOF, CMD_SET_DRIVER_INPUT,
     CMD_SET_GRAVITY_FACTOR, CMD_SET_LIN_VEL, CMD_SET_MOTION_QUALITY, CMD_SET_MOTION_TYPE,
     CMD_SET_OBJ_LAYER, CMD_SET_SHAPE, CMD_SET_USER_DATA, CMD_TOGGLE_GROUP_PAIR, CMD_USE_MOTION_STATE,
     COMPONENT_SYSTEM_CHAR, MOTION_QUALITY_DISCRETE, MOTION_TYPE_DYNAMIC, MOTION_TYPE_KINEMATIC
@@ -155,6 +155,10 @@ class Modifier {
             case CMD_SET_SHAPE:
                 ok = this._setShape(cb, meshBuffers);
                 break;
+
+            case CMD_SET_DEBUG_DRAW:
+                ok = this._setDebugDraw(cb);
+                break;
         }
 
         return ok;
@@ -280,21 +284,27 @@ class Modifier {
         }
 
         const char = tracker.getBodyByPCID(pcid);
+        try {
+            const ok = char.SetShape(char.originalShape,
+                                     backend.config.penetrationSlop * 1.5,
+                                     backend.bpFilter,
+                                     backend.objFilter,
+                                     backend.bodyFilter,
+                                     backend.shapeFilter,
+                                     backend.joltInterface.GetTempAllocator());
 
-        const ok = char.SetShape(char.originalShape,
-                                 backend.config.penetrationSlop * 1.5,
-                                 backend.bpFilter,
-                                 backend.objFilter,
-                                 backend.bodyFilter,
-                                 backend.shapeFilter,
-                                 backend.joltInterface.GetTempAllocator());
+            if (ok && useCallback) {
+                const cb = backend.outBuffer;
 
-        if (ok && useCallback) {
-            const cb = backend.outBuffer;
-
-            cb.writeOperator(COMPONENT_SYSTEM_CHAR);
-            cb.writeCommand(CMD_REPORT_SET_SHAPE);
-            cb.write(cbIndex, BUFFER_WRITE_UINT32, false);
+                cb.writeOperator(COMPONENT_SYSTEM_CHAR);
+                cb.writeCommand(CMD_REPORT_SET_SHAPE);
+                cb.write(cbIndex, BUFFER_WRITE_UINT32, false);
+            }
+        } catch (e) {
+            if ($_DEBUG) {
+                Debug.error(e);
+            }
+            return false;
         }
 
         return true;
@@ -305,32 +315,40 @@ class Modifier {
         const Jolt = backend.Jolt;
         const body = this._getBody(cb);
 
-        const shapeSettings = Creator.createShapeSettings(cb,
-                                                          meshBuffers,
-                                                          Jolt,
-                                                          this._joltVec3_1,
-                                                          this._joltQuat_1);
-        if (!shapeSettings) {
+        try {
+            const shapeSettings = Creator.createShapeSettings(cb,
+                                                              meshBuffers,
+                                                              Jolt,
+                                                              this._joltVec3_1,
+                                                              this._joltQuat_1);
+            if (!shapeSettings) {
+                return false;
+            }
+
+            const shapeResult = shapeSettings.Create();
+            if ($_DEBUG && shapeResult.HasError()) {
+                Debug.error(`Failed to create shape: ${shapeResult.GetError().c_str()}`);
+                return false;
+            }
+
+            const shape = shapeResult.Get();
+            const currentShape = body.GetShape();
+
+            backend.bodyInterface.SetShape(body.GetID(),
+                                           shape,
+                                           false /* inUpdateMassProperties */,
+                                           Jolt.EActivation_Activate);
+            currentShape.Release();
+
+            // If there is debug draw context, we need to reset it to view a new shape
+            Cleaner.cleanDebugDrawData(body, Jolt);
+
+        } catch (e) {
+            if ($_DEBUG) {
+                Debug.error(e);
+            }
             return false;
         }
-
-        const shapeResult = shapeSettings.Create();
-        if ($_DEBUG && shapeResult.HasError()) {
-            Debug.error(`Failed to create shape: ${shapeResult.GetError().c_str()}`);
-            return false;
-        }
-
-        const shape = shapeResult.Get();
-        const currentShape = body.GetShape();
-
-        backend.bodyInterface.SetShape(body.GetID(),
-                                       shape,
-                                       false /* inUpdateMassProperties */,
-                                       Jolt.EActivation_Activate);
-        currentShape.Release();
-
-        // If there is debug draw context, we need to reset it to view a new shape
-        Cleaner.cleanDebugDrawData(body, Jolt);
 
         return true;
     }
@@ -677,6 +695,32 @@ class Modifier {
         const body = this._getBody(cb);
 
         body.autoUpdateIsometry = cb.read(BUFFER_READ_BOOL);
+
+        return true;
+    }
+
+    _setDebugDraw(cb) {
+        if (!$_DEBUG) {
+            return true;
+        }
+
+        const body = this._getBody(cb);
+        const toDraw = cb.read(BUFFER_READ_BOOL);
+        const debugBodies = this._backend.tracker.debug;
+
+        try {
+            if (toDraw) {
+                debugBodies.add(body);
+            } else {
+                Cleaner.cleanDebugDrawData(body, this._backend.Jolt);
+                debugBodies.delete(body);
+            }
+        } catch (e) {
+            if ($_DEBUG) {
+                Debug.error(e);
+            }
+            return false;
+        }
 
         return true;
     }

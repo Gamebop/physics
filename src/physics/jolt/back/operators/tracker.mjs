@@ -44,7 +44,7 @@ class Tracker {
         return this._constraintMap;
     }
 
-    add(body, index) {
+    add(body, index, toDraw) {
         const Jolt = this._Jolt;
 
         if (body.isCharacter) {
@@ -68,10 +68,6 @@ class Tracker {
                         break;
                 }
             }
-        }
-
-        if ($_DEBUG && body.debugDraw) {
-            this._debug.add(body);
         }
 
         this._idxMap.set(Jolt.getPointer(body), index);

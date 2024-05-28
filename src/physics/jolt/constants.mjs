@@ -172,6 +172,7 @@ export const CMD_SET_MOTION_QUALITY = 39;
 export const CMD_SET_AUTO_UPDATE_ISOMETRY = 40;
 
 export const CMD_SET_SHAPE = 59;
+export const CMD_SET_DEBUG_DRAW = 60;
 
 // Constraints 500+
 

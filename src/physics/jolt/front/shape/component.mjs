@@ -3,7 +3,7 @@ import { Debug } from '../../debug.mjs';
 import { Component } from '../component.mjs';
 import {
     BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT32,
-    BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32, CMD_SET_SHAPE, FLOAT32_SIZE, OPERATOR_MODIFIER, SHAPE_BOX,
+    BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32, CMD_SET_DEBUG_DRAW, CMD_SET_SHAPE, FLOAT32_SIZE, OPERATOR_MODIFIER, SHAPE_BOX,
     SHAPE_CAPSULE, SHAPE_CONVEX_HULL, SHAPE_CYLINDER, SHAPE_HEIGHTFIELD,
     SHAPE_MESH, SHAPE_SPHERE, SHAPE_STATIC_COMPOUND
 } from '../../constants.mjs';
@@ -28,10 +28,6 @@ class ShapeComponent extends Component {
     _isCompoundChild = false;
 
     _useEntityScale = true;
-
-    // TODO
-    // remove default Map
-    _constraints = new Map();
 
     _debugDraw = false;
 
@@ -66,38 +62,41 @@ class ShapeComponent extends Component {
     _hfOffset = Vec3.ZERO;
 
     /**
-     * Read-only. Constraint indices attached to this body.
-     *
-     * @returns {Map<number, import('../constraint/types/cone.mjs').ConeConstraint |
-     * import('../constraint/types/distance.mjs').DistanceConstraint |
-     * import('../constraint/types/fixed.mjs').FixedConstraint |
-     * import('../constraint/types/hinge.mjs').HingeConstraint |
-     * import('../constraint/types/point.mjs').PointConstraint |
-     * import('../constraint/types/pulley.mjs').PulleyConstraint |
-     * import('../constraint/types/six-dof.mjs').SixDOFConstraint |
-     * import('../constraint/types/slider.mjs').SliderConstraint |
-     * import('../constraint/types/swing-twist.mjs').SwingTwistConstraint>} Map with constraints,
-     * where:
-     * - `key`: unique index of the constraint attached to this body
-     * - `value`: constraint interface
-     * @defaultValue Map()
-     */
-    get constraints() {
-        return this._constraints;
-    }
-
-    /**
      * Internally the convex radius will be subtracted from the half extent, so the total size will
      * not grow with the convex radius. You can increase this value to make the edges of the
      * collision shape rounded.
      *
-     * Note: Only used by shapes with sharp edges: `SHAPE_BOX` and `SHAPE_CYLINDER`.
+     * Note:
+     * - Only used by shapes with sharp edges: `SHAPE_BOX` and `SHAPE_CYLINDER`.
+     * - Cannot be changed after the shape is created.
      *
      * @returns {number} Number, representing the convex radius.
      * @defaultValue 0.05 (m)
      */
     get convexRadius() {
         return this._convexRadius;
+    }
+
+    set debugDraw(bool) {
+        if (this._debugDraw === bool) {
+            return;
+        }
+
+        // Debug draw is only available in a debug build.
+        if ($_DEBUG) {
+            const ok = Debug.checkBool(bool, `Invalid debug draw bool: ${bool}`);
+            if (!ok) {
+                return;
+            }
+
+            this._debugDraw = bool;
+            this.system.addCommand(
+                OPERATOR_MODIFIER, CMD_SET_DEBUG_DRAW, this._index,
+                bool, BUFFER_WRITE_BOOL, false
+            );
+        } else {
+            this._debugDraw = false;
+        }
     }
 
     /**
