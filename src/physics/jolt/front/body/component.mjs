@@ -1446,12 +1446,12 @@ class BodyComponent extends ShapeComponent {
         this._index = system.getIndex(this.entity);
 
         if (shape === SHAPE_MESH || shape === SHAPE_CONVEX_HULL || shape === SHAPE_HEIGHTFIELD) {
-            if (!this._renderAsset && !this._meshes) {
+            if (!this._renderAsset && !this._mesh) {
                 if ($_DEBUG) {
                     Debug.warn('Missing vertex data for collider. No render asset or meshes found.');
                     return;
                 }
-            } else if (this._renderAsset && !this._meshes) {
+            } else if (this._renderAsset && !this._mesh) {
                 this.getMeshes(() => {
                     system.createBody(this);
                 });

@@ -157,7 +157,7 @@ class SoftBodyComponent extends BodyComponent {
 
     onEnable() {
         if ($_DEBUG) {
-            if (!this._renderAsset && !this._meshes) {
+            if (!this._renderAsset && !this._mesh) {
                 Debug.warn('Unable to locate mesh data for a soft body', this);
                 return;
             }
@@ -167,7 +167,7 @@ class SoftBodyComponent extends BodyComponent {
 
         this._index = system.getIndex(this.entity);
 
-        if (this._renderAsset && !this._meshes) {
+        if (this._renderAsset && !this._mesh) {
             this.getMeshes(() => {
                 system.createBody(this);
             });
@@ -192,7 +192,7 @@ class SoftBodyComponent extends BodyComponent {
             cb.write(scale, BUFFER_WRITE_VEC32, false);
         }
 
-        ShapeComponent.addMeshes(this._meshes, cb);
+        ShapeComponent.addMeshes(this._mesh, cb);
 
         cb.write(this._width, BUFFER_WRITE_UINT32, false);
         cb.write(this._length, BUFFER_WRITE_UINT32, false);

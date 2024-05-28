@@ -9,7 +9,7 @@ const schema = [
     // component
     'index',
     'renderAsset',
-    'meshes',
+    'mesh',
     'isCompoundChild',
     'useEntityScale',
     'useMotionState',

@@ -23,7 +23,7 @@ class ShapeComponent extends Component {
 
     _renderAsset = null;
 
-    _meshes = null;
+    _mesh = null;
 
     _isCompoundChild = false;
 
@@ -77,6 +77,11 @@ class ShapeComponent extends Component {
         return this._convexRadius;
     }
 
+    /**
+     * Allows to turn on/off debug draw for this body. Only works with a debug build.
+     *
+     * @param {boolean} bool - Boolean to enable/disable a debug draw.
+     */
     set debugDraw(bool) {
         if (this._debugDraw === bool) {
             return;
@@ -107,35 +112,6 @@ class ShapeComponent extends Component {
      */
     get debugDraw() {
         return this._debugDraw;
-    }
-
-    /**
-     * Sets the density of a convex shape.
-     *
-     * Note:
-     * - Setting a density works only on convex non-transformed shapes.
-     * - It won't have an effect on a scaled, mesh, compound or decorated shape (e.g. with a
-     * changed center of mass, or if it has a local offset).
-     *
-     * @param {number} value - Shape density.
-     */
-    set density(value) {
-        if (this._density === value) {
-            return;
-        }
-
-        if ($_DEBUG) {
-            const ok = Debug.checkFloat(value, `Invalid density value: ${value}`);
-            if (!ok) {
-                return;
-            }
-        }
-
-        this._density = value;
-        this.system.addCommand(
-            OPERATOR_MODIFIER, CMD_SET_DENSITY, this._index,
-            value, BUFFER_WRITE_FLOAT32, false
-        );
     }
 
     /**
@@ -263,13 +239,14 @@ class ShapeComponent extends Component {
     }
 
     /**
-     * Meshes used for mesh `SHAPE_MESH` or convex hulls `SHAPE_CONVEX_HULL`.
+     * Mesh is used when {@link shape} is `SHAPE_MESH` or `SHAPE_CONVEX_HULL`.
      *
-     * @returns {Array<import('playcanvas').Mesh> | null} An array of meshes, or `null`.
+     * @returns {import('playcanvas').Mesh | null} - A PlayCanvas Mesh. Will return `null`, when no
+     * mesh is used.
      * @defaultValue null
      */
-    get meshes() {
-        return this._meshes;
+    get mesh() {
+        return this._mesh;
     }
 
     /**
@@ -283,8 +260,12 @@ class ShapeComponent extends Component {
     }
 
     /**
-     * Sets render asset as a collider. Note, that {@link shape} must be `SHAPE_MESH` or
-     * `SHAPE_CONVEX_HULL` in order for the render asset to be used.
+     * Sets render asset as a collider.
+     * Note:
+     * - {@link shape} must be `SHAPE_MESH` or `SHAPE_CONVEX_HULL` in order for the render asset
+     * to be used.
+     * - If the render asset has multiple mesh instances, only the mesh from the first mesh
+     * instance is used. If you need multiple meshes, consider creating a compound collider.
      *
      * @param {Asset | number} asset - Render asset or its id number.
      */
@@ -310,7 +291,7 @@ class ShapeComponent extends Component {
         }
 
         this._renderAsset = asset;
-        this._meshes = null;
+        this._mesh = null;
 
         this.getMeshes(() => {
             this.system.addCommand(OPERATOR_MODIFIER, CMD_SET_SHAPE, this._index);
@@ -371,11 +352,14 @@ class ShapeComponent extends Component {
 
         this._shape = shapeNum;
 
-        // If the shape is changed to mesh/c-hull/heightfield, don't change it in case no vertex
-        // data is available. Once the user assigns meshes or a render asset, then the vertex data
-        // will be written.
+        // If the shape is changed to mesh/c-hull/heightfield, we don't change immediately, in case
+        // no vertex data is available. Once the user assigns meshes or a render asset, then the
+        // vertex data will be written.
+
+        // TODO
+        // refactor this
         if ((shapeNum === SHAPE_MESH || shapeNum === SHAPE_CONVEX_HULL) &&
-            (!this._renderAsset || !this._meshes)) {
+            (!this._renderAsset || !this._mesh)) {
             return;
         } else if (shapeNum === SHAPE_HEIGHTFIELD && !this._hfSamples) {
             return;
@@ -435,7 +419,7 @@ class ShapeComponent extends Component {
         const assets = this.system.app.assets;
 
         const onAssetFullyReady = (asset) => {
-            this._meshes = asset.resource.meshes;
+            this._mesh = asset.resource.meshes[0];
             callback();
         };
 
@@ -473,7 +457,7 @@ class ShapeComponent extends Component {
         const shape = props.shape;
 
         if ((shape === SHAPE_MESH || shape === SHAPE_CONVEX_HULL) &&
-            (!props.renderAsset && !props.meshes)) {
+            (!props.renderAsset && !props.mesh)) {
             Debug.warn('No vertex data for collision mesh. Add renderAsset or meshes.');
             return false;
         }
@@ -524,7 +508,7 @@ class ShapeComponent extends Component {
             // intentional fall-through
             case SHAPE_CONVEX_HULL:
             case SHAPE_MESH:
-                ShapeComponent.addMeshes(props.meshes, cb);
+                ShapeComponent.addMeshes(props.mesh, cb);
                 break;
 
             case SHAPE_HEIGHTFIELD:
@@ -572,52 +556,46 @@ class ShapeComponent extends Component {
         return ok;
     }
 
-    static addMeshes(meshes, cb) {
-        const count = meshes?.length || 0;
-        cb.write(count, BUFFER_WRITE_UINT32, false);
+    static addMeshes(mesh, cb) {
+        const vb = mesh.vertexBuffer;
+        const ib = mesh.indexBuffer[0];
+        const format = vb.getFormat();
 
-        for (let i = 0; i < count; i++) {
-            const mesh = meshes[i];
-            const vb = mesh.vertexBuffer;
-            const ib = mesh.indexBuffer[0];
-            const format = vb.getFormat();
-
-            for (let i = 0; i < format.elements.length; i++) {
-                const element = format.elements[i];
-                if (element.name === SEMANTIC_POSITION) {
-                    cb.write(mesh.primitive[0].base, BUFFER_WRITE_UINT8, false);
-                    cb.write(element.offset, BUFFER_WRITE_UINT32, false);
-                    cb.write(element.stride / FLOAT32_SIZE, BUFFER_WRITE_UINT8, false);
-                    cb.addBuffer(vb.storage);
-                    break;
-                }
+        for (let i = 0; i < format.elements.length; i++) {
+            const element = format.elements[i];
+            if (element.name === SEMANTIC_POSITION) {
+                cb.write(mesh.primitive[0].base, BUFFER_WRITE_UINT8, false);
+                cb.write(element.offset, BUFFER_WRITE_UINT32, false);
+                cb.write(element.stride / FLOAT32_SIZE, BUFFER_WRITE_UINT8, false);
+                cb.addBuffer(vb.storage);
+                break;
             }
-
-            cb.write(vb.numVertices, BUFFER_WRITE_UINT32, false);
-            cb.write(ib.numIndices, BUFFER_WRITE_UINT32, false);
-
-            // TODO
-            // workaround until this is fixed:
-            // https://github.com/playcanvas/engine/issues/5869
-            // buffer.addBuffer(ib.storage);
-
-            const storage = ib.storage;
-            const isView = ArrayBuffer.isView(storage);
-
-            // let byteLength;
-            let byteOffset;
-            if (isView) {
-                // byteLength = storage.byteLength;
-                byteOffset = storage.byteOffset;
-            } else {
-                // byteLength = storage.byteLength / ib.bytesPerIndex;
-                byteOffset = storage.buffer.byteOffset;
-            }
-
-            // cb.write(byteLength, BUFFER_WRITE_UINT32, false);
-            cb.write(byteOffset, BUFFER_WRITE_UINT32, false);
-            cb.addBuffer(isView ? storage.buffer : storage);
         }
+
+        cb.write(vb.numVertices, BUFFER_WRITE_UINT32, false);
+        cb.write(ib.numIndices, BUFFER_WRITE_UINT32, false);
+
+        // TODO
+        // workaround until this is fixed:
+        // https://github.com/playcanvas/engine/issues/5869
+        // buffer.addBuffer(ib.storage);
+
+        const storage = ib.storage;
+        const isView = ArrayBuffer.isView(storage);
+
+        // let byteLength;
+        let byteOffset;
+        if (isView) {
+            // byteLength = storage.byteLength;
+            byteOffset = storage.byteOffset;
+        } else {
+            // byteLength = storage.byteLength / ib.bytesPerIndex;
+            byteOffset = storage.buffer.byteOffset;
+        }
+
+        // cb.write(byteLength, BUFFER_WRITE_UINT32, false);
+        cb.write(byteOffset, BUFFER_WRITE_UINT32, false);
+        cb.addBuffer(isView ? storage.buffer : storage);
     }
 }
 

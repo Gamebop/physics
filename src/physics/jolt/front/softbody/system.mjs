@@ -90,8 +90,8 @@ class SoftBodyComponentSystem extends BodyComponentSystem {
         positions.length = 0;
         indices.length = 0;
 
-        const component = entity?.c.softbody;
-        const mesh = component?.meshes[0];
+        const component = entity.c.softbody;
+        const mesh = component?.mesh;
         if (!mesh) {
             return;
         }
