@@ -1,4 +1,4 @@
-import { Asset, Quat, Vec3 } from 'playcanvas';
+import { Quat, Vec3 } from 'playcanvas';
 import { Debug } from '../../debug.mjs';
 import { ShapeComponent } from '../shape/component.mjs';
 import {

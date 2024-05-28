@@ -171,6 +171,8 @@ export const CMD_COLLIDE_SHAPE_IDX = 38;
 export const CMD_SET_MOTION_QUALITY = 39;
 export const CMD_SET_AUTO_UPDATE_ISOMETRY = 40;
 
+export const CMD_SET_SHAPE = 59;
+
 // Constraints 500+
 
 export const CMD_JNT_SET_ENABLED = 500;

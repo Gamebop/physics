@@ -4,6 +4,14 @@ import {
 } from '../../constants.mjs';
 
 class Cleaner {
+    static cleanDebugDrawData(body, Jolt) {
+        if (body.debugDrawData) {
+            Jolt.destroy(body.triContext);
+            body.triContext = null;
+            body.debugDrawData = null;
+        }
+    }
+
     constructor(backend) {
         this._backend = backend;
     }
@@ -53,11 +61,7 @@ class Cleaner {
             return true;
         }
 
-        if (body.debugDrawData) {
-            Jolt.destroy(body.triContext);
-            body.triContext = null;
-            body.debugDrawData = null;
-        }
+        Cleaner.cleanDebugDrawData(body, Jolt);
 
         tracker.stopTrackingBody(body);
 

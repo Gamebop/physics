@@ -4,7 +4,7 @@ function buildAccessors(obj, schema) {
         const property = schema[i];
 
         // Don't override existing getters/setters
-        // 
+        //
         // The second test is a bit ugly. Is there a more elegant way?
         const etter = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(obj), property) ||
             Object.getOwnPropertyDescriptor(Object.getPrototypeOf(obj.constructor.prototype), property);

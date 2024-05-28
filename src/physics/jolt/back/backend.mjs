@@ -565,7 +565,7 @@ class JoltBackend {
                     break;
 
                 case OPERATOR_MODIFIER:
-                    ok = ok && modifier.modify();
+                    ok = ok && modifier.modify(meshBuffers);
                     break;
 
                 case OPERATOR_QUERIER:

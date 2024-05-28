@@ -3,43 +3,12 @@ import { Debug } from '../../debug.mjs';
 import { Component } from '../component.mjs';
 import {
     BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT32,
-    BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32, FLOAT32_SIZE, OPERATOR_MODIFIER, SHAPE_BOX,
+    BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32, CMD_SET_SHAPE, FLOAT32_SIZE, OPERATOR_MODIFIER, SHAPE_BOX,
     SHAPE_CAPSULE, SHAPE_CONVEX_HULL, SHAPE_CYLINDER, SHAPE_HEIGHTFIELD,
     SHAPE_MESH, SHAPE_SPHERE, SHAPE_STATIC_COMPOUND
 } from '../../constants.mjs';
 
-function addCompoundChildren(cb, parent) {
-    const components = parent.findComponents('body');
-    const count = components.length;
-    const childrenCount = count - 1; // -1 to exclude the parent
-
-    if ($_DEBUG && childrenCount === 0) {
-        Debug.warn('Trying to create a static (immutable) compound body without children shapes. Aborting.');
-        return false;
-    }
-
-    cb.write(childrenCount, BUFFER_WRITE_UINT32, false);
-
-    for (let i = 0; i < count; i++) {
-        const component = components[i];
-        if (component.entity === parent) {
-            continue;
-        }
-
-        const ok = ShapeComponent.writeShapeData(cb, component);
-        if (!ok) {
-            return false;
-        }
-
-        // Loss of precision for pos/rot (64 -> 32)
-        cb.write(component.shapePosition, BUFFER_WRITE_VEC32, false);
-        cb.write(component.shapeRotation, BUFFER_WRITE_VEC32, false);
-    }
-
-    return true;
-}
-
-const defaultHalfExtent = new pc.Vec3(0.5, 0.5, 0.5);
+const defaultHalfExtent = new Vec3(0.5, 0.5, 0.5);
 
 /**
  * This is a base component for other components. Most probably you don't need to use it directly,
@@ -286,11 +255,20 @@ class ShapeComponent extends Component {
     }
 
     /**
-     * Sets render asset as a collider.
+     * Sets render asset as a collider. Note, that {@link shape} must be `SHAPE_MESH` or
+     * `SHAPE_CONVEX_HULL` in order for the render asset to be used.
      *
      * @param {Asset | number} asset - Render asset or its id number.
      */
     set renderAsset(asset) {
+        const shape = this._shape;
+        if (shape !== SHAPE_MESH && shape !== SHAPE_CONVEX_HULL) {
+            if ($_DEBUG) {
+                Debug.warn(`Body component's shape type does not support setting a render asset.`);
+            }
+            return;
+        }
+
         if ($_DEBUG) {
             let ok = false;
             if (typeof asset === 'number') {
@@ -308,7 +286,7 @@ class ShapeComponent extends Component {
 
         this.getMeshes(() => {
             this.system.addCommand(OPERATOR_MODIFIER, CMD_SET_SHAPE, this._index);
-            ShapeComponent.writeShapeData(this);
+            ShapeComponent.writeShapeData(this.system.manager.commandsBuffer, this);
         });
     }
 
@@ -424,13 +402,13 @@ class ShapeComponent extends Component {
         return this._useEntityScale;
     }
 
-    getMeshes(cb) {
+    getMeshes(callback) {
         const id = this._renderAsset instanceof Asset ? this._renderAsset.id : this._renderAsset;
         const assets = this.system.app.assets;
 
         const onAssetFullyReady = (asset) => {
             this._meshes = asset.resource.meshes;
-            cb();
+            callback();
         };
 
         const loadAndHandleAsset = (asset) => {
@@ -467,7 +445,7 @@ class ShapeComponent extends Component {
         const shape = props.shape;
 
         if ((shape === SHAPE_MESH || shape === SHAPE_CONVEX_HULL) &&
-            (!this._renderAsset && !this._meshes)) {                
+            (!props.renderAsset && !props.meshes)) {
             Debug.warn('No vertex data for collision mesh. Add renderAsset or meshes.');
             return false;
         }
@@ -613,6 +591,37 @@ class ShapeComponent extends Component {
             cb.addBuffer(isView ? storage.buffer : storage);
         }
     }
+}
+
+function addCompoundChildren(cb, parent) {
+    const components = parent.findComponents('body');
+    const count = components.length;
+    const childrenCount = count - 1; // -1 to exclude the parent
+
+    if ($_DEBUG && childrenCount === 0) {
+        Debug.warn('Trying to create a static (immutable) compound body without children shapes. Aborting.');
+        return false;
+    }
+
+    cb.write(childrenCount, BUFFER_WRITE_UINT32, false);
+
+    for (let i = 0; i < count; i++) {
+        const component = components[i];
+        if (component.entity === parent) {
+            continue;
+        }
+
+        const ok = ShapeComponent.writeShapeData(cb, component);
+        if (!ok) {
+            return false;
+        }
+
+        // Loss of precision for pos/rot (64 -> 32)
+        cb.write(component.shapePosition, BUFFER_WRITE_VEC32, false);
+        cb.write(component.shapeRotation, BUFFER_WRITE_VEC32, false);
+    }
+
+    return true;
 }
 
 export { ShapeComponent };

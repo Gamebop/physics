@@ -16,6 +16,170 @@ import {
 } from '../../constants.mjs';
 
 class Creator {
+    static createShapeSettings(cb, meshBuffers, Jolt, jv, jq) {
+        const shapeType = cb.read(BUFFER_READ_UINT8);
+
+        // scale
+        const useScale = cb.read(BUFFER_READ_BOOL);
+        let sx, sy, sz;
+        if (useScale) {
+            sx = cb.read(BUFFER_READ_FLOAT32);
+            sy = cb.read(BUFFER_READ_FLOAT32);
+            sz = cb.read(BUFFER_READ_FLOAT32);
+
+            if ($_DEBUG) {
+                let ok = Debug.checkFloat(sx, `Invalid scale X: ${sx}`);
+                ok = ok && Debug.checkFloat(sy, `Invalid scale Y: ${sy}`);
+                ok = ok && Debug.checkFloat(sz, `Invalid scale Z: ${sz}`);
+                if (!ok) {
+                    return null;
+                }
+            }
+        }
+
+        let settings, hh, r, cr;
+        switch (shapeType) {
+            case SHAPE_BOX:
+                jv.FromBuffer(cb, true);
+                cr = cb.read(BUFFER_READ_FLOAT32);
+                if ($_DEBUG) {
+                    const ok = Debug.checkFloatPositive(cr, `invalid convex radius: ${cr}`);
+                    if (!ok) {
+                        return null;
+                    }
+                }
+                settings = createJoltShapeSettings(shapeType, Jolt, jv, cr);
+                break;
+
+            case SHAPE_CAPSULE:
+                hh = cb.read(BUFFER_READ_FLOAT32);
+                r = cb.read(BUFFER_READ_FLOAT32);
+                if ($_DEBUG) {
+                    let ok = Debug.checkFloatPositive(hh, `invalid half height: ${hh}`);
+                    ok = ok && Debug.checkFloatPositive(r, `invalid radius: ${r}`);
+                    if (useScale) {
+                        ok = ok && Debug.assert((sx === sy) && (sy === sz), `Capsule shape scale must be uniform: ${sx}, ${sy}, ${sz}`);
+                    }
+                    if (!ok) {
+                        return null;
+                    }
+                }
+                settings = createJoltShapeSettings(shapeType, Jolt, hh, r);
+                break;
+
+            case SHAPE_CYLINDER:
+                hh = cb.read(BUFFER_READ_FLOAT32);
+                r = cb.read(BUFFER_READ_FLOAT32);
+                cr = cb.read(BUFFER_READ_FLOAT32);
+                if ($_DEBUG) {
+                    let ok = Debug.checkFloatPositive(hh, `invalid half height: ${hh}`);
+                    ok = ok && Debug.checkFloatPositive(r, `invalid radius: ${r}`);
+                    ok = ok && Debug.checkFloatPositive(cr, `invalid convex radius: ${cr}`);
+                    if (useScale) {
+                        ok = ok && Debug.assert(sx === sz, `Cylinder shape scale must be uniform in XZ plane: ${sx}, ${sz}`);
+                    }
+                    if (!ok) {
+                        return null;
+                    }
+                }
+                settings = createJoltShapeSettings(shapeType, Jolt, hh, r, cr);
+                break;
+
+            case SHAPE_SPHERE:
+                r = cb.read(BUFFER_READ_FLOAT32);
+                if ($_DEBUG) {
+                    let ok = Debug.checkFloatPositive(r, `invalid radius: ${r}`);
+                    if (useScale) {
+                        ok = ok && Debug.assert((sx === sy) && (sy === sz), `Sphere shape scale must be uniform: ${sx}, ${sy}, ${sz}`);
+                    }
+                    if (!ok) {
+                        return null;
+                    }
+                }
+                settings = createJoltShapeSettings(shapeType, Jolt, r);
+                break;
+
+            // intentional fall-through
+            case SHAPE_MESH:
+            case SHAPE_CONVEX_HULL:
+                settings = createMeshShapeSettings(cb, Jolt, meshBuffers, shapeType, jv);
+                break;
+
+            case SHAPE_STATIC_COMPOUND:
+                settings = createStaticCompoundShapeSettings(cb, meshBuffers, Jolt, jv, jq);
+                break;
+
+            case SHAPE_HEIGHTFIELD:
+                settings = createHeightFieldSettings(cb, Jolt, meshBuffers, jv);
+                break;
+
+            default:
+                if ($_DEBUG) {
+                    Debug.warn('Invalid shape type', shapeType);
+                }
+                return null;
+        }
+
+        if (!settings) {
+            return null;
+        }
+
+        if (shapeType === SHAPE_STATIC_COMPOUND) {
+            const compoundSettings = new Jolt.StaticCompoundShapeSettings();
+
+            for (let i = 0, end = settings.length; i < end; i += 3) {
+                const childSettings = settings[i];
+                const pos = settings[i + 1];
+                const rot = settings[i + 2];
+
+                jv.Set(pos.x, pos.y, pos.z);
+                jq.Set(rot.x, rot.y, rot.z, rot.w);
+
+                compoundSettings.AddShape(jv, jq, childSettings);
+            }
+
+            settings = compoundSettings;
+        }
+
+        const isCompoundChild = cb.read(BUFFER_READ_BOOL);
+        if (!isCompoundChild) {
+            const density = cb.read(BUFFER_READ_FLOAT32);
+            if ($_DEBUG) {
+                const ok = Debug.checkFloatPositive(density, `Invalid density value: ${density}`);
+                if (!ok)
+                    return null;
+            }
+            settings.mDensity = density;
+
+            // When creating a compound shape, we should prefer setting the position/rotation
+            // directly on adding a shape - compoundSettings.AddShape(vec, quat, childSettings).
+            // Using a RotatedTranslatedShape would be a waste of CPU cycles, as Jolt would
+            // transform the shape twice then, even the first one is an identity transform.
+
+            // shape offset
+            if (cb.read(BUFFER_READ_BOOL)) {
+                jv.FromBuffer(cb);
+                jq.FromBuffer(cb);
+
+                settings = new Jolt.RotatedTranslatedShapeSettings(jv, jq, settings);
+            }
+
+            // center of mass offset
+            if (cb.read(BUFFER_READ_BOOL)) {
+                jv.FromBuffer(cb);
+
+                settings = new Jolt.OffsetCenterOfMassShapeSettings(jv, settings);
+            }
+        }
+
+        if (useScale) {
+            jv.Set(sx, sy, sz);
+            settings = new Jolt.ScaledShapeSettings(settings, jv);
+        }
+
+        return settings;
+    }
+
     constructor(backend) {
         this._backend = backend;
 
@@ -158,30 +322,6 @@ class Creator {
         backend.bodyList = new Jolt.BodyIDVector();
     }
 
-    createShapeSettings(shape, ...attr) {
-        const Jolt = this._backend.Jolt;
-
-        switch (shape) {
-            case SHAPE_BOX:
-                return new Jolt.BoxShapeSettings(attr[0] /* half extent */, attr[1] /* convex radius */);
-
-            case SHAPE_SPHERE:
-                return new Jolt.SphereShapeSettings(attr[0] /* radius */);
-
-            case SHAPE_CAPSULE:
-                return new Jolt.CapsuleShapeSettings(attr[0] /* half height */, attr[1] /* radius */);
-
-            case SHAPE_CYLINDER:
-                return new Jolt.CylinderShapeSettings(attr[0] /* half height */, attr[1] /* radius */, attr[2] /* convex radius */);
-
-            default:
-                if ($_DEBUG) {
-                    Debug.warnOnce(`Unrecognized shape: ${shape}`);
-                }
-                return null;
-        }
-    }
-
     destroy() {
         Jolt.destroy(this._joltVec3);
         Jolt.destroy(this._joltQuat);
@@ -194,7 +334,7 @@ class Creator {
         // shape number
         const num = cb.read(BUFFER_READ_UINT32);
 
-        const shapeSettings = this._createShapeSettings(cb, meshBuffers);
+        const shapeSettings = Creator.createShapeSettings(cb, meshBuffers, this._backend.Jolt, this._joltVec3, this._joltQuat);
         if (!shapeSettings)
             return false;
 
@@ -219,7 +359,7 @@ class Creator {
 
         // ------------ SHAPE PROPS ----------------
 
-        const shapeSettings = this._createShapeSettings(cb, meshBuffers);
+        const shapeSettings = Creator.createShapeSettings(cb, meshBuffers, Jolt, jv, jq);
         if (!shapeSettings) {
             return false;
         }
@@ -742,239 +882,6 @@ class Creator {
         return true;
     }
 
-    _createShapeSettings(cb, meshBuffers) {
-        const Jolt = this._backend.Jolt;
-        const jv = this._joltVec3;
-        const jq = this._joltQuat;
-        const shapeType = cb.read(BUFFER_READ_UINT8);
-
-        // scale
-        const useScale = cb.read(BUFFER_READ_BOOL);
-        let sx, sy, sz;
-        if (useScale) {
-            sx = cb.read(BUFFER_READ_FLOAT32);
-            sy = cb.read(BUFFER_READ_FLOAT32);
-            sz = cb.read(BUFFER_READ_FLOAT32);
-
-            if ($_DEBUG) {
-                let ok = Debug.checkFloat(sx, `Invalid scale X: ${sx}`);
-                ok = ok && Debug.checkFloat(sy, `Invalid scale Y: ${sy}`);
-                ok = ok && Debug.checkFloat(sz, `Invalid scale Z: ${sz}`);
-                if (!ok) {
-                    return null;
-                }
-            }
-        }
-
-        let settings, hh, r, cr;
-        switch (shapeType) {
-            case SHAPE_BOX:
-                jv.FromBuffer(cb, true);
-                cr = cb.read(BUFFER_READ_FLOAT32);
-                if ($_DEBUG) {
-                    const ok = Debug.checkFloatPositive(cr, `invalid convex radius: ${cr}`);
-                    if (!ok) {
-                        return null;
-                    }
-                }
-                settings = this.createShapeSettings(shapeType, jv, cr);
-                break;
-
-            case SHAPE_CAPSULE:
-                hh = cb.read(BUFFER_READ_FLOAT32);
-                r = cb.read(BUFFER_READ_FLOAT32);
-                if ($_DEBUG) {
-                    let ok = Debug.checkFloatPositive(hh, `invalid half height: ${hh}`);
-                    ok = ok && Debug.checkFloatPositive(r, `invalid radius: ${r}`);
-                    if (useScale) {
-                        ok = ok && Debug.assert((sx === sy) && (sy === sz), `Capsule shape scale must be uniform: ${sx}, ${sy}, ${sz}`);
-                    }
-                    if (!ok) {
-                        return null;
-                    }
-                }
-                settings = this.createShapeSettings(shapeType, hh, r);
-                break;
-
-            case SHAPE_CYLINDER:
-                hh = cb.read(BUFFER_READ_FLOAT32);
-                r = cb.read(BUFFER_READ_FLOAT32);
-                cr = cb.read(BUFFER_READ_FLOAT32);
-                if ($_DEBUG) {
-                    let ok = Debug.checkFloatPositive(hh, `invalid half height: ${hh}`);
-                    ok = ok && Debug.checkFloatPositive(r, `invalid radius: ${r}`);
-                    ok = ok && Debug.checkFloatPositive(cr, `invalid convex radius: ${cr}`);
-                    if (useScale) {
-                        ok = ok && Debug.assert(sx === sz, `Cylinder shape scale must be uniform in XZ plane: ${sx}, ${sz}`);
-                    }
-                    if (!ok) {
-                        return null;
-                    }
-                }
-                settings = this.createShapeSettings(shapeType, hh, r, cr);
-                break;
-
-            case SHAPE_SPHERE:
-                r = cb.read(BUFFER_READ_FLOAT32);
-                if ($_DEBUG) {
-                    let ok = Debug.checkFloatPositive(r, `invalid radius: ${r}`);
-                    if (useScale) {
-                        ok = ok && Debug.assert((sx === sy) && (sy === sz), `Sphere shape scale must be uniform: ${sx}, ${sy}, ${sz}`);
-                    }
-                    if (!ok) {
-                        return null;
-                    }
-                }
-                settings = this.createShapeSettings(shapeType, r);
-                break;
-
-            // intentional fall-through
-            case SHAPE_MESH:
-            case SHAPE_CONVEX_HULL:
-                settings = this._createMeshShapeSettings(cb, meshBuffers, shapeType);
-                break;
-
-            case SHAPE_STATIC_COMPOUND:
-                settings = this._createStaticCompoundShapeSettings(cb, meshBuffers);
-                break;
-
-            case SHAPE_HEIGHTFIELD:
-                settings = this._createHeightFieldSettings(cb, meshBuffers);
-                break;
-
-            default:
-                if ($_DEBUG) {
-                    Debug.warn('Invalid shape type', shapeType);
-                }
-                return null;
-        }
-
-        if (!settings) {
-            return null;
-        }
-
-        if (shapeType === SHAPE_STATIC_COMPOUND) {
-            const compoundSettings = new Jolt.StaticCompoundShapeSettings();
-
-            for (let i = 0, end = settings.length; i < end; i += 3) {
-                const childSettings = settings[i];
-                const pos = settings[i + 1];
-                const rot = settings[i + 2];
-
-                jv.Set(pos.x, pos.y, pos.z);
-                jq.Set(rot.x, rot.y, rot.z, rot.w);
-
-                compoundSettings.AddShape(jv, jq, childSettings);
-            }
-
-            settings = compoundSettings;
-        }
-
-        const isCompoundChild = cb.read(BUFFER_READ_BOOL);
-        if (!isCompoundChild) {
-            const density = cb.read(BUFFER_READ_FLOAT32);
-            if ($_DEBUG) {
-                const ok = Debug.checkFloatPositive(density, `Invalid density value: ${density}`);
-                if (!ok)
-                    return null;
-            }
-            settings.mDensity = density;
-
-            // When creating a compound shape, we should prefer setting the position/rotation
-            // directly on adding a shape - compoundSettings.AddShape(vec, quat, childSettings).
-            // Using a RotatedTranslatedShape would be a waste of CPU cycles, as Jolt would
-            // transform the shape twice then, even the first one is an identity transform.
-
-            // shape offset
-            if (cb.read(BUFFER_READ_BOOL)) {
-                jv.FromBuffer(cb);
-                jq.FromBuffer(cb);
-
-                settings = new Jolt.RotatedTranslatedShapeSettings(jv, jq, settings);
-            }
-
-            // center of mass offset
-            if (cb.read(BUFFER_READ_BOOL)) {
-                jv.FromBuffer(cb);
-
-                settings = new Jolt.OffsetCenterOfMassShapeSettings(jv, settings);
-            }
-        }
-
-        if (useScale) {
-            jv.Set(sx, sy, sz);
-            settings = new Jolt.ScaledShapeSettings(settings, jv);
-        }
-
-        return settings;
-    }
-
-    _createStaticCompoundShapeSettings(cb, meshBuffers) {
-        const childrenCount = cb.read(BUFFER_READ_UINT32);
-        const children = [];
-
-        for (let i = 0; i < childrenCount; i++) {
-            const settings = this._createShapeSettings(cb, meshBuffers);
-            if (!settings) {
-                return null;
-            }
-
-            const pos = {};
-            const rot = {};
-
-            cb.readVec(pos);
-            cb.readQuat(rot);
-
-            if ($_DEBUG) {
-                let ok = true;
-                ok = ok && Debug.checkVec(pos, `Invalid static compound child position vector`);
-                ok = ok && Debug.checkQuat(rot, `Invalid static compound child quaternion`);
-                if (!ok) {
-                    return null;
-                }
-            }
-
-            children.push(settings, pos, rot);
-        }
-
-        return children;
-    }
-
-    _createHeightFieldSettings(cb, meshBuffers) {
-        if ($_DEBUG) {
-            let ok = Debug.assert(!!meshBuffers, `Missing buffers to generate a HeightField shape: ${meshBuffers}`);
-            ok = ok && Debug.assert(meshBuffers.length > 0, `Invalid buffers to generate HeightField shape: ${meshBuffers}`);
-            if (!ok) {
-                return null;
-            }
-        }
-
-        const Jolt = this._backend.Jolt;
-        const jv = this._joltVec3;
-        const buffer = meshBuffers.shift();
-        const samples = new Float32Array(buffer);
-        const size = samples.length;
-
-        const settings = new Jolt.HeightFieldShapeSettings();
-        settings.mOffset = jv.FromBuffer(cb);
-        settings.mScale = jv.FromBuffer(cb);
-        settings.mSampleCount = cb.read(BUFFER_READ_UINT32);
-        settings.mBlockSize = cb.read(BUFFER_READ_UINT8);
-        settings.mBitsPerSample = cb.read(BUFFER_READ_UINT8);
-        settings.mActiveEdgeCosThresholdAngle = cb.read(BUFFER_READ_FLOAT32);
-        settings.mHeightSamples.resize(size);
-
-        // Convert the height samples into a Float32Array
-        const heightSamples = new Float32Array(Jolt.HEAPF32.buffer, Jolt.getPointer(settings.mHeightSamples.data()), size);
-
-        for (let i = 0, end = heightSamples.length; i < end; i++) {
-            const height = samples[i];
-            heightSamples[i] = height >= 0 ? height : Jolt.HeightFieldShapeConstantValues.prototype.cNoCollisionValue;
-        }
-
-        return settings;
-    }
-
     _createConstraint(cb) {
         const jv = this._joltVec3;
         const backend = this._backend;
@@ -1240,7 +1147,7 @@ class Creator {
         const jq = this._joltQuat;
         const settings = new Jolt.CharacterVirtualSettings();
 
-        const shapeSettings = this._createShapeSettings(cb, null);
+        const shapeSettings = Creator.createShapeSettings(cb, null, Jolt, jv, jq);
         if (!shapeSettings) {
             return false;
         }
@@ -1318,80 +1225,6 @@ class Creator {
         backend.tracker.add(character, index);
 
         return true;
-    }
-
-    _createMeshShapeSettings(cb, meshBuffers, shapeType) {
-        const count = cb.read(BUFFER_READ_UINT32);
-        const Jolt = this._backend.Jolt;
-        const jv = this._joltVec3;
-
-        // TODO
-        // do not use compound, merge buffers into a single one instead
-        const compoundSettings = count > 1 ? new Jolt.StaticCompoundShapeSettings() : null;
-
-        let i1, i2, i3, v1, v2, v3;
-        let settings;        
-
-        for (let i = 0; i < count; i++) {
-            const {
-                base, stride, numIndices, triCount, positions, indices
-            } = Creator.readMeshBuffers(cb, meshBuffers);
-    
-            // TODO:
-            // add support for duplicate vertices test
-
-            const p = positions;
-
-            if (shapeType === SHAPE_CONVEX_HULL) {
-                const cache = new Set();
-
-                settings = new Jolt.ConvexHullShapeSettings();
-
-                for (let i = 0; i < numIndices; i++) {
-                    const index = indices[i] * stride;
-                    const x = p[index];
-                    const y = p[index + 1];
-                    const z = p[index + 2];
-
-                    // deduplicate verts
-                    const str = `${x}:${y}:${z}`;
-                    if (!cache.has(str)) {
-                        cache.add(str);
-    
-                        jv.Set(x, y, z);
-                        settings.mPoints.push_back(jv);
-                    }
-                }
-            } else if (shapeType === SHAPE_MESH) {
-                const triangles = new Jolt.TriangleList();
-
-                triangles.resize(triCount);
-
-                for (let i = 0; i < triCount; i++) {
-                    i1 = indices[base + i * 3] * stride;
-                    i2 = indices[base + i * 3 + 1] * stride;
-                    i3 = indices[base + i * 3 + 2] * stride;
-    
-                    const t = triangles.at(i);
-    
-                    v1 = t.get_mV(0);
-                    v2 = t.get_mV(1);
-                    v3 = t.get_mV(2);
-    
-                    v1.x = p[i1]; v1.y = p[i1 + 1]; v1.z = p[i1 + 2];
-                    v2.x = p[i2]; v2.y = p[i2 + 1]; v2.z = p[i2 + 2];
-                    v3.x = p[i3]; v3.y = p[i3 + 1]; v3.z = p[i3 + 2];
-                }
-
-                settings = new Jolt.MeshShapeSettings(triangles);
-            }
-
-            if (compoundSettings) {
-                compoundSettings.AddShape(Jolt.Vec3.prototype.sZero(), Jolt.Quat.prototype.sIdentity(), settings);
-            }
-        }
-
-        return compoundSettings || settings;
     }
 
     _addDebugDraw(requested, body) {
@@ -1551,6 +1384,164 @@ class Creator {
 
         return { base, stride, vertexCount, numIndices, triCount, positions, indices };
     }
+}
+
+function createJoltShapeSettings(shape, Jolt, ...attr) {
+    switch (shape) {
+        case SHAPE_BOX:
+            return new Jolt.BoxShapeSettings(attr[0] /* half extent */, attr[1] /* convex radius */);
+
+        case SHAPE_SPHERE:
+            return new Jolt.SphereShapeSettings(attr[0] /* radius */);
+
+        case SHAPE_CAPSULE:
+            return new Jolt.CapsuleShapeSettings(attr[0] /* half height */, attr[1] /* radius */);
+
+        case SHAPE_CYLINDER:
+            return new Jolt.CylinderShapeSettings(attr[0] /* half height */, attr[1] /* radius */, attr[2] /* convex radius */);
+
+        default:
+            if ($_DEBUG) {
+                Debug.warnOnce(`Unrecognized shape: ${shape}`);
+            }
+            return null;
+    }
+}
+
+function createMeshShapeSettings(cb, Jolt, meshBuffers, shapeType, jv) {
+    const count = cb.read(BUFFER_READ_UINT32);
+
+    // TODO
+    // do not use compound, merge buffers into a single one instead
+    const compoundSettings = count > 1 ? new Jolt.StaticCompoundShapeSettings() : null;
+
+    let i1, i2, i3, v1, v2, v3;
+    let settings;
+
+    for (let i = 0; i < count; i++) {
+        const {
+            base, stride, numIndices, triCount, positions, indices
+        } = Creator.readMeshBuffers(cb, meshBuffers);
+
+        // TODO:
+        // add support for duplicate vertices test
+
+        const p = positions;
+
+        if (shapeType === SHAPE_CONVEX_HULL) {
+            const cache = new Set();
+
+            settings = new Jolt.ConvexHullShapeSettings();
+
+            for (let i = 0; i < numIndices; i++) {
+                const index = indices[i] * stride;
+                const x = p[index];
+                const y = p[index + 1];
+                const z = p[index + 2];
+
+                // deduplicate verts
+                const str = `${x}:${y}:${z}`;
+                if (!cache.has(str)) {
+                    cache.add(str);
+
+                    jv.Set(x, y, z);
+                    settings.mPoints.push_back(jv);
+                }
+            }
+        } else if (shapeType === SHAPE_MESH) {
+            const triangles = new Jolt.TriangleList();
+
+            triangles.resize(triCount);
+
+            for (let i = 0; i < triCount; i++) {
+                i1 = indices[base + i * 3] * stride;
+                i2 = indices[base + i * 3 + 1] * stride;
+                i3 = indices[base + i * 3 + 2] * stride;
+
+                const t = triangles.at(i);
+
+                v1 = t.get_mV(0);
+                v2 = t.get_mV(1);
+                v3 = t.get_mV(2);
+
+                v1.x = p[i1]; v1.y = p[i1 + 1]; v1.z = p[i1 + 2];
+                v2.x = p[i2]; v2.y = p[i2 + 1]; v2.z = p[i2 + 2];
+                v3.x = p[i3]; v3.y = p[i3 + 1]; v3.z = p[i3 + 2];
+            }
+
+            settings = new Jolt.MeshShapeSettings(triangles);
+        }
+
+        if (compoundSettings) {
+            compoundSettings.AddShape(Jolt.Vec3.prototype.sZero(), Jolt.Quat.prototype.sIdentity(), settings);
+        }
+    }
+
+    return compoundSettings || settings;
+}
+
+function createStaticCompoundShapeSettings(cb, meshBuffers, Jolt, jv, jq) {
+    const childrenCount = cb.read(BUFFER_READ_UINT32);
+    const children = [];
+
+    for (let i = 0; i < childrenCount; i++) {
+        const settings = Creator.createShapeSettings(cb, meshBuffers, Jolt, jv, jq);
+        if (!settings) {
+            return null;
+        }
+
+        const pos = {};
+        const rot = {};
+
+        cb.readVec(pos);
+        cb.readQuat(rot);
+
+        if ($_DEBUG) {
+            let ok = true;
+            ok = ok && Debug.checkVec(pos, `Invalid static compound child position vector`);
+            ok = ok && Debug.checkQuat(rot, `Invalid static compound child quaternion`);
+            if (!ok) {
+                return null;
+            }
+        }
+
+        children.push(settings, pos, rot);
+    }
+
+    return children;
+}
+
+function createHeightFieldSettings(cb, Jolt, meshBuffers, jv) {
+    if ($_DEBUG) {
+        let ok = Debug.assert(!!meshBuffers, `Missing buffers to generate a HeightField shape: ${meshBuffers}`);
+        ok = ok && Debug.assert(meshBuffers.length > 0, `Invalid buffers to generate HeightField shape: ${meshBuffers}`);
+        if (!ok) {
+            return null;
+        }
+    }
+
+    const buffer = meshBuffers.shift();
+    const samples = new Float32Array(buffer);
+    const size = samples.length;
+
+    const settings = new Jolt.HeightFieldShapeSettings();
+    settings.mOffset = jv.FromBuffer(cb);
+    settings.mScale = jv.FromBuffer(cb);
+    settings.mSampleCount = cb.read(BUFFER_READ_UINT32);
+    settings.mBlockSize = cb.read(BUFFER_READ_UINT8);
+    settings.mBitsPerSample = cb.read(BUFFER_READ_UINT8);
+    settings.mActiveEdgeCosThresholdAngle = cb.read(BUFFER_READ_FLOAT32);
+    settings.mHeightSamples.resize(size);
+
+    // Convert the height samples into a Float32Array
+    const heightSamples = new Float32Array(Jolt.HEAPF32.buffer, Jolt.getPointer(settings.mHeightSamples.data()), size);
+
+    for (let i = 0, end = heightSamples.length; i < end; i++) {
+        const height = samples[i];
+        heightSamples[i] = height >= 0 ? height : Jolt.HeightFieldShapeConstantValues.prototype.cNoCollisionValue;
+    }
+
+    return settings;
 }
 
 export { Creator };

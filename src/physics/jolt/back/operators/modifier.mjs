@@ -8,9 +8,11 @@ import {
     CMD_CHAR_SET_LIN_VEL, CMD_CHAR_SET_SHAPE, CMD_MOVE_BODY, CMD_MOVE_KINEMATIC, CMD_PAIR_BODY,
     CMD_REPORT_SET_SHAPE, CMD_RESET_VELOCITIES, CMD_SET_ANG_VEL, CMD_SET_AUTO_UPDATE_ISOMETRY, CMD_SET_DOF, CMD_SET_DRIVER_INPUT,
     CMD_SET_GRAVITY_FACTOR, CMD_SET_LIN_VEL, CMD_SET_MOTION_QUALITY, CMD_SET_MOTION_TYPE,
-    CMD_SET_OBJ_LAYER, CMD_SET_USER_DATA, CMD_TOGGLE_GROUP_PAIR, CMD_USE_MOTION_STATE,
+    CMD_SET_OBJ_LAYER, CMD_SET_SHAPE, CMD_SET_USER_DATA, CMD_TOGGLE_GROUP_PAIR, CMD_USE_MOTION_STATE,
     COMPONENT_SYSTEM_CHAR, MOTION_QUALITY_DISCRETE, MOTION_TYPE_DYNAMIC, MOTION_TYPE_KINEMATIC
 } from '../../constants.mjs';
+import { Creator } from './creator.mjs';
+import { Cleaner } from './cleaner.mjs';
 
 class Modifier {
     constructor(backend) {
@@ -44,7 +46,7 @@ class Modifier {
         return this._backend;
     }
 
-    modify() {
+    modify(meshBuffers) {
         const cb = this._backend.inBuffer;
         const command = cb.readCommand();
         let ok = true;
@@ -148,6 +150,10 @@ class Modifier {
 
             case CMD_SET_AUTO_UPDATE_ISOMETRY:
                 ok = this._setAutoUpdateIsometry(cb);
+                break;
+
+            case CMD_SET_SHAPE:
+                ok = this._setShape(cb, meshBuffers);
                 break;
         }
 
@@ -290,6 +296,41 @@ class Modifier {
             cb.writeCommand(CMD_REPORT_SET_SHAPE);
             cb.write(cbIndex, BUFFER_WRITE_UINT32, false);
         }
+
+        return true;
+    }
+
+    _setShape(cb, meshBuffers) {
+        const backend = this._backend;
+        const Jolt = backend.Jolt;
+        const body = this._getBody(cb);
+
+        const shapeSettings = Creator.createShapeSettings(cb,
+                                                          meshBuffers,
+                                                          Jolt,
+                                                          this._joltVec3_1,
+                                                          this._joltQuat_1);
+        if (!shapeSettings) {
+            return false;
+        }
+
+        const shapeResult = shapeSettings.Create();
+        if ($_DEBUG && shapeResult.HasError()) {
+            Debug.error(`Failed to create shape: ${shapeResult.GetError().c_str()}`);
+            return false;
+        }
+
+        const shape = shapeResult.Get();
+        const currentShape = body.GetShape();
+
+        backend.bodyInterface.SetShape(body.GetID(),
+                                       shape,
+                                       false /* inUpdateMassProperties */,
+                                       Jolt.EActivation_Activate);
+        currentShape.Release();
+
+        // If there is debug draw context, we need to reset it to view a new shape
+        Cleaner.cleanDebugDrawData(body, Jolt);
 
         return true;
     }
