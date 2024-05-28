@@ -144,7 +144,7 @@ export const CMD_MOVE_KINEMATIC = 18;
 export const CMD_SET_LIN_VEL = 19;
 export const CMD_SET_ANG_VEL = 20;
 export const CMD_SET_MOTION_TYPE = 21;
-export const CMD_RESET_VELOCITIES = 22;
+export const CMD_RESET_MOTION = 22;
 
 export const CMD_CHAR_SET_LIN_VEL = 23;
 export const CMD_CHAR_SET_SHAPE = 24;
@@ -170,6 +170,24 @@ export const CMD_COLLIDE_SHAPE_IDX = 38;
 
 export const CMD_SET_MOTION_QUALITY = 39;
 export const CMD_SET_AUTO_UPDATE_ISOMETRY = 40;
+export const CMD_SET_ALLOW_SLEEPING = 41;
+export const CMD_SET_ANG_FACTOR = 42;
+export const CMD_SET_COL_GROUP = 43;
+export const CMD_SET_FRICTION = 44;
+export const CMD_SET_IS_SENSOR = 45;
+export const CMD_SET_RESTITUTION = 46;
+export const CMD_SET_KIN_COL_NON_DYN = 47;
+export const CMD_SET_APPLY_GYRO_FORCE = 48;
+export const CMD_SET_INTERNAL_EDGE = 49;
+export const CMD_RESET_SLEEP_TIMER = 50;
+export const CMD_SET_LIN_VEL_CLAMPED = 51;
+export const CMD_SET_ANG_VEL_CLAMPED = 52;
+export const CMD_SET_MAX_ANG_VEL = 53;
+export const CMD_SET_MAX_LIN_VEL = 54;
+export const CMD_CLAMP_LIN_VEL = 55;
+export const CMD_CLAMP_ANG_VEL = 56;
+export const CMD_SET_VEL_STEPS = 57;
+export const CMD_SET_POS_STEPS = 58;
 
 // Constraints 500+
 

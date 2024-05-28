@@ -4,12 +4,18 @@ import { ShapeComponent } from '../shape/component.mjs';
 import {
     DOF_ALL, BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT32, BUFFER_WRITE_UINT8,
     BUFFER_WRITE_VEC32, CMD_ADD_FORCE, CMD_ADD_IMPULSE, CMD_APPLY_BUOYANCY_IMPULSE,
-    CMD_DESTROY_BODY, CMD_MOVE_BODY, CMD_MOVE_KINEMATIC, CMD_RESET_VELOCITIES, CMD_SET_ANG_VEL,
-    CMD_SET_DOF, CMD_SET_GRAVITY_FACTOR, CMD_SET_LIN_VEL, CMD_SET_MOTION_QUALITY,
-    CMD_SET_MOTION_TYPE, CMD_SET_OBJ_LAYER, CMD_USE_MOTION_STATE, MOTION_QUALITY_DISCRETE,
-    MOTION_TYPE_DYNAMIC, MOTION_TYPE_KINEMATIC, MOTION_TYPE_STATIC, OBJ_LAYER_NON_MOVING,
+    CMD_DESTROY_BODY, CMD_MOVE_BODY, CMD_MOVE_KINEMATIC, CMD_SET_ANG_VEL, CMD_SET_DOF,
+    CMD_SET_GRAVITY_FACTOR, CMD_SET_LIN_VEL, CMD_SET_MOTION_QUALITY, CMD_SET_MOTION_TYPE,
+    CMD_SET_OBJ_LAYER, CMD_USE_MOTION_STATE, MOTION_QUALITY_DISCRETE, MOTION_TYPE_DYNAMIC,
+    MOTION_TYPE_KINEMATIC, MOTION_TYPE_STATIC, OBJ_LAYER_NON_MOVING,
     OMP_CALCULATE_MASS_AND_INERTIA, OMP_MASS_AND_INERTIA_PROVIDED, OPERATOR_CLEANER,
-    OPERATOR_MODIFIER, SHAPE_CONVEX_HULL, SHAPE_HEIGHTFIELD, SHAPE_MESH, CMD_SET_AUTO_UPDATE_ISOMETRY
+    OPERATOR_MODIFIER, SHAPE_CONVEX_HULL, SHAPE_HEIGHTFIELD, SHAPE_MESH,
+    CMD_SET_AUTO_UPDATE_ISOMETRY, CMD_SET_ALLOW_SLEEPING, CMD_SET_ANG_FACTOR, BUFFER_WRITE_INT32,
+    CMD_SET_COL_GROUP, CMD_SET_FRICTION, CMD_SET_IS_SENSOR, CMD_SET_RESTITUTION,
+    CMD_SET_KIN_COL_NON_DYN, CMD_SET_APPLY_GYRO_FORCE, CMD_SET_INTERNAL_EDGE,
+    CMD_RESET_SLEEP_TIMER, CMD_SET_LIN_VEL_CLAMPED, CMD_SET_ANG_VEL_CLAMPED, CMD_RESET_MOTION,
+    CMD_SET_MAX_ANG_VEL, CMD_SET_MAX_LIN_VEL, CMD_CLAMP_ANG_VEL, CMD_CLAMP_LIN_VEL,
+    CMD_SET_VEL_STEPS, CMD_SET_POS_STEPS
 } from '../../constants.mjs';
 
 const vec3 = new Vec3();
@@ -34,7 +40,7 @@ class BodyComponent extends ShapeComponent {
 
     _autoUpdateIsometry = true;
 
-    _collisionGroup = null;
+    _collisionGroup = -1;
 
     _friction = 0.2;
 
@@ -72,7 +78,7 @@ class BodyComponent extends ShapeComponent {
 
     _restitution = 0;
 
-    _subGroup = null;
+    _subGroup = -1;
 
     _useMotionState = true;
 
@@ -151,6 +157,32 @@ class BodyComponent extends ShapeComponent {
     }
 
     /**
+     * Specifies, whether a body can go to sleep or not.
+     * - `true`: allow sleeping
+     * - `false`: do not allow to go sleep
+     *
+     * @param {boolean} bool - Boolean, telling if a body may go to sleep
+     */
+    set allowSleeping(bool) {
+        if (this._allowSleeping === bool) {
+            return;
+        }
+
+        if ($_DEBUG) {
+            const ok = Debug.checkBool(bool, `Invalid allow sleeping bool: ${bool}`);
+            if (!ok) {
+                return;
+            }
+        }
+
+        this._allowSleeping = bool;
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_SET_ALLOW_SLEEPING, this._index,
+            bool, BUFFER_WRITE_BOOL, false
+        );
+    }
+
+    /**
      * Specifies if this body go to sleep or not.
      *
      * @returns {boolean} Boolean, telling if a body can go to sleep.
@@ -161,11 +193,35 @@ class BodyComponent extends ShapeComponent {
     }
 
     /**
-     * Specifies how quickly a body loses angular velocity. The formula used:
+     * Sets angular damping factor. The formula used:
      * ```
-     * dw/dt = -c * w
+     * dw/dt = -factor * w
      * ```
-     * `c` must be between 0 and 1 but is usually close to 0.
+     * `factor` must be between `0` and `1` but is usually close to `0`.
+     *
+     * @param {number} factor - Factor number.
+     */
+    set angularDamping(factor) {
+        if (this._angularDamping === factor) {
+            return;
+        }
+
+        if ($_DEBUG) {
+            const ok = Debug.checkFloat(factor, `Invalid angular factor float: ${factor}`);
+            if (!ok) {
+                return;
+            }
+        }
+
+        this._angularDamping = factor;
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_SET_ANG_FACTOR, this._index,
+            factor, BUFFER_WRITE_BOOL, false
+        );
+    }
+
+    /**
+     * Tells how quickly a body loses angular velocity.
      *
      * @returns {number} Number, representing angular damping.
      * @defaultValue 0
@@ -183,13 +239,15 @@ class BodyComponent extends ShapeComponent {
             if (!ok) return;
         }
 
-        if (!velocity.equals(this._angularVelocity)) {
-            this._angularVelocity.copy(velocity);
-            this.system.addCommand(
-                OPERATOR_MODIFIER, CMD_SET_ANG_VEL, this._index,
-                velocity, BUFFER_WRITE_VEC32, false
-            );
+        if (this._angularVelocity.equals(velocity)) {
+            return;
         }
+
+        this._angularVelocity.copy(velocity);
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_SET_ANG_VEL, this._index,
+            velocity, BUFFER_WRITE_VEC32, false
+        );
     }
 
     /**
@@ -270,24 +328,49 @@ class BodyComponent extends ShapeComponent {
     }
 
     /**
-     * The collision group this body belongs to (determines if two objects can collide). Expensive,
-     * so disabled by default. Prefer to use broadphase and object layers instead for filtering.
+     * The collision group this body belongs to (determines if two objects can collide).
+     * Expensive, so disabled by default. Prefer to use broadphase and object layers instead for
+     * filtering.
      *
-     * @returns {number | null} returns a number, representing a collision group
-     * this body belongs to. If no group is set, returns `null`;
-     * @defaultValue null
+     * @returns {number} returns a number, representing a collision group this body belongs to. If
+     * no group is set, returns `-1`;
+     * @defaultValue -1 (disabled)
      */
     get collisionGroup() {
         return this._collisionGroup;
     }
 
     /**
-     * Friction of the body. Dimensionless number, usually between 0 and 1:
+     * Sets friction. Dimensionless number, usually between `0` and `1`:
      * - `0`: no friction
      * - `1`: friction force equals force that presses the two bodies together
      *
      * Note: bodies can have negative friction, but the combined friction should never go below
      * zero.
+     *
+     * @param {number} friction - Friction scalar.
+     */
+    set friction(friction) {
+        if (this._friction === friction) {
+            return;
+        }
+
+        if ($_DEBUG) {
+            const ok = Debug.checkFloat(friction, `Invalid friction scalar: ${friction}`);
+            if (!ok) {
+                return;
+            }
+        }
+
+        this._friction = friction;
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_SET_FRICTION, this._index,
+            friction, BUFFER_WRITE_FLOAT32, false
+        );
+    }
+
+    /**
+     * Friction of the body.
      *
      * @returns {number} Number, representing friction factor.
      * @defaultValue 0.2
@@ -335,12 +418,39 @@ class BodyComponent extends ShapeComponent {
      * factor is ignored when {@link overrideMassProperties} is set to
      * `OMP_MASS_AND_INERTIA_PROVIDED` - you are expected to calculate inertia yourself in that
      * case.
+     * Cannot be changed after a body is created.
      *
      * @returns {number} Number, representing inertia factor.
      * @defaultValue 1
      */
     get inertiaMultiplier() {
         return this._inertiaMultiplier;
+    }
+
+    /**
+     * Specifies if the body is a sensor or not.
+     * - `true`: changes a body into a sensor
+     * - `false`: changes a body into a rigid body
+     *
+     * @param {boolean} bool - Boolean, telling if this body is a sensor.
+     */
+    set isSensor(bool) {
+        if (this._isSensor === bool) {
+            return;
+        }
+
+        if ($_DEBUG) {
+            const ok = Debug.checkBool(bool, `Invalid isSensor bool: ${bool}`);
+            if (!ok) {
+                return;
+            }
+        }
+
+        this._isSensor = bool;
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_SET_IS_SENSOR, this._index,
+            bool, BUFFER_WRITE_BOOL, false
+        );
     }
 
     /**
@@ -369,6 +479,9 @@ class BodyComponent extends ShapeComponent {
     }
 
     /**
+     * Sets linear velocity unclamped. Can be set to be over the allowed maximum. If you want to be
+     * sure not to go over allowed max, use {@link setLinearVelocityClamped}.
+     *
      * @param {Vec3} velocity - Linear velocity Vec3 (m/s per axis) to set this body to.
      */
     set linearVelocity(velocity) {
@@ -377,13 +490,15 @@ class BodyComponent extends ShapeComponent {
             if (!ok) return;
         }
 
-        if (!velocity.equals(this._linearVelocity)) {
-            this._linearVelocity.copy(velocity);
-            this.system.addCommand(
-                OPERATOR_MODIFIER, CMD_SET_LIN_VEL, this._index,
-                velocity, BUFFER_WRITE_VEC32, false
-            );
+        if (this._linearVelocity.equals(velocity)) {
+            return;
         }
+
+        this._linearVelocity.copy(velocity);
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_SET_LIN_VEL, this._index,
+            velocity, BUFFER_WRITE_VEC32, false
+        );
     }
 
     /**
@@ -397,6 +512,24 @@ class BodyComponent extends ShapeComponent {
     }
 
     /**
+     * Sets maximum angular velocity a body can reach. Use {@link setAngularVelocityClamped} to not
+     * go over this limit.
+     *
+     * @param {number} velocity - Maximum angular velocity scalar (rad/s).
+     */
+    set maxAngularVelocity(velocity) {
+        if ($_DEBUG) {
+            const ok = Debug.checkFloat(velocity, `Invalid angular velocity scalar`);
+            if (!ok) return;
+        }
+
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_SET_MAX_ANG_VEL, this._index,
+            velocity, BUFFER_WRITE_FLOAT32, false
+        );
+    }
+
+    /**
      * Maximum angular velocity that this body can reach.
      *
      * @returns {number} Number, representing maximum angular velocity this body can reach.
@@ -404,6 +537,24 @@ class BodyComponent extends ShapeComponent {
      */
     get maxAngularVelocity() {
         return this._maxAngularVelocity;
+    }
+
+    /**
+     * Sets maximum linear velocity a body can reach. Use {@link setLinearVelocityClamped} to not
+     * go over this limit.
+     *
+     * @param {number} velocity - Maximum linear velocity scalar (m/s).
+     */
+    set maxLinearVelocity(velocity) {
+        if ($_DEBUG) {
+            const ok = Debug.checkFloat(velocity, `Invalid linear velocity scalar`);
+            if (!ok) return;
+        }
+
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_SET_MAX_LIN_VEL, this._index,
+            velocity, BUFFER_WRITE_FLOAT32, false
+        );
     }
 
     /**
@@ -592,6 +743,8 @@ class BodyComponent extends ShapeComponent {
      * If you select `OMP_MASS_AND_INERTIA_PROVIDED`, you must also specify {@link overrideMass},
      * {@link overrideInertiaPosition} and {@link overrideInertiaRotation}.
      *
+     * Cannot be changed after the body is created.
+     *
      * @returns {number} Number, representing the mass calculation method constant.
      * @defaultValue OMP_CALCULATE_MASS_AND_INERTIA (calculates automatically)
      */
@@ -620,12 +773,36 @@ class BodyComponent extends ShapeComponent {
     }
 
     /**
-     * Restitution of the body. Dimensionless number, usually between 0 and 1:
+     * Sets body restitution. Dimensionless number, usually between 0 and 1:
      * - `0`: completely inelastic collision response
      * - `1`: completely elastic collision response
      *
      * Note: bodies can have negative restitution but the combined restitution should never go
      * below zero.
+     *
+     * @param {number} factor - Restitution scalar.
+     */
+    set restitution(factor) {
+        if (this._restitution === factor) {
+            return;
+        }
+
+        if ($_DEBUG) {
+            const ok = Debug.checkFloat(factor, `Invalid restitution factor: ${factor}`);
+            if (!ok) {
+                return;
+            }
+        }
+
+        this._restitution = factor;
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_SET_RESTITUTION, this._index,
+            factor, BUFFER_WRITE_FLOAT32, false
+        );
+    }
+
+    /**
+     * Restitution of the body.
      *
      * @returns {number} Number, representing restitution factor for this body.
      */
@@ -634,13 +811,13 @@ class BodyComponent extends ShapeComponent {
     }
 
     /**
-     * The collision sub group (within {@link collisionGroup}) this body belongs to (determines if
-     * two objects can collide). Expensive, so disabled by default. Prefer to use broadphase and
-     * object layers instead for filtering.
+     * The collision sub group  this body belongs to (determines if two objects can collide).
+     * Expensive, so disabled by default. Prefer to use broadphase and object layers instead for
+     * filtering.
      *
      * @returns {number} If set, will return a number, representing the sub group this body belongs
-     * to. Otherwise, will return `null`;
-     * @defaultValue null
+     * to. Otherwise, will return `-1`;
+     * @defaultValue -1 (disabled)
      */
     get subGroup() {
         return this._subGroup;
@@ -652,6 +829,10 @@ class BodyComponent extends ShapeComponent {
      * @param {boolean} bool - Boolean to enable/disable the motion state.
      */
     set useMotionState(bool) {
+        if (this._useMotionState === bool) {
+            return;
+        }
+
         if ($_DEBUG) {
             const ok = Debug.checkBool(bool, `Invalid bool value for useMotionState property: ${bool}`);
             if (!ok)
@@ -890,6 +1071,227 @@ class BodyComponent extends ShapeComponent {
     }
 
     /**
+     * Clamps angular velocity according to the limit set by {@link maxAngularVelocity}.
+     */
+    clampAngularVelocity() {
+        this.system.addCommand(OPERATOR_MODIFIER, CMD_CLAMP_ANG_VEL, this._index);
+    }
+
+    /**
+     * Clamps linear velocity according to the limit set by {@link maxLinearVelocity}.
+     */
+    clampLinearVelocity() {
+        this.system.addCommand(OPERATOR_MODIFIER, CMD_CLAMP_LIN_VEL, this._index);
+    }
+
+    /**
+     * Changes the position and rotation of a dynamic body. Unlike {@link teleport}, this method
+     * doesn't change the position/rotation instantenously, but instead calculates and sets linear
+     * and angular velocities for the body, so it can reach the target position and rotation in the
+     * specified delta time. If delta time is set to zero, the engine will use the current fixed
+     * timestep value.
+     *
+     * @param {Vec3} pos - Taret position the body should reach in given dt.
+     * @param {Quat} rot - Target rotation the body should reach in given dt.
+     * @param {number} [dt] - Time in which the body should reach target position and rotation
+     * (seconds).
+     */
+    moveKinematic(pos, rot, dt = 0) {
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_MOVE_KINEMATIC, this._index,
+            pos, BUFFER_WRITE_VEC32, false,
+            rot, BUFFER_WRITE_VEC32, false,
+            dt, BUFFER_WRITE_FLOAT32, false
+        );
+    }
+
+    /**
+     * Set world space linear velocity of the center of mass, will make sure the value is clamped
+     * against the maximum linear velocity.
+     *
+     * @param {Vec3} velocity - Angular velocity vector.
+     */
+    setAngularVelocityClamped(velocity) {
+        if ($_DEBUG) {
+            const ok = Debug.checkVec(velocity, `Invalid angular velocity vector`);
+            if (!ok) return;
+        }
+
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_SET_ANG_VEL_CLAMPED, this._index,
+            velocity, BUFFER_WRITE_VEC32, false
+        );
+    }
+
+    /**
+     * Set to indicate that the gyroscopic force should be applied to this body (aka Dzhanibekov
+     * effect, see {@link https://en.wikipedia.org/wiki/Tennis_racket_theorem | Tennis Racket
+     * Theorem}.
+     *
+     * @param {boolean} bool - Boolean, whether to apply gyroscopic force
+     */
+    setApplyGyroscopicForce(bool) {
+        if ($_DEBUG) {
+            const ok = Debug.checkBool(bool, `Invalid boolean: ${bool}`);
+            if (!ok) {
+                return;
+            }
+        }
+
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_SET_APPLY_GYRO_FORCE, this._index,
+            bool, BUFFER_WRITE_BOOL, false
+        );
+    }
+
+    /**
+     * Sets whether kinematic objects can generate contact points against other kinematic or
+     * static objects. Note that turning this on can be CPU intensive as much more collision
+     * detection work will be done without any effect on the simulation (kinematic objects are not
+     * affected by other kinematic/static objects).
+     *
+     * This can be used to make sensors detect static objects. Note that the sensor must be
+     * kinematic and active for it to detect static objects.
+     *
+     * @param {boolean} bool - Boolean, telling if we want kinematics contactact non-dynamic
+     * bodies.
+     */
+    setCollideKinematicVsNonDynamic(bool) {
+        if ($_DEBUG) {
+            const ok = Debug.checkBool(bool, `Invalid boolean: ${bool}`);
+            if (!ok) {
+                return;
+            }
+        }
+
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_SET_KIN_COL_NON_DYN, this._index,
+            bool, BUFFER_WRITE_BOOL, false
+        );
+    }
+
+    /**
+     * Changes the collision group and sub group this body belongs to. Using collision groups is expensive,
+     * so it is disabled by default. Prefer to use broadphase and object layers instead for filtering.
+     *
+     * @param {number} collisionGroup - Collision group number. Use `-1` to disable.
+     * @param {number} subGroup - Sub group number. Use `-1` to disable.
+     */
+    setCollisionGroup(collisionGroup, subGroup) {
+        if (this._collisionGroup === collisionGroup && this._subGroup === subGroup) {
+            return;
+        }
+
+        if ($_DEBUG) {
+            let ok = Debug.checkInt(collisionGroup, `Invalid collision group int: ${collisionGroup}`);
+            ok = ok && Debug.checkInt(subGroup, `Invalid sub group int: ${subGroup}`);
+            if (!ok) {
+                return;
+            }
+        }
+
+        this._collisionGroup = collisionGroup;
+        this._subGroup = subGroup;
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_SET_COL_GROUP, this._index,
+            collisionGroup, BUFFER_WRITE_INT32, false,
+            subGroup, BUFFER_WRITE_INT32, false
+        );
+    }
+
+    /**
+     * Set to indicate that extra effort should be made to try to remove ghost contacts (collisions
+     * with internal edges of a mesh). This is more expensive but makes bodies move smoother over a
+     * mesh with convex edges.
+     *
+     * @param {boolean} bool - State boolean
+     */
+    setEnhancedInternalEdgeRemoval(bool) {
+        if ($_DEBUG) {
+            const ok = Debug.checkBool(bool, `Invalid boolean: ${bool}`);
+            if (!ok) {
+                return;
+            }
+        }
+
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_SET_INTERNAL_EDGE, this._index,
+            bool, BUFFER_WRITE_BOOL, false
+        );
+    }
+
+    /**
+     * Set world space linear velocity of the center of mass, will make sure the value is clamped
+     * against the maximum linear velocity.
+     *
+     * @param {Vec3} velocity - Linear velocity vector.
+     */
+    setLinearVelocityClamped(velocity) {
+        if ($_DEBUG) {
+            const ok = Debug.checkVec(velocity, `Invalid linear velocity vector`);
+            if (!ok) return;
+        }
+
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_SET_LIN_VEL_CLAMPED, this._index,
+            velocity, BUFFER_WRITE_VEC32, false
+        );
+    }
+
+    /**
+     * Used only when this body is dynamic and colliding. Override for the number of solver
+     * position iterations to run, `0` means use the default in `settings.numPositionSteps`. The
+     * number of iterations to use is the max of all contacts and constraints in the island.
+     *
+     * @param {number} count - Number of velocity steps.
+     */
+    setNumPositionStepsOverride(count) {
+        if ($_DEBUG) {
+            const ok = Debug.checkUint(count, `Invalid steps count: ${count}`);
+            if (!ok) return;
+        }
+
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_SET_POS_STEPS, this._index,
+            count, BUFFER_WRITE_UINT32, false
+        );
+    }
+
+    /**
+     * Used only when this body is dynamic and colliding. Override for the number of solver
+     * velocity iterations to run, `0` means use the default in `settings.numVelocitySteps`. The
+     * number of iterations to use is the max of all contacts and constraints in the island.
+     *
+     * @param {number} count - Number of velocity steps.
+     */
+    setNumVelocityStepsOverride(count) {
+        if ($_DEBUG) {
+            const ok = Debug.checkUint(count, `Invalid steps count: ${count}`);
+            if (!ok) return;
+        }
+
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_SET_VEL_STEPS, this._index,
+            count, BUFFER_WRITE_UINT32, false
+        );
+    }
+
+    /**
+     * If a body is allowed to sleep, this method will reset the sleep timer. Does not wake up a
+     * body that is already sleeping.
+     */
+    resetSleepTimer() {
+        this.system.addCommand(OPERATOR_MODIFIER, CMD_RESET_SLEEP_TIMER, this._index);
+    }
+
+    /**
+     * Reset the current velocity and accumulated force and torque.
+     */
+    resetMotion() {
+        this.system.addCommand(OPERATOR_MODIFIER, CMD_RESET_MOTION, this._index);
+    }
+
+    /**
      * Intantenous placement of a body to a new position/rotation (i.e. teleport). Will ignore any
      * bodies between old and new position.
      *
@@ -949,34 +1351,6 @@ class BodyComponent extends ShapeComponent {
         );
     }
 
-    /**
-     * Changes the position and rotation of a dynamic body. Unlike {@link teleport}, this method
-     * doesn't change the position/rotation instantenously, but instead calculates and sets linear
-     * and angular velocities for the body, so it can reach the target position and rotation in the
-     * specified delta time. If delta time is set to zero, the engine will use the current fixed
-     * timestep value.
-     *
-     * @param {Vec3} pos - Taret position the body should reach in given dt.
-     * @param {Quat} rot - Target rotation the body should reach in given dt.
-     * @param {number} [dt] - Time in which the body should reach target position and rotation
-     * (seconds).
-     */
-    moveKinematic(pos, rot, dt = 0) {
-        this.system.addCommand(
-            OPERATOR_MODIFIER, CMD_MOVE_KINEMATIC, this._index,
-            pos, BUFFER_WRITE_VEC32, false,
-            rot, BUFFER_WRITE_VEC32, false,
-            dt, BUFFER_WRITE_FLOAT32, false
-        );
-    }
-
-    /**
-     * Resets both linear and angular velocities of a body to zero.
-     */
-    resetVelocities() {
-        this.system.addCommand(OPERATOR_MODIFIER, CMD_RESET_VELOCITIES, this._index);
-    }
-
     writeIsometry() {
         const entity = this.entity;
 
@@ -1031,8 +1405,18 @@ class BodyComponent extends ShapeComponent {
         cb.write(this._isSensor, BUFFER_WRITE_BOOL, false);
         cb.write(this._motionQuality, BUFFER_WRITE_UINT8, false);
         cb.write(this._allowSleeping, BUFFER_WRITE_BOOL, false);
-        cb.write(this._collisionGroup, BUFFER_WRITE_UINT32);
-        cb.write(this._subGroup, BUFFER_WRITE_UINT32);
+
+        const hasCollisionGroup = this._collisionGroup >= 0;
+        cb.write(hasCollisionGroup, BUFFER_WRITE_BOOL, false);
+        if (hasCollisionGroup) {
+            cb.write(this._collisionGroup, BUFFER_WRITE_UINT32, false);
+        }
+
+        const hasSubGroup = this._subGroup >= 0;
+        cb.write(hasSubGroup, BUFFER_WRITE_BOOL, false);
+        if (hasSubGroup) {
+            cb.write(this._subGroup, BUFFER_WRITE_UINT32, false);
+        }
 
         const massProps = this._overrideMassProperties;
         cb.write(massProps, BUFFER_WRITE_UINT8, false);
