@@ -1419,14 +1419,14 @@ function createJoltShapeSettings(shape, Jolt, ...attr) {
     }
 }
 
-function createMeshShapeSettings(cb, Jolt, meshBuffers, shapeType, jv) {    
+function createMeshShapeSettings(cb, Jolt, meshBuffers, shapeType, jv) {
     const {
         base, stride, numIndices, triCount, positions, indices
     } = Creator.readMeshBuffers(cb, meshBuffers);
-    
+
     // TODO:
     // add support for duplicate vertices test
-    
+
     const p = positions;
     let i1, i2, i3, v1, v2, v3;
     let settings;
