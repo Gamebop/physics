@@ -458,6 +458,10 @@ class Modifier {
         const body = this._getBody(cb);
         const useMotionState = cb.read(BUFFER_READ_BOOL);
 
+        if (!this._backend.config.useMotionStates) {
+            return true;
+        }
+
         if (!body.motionState && useMotionState) {
             body.motionState = new MotionState(body);
         } else if (body.motionState && !useMotionState) {

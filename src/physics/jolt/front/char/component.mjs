@@ -7,6 +7,7 @@ import {
     BUFFER_WRITE_UINT32, BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32, CMD_CHAR_SET_LIN_VEL,
     CMD_CHAR_SET_POS_ROT,
     CMD_CHAR_SET_SHAPE, CMD_DESTROY_BODY, CMD_PAIR_BODY, CMD_SET_USER_DATA,
+    CMD_USE_MOTION_STATE,
     GROUND_STATE_NOT_SUPPORTED, OPERATOR_CLEANER, OPERATOR_MODIFIER,
     SHAPE_CAPSULE
 } from '../../constants.mjs';
@@ -427,6 +428,29 @@ class CharComponent extends ShapeComponent {
      */
     get userData() {
         return this._userData;
+    }
+
+    /**
+     * Enables/Disables a motion state for this character.
+     *
+     * @param {boolean} bool - Boolean to enable/disable the motion state.
+     */
+    set useMotionState(bool) {
+        if (this._useMotionState === bool) {
+            return;
+        }
+
+        if ($_DEBUG) {
+            const ok = Debug.checkBool(bool, `Invalid bool value for useMotionState property: ${bool}`);
+            if (!ok)
+                return;
+        }
+
+        this._useMotionState = bool;
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_USE_MOTION_STATE, this._index,
+            bool, BUFFER_WRITE_BOOL, false
+        );
     }
 
     /**

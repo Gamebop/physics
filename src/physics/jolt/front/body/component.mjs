@@ -839,6 +839,7 @@ class BodyComponent extends ShapeComponent {
                 return;
         }
 
+        this._useMotionState = bool;
         this.system.addCommand(
             OPERATOR_MODIFIER, CMD_USE_MOTION_STATE, this._index,
             bool, BUFFER_WRITE_BOOL, false
