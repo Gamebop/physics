@@ -74,6 +74,18 @@ class MotionState {
                     r.z = c0 * or.z + c1 * q2z;
                     r.w = c0 * or.w + c1 * q2w;
                 }
+
+                const len = Math.sqrt(r.x * r.x + r.y * r.y + r.z * r.z + r.w * r.w);
+                if (len === 0) {
+                    r.x = r.y = r.z = 0;
+                    r.w = 1;
+                } else {
+                    const inv = 1 / len;
+                    r.x *= inv;
+                    r.y *= inv;
+                    r.z *= inv;
+                    r.w *= inv;
+                }
             }
         } catch (e) {
             if ($_DEBUG) {

@@ -1,13 +1,15 @@
-import { Plane, Vec3, math } from 'playcanvas';
+import { Plane, Quat, Vec3, math } from 'playcanvas';
 import { Debug } from '../../debug.mjs';
 import { ShapeComponent } from '../shape/component.mjs';
 import {
     BFM_COLLIDE_BACK_FACES, BUFFER_READ_BOOL, BUFFER_READ_FLOAT32, BUFFER_READ_UINT32,
     BUFFER_READ_UINT8, BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_PLANE,
     BUFFER_WRITE_UINT32, BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32, CMD_CHAR_SET_LIN_VEL,
-    CMD_CHAR_SET_SHAPE, CMD_DESTROY_BODY, CMD_PAIR_BODY, CMD_SET_USER_DATA,
-    GROUND_STATE_NOT_SUPPORTED, OPERATOR_CLEANER, OPERATOR_MODIFIER,
-    SHAPE_CAPSULE
+    CMD_CHAR_SET_MASS, CMD_CHAR_SET_MAX_STR, CMD_CHAR_SET_POS_ROT, CMD_CHAR_SET_SHAPE,
+    CMD_DESTROY_BODY, CMD_CHAR_PAIR_BODY, CMD_USE_MOTION_STATE, GROUND_STATE_NOT_SUPPORTED,
+    OPERATOR_CLEANER, OPERATOR_MODIFIER, SHAPE_CAPSULE, CMD_CHAR_SET_REC_SPD,
+    CMD_CHAR_SET_NUM_HITS, CMD_CHAR_SET_HIT_RED_ANGLE, CMD_CHAR_SET_SHAPE_OFFSET,
+    CMD_CHAR_SET_USER_DATA, CMD_CHAR_SET_UP
 } from '../../constants.mjs';
 
 /**
@@ -164,6 +166,28 @@ class CharComponent extends ShapeComponent {
     }
 
     /**
+     * @param {number} angle - Max angle.
+     */
+    set hitReductionCosMaxAngle(angle) {
+        if (this._hitReductionCosMaxAngle === angle) {
+            return;
+        }
+
+        if ($_DEBUG) {
+            const ok = Debug.checkFloat(angle, `Invalid angle scalar: ${angle}`);
+            if (!ok) {
+                return;
+            }
+        }
+
+        this._hitReductionCosMaxAngle = angle;
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_CHAR_SET_HIT_RED_ANGLE, this._index,
+            angle, BUFFER_WRITE_FLOAT32, false
+        );
+    }
+
+    /**
      * The maximum angle between two hits contact normals that are allowed to be merged during hit
      * reduction. Set to -1 to turn off.
      *
@@ -200,9 +224,16 @@ class CharComponent extends ShapeComponent {
      * @param {Vec3} vel - Linear velocity vector to set the character to.
      */
     set linearVelocity(vel) {
+        if (this._linearVelocity.equals(vel)) {
+            return;
+        }
+
         if ($_DEBUG) {
             Debug.checkVec(vel, `Invalid character linear velocity`, vel);
         }
+
+        // backend response will write to this._linearVelocity
+
         this.system.addCommand(
             OPERATOR_MODIFIER, CMD_CHAR_SET_LIN_VEL, this._index,
             vel, BUFFER_WRITE_VEC32, false
@@ -218,6 +249,28 @@ class CharComponent extends ShapeComponent {
      */
     get linearVelocity() {
         return this._linearVelocity;
+    }
+
+    /**
+     * @param {number} mass - Mass (kg).
+     */
+    set mass(mass) {
+        if (this._mass === mass) {
+            return;
+        }
+
+        if ($_DEBUG) {
+            const ok = Debug.checkFloat(mass, `Invalid mass: ${mass}`);
+            if (!ok) {
+                return;
+            }
+        }
+
+        this._mass = mass;
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_CHAR_SET_MASS, this._index,
+            mass, BUFFER_WRITE_FLOAT32, false
+        );
     }
 
     /**
@@ -254,6 +307,28 @@ class CharComponent extends ShapeComponent {
     }
 
     /**
+     * @param {number} hits - Hits number.
+     */
+    set maxNumHits(hits) {
+        if (this._maxNumHits === hits) {
+            return;
+        }
+
+        if ($_DEBUG) {
+            const ok = Debug.checkFloat(hits, `Invalid hits scalar: ${hits}`);
+            if (!ok) {
+                return;
+            }
+        }
+
+        this._maxNumHits = hits;
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_CHAR_SET_NUM_HITS, this._index,
+            hits, BUFFER_WRITE_FLOAT32, false
+        );
+    }
+
+    /**
      * Max num hits to collect in order to avoid excess of contact points collection.
      *
      * @returns {number} Number of hits.
@@ -271,6 +346,28 @@ class CharComponent extends ShapeComponent {
      */
     get maxSlopeAngle() {
         return this._maxSlopeAngle;
+    }
+
+    /**
+     * @param {number} strength - Maximum force with which the character can push other bodies (N).
+     */
+    set maxStrength(strength) {
+        if (this._maxStrength === strength) {
+            return;
+        }
+
+        if ($_DEBUG) {
+            const ok = Debug.checkFloat(strength, `Invalid strength scalar: ${strength}`);
+            if (!ok) {
+                return;
+            }
+        }
+
+        this._maxStrength = strength;
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_CHAR_SET_MAX_STR, this._index,
+            strength, BUFFER_WRITE_FLOAT32, false
+        );
     }
 
     /**
@@ -308,7 +405,7 @@ class CharComponent extends ShapeComponent {
         this._pairedEntity = entity;
 
         this.system.addCommand(
-            OPERATOR_MODIFIER, CMD_PAIR_BODY, this._index,
+            OPERATOR_MODIFIER, CMD_CHAR_PAIR_BODY, this._index,
             entity.body.index, BUFFER_WRITE_UINT32, false
         );
     }
@@ -323,6 +420,28 @@ class CharComponent extends ShapeComponent {
      */
     get pairedEntity() {
         return this._pairedEntity;
+    }
+
+    /**
+     * @param {number} factor - Recovery speed factor.
+     */
+    set penetrationRecoverySpeed(factor) {
+        if (this._penetrationRecoverySpeed === factor) {
+            return;
+        }
+
+        if ($_DEBUG) {
+            const ok = Debug.checkFloat(factor, `Invalid speed factor: ${factor}`);
+            if (!ok) {
+                return;
+            }
+        }
+
+        this._penetrationRecoverySpeed = factor;
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_CHAR_SET_REC_SPD, this._index,
+            factor, BUFFER_WRITE_FLOAT32, false
+        );
     }
 
     /**
@@ -360,6 +479,33 @@ class CharComponent extends ShapeComponent {
     }
 
     /**
+     * @param {Vec3} offset - Shape offset.
+     */
+    set shapeOffset(offset) {
+        if (this._shapeOffset.equals(offset)) {
+            return;
+        }
+
+        if ($_DEBUG) {
+            const ok = Debug.checkVec(offset, `Invalid offset vector: ${offset}`);
+            if (!ok) {
+                return;
+            }
+        }
+
+        if (this._shapeOffset === Vec3.ZERO) {
+            this._shapeOffset = offset.clone();
+        } else {
+            this._shapeOffset.copy(offset);
+        }
+
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_CHAR_SET_SHAPE_OFFSET, this._index,
+            offset, BUFFER_WRITE_VEC32, false
+        );
+    }
+
+    /**
      * An extra offset applied to the shape in local space. If the shape already has a
      * {@link ShapeComponent.shapePosition | shapePosition} offset, then both offsets are used.
      *
@@ -384,6 +530,33 @@ class CharComponent extends ShapeComponent {
     }
 
     /**
+     * @param {Vec3} vec - Up vector.
+     */
+    set up(vec) {
+        if (this._up.equals(vec)) {
+            return;
+        }
+
+        if ($_DEBUG) {
+            const ok = Debug.checkVec(vec, `Invalid up vector`, vec);
+            if (!ok) {
+                return;
+            }
+        }
+
+        if (this._up === Vec3.UP) {
+            this._up = vec.clone();
+        } else {
+            this._up.copy(vec);
+        }
+
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_CHAR_SET_UP, this._index,
+            vec, BUFFER_WRITE_VEC32, false
+        );
+    }
+
+    /**
      * Vector indicating the up direction of the character.
      *
      * @returns {Vec3} Vec3 with up direction.
@@ -400,7 +573,7 @@ class CharComponent extends ShapeComponent {
      * The callbacks lose the current scope they are executed in, so you can pass custom numbers as
      * user data and read them from inside the callback.
      *
-     * @param {number} num - Number, to set as user data on the character shape.
+     * @param {number} num - Number, to set as user data on the character.
      */
     set userData(num) {
         if ($_DEBUG) {
@@ -413,19 +586,42 @@ class CharComponent extends ShapeComponent {
         this._userData = num;
 
         this.system.addCommand(
-            OPERATOR_MODIFIER, CMD_SET_USER_DATA, this._index,
+            OPERATOR_MODIFIER, CMD_CHAR_SET_USER_DATA, this._index,
             num, BUFFER_WRITE_FLOAT32, false
         );
     }
 
     /**
-     * User data to be associated with a shape.
+     * User data to be associated with this character.
      *
      * @returns {number | null} Number if user data is set. Otherwise `null`;
      * @defaultValue null
      */
     get userData() {
         return this._userData;
+    }
+
+    /**
+     * Enables/Disables a motion state for this character.
+     *
+     * @param {boolean} bool - Boolean to enable/disable the motion state.
+     */
+    set useMotionState(bool) {
+        if (this._useMotionState === bool) {
+            return;
+        }
+
+        if ($_DEBUG) {
+            const ok = Debug.checkBool(bool, `Invalid bool value for useMotionState property: ${bool}`);
+            if (!ok)
+                return;
+        }
+
+        this._useMotionState = bool;
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_USE_MOTION_STATE, this._index,
+            bool, BUFFER_WRITE_BOOL, false
+        );
     }
 
     /**
@@ -437,6 +633,35 @@ class CharComponent extends ShapeComponent {
      */
     get useMotionState() {
         return this._useMotionState;
+    }
+
+    /**
+     * Instant position and rotation change.
+     *
+     * @param {Vec3} pos - Character position.
+     * @param {Quat} [rot] - Character rotation.
+     */
+    teleport(pos, rot = Quat.IDENTITY) {
+        if ($_DEBUG) {
+            let ok = Debug.checkVec(pos, `Invalid position vector`, pos);
+            ok = ok && Debug.checkQuat(rot, `Invalid rotation quaternion`, rot);
+            if (!ok) {
+                return;
+            }
+        }
+
+        const system = this.system;
+        const useRot = !rot.equals(Quat.IDENTITY);
+
+        system.addCommand(
+            OPERATOR_MODIFIER, CMD_CHAR_SET_POS_ROT, this._index,
+            pos, BUFFER_WRITE_VEC32, false,
+            useRot, BUFFER_WRITE_BOOL, false
+        );
+
+        if (useRot) {
+            system.addCommandArgs(rot, BUFFER_WRITE_VEC32, false);
+        }
     }
 
     setShape(shapeIndex = null, callback = null) {

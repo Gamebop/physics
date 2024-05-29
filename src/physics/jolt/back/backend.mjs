@@ -21,7 +21,7 @@ class JoltBackend {
             // Physics Settings
             // https://jrouwe.github.io/JoltPhysics/struct_physics_settings.html
             baumgarte: 0.2,
-            maxSkippedSteps: 5,
+            maxSkippedSteps: 3,
             bodyPairCacheCosMaxDeltaRotationDiv2: 0.9998476951563912,
             bodyPairCacheMaxDeltaPositionSq: Math.sqrt(0.001),
             contactNormalCosMaxDeltaRotation: 0.9961946980917455,
@@ -215,11 +215,11 @@ class JoltBackend {
         extendJoltMath(Jolt);
 
         // Physics operators
+        this._tracker = new Tracker(Jolt);
         this._creator = new Creator(this);
         this._modifier = new Modifier(this);
         this._cleaner = new Cleaner(this);
         this._querier = new Querier(this);
-        this._tracker = new Tracker(Jolt);
         this._listener = new Listener(this);
         this._outBuffer = new CommandsBuffer({ ...config, commandsBufferSize: 2000 });
         this._stepTime = 0;
@@ -401,6 +401,10 @@ class JoltBackend {
             dt = (performance.now() - this._lastStamp) * 0.001;
         }
 
+        if (time > fixedStep * config.maxSkippedSteps) {
+            time = fixedStep * config.maxSkippedSteps;
+        }
+
         time += dt;
 
         while (ok && time >= fixedStep) {
@@ -565,7 +569,7 @@ class JoltBackend {
                     break;
 
                 case OPERATOR_MODIFIER:
-                    ok = ok && modifier.modify();
+                    ok = ok && modifier.modify(meshBuffers);
                     break;
 
                 case OPERATOR_QUERIER:

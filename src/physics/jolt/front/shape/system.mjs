@@ -8,9 +8,8 @@ import {
 const schema = [
     // component
     'index',
-    'trackDynamic',
     'renderAsset',
-    'meshes',
+    'mesh',
     'isCompoundChild',
     'useEntityScale',
     'useMotionState',
@@ -20,6 +19,7 @@ const schema = [
     'shape',
     'halfExtent',
     'radius',
+    'shape',
     'convexRadius',
     'halfHeight',
     'density',

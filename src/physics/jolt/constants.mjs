@@ -146,11 +146,6 @@ export const CMD_SET_ANG_VEL = 20;
 export const CMD_SET_MOTION_TYPE = 21;
 export const CMD_RESET_MOTION = 22;
 
-export const CMD_CHAR_SET_LIN_VEL = 23;
-export const CMD_CHAR_SET_SHAPE = 24;
-export const CMD_SET_USER_DATA = 25;
-export const CMD_PAIR_BODY = 26;
-
 export const CMD_SET_DRIVER_INPUT = 27;
 
 export const CMD_DESTROY_BODY = 28;
@@ -188,8 +183,25 @@ export const CMD_CLAMP_LIN_VEL = 55;
 export const CMD_CLAMP_ANG_VEL = 56;
 export const CMD_SET_VEL_STEPS = 57;
 export const CMD_SET_POS_STEPS = 58;
+export const CMD_SET_SHAPE = 59;
+export const CMD_SET_DEBUG_DRAW = 60;
 
-// Constraints 500+
+
+// Char Virtual 400-499
+export const CMD_CHAR_PAIR_BODY = 400;
+export const CMD_CHAR_SET_POS_ROT = 401;
+export const CMD_CHAR_SET_MASS = 402;
+export const CMD_CHAR_SET_MAX_STR = 403;
+export const CMD_CHAR_SET_LIN_VEL = 404;
+export const CMD_CHAR_SET_SHAPE = 405;
+export const CMD_CHAR_SET_REC_SPD = 406;
+export const CMD_CHAR_SET_NUM_HITS = 407;
+export const CMD_CHAR_SET_HIT_RED_ANGLE = 408;
+export const CMD_CHAR_SET_SHAPE_OFFSET = 409;
+export const CMD_CHAR_SET_USER_DATA = 410;
+export const CMD_CHAR_SET_UP = 411;
+
+// Constraints 500-599
 
 export const CMD_JNT_SET_ENABLED = 500;
 

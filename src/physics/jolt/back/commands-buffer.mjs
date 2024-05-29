@@ -149,12 +149,12 @@ class CommandsBuffer {
             }
         }
 
-        if (value == null) {
-            return this.writeUint8(0);
-        }
-
         if (addFlag) {
-            return this.writeUint8(1);
+            if (value == null) {
+                return this.writeUint8(0);
+            }
+
+            return this.writeUint8(1) && this[method](value);
         }
 
         return this[method](value);
