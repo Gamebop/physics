@@ -358,6 +358,8 @@ class ShapeComponent extends Component {
      * ```
      * SHAPE_STATIC_COMPOUND
      * ```
+     *
+     * @param {number} shape - Shape type number.
      */
     set shape(shapeNum) {
         if (this._shape === shapeNum) {
@@ -471,8 +473,6 @@ class ShapeComponent extends Component {
             assets.once('add:' + id, loadAndHandleAsset);
         }
     }
-
-    static quat = new Quat();
 
     static writeShapeData(cb, props, forceWriteRotation = false) {
         const shape = props.shape;
