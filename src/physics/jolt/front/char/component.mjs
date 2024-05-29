@@ -14,7 +14,8 @@ import {
     SHAPE_CAPSULE,
     CMD_CHAR_SET_REC_SPD,
     CMD_CHAR_SET_NUM_HITS,
-    CMD_CHAR_HIT_RED_ANGLE
+    CMD_CHAR_SET_HIT_RED_ANGLE,
+    CMD_CHAR_SET_SHAPE_OFFSET
 } from '../../constants.mjs';
 
 /**
@@ -187,7 +188,7 @@ class CharComponent extends ShapeComponent {
 
         this._hitReductionCosMaxAngle = angle;
         this.system.addCommand(
-            OPERATOR_MODIFIER, CMD_CHAR_HIT_RED_ANGLE, this._index,
+            OPERATOR_MODIFIER, CMD_CHAR_SET_HIT_RED_ANGLE, this._index,
             angle, BUFFER_WRITE_FLOAT32, false
         );
     }
@@ -481,6 +482,33 @@ class CharComponent extends ShapeComponent {
      */
     get shape() {
         return this._shape;
+    }
+
+    /**
+     * @param {Vec3} offset - Shape offset.
+     */
+    set shapeOffset(offset) {
+        if (this._shapeOffset.equals(offset)) {
+            return;
+        }
+
+        if ($_DEBUG) {
+            const ok = Debug.checkVec(offset, `Invalid offset vector: ${offset}`);
+            if (!ok) {
+                return;
+            }
+        }
+
+        if (this._shapeOffset === Vec3.ZERO) {
+            this._shapeOffset = offset.clone();
+        } else {
+            this._shapeOffset.copy(offset);
+        }
+
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_CHAR_SET_SHAPE_OFFSET, this._index,
+            offset, BUFFER_WRITE_VEC32, false
+        );
     }
 
     /**
