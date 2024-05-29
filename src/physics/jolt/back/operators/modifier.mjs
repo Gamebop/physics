@@ -11,9 +11,9 @@ import {
     CMD_SET_DRIVER_INPUT, CMD_SET_FRICTION, CMD_SET_GRAVITY_FACTOR, CMD_SET_INTERNAL_EDGE,
     CMD_SET_IS_SENSOR, CMD_SET_KIN_COL_NON_DYN, CMD_SET_LIN_VEL, CMD_SET_LIN_VEL_CLAMPED,
     CMD_SET_MAX_ANG_VEL, CMD_SET_MAX_LIN_VEL, CMD_SET_MOTION_QUALITY, CMD_SET_MOTION_TYPE,
-    CMD_SET_OBJ_LAYER, CMD_SET_POS_STEPS, CMD_SET_RESTITUTION, CMD_SET_SHAPE, CMD_SET_USER_DATA,
-    CMD_SET_VEL_STEPS, CMD_TOGGLE_GROUP_PAIR, CMD_USE_MOTION_STATE, MOTION_QUALITY_DISCRETE,
-    MOTION_TYPE_DYNAMIC, MOTION_TYPE_KINEMATIC
+    CMD_SET_OBJ_LAYER, CMD_SET_POS_STEPS, CMD_SET_RESTITUTION, CMD_SET_SHAPE, CMD_SET_VEL_STEPS,
+    CMD_TOGGLE_GROUP_PAIR, CMD_USE_MOTION_STATE, MOTION_QUALITY_DISCRETE, MOTION_TYPE_DYNAMIC,
+    MOTION_TYPE_KINEMATIC
 } from '../../constants.mjs';
 import { Creator } from './creator.mjs';
 import { Cleaner } from './cleaner.mjs';
@@ -121,10 +121,6 @@ class Modifier {
 
             case CMD_TOGGLE_GROUP_PAIR:
                 ok = this._toggleGroupPair(cb);
-                break;
-
-            case CMD_SET_USER_DATA:
-                ok = this._setUserData(cb);
                 break;
 
             case CMD_USE_MOTION_STATE:
@@ -328,23 +324,6 @@ class Modifier {
             // If there is debug draw context, we need to reset it to view a new shape
             Cleaner.cleanDebugDrawData(body, Jolt);
 
-        } catch (e) {
-            if ($_DEBUG) {
-                Debug.error(e);
-            }
-            return false;
-        }
-
-        return true;
-    }
-
-    _setUserData(cb) {
-        const obj = this._getBody(cb);
-
-        try {
-            const shape = obj.GetShape();
-            const value = cb.read(BUFFER_READ_FLOAT32);
-            shape.SetUserData(value);
         } catch (e) {
             if ($_DEBUG) {
                 Debug.error(e);

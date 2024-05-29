@@ -1,4 +1,4 @@
-import { BUFFER_READ_BOOL, BUFFER_READ_FLOAT32, BUFFER_READ_UINT32, BUFFER_WRITE_UINT32, CMD_CHAR_SET_HIT_RED_ANGLE, CMD_CHAR_PAIR_BODY, CMD_CHAR_SET_LIN_VEL, CMD_CHAR_SET_MASS, CMD_CHAR_SET_MAX_STR, CMD_CHAR_SET_NUM_HITS, CMD_CHAR_SET_POS_ROT, CMD_CHAR_SET_REC_SPD, CMD_CHAR_SET_SHAPE, CMD_REPORT_SET_SHAPE, COMPONENT_SYSTEM_CHAR, CMD_CHAR_SET_SHAPE_OFFSET } from '../../../constants.mjs';
+import { BUFFER_READ_BOOL, BUFFER_READ_FLOAT32, BUFFER_READ_UINT32, BUFFER_WRITE_UINT32, CMD_CHAR_SET_HIT_RED_ANGLE, CMD_CHAR_PAIR_BODY, CMD_CHAR_SET_LIN_VEL, CMD_CHAR_SET_MASS, CMD_CHAR_SET_MAX_STR, CMD_CHAR_SET_NUM_HITS, CMD_CHAR_SET_POS_ROT, CMD_CHAR_SET_REC_SPD, CMD_CHAR_SET_SHAPE, CMD_REPORT_SET_SHAPE, COMPONENT_SYSTEM_CHAR, CMD_CHAR_SET_SHAPE_OFFSET, CMD_CHAR_SET_USER_DATA } from '../../../constants.mjs';
 import { Debug } from '../../../debug.mjs';
 
 class CharModifier {
@@ -42,6 +42,13 @@ class CharModifier {
 
             case CMD_CHAR_SET_SHAPE_OFFSET:
                 return this._setShapeOffset(cb);
+
+            case CMD_CHAR_SET_USER_DATA:
+                return this._setUserData(cb);
+        }
+
+        if ($_DEBUG) {
+            Debug.warn('Unrecognized char modifier command.');
         }
 
         return false;
@@ -263,6 +270,21 @@ class CharModifier {
         try {
             jv.FromBuffer(cb);
             char.SetShapeOffset(jv);
+        } catch (e) {
+            if ($_DEBUG) {
+                Debug.error(e);
+            }
+            return false;
+        }
+
+        return true;
+    }
+
+    _setUserData(cb) {
+        const char = this._tracker.getBodyByPCID(cb.read(BUFFER_READ_UINT32));
+
+        try {
+            char.SetUserData(cb.read(BUFFER_READ_FLOAT32));
         } catch (e) {
             if ($_DEBUG) {
                 Debug.error(e);

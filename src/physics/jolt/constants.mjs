@@ -146,8 +146,6 @@ export const CMD_SET_ANG_VEL = 20;
 export const CMD_SET_MOTION_TYPE = 21;
 export const CMD_RESET_MOTION = 22;
 
-export const CMD_SET_USER_DATA = 25;
-
 export const CMD_SET_DRIVER_INPUT = 27;
 
 export const CMD_DESTROY_BODY = 28;
@@ -200,6 +198,7 @@ export const CMD_CHAR_SET_REC_SPD = 406;
 export const CMD_CHAR_SET_NUM_HITS = 407;
 export const CMD_CHAR_SET_HIT_RED_ANGLE = 408;
 export const CMD_CHAR_SET_SHAPE_OFFSET = 409;
+export const CMD_CHAR_SET_USER_DATA = 410;
 
 // Constraints 500-599
 

@@ -8,14 +8,15 @@ import {
     CMD_CHAR_SET_MASS,
     CMD_CHAR_SET_MAX_STR,
     CMD_CHAR_SET_POS_ROT,
-    CMD_CHAR_SET_SHAPE, CMD_DESTROY_BODY, CMD_CHAR_PAIR_BODY, CMD_SET_USER_DATA,
+    CMD_CHAR_SET_SHAPE, CMD_DESTROY_BODY, CMD_CHAR_PAIR_BODY,
     CMD_USE_MOTION_STATE,
     GROUND_STATE_NOT_SUPPORTED, OPERATOR_CLEANER, OPERATOR_MODIFIER,
     SHAPE_CAPSULE,
     CMD_CHAR_SET_REC_SPD,
     CMD_CHAR_SET_NUM_HITS,
     CMD_CHAR_SET_HIT_RED_ANGLE,
-    CMD_CHAR_SET_SHAPE_OFFSET
+    CMD_CHAR_SET_SHAPE_OFFSET,
+    CMD_CHAR_SET_USER_DATA
 } from '../../constants.mjs';
 
 /**
@@ -552,7 +553,7 @@ class CharComponent extends ShapeComponent {
      * The callbacks lose the current scope they are executed in, so you can pass custom numbers as
      * user data and read them from inside the callback.
      *
-     * @param {number} num - Number, to set as user data on the character shape.
+     * @param {number} num - Number, to set as user data on the character.
      */
     set userData(num) {
         if ($_DEBUG) {
@@ -565,13 +566,13 @@ class CharComponent extends ShapeComponent {
         this._userData = num;
 
         this.system.addCommand(
-            OPERATOR_MODIFIER, CMD_SET_USER_DATA, this._index,
+            OPERATOR_MODIFIER, CMD_CHAR_SET_USER_DATA, this._index,
             num, BUFFER_WRITE_FLOAT32, false
         );
     }
 
     /**
-     * User data to be associated with a shape.
+     * User data to be associated with this character.
      *
      * @returns {number | null} Number if user data is set. Otherwise `null`;
      * @defaultValue null
