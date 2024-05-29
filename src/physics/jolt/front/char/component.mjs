@@ -13,7 +13,8 @@ import {
     GROUND_STATE_NOT_SUPPORTED, OPERATOR_CLEANER, OPERATOR_MODIFIER,
     SHAPE_CAPSULE,
     CMD_CHAR_SET_REC_SPD,
-    CMD_CHAR_SET_NUM_HITS
+    CMD_CHAR_SET_NUM_HITS,
+    CMD_CHAR_HIT_RED_ANGLE
 } from '../../constants.mjs';
 
 /**
@@ -170,6 +171,28 @@ class CharComponent extends ShapeComponent {
     }
 
     /**
+     * @param {number} angle - Max angle.
+     */
+    set hitReductionCosMaxAngle(angle) {
+        if (this._hitReductionCosMaxAngle === angle) {
+            return;
+        }
+
+        if ($_DEBUG) {
+            const ok = Debug.checkFloat(angle, `Invalid angle scalar: ${angle}`);
+            if (!ok) {
+                return;
+            }
+        }
+
+        this._hitReductionCosMaxAngle = angle;
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_CHAR_HIT_RED_ANGLE, this._index,
+            angle, BUFFER_WRITE_FLOAT32, false
+        );
+    }
+
+    /**
      * The maximum angle between two hits contact normals that are allowed to be merged during hit
      * reduction. Set to -1 to turn off.
      *
@@ -206,9 +229,16 @@ class CharComponent extends ShapeComponent {
      * @param {Vec3} vel - Linear velocity vector to set the character to.
      */
     set linearVelocity(vel) {
+        if (this._linearVelocity.equals(vel)) {
+            return;
+        }
+
         if ($_DEBUG) {
             Debug.checkVec(vel, `Invalid character linear velocity`, vel);
         }
+
+        // backend response will write to this._linearVelocity
+
         this.system.addCommand(
             OPERATOR_MODIFIER, CMD_CHAR_SET_LIN_VEL, this._index,
             vel, BUFFER_WRITE_VEC32, false

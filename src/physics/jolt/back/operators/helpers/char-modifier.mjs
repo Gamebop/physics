@@ -1,4 +1,4 @@
-import { BUFFER_READ_BOOL, BUFFER_READ_FLOAT32, BUFFER_READ_UINT32, BUFFER_WRITE_UINT32, CMD_CHAR_PAIR_BODY, CMD_CHAR_SET_LIN_VEL, CMD_CHAR_SET_MASS, CMD_CHAR_SET_MAX_STR, CMD_CHAR_SET_NUM_HITS, CMD_CHAR_SET_POS_ROT, CMD_CHAR_SET_REC_SPD, CMD_CHAR_SET_SHAPE, CMD_REPORT_SET_SHAPE, COMPONENT_SYSTEM_CHAR } from '../../../constants.mjs';
+import { BUFFER_READ_BOOL, BUFFER_READ_FLOAT32, BUFFER_READ_UINT32, BUFFER_WRITE_UINT32, CMD_CHAR_HIT_RED_ANGLE, CMD_CHAR_PAIR_BODY, CMD_CHAR_SET_LIN_VEL, CMD_CHAR_SET_MASS, CMD_CHAR_SET_MAX_STR, CMD_CHAR_SET_NUM_HITS, CMD_CHAR_SET_POS_ROT, CMD_CHAR_SET_REC_SPD, CMD_CHAR_SET_SHAPE, CMD_REPORT_SET_SHAPE, COMPONENT_SYSTEM_CHAR } from '../../../constants.mjs';
 import { Debug } from '../../../debug.mjs';
 
 class CharModifier {
@@ -36,6 +36,9 @@ class CharModifier {
 
             case CMD_CHAR_SET_NUM_HITS:
                 return this._setMaxNumHits(cb);
+
+            case CMD_CHAR_HIT_RED_ANGLE:
+                return this._setHitReductionAngle(cb);
         }
 
         return false;
@@ -225,6 +228,21 @@ class CharModifier {
 
         try {
             char.SetMaxNumHits(cb.read(BUFFER_READ_FLOAT32));
+        } catch (e) {
+            if ($_DEBUG) {
+                Debug.error(e);
+            }
+            return false;
+        }
+
+        return true;
+    }
+
+    _setHitReductionAngle(cb) {
+        const char = this._tracker.getBodyByPCID(cb.read(BUFFER_READ_UINT32));
+
+        try {
+            char.GetHitReductionCosMaxAngle(cb.read(BUFFER_READ_FLOAT32));
         } catch (e) {
             if ($_DEBUG) {
                 Debug.error(e);
