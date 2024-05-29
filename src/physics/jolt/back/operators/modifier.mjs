@@ -5,7 +5,7 @@ import {
     BUFFER_READ_BOOL, BUFFER_READ_FLOAT32, BUFFER_READ_INT32, BUFFER_READ_UINT16,
     BUFFER_READ_UINT32, BUFFER_READ_UINT8, BUFFER_WRITE_UINT32, CMD_ADD_ANGULAR_IMPULSE,
     CMD_ADD_FORCE, CMD_ADD_IMPULSE, CMD_ADD_TORQUE, CMD_APPLY_BUOYANCY_IMPULSE, CMD_CHANGE_GRAVITY,
-    CMD_CHAR_SET_LIN_VEL, CMD_CHAR_SET_SHAPE, CMD_CLAMP_ANG_VEL, CMD_CLAMP_LIN_VEL, CMD_MOVE_BODY,
+    CMD_CHAR_SET_LIN_VEL, CMD_CHAR_SET_POS_ROT, CMD_CHAR_SET_SHAPE, CMD_CLAMP_ANG_VEL, CMD_CLAMP_LIN_VEL, CMD_MOVE_BODY,
     CMD_MOVE_KINEMATIC, CMD_PAIR_BODY, CMD_REPORT_SET_SHAPE, CMD_RESET_MOTION,
     CMD_RESET_SLEEP_TIMER, CMD_SET_ALLOW_SLEEPING, CMD_SET_ANG_FACTOR, CMD_SET_ANG_VEL,
     CMD_SET_ANG_VEL_CLAMPED, CMD_SET_APPLY_GYRO_FORCE, CMD_SET_AUTO_UPDATE_ISOMETRY,
@@ -106,6 +106,10 @@ class Modifier {
 
             case CMD_CHAR_SET_LIN_VEL:
                 this._setCharacterLinVel(cb);
+                break;
+
+            case CMD_CHAR_SET_POS_ROT:
+                this._setCharPosRot(cb);
                 break;
 
             case CMD_SET_ANG_VEL:
@@ -476,6 +480,28 @@ class Modifier {
             }
             return false;
         }
+    }
+
+    _setCharPosRot(cb) {
+        const jv = this._joltVec3_1;
+        const jq = this._joltQuat_1;
+        const char = this._getBody(cb);
+
+        try {
+            jv.FromBuffer(cb);
+            char.SetPosition(jv);
+            if (cb.read(BUFFER_READ_BOOL)) {
+                jq.FromBuffer(cb);
+                char.SetRotation(jq);
+            }
+        } catch (e) {
+            if ($_DEBUG) {
+                Debug.error(e);
+            }
+            return false;
+        }
+
+        return true;
     }
 
     _applyBuoyancyImpulse(cb) {

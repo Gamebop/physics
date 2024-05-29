@@ -1,10 +1,11 @@
-import { Plane, Vec3, math } from 'playcanvas';
+import { Plane, Quat, Vec3, math } from 'playcanvas';
 import { Debug } from '../../debug.mjs';
 import { ShapeComponent } from '../shape/component.mjs';
 import {
     BFM_COLLIDE_BACK_FACES, BUFFER_READ_BOOL, BUFFER_READ_FLOAT32, BUFFER_READ_UINT32,
     BUFFER_READ_UINT8, BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_PLANE,
     BUFFER_WRITE_UINT32, BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32, CMD_CHAR_SET_LIN_VEL,
+    CMD_CHAR_SET_POS_ROT,
     CMD_CHAR_SET_SHAPE, CMD_DESTROY_BODY, CMD_PAIR_BODY, CMD_SET_USER_DATA,
     GROUND_STATE_NOT_SUPPORTED, OPERATOR_CLEANER, OPERATOR_MODIFIER,
     SHAPE_CAPSULE
@@ -437,6 +438,35 @@ class CharComponent extends ShapeComponent {
      */
     get useMotionState() {
         return this._useMotionState;
+    }
+
+    /**
+     * Instant position and rotation change.
+     *
+     * @param {Vec3} pos - Character position.
+     * @param {Quat} [rot] - Character rotation.
+     */
+    teleport(pos, rot = Quat.IDENTITY) {
+        if ($_DEBUG) {
+            let ok = Debug.checkVec(pos, `Invalid position vector`, pos);
+            ok = ok && Debug.checkQuat(rot, `Invalid rotation quaternion`, rot);
+            if (!ok) {
+                return;
+            }
+        }
+
+        const system = this.system;
+        const useRot = !rot.equals(Quat.IDENTITY);
+
+        system.addCommand(
+            OPERATOR_MODIFIER, CMD_CHAR_SET_POS_ROT, this._index,
+            pos, BUFFER_WRITE_VEC32, false,
+            useRot, BUFFER_WRITE_BOOL, false
+        );
+
+        if (useRot) {
+            system.addCommandArgs(rot, BUFFER_WRITE_VEC32, false);
+        }
     }
 
     setShape(shapeIndex = null, callback = null) {
