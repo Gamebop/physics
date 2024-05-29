@@ -1,11 +1,14 @@
-import { BUFFER_READ_BOOL, BUFFER_READ_FLOAT32, BUFFER_READ_UINT32, BUFFER_WRITE_UINT32, CMD_CHAR_PAIR_BODY, CMD_CHAR_SET_LIN_VEL, CMD_CHAR_SET_MASS, CMD_CHAR_SET_MAX_STR, CMD_CHAR_SET_POS_ROT, CMD_CHAR_SET_SHAPE, CMD_REPORT_SET_SHAPE, COMPONENT_SYSTEM_CHAR } from '../../../constants.mjs';
+import { BUFFER_READ_BOOL, BUFFER_READ_FLOAT32, BUFFER_READ_UINT32, BUFFER_WRITE_UINT32, CMD_CHAR_PAIR_BODY, CMD_CHAR_SET_LIN_VEL, CMD_CHAR_SET_MASS, CMD_CHAR_SET_MAX_STR, CMD_CHAR_SET_POS_ROT, CMD_CHAR_SET_REC_SPD, CMD_CHAR_SET_SHAPE, CMD_REPORT_SET_SHAPE, COMPONENT_SYSTEM_CHAR } from '../../../constants.mjs';
 import { Debug } from '../../../debug.mjs';
 
 class CharModifier {
     _modifier = null;
 
+    _tracker = null;
+
     constructor(modifier) {
         this._modifier = modifier;
+        this._tracker = modifier.backend.tracker;
     }
 
     modify(command, cb) {
@@ -27,6 +30,9 @@ class CharModifier {
 
             case CMD_CHAR_SET_MAX_STR:
                 return this._setMaxStrength(cb);
+
+            case CMD_CHAR_SET_REC_SPD:
+                return this._setPenRecSpeed(cb);
         }
 
         return false;
@@ -34,7 +40,7 @@ class CharModifier {
 
     _pairBody(cb) {
         const modifier = this._modifier;
-        const tracker = modifier.backend.tracker;
+        const tracker = this._tracker;
         const Jolt = modifier.backend.Jolt;
         const char = tracker.getBodyByPCID(cb.read(BUFFER_READ_UINT32));
         const body = tracker.getBodyByPCID(cb.read(BUFFER_READ_UINT32));
@@ -68,7 +74,7 @@ class CharModifier {
     }
 
     _setMass(cb) {
-        const char = this._modifier.backend.tracker.getBodyByPCID(cb.read(BUFFER_READ_UINT32));
+        const char = this._tracker.getBodyByPCID(cb.read(BUFFER_READ_UINT32));
 
         try {
             char.SetMass(cb.read(BUFFER_READ_FLOAT32));
@@ -86,7 +92,7 @@ class CharModifier {
         const m = this._modifier;
         const jv = m.joltVec3_1;
         const jq = m.joltQuat_1;
-        const char = this._modifier.backend.tracker.getBodyByPCID(cb.read(BUFFER_READ_UINT32));
+        const char = this._tracker.getBodyByPCID(cb.read(BUFFER_READ_UINT32));
 
         try {
             jv.FromBuffer(cb);
@@ -106,9 +112,8 @@ class CharModifier {
     }
 
     _setLinVel(cb) {
-        const m = this._modifier;
-        const jv = m.joltVec3_1;
-        const char = m.backend.tracker.getBodyByPCID(cb.read(BUFFER_READ_UINT32));
+        const jv = this._modifier.joltVec3_1;
+        const char = this._tracker.getBodyByPCID(cb.read(BUFFER_READ_UINT32));
 
         try {
             jv.FromBuffer(cb);
@@ -125,7 +130,7 @@ class CharModifier {
 
     _setShape(cb) {
         const backend = this._modifier.backend;
-        const tracker = backend.tracker;
+        const tracker = this._tracker;
         const pcid = cb.read(BUFFER_READ_UINT32);
         const useCallback = cb.read(BUFFER_READ_BOOL);
         const shapeIndex = cb.flag ? cb.read(BUFFER_READ_UINT32) : null;
@@ -183,10 +188,25 @@ class CharModifier {
     }
 
     _setMaxStrength(cb) {
-        const char = this._modifier.backend.tracker.getBodyByPCID(cb.read(BUFFER_READ_UINT32));
+        const char = this._tracker.getBodyByPCID(cb.read(BUFFER_READ_UINT32));
 
         try {
             char.SetMaxStrength(cb.read(BUFFER_READ_FLOAT32));
+        } catch (e) {
+            if ($_DEBUG) {
+                Debug.error(e);
+            }
+            return false;
+        }
+
+        return true;
+    }
+
+    _setPenRecSpeed(cb) {
+        const char = this._tracker.getBodyByPCID(cb.read(BUFFER_READ_UINT32));
+
+        try {
+            char.SetPenetrationRecoverySpeed(cb.read(BUFFER_READ_FLOAT32));
         } catch (e) {
             if ($_DEBUG) {
                 Debug.error(e);

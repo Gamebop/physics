@@ -196,6 +196,7 @@ export const CMD_CHAR_SET_MASS = 402;
 export const CMD_CHAR_SET_MAX_STR = 403;
 export const CMD_CHAR_SET_LIN_VEL = 404;
 export const CMD_CHAR_SET_SHAPE = 405;
+export const CMD_CHAR_SET_REC_SPD = 406;
 
 // Constraints 500-599
 

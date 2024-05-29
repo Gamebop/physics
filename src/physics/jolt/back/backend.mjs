@@ -215,11 +215,11 @@ class JoltBackend {
         extendJoltMath(Jolt);
 
         // Physics operators
+        this._tracker = new Tracker(Jolt);
         this._creator = new Creator(this);
         this._modifier = new Modifier(this);
         this._cleaner = new Cleaner(this);
         this._querier = new Querier(this);
-        this._tracker = new Tracker(Jolt);
         this._listener = new Listener(this);
         this._outBuffer = new CommandsBuffer({ ...config, commandsBufferSize: 2000 });
         this._stepTime = 0;

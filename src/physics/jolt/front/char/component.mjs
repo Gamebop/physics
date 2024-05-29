@@ -11,7 +11,8 @@ import {
     CMD_CHAR_SET_SHAPE, CMD_DESTROY_BODY, CMD_CHAR_PAIR_BODY, CMD_SET_USER_DATA,
     CMD_USE_MOTION_STATE,
     GROUND_STATE_NOT_SUPPORTED, OPERATOR_CLEANER, OPERATOR_MODIFIER,
-    SHAPE_CAPSULE
+    SHAPE_CAPSULE,
+    CMD_CHAR_SET_REC_SPD
 } from '../../constants.mjs';
 
 /**
@@ -371,6 +372,28 @@ class CharComponent extends ShapeComponent {
      */
     get pairedEntity() {
         return this._pairedEntity;
+    }
+
+    /**
+     * @param {number} factor - Recovery speed factor.
+     */
+    set penetrationRecoverySpeed(factor) {
+        if (this._penetrationRecoverySpeed === factor) {
+            return;
+        }
+
+        if ($_DEBUG) {
+            const ok = Debug.checkFloat(factor, `Invalid speed factor: ${factor}`);
+            if (!ok) {
+                return;
+            }
+        }
+
+        this._penetrationRecoverySpeed = factor;
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_CHAR_SET_REC_SPD, this._index,
+            factor, BUFFER_WRITE_FLOAT32, false
+        );
     }
 
     /**
