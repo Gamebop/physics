@@ -1,11 +1,11 @@
-import { Asset, Quat, SEMANTIC_POSITION, Vec3 } from 'playcanvas';
+import { Asset, Mesh, Quat, SEMANTIC_POSITION, Vec3 } from 'playcanvas';
 import { Debug } from '../../debug.mjs';
 import { Component } from '../component.mjs';
 import {
-    BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT32,
-    BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32, CMD_SET_DEBUG_DRAW, CMD_SET_DENSITY, CMD_SET_SHAPE, FLOAT32_SIZE, OPERATOR_MODIFIER, SHAPE_BOX,
-    SHAPE_CAPSULE, SHAPE_CONVEX_HULL, SHAPE_CYLINDER, SHAPE_HEIGHTFIELD,
-    SHAPE_MESH, SHAPE_SPHERE, SHAPE_STATIC_COMPOUND
+    BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT32, BUFFER_WRITE_UINT8,
+    BUFFER_WRITE_VEC32, CMD_SET_DEBUG_DRAW, CMD_SET_SHAPE, FLOAT32_SIZE, OPERATOR_MODIFIER,
+    SHAPE_BOX, SHAPE_CAPSULE, SHAPE_CONVEX_HULL, SHAPE_CYLINDER, SHAPE_HEIGHTFIELD, SHAPE_MESH,
+    SHAPE_SPHERE, SHAPE_STATIC_COMPOUND
 } from '../../constants.mjs';
 
 const defaultHalfExtent = new Vec3(0.5, 0.5, 0.5);
@@ -239,9 +239,30 @@ class ShapeComponent extends Component {
     }
 
     /**
+     * @param {Mesh} mesh - PlayCanvas Mesh instance.
+     */
+    set mesh(mesh) {
+        if (this._mesh === mesh && this._shape !== SHAPE_MESH && this._shape !== SHAPE_CONVEX_HULL) {
+            return;
+        }
+
+        if ($_DEBUG) {
+            const ok = Debug.assert(mesh instanceof Mesh, `Invalid mesh`, mesh);
+            if (!ok) {
+                return;
+            }
+        }
+
+        this._mesh = mesh;
+
+        this.system.addCommand(OPERATOR_MODIFIER, CMD_SET_SHAPE, this._index);
+        ShapeComponent.writeShapeData(this.system.manager.commandsBuffer, this);
+    }
+
+    /**
      * Mesh is used when {@link shape} is `SHAPE_MESH` or `SHAPE_CONVEX_HULL`.
      *
-     * @returns {import('playcanvas').Mesh | null} - A PlayCanvas Mesh. Will return `null`, when no
+     * @returns {Mesh | null} - A PlayCanvas Mesh. Will return `null`, when no
      * mesh is used.
      * @defaultValue null
      */
