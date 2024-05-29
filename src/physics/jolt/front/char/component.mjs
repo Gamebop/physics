@@ -12,7 +12,8 @@ import {
     CMD_USE_MOTION_STATE,
     GROUND_STATE_NOT_SUPPORTED, OPERATOR_CLEANER, OPERATOR_MODIFIER,
     SHAPE_CAPSULE,
-    CMD_CHAR_SET_REC_SPD
+    CMD_CHAR_SET_REC_SPD,
+    CMD_CHAR_SET_NUM_HITS
 } from '../../constants.mjs';
 
 /**
@@ -278,6 +279,28 @@ class CharComponent extends ShapeComponent {
      */
     get maxConstraintIterations() {
         return this._maxConstraintIterations;
+    }
+
+    /**
+     * @param {number} hits - Hits number.
+     */
+    set maxNumHits(hits) {
+        if (this._maxNumHits === hits) {
+            return;
+        }
+
+        if ($_DEBUG) {
+            const ok = Debug.checkFloat(hits, `Invalid hits scalar: ${hits}`);
+            if (!ok) {
+                return;
+            }
+        }
+
+        this._maxNumHits = hits;
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_CHAR_SET_NUM_HITS, this._index,
+            hits, BUFFER_WRITE_FLOAT32, false
+        );
     }
 
     /**
