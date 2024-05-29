@@ -3,21 +3,21 @@ import { MotionState } from '../motion-state.mjs';
 import { ConstraintModifier } from './helpers/constraint-modifier.mjs';
 import {
     BUFFER_READ_BOOL, BUFFER_READ_FLOAT32, BUFFER_READ_INT32, BUFFER_READ_UINT16,
-    BUFFER_READ_UINT32, BUFFER_READ_UINT8, BUFFER_WRITE_UINT32, CMD_ADD_ANGULAR_IMPULSE,
-    CMD_ADD_FORCE, CMD_ADD_IMPULSE, CMD_ADD_TORQUE, CMD_APPLY_BUOYANCY_IMPULSE, CMD_CHANGE_GRAVITY,
-    CMD_CHAR_SET_LIN_VEL, CMD_CHAR_SET_POS_ROT, CMD_CHAR_SET_SHAPE, CMD_CLAMP_ANG_VEL, CMD_CLAMP_LIN_VEL, CMD_MOVE_BODY,
-    CMD_MOVE_KINEMATIC, CMD_PAIR_BODY, CMD_REPORT_SET_SHAPE, CMD_RESET_MOTION,
-    CMD_RESET_SLEEP_TIMER, CMD_SET_ALLOW_SLEEPING, CMD_SET_ANG_FACTOR, CMD_SET_ANG_VEL,
-    CMD_SET_ANG_VEL_CLAMPED, CMD_SET_APPLY_GYRO_FORCE, CMD_SET_AUTO_UPDATE_ISOMETRY,
-    CMD_SET_COL_GROUP, CMD_SET_DEBUG_DRAW, CMD_SET_DOF, CMD_SET_DRIVER_INPUT, CMD_SET_FRICTION, CMD_SET_GRAVITY_FACTOR,
-    CMD_SET_INTERNAL_EDGE, CMD_SET_IS_SENSOR, CMD_SET_KIN_COL_NON_DYN, CMD_SET_LIN_VEL,
-    CMD_SET_LIN_VEL_CLAMPED, CMD_SET_MAX_ANG_VEL, CMD_SET_MAX_LIN_VEL, CMD_SET_MOTION_QUALITY,
-    CMD_SET_MOTION_TYPE, CMD_SET_OBJ_LAYER, CMD_SET_POS_STEPS, CMD_SET_RESTITUTION, CMD_SET_SHAPE, CMD_SET_USER_DATA,
-    CMD_SET_VEL_STEPS, CMD_TOGGLE_GROUP_PAIR, CMD_USE_MOTION_STATE, COMPONENT_SYSTEM_CHAR, MOTION_QUALITY_DISCRETE,
+    BUFFER_READ_UINT32, BUFFER_READ_UINT8, CMD_ADD_ANGULAR_IMPULSE, CMD_ADD_FORCE, CMD_ADD_IMPULSE,
+    CMD_ADD_TORQUE, CMD_APPLY_BUOYANCY_IMPULSE, CMD_CHANGE_GRAVITY, CMD_CLAMP_ANG_VEL,
+    CMD_CLAMP_LIN_VEL, CMD_MOVE_BODY, CMD_MOVE_KINEMATIC, CMD_RESET_MOTION, CMD_RESET_SLEEP_TIMER,
+    CMD_SET_ALLOW_SLEEPING, CMD_SET_ANG_FACTOR, CMD_SET_ANG_VEL, CMD_SET_ANG_VEL_CLAMPED,
+    CMD_SET_APPLY_GYRO_FORCE, CMD_SET_AUTO_UPDATE_ISOMETRY, CMD_SET_COL_GROUP, CMD_SET_DEBUG_DRAW, CMD_SET_DOF,
+    CMD_SET_DRIVER_INPUT, CMD_SET_FRICTION, CMD_SET_GRAVITY_FACTOR, CMD_SET_INTERNAL_EDGE,
+    CMD_SET_IS_SENSOR, CMD_SET_KIN_COL_NON_DYN, CMD_SET_LIN_VEL, CMD_SET_LIN_VEL_CLAMPED,
+    CMD_SET_MAX_ANG_VEL, CMD_SET_MAX_LIN_VEL, CMD_SET_MOTION_QUALITY, CMD_SET_MOTION_TYPE,
+    CMD_SET_OBJ_LAYER, CMD_SET_POS_STEPS, CMD_SET_RESTITUTION, CMD_SET_SHAPE, CMD_SET_USER_DATA,
+    CMD_SET_VEL_STEPS, CMD_TOGGLE_GROUP_PAIR, CMD_USE_MOTION_STATE, MOTION_QUALITY_DISCRETE,
     MOTION_TYPE_DYNAMIC, MOTION_TYPE_KINEMATIC
 } from '../../constants.mjs';
 import { Creator } from './creator.mjs';
 import { Cleaner } from './cleaner.mjs';
+import { CharModifier } from './helpers/char-modifier.mjs';
 
 class Modifier {
     constructor(backend) {
@@ -31,6 +31,7 @@ class Modifier {
         this._joltQuat_1 = new Jolt.Quat();
 
         this._constraintModifier = new ConstraintModifier(this);
+        this._charModifier = new CharModifier(this);
         // TODO
         // add modifier helpers for other components as well
     }
@@ -56,7 +57,9 @@ class Modifier {
         const command = cb.readCommand();
         let ok = true;
 
-        if (command >= 500 && command < 600) {
+        if (command >= 400 && command < 500) {
+            return this._charModifier.modify(command, cb);
+        } else if (command >= 500 && command < 600) {
             return this._constraintModifier.modify(command, cb);
         }
 
@@ -96,20 +99,8 @@ class Modifier {
                 ok = this._moveKinematic(cb);
                 break;
 
-            case CMD_PAIR_BODY:
-                ok  = this._pairBody(cb);
-                break;
-
             case CMD_SET_LIN_VEL:
                 ok = this._applyForces(cb, 'SetLinearVelocity', true);
-                break;
-
-            case CMD_CHAR_SET_LIN_VEL:
-                this._setCharacterLinVel(cb);
-                break;
-
-            case CMD_CHAR_SET_POS_ROT:
-                this._setCharPosRot(cb);
                 break;
 
             case CMD_SET_ANG_VEL:
@@ -134,10 +125,6 @@ class Modifier {
 
             case CMD_SET_USER_DATA:
                 ok = this._setUserData(cb);
-                break;
-
-            case CMD_CHAR_SET_SHAPE:
-                ok = this._setCharShape(cb);
                 break;
 
             case CMD_USE_MOTION_STATE:
@@ -308,92 +295,6 @@ class Modifier {
         return true;
     }
 
-    _setCharShape(cb) {
-        const backend = this._backend;
-        const tracker = backend.tracker;
-        const pcid = cb.read(BUFFER_READ_UINT32);
-        const useCallback = cb.read(BUFFER_READ_BOOL);
-        const shapeIndex = cb.flag ? cb.read(BUFFER_READ_UINT32) : null;
-
-        const char = tracker.getBodyByPCID(pcid);
-        if ($_DEBUG && !char) {
-            Debug.warn(`Unable to locate character under id: ${pcid}`);
-            return false;
-        }
-
-        let shape;
-        if (shapeIndex != null) {
-            shape = tracker.shapeMap.get(shapeIndex);
-            if ($_DEBUG && !shape) {
-                Debug.warn(`Unable to locate shape: ${shapeIndex}`);
-                return false;
-            }
-        } else {
-            shape = char.originalShape;
-        }
-
-        let cbIndex;
-        if (useCallback) {
-            cbIndex = cb.read(BUFFER_READ_UINT32);
-        }
-
-        const ok = char.SetShape(shape,
-                                 backend.config.penetrationSlop * 1.5,
-                                 backend.bpFilter,
-                                 backend.objFilter,
-                                 backend.bodyFilter,
-                                 backend.shapeFilter,
-                                 backend.joltInterface.GetTempAllocator());
-
-        if (ok && useCallback) {
-            const cb = backend.outBuffer;
-
-            cb.writeOperator(COMPONENT_SYSTEM_CHAR);
-            cb.writeCommand(CMD_REPORT_SET_SHAPE);
-            cb.write(cbIndex, BUFFER_WRITE_UINT32, false);
-        }
-
-        return true;
-    }
-
-    _resetCharShape(cb) {
-        const backend = this._backend;
-        const tracker = backend.tracker;
-        const pcid = cb.read(BUFFER_READ_UINT32);
-        const useCallback = cb.read(BUFFER_READ_BOOL);
-
-        let cbIndex;
-        if (useCallback) {
-            cbIndex = cb.read(BUFFER_READ_UINT32);
-        }
-
-        const char = tracker.getBodyByPCID(pcid);
-        try {
-            const ok = char.SetShape(char.originalShape,
-                                     backend.config.penetrationSlop * 1.5,
-                                     backend.bpFilter,
-                                     backend.objFilter,
-                                     backend.bodyFilter,
-                                     backend.shapeFilter,
-                                     backend.joltInterface.GetTempAllocator());
-
-            if (ok && useCallback) {
-                const cb = backend.outBuffer;
-
-                cb.writeOperator(COMPONENT_SYSTEM_CHAR);
-                cb.writeCommand(CMD_REPORT_SET_SHAPE);
-                cb.write(cbIndex, BUFFER_WRITE_UINT32, false);
-            }
-        } catch (e) {
-            if ($_DEBUG) {
-                Debug.error(e);
-            }
-            return false;
-        }
-
-        return true;
-    }
-
     _setShape(cb, meshBuffers) {
         const backend = this._backend;
         const Jolt = backend.Jolt;
@@ -471,43 +372,6 @@ class Modifier {
         return true;
     }
 
-    _setCharacterLinVel(cb) {
-        const jv = this._joltVec3_1;
-        const char = this._getBody(cb);
-
-        try {
-            jv.FromBuffer(cb);
-            char.SetLinearVelocity(jv);
-        } catch (e) {
-            if ($_DEBUG) {
-                Debug.error(e);
-            }
-            return false;
-        }
-    }
-
-    _setCharPosRot(cb) {
-        const jv = this._joltVec3_1;
-        const jq = this._joltQuat_1;
-        const char = this._getBody(cb);
-
-        try {
-            jv.FromBuffer(cb);
-            char.SetPosition(jv);
-            if (cb.read(BUFFER_READ_BOOL)) {
-                jq.FromBuffer(cb);
-                char.SetRotation(jq);
-            }
-        } catch (e) {
-            if ($_DEBUG) {
-                Debug.error(e);
-            }
-            return false;
-        }
-
-        return true;
-    }
-
     _applyBuoyancyImpulse(cb) {
         const backend = this._backend;
         const body = this._getBody(cb);
@@ -578,32 +442,6 @@ class Modifier {
             }
             return false;
         }
-
-        return true;
-    }
-
-    _pairBody(cb) {
-        const Jolt = this._backend.Jolt;
-        const char = this._getBody(cb);
-        const body = this._getBody(cb);
-
-        char.pairedBody = body;
-        body.isCharPaired = true;
-
-        const bodyFilter = new Jolt.BodyFilterJS();
-
-        bodyFilter.ShouldCollide = (inBodyID) => {
-            if (body.GetID().GetIndexAndSequenceNumber() === Jolt.wrapPointer(inBodyID, Jolt.BodyID).GetIndexAndSequenceNumber()) {
-                return false;
-            }
-            return true;
-        };
-
-        bodyFilter.ShouldCollideLocked = () => {
-            return true;
-        };
-
-        char.bodyFilter = bodyFilter;
 
         return true;
     }

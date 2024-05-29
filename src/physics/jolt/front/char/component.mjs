@@ -5,8 +5,10 @@ import {
     BFM_COLLIDE_BACK_FACES, BUFFER_READ_BOOL, BUFFER_READ_FLOAT32, BUFFER_READ_UINT32,
     BUFFER_READ_UINT8, BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_PLANE,
     BUFFER_WRITE_UINT32, BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32, CMD_CHAR_SET_LIN_VEL,
+    CMD_CHAR_SET_MASS,
+    CMD_CHAR_SET_MAX_STR,
     CMD_CHAR_SET_POS_ROT,
-    CMD_CHAR_SET_SHAPE, CMD_DESTROY_BODY, CMD_PAIR_BODY, CMD_SET_USER_DATA,
+    CMD_CHAR_SET_SHAPE, CMD_DESTROY_BODY, CMD_CHAR_PAIR_BODY, CMD_SET_USER_DATA,
     CMD_USE_MOTION_STATE,
     GROUND_STATE_NOT_SUPPORTED, OPERATOR_CLEANER, OPERATOR_MODIFIER,
     SHAPE_CAPSULE
@@ -223,6 +225,28 @@ class CharComponent extends ShapeComponent {
     }
 
     /**
+     * @param {number} mass - Mass (kg).
+     */
+    set mass(mass) {
+        if (this._mass === mass) {
+            return;
+        }
+
+        if ($_DEBUG) {
+            const ok = Debug.checkFloat(mass, `Invalid mass: ${mass}`);
+            if (!ok) {
+                return;
+            }
+        }
+
+        this._mass = mass;
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_CHAR_SET_MASS, this._index,
+            mass, BUFFER_WRITE_FLOAT32, false
+        );
+    }
+
+    /**
      * Character mass. Used to push down objects with gravity when the character is standing on
      * top.
      *
@@ -276,6 +300,28 @@ class CharComponent extends ShapeComponent {
     }
 
     /**
+     * @param {number} strength - Maximum force with which the character can push other bodies (N).
+     */
+    set maxStrength(strength) {
+        if (this._maxStrength === strength) {
+            return;
+        }
+
+        if ($_DEBUG) {
+            const ok = Debug.checkFloat(strength, `Invalid strength scalar: ${strength}`);
+            if (!ok) {
+                return;
+            }
+        }
+
+        this._maxStrength = strength;
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_CHAR_SET_MAX_STR, this._index,
+            strength, BUFFER_WRITE_FLOAT32, false
+        );
+    }
+
+    /**
      * Maximum force with which the character can push other bodies (N).
      *
      * @returns {number} Max strength of the character.
@@ -310,7 +356,7 @@ class CharComponent extends ShapeComponent {
         this._pairedEntity = entity;
 
         this.system.addCommand(
-            OPERATOR_MODIFIER, CMD_PAIR_BODY, this._index,
+            OPERATOR_MODIFIER, CMD_CHAR_PAIR_BODY, this._index,
             entity.body.index, BUFFER_WRITE_UINT32, false
         );
     }
