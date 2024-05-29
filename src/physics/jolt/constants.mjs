@@ -199,6 +199,7 @@ export const CMD_CHAR_SET_NUM_HITS = 407;
 export const CMD_CHAR_SET_HIT_RED_ANGLE = 408;
 export const CMD_CHAR_SET_SHAPE_OFFSET = 409;
 export const CMD_CHAR_SET_USER_DATA = 410;
+export const CMD_CHAR_SET_UP = 411;
 
 // Constraints 500-599
 

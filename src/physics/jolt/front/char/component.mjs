@@ -5,18 +5,11 @@ import {
     BFM_COLLIDE_BACK_FACES, BUFFER_READ_BOOL, BUFFER_READ_FLOAT32, BUFFER_READ_UINT32,
     BUFFER_READ_UINT8, BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_PLANE,
     BUFFER_WRITE_UINT32, BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32, CMD_CHAR_SET_LIN_VEL,
-    CMD_CHAR_SET_MASS,
-    CMD_CHAR_SET_MAX_STR,
-    CMD_CHAR_SET_POS_ROT,
-    CMD_CHAR_SET_SHAPE, CMD_DESTROY_BODY, CMD_CHAR_PAIR_BODY,
-    CMD_USE_MOTION_STATE,
-    GROUND_STATE_NOT_SUPPORTED, OPERATOR_CLEANER, OPERATOR_MODIFIER,
-    SHAPE_CAPSULE,
-    CMD_CHAR_SET_REC_SPD,
-    CMD_CHAR_SET_NUM_HITS,
-    CMD_CHAR_SET_HIT_RED_ANGLE,
-    CMD_CHAR_SET_SHAPE_OFFSET,
-    CMD_CHAR_SET_USER_DATA
+    CMD_CHAR_SET_MASS, CMD_CHAR_SET_MAX_STR, CMD_CHAR_SET_POS_ROT, CMD_CHAR_SET_SHAPE,
+    CMD_DESTROY_BODY, CMD_CHAR_PAIR_BODY, CMD_USE_MOTION_STATE, GROUND_STATE_NOT_SUPPORTED,
+    OPERATOR_CLEANER, OPERATOR_MODIFIER, SHAPE_CAPSULE, CMD_CHAR_SET_REC_SPD,
+    CMD_CHAR_SET_NUM_HITS, CMD_CHAR_SET_HIT_RED_ANGLE, CMD_CHAR_SET_SHAPE_OFFSET,
+    CMD_CHAR_SET_USER_DATA, CMD_CHAR_SET_UP
 } from '../../constants.mjs';
 
 /**
@@ -534,6 +527,33 @@ class CharComponent extends ShapeComponent {
      */
     get supportingVolume() {
         return this._supportingVolume;
+    }
+
+    /**
+     * @param {Vec3} vec - Up vector.
+     */
+    set up(vec) {
+        if (this._up.equals(vec)) {
+            return;
+        }
+
+        if ($_DEBUG) {
+            const ok = Debug.checkVec(vec, `Invalid up vector`, vec);
+            if (!ok) {
+                return;
+            }
+        }
+
+        if (this._up === Vec3.UP) {
+            this._up = vec.clone();
+        } else {
+            this._up.copy(vec);
+        }
+
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_CHAR_SET_UP, this._index,
+            vec, BUFFER_WRITE_VEC32, false
+        );
     }
 
     /**
