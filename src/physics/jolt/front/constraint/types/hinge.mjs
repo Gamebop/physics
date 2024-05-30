@@ -1,6 +1,6 @@
 import { Vec3 } from 'playcanvas';
 import { Debug } from '../../../debug.mjs';
-import { Constraint, Spring, Motor } from './constraint.mjs';
+import { Spring, Motor } from './base/constraint.mjs';
 import {
     BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT8,
     BUFFER_WRITE_VEC32, CMD_JNT_H_SET_LIMITS, CMD_JNT_H_SET_M_F_TORQUE,
@@ -8,6 +8,7 @@ import {
     CMD_JNT_H_SET_T_ANG_VEL, CONSTRAINT_TYPE_HINGE, OPERATOR_MODIFIER,
     SPRING_MODE_FREQUENCY
 } from '../../../constants.mjs';
+import { Joint } from './base/joint.mjs';
 
 /**
  * Interface for hinge constraint.
@@ -15,7 +16,7 @@ import {
  * @group Utilities
  * @category Constraints
  */
-class HingeConstraint extends Constraint {
+class HingeConstraint extends Joint {
     _type = CONSTRAINT_TYPE_HINGE;
 
     _hingeAxis1 = Vec3.UP;
@@ -204,18 +205,16 @@ class HingeConstraint extends Constraint {
     write(cb) {
         super.write(cb);
 
-        cb.write(this._point1, BUFFER_WRITE_VEC32);
         cb.write(this._hingeAxis1, BUFFER_WRITE_VEC32);
         cb.write(this._normalAxis1, BUFFER_WRITE_VEC32);
-        cb.write(this._point2, BUFFER_WRITE_VEC32);
         cb.write(this._hingeAxis2, BUFFER_WRITE_VEC32);
         cb.write(this._normalAxis2, BUFFER_WRITE_VEC32);
         cb.write(this._limitsMin, BUFFER_WRITE_FLOAT32);
         cb.write(this._limitsMax, BUFFER_WRITE_FLOAT32);
         cb.write(this._maxFrictionTorque, BUFFER_WRITE_FLOAT32);
 
-        Constraint.writeSpringSettings(cb, this._limitsSpringSettings);
-        Constraint.writeMotorSettings(cb, this._motorSettings);
+        Joint.writeSpringSettings(cb, this._limitsSpringSettings);
+        Joint.writeMotorSettings(cb, this._motorSettings);
     }
 
     /**

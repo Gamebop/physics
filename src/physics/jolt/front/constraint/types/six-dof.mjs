@@ -1,6 +1,6 @@
 import { Vec3 } from 'playcanvas';
 import { Debug } from '../../../debug.mjs';
-import { Constraint, Motor, Spring } from './constraint.mjs';
+import { Motor, Spring } from './base/constraint.mjs';
 import {
     BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT8,
     BUFFER_WRITE_VEC32, CMD_JNT_SDF_SET_M_F, CMD_JNT_SDF_SET_M_STATE,
@@ -9,6 +9,7 @@ import {
     CMD_JNT_SDF_SET_T_ROT_CS, CMD_JNT_SDF_SET_T_VEL_CS, CONSTRAINT_SWING_TYPE_CONE,
     CONSTRAINT_TYPE_SIX_DOF, OPERATOR_MODIFIER, SPRING_MODE_FREQUENCY
 } from '../../../constants.mjs';
+import { Joint } from './base/joint.mjs';
 
 function copyArr(src, dst) {
     for (let i = 0; i < src.length; ++i) {
@@ -30,7 +31,7 @@ function copySettings(Constructor, src) {
  * @group Utilities
  * @category Constraints
  */
-class SixDOFConstraint extends Constraint {
+class SixDOFConstraint extends Joint {
     _type = CONSTRAINT_TYPE_SIX_DOF;
 
     _axisX1 = Vec3.RIGHT;
@@ -392,14 +393,12 @@ class SixDOFConstraint extends Constraint {
         const limitMin = this._limitMin;
         const limitMax = this._limitMax;
 
-        Constraint.writeAxes(cb, this._freeAxes);
-        Constraint.writeAxes(cb, this._fixedAxes);
-        Constraint.writeAxes(cb, this._limitedAxes, true);
+        Joint.writeAxes(cb, this._freeAxes);
+        Joint.writeAxes(cb, this._fixedAxes);
+        Joint.writeAxes(cb, this._limitedAxes, true);
 
-        cb.write(this._point1, BUFFER_WRITE_VEC32, false);
         cb.write(this._axisX1, BUFFER_WRITE_VEC32, false);
         cb.write(this._axisY1, BUFFER_WRITE_VEC32, false);
-        cb.write(this._point2, BUFFER_WRITE_VEC32, false);
         cb.write(this._axisX2, BUFFER_WRITE_VEC32, false);
         cb.write(this._axisY2, BUFFER_WRITE_VEC32, false);
 
@@ -430,14 +429,14 @@ class SixDOFConstraint extends Constraint {
         cb.write(!!limitsSpringSettings, BUFFER_WRITE_BOOL, false);
         if (!!limitsSpringSettings) {
             for (let i = 0; i < 6; ++i) {
-                Constraint.writeSpringSettings(cb, limitsSpringSettings[i]);
+                Joint.writeSpringSettings(cb, limitsSpringSettings[i]);
             }
         }
 
         cb.write(!!motorSettings, BUFFER_WRITE_BOOL, false);
         if (!!motorSettings) {
             for (let i = 0; i < 6; ++i) {
-                Constraint.writeMotorSettings(cb, motorSettings[i]);
+                Joint.writeMotorSettings(cb, motorSettings[i]);
             }
         }
     }

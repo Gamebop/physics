@@ -1,5 +1,5 @@
 import { BUFFER_WRITE_VEC32, CONSTRAINT_TYPE_POINT } from '../../../constants.mjs';
-import { Constraint } from './constraint.mjs';
+import { Joint } from './base/joint.mjs';
 
 /**
  * Interface for point constraint.
@@ -7,7 +7,7 @@ import { Constraint } from './constraint.mjs';
  * @group Utilities
  * @category Constraints
  */
-class PointConstraint extends Constraint {
+class PointConstraint extends Joint {
     _type = CONSTRAINT_TYPE_POINT;
 
     constructor(entity1, entity2, opts = {}) {
@@ -20,13 +20,6 @@ class PointConstraint extends Constraint {
      */
     get type() {
         return this._type;
-    }
-
-    write(cb) {
-        super.write(cb);
-
-        cb.write(this._point1, BUFFER_WRITE_VEC32);
-        cb.write(this._point2, BUFFER_WRITE_VEC32);
     }
 }
 

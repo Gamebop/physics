@@ -1,10 +1,11 @@
-import { Constraint, Spring } from './constraint.mjs';
+import { Spring } from './base/constraint.mjs';
 import {
     BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT8,
     BUFFER_WRITE_VEC32, CMD_JNT_D_SET_DISTANCE, CMD_JNT_D_SET_SPRING_S,
     CONSTRAINT_TYPE_DISTANCE, OPERATOR_MODIFIER, SPRING_MODE_FREQUENCY
 } from '../../../constants.mjs';
 import { Debug } from '../../../debug.mjs';
+import { Joint } from './base/joint.mjs';
 
 /**
  * Interface for distance constraint.
@@ -12,7 +13,7 @@ import { Debug } from '../../../debug.mjs';
  * @group Utilities
  * @category Constraints
  */
-class DistanceConstraint extends Constraint {
+class DistanceConstraint extends Joint {
     _type = CONSTRAINT_TYPE_DISTANCE;
 
     _minDistance = -1;
@@ -106,12 +107,10 @@ class DistanceConstraint extends Constraint {
     write(cb) {
         super.write(cb);
 
-        cb.write(this._point1, BUFFER_WRITE_VEC32);
-        cb.write(this._point2, BUFFER_WRITE_VEC32);
         cb.write(this._minDistance, BUFFER_WRITE_FLOAT32);
         cb.write(this._maxDistance, BUFFER_WRITE_FLOAT32);
 
-        Constraint.writeSpringSettings(cb, this._limitsSpringSettings);
+        Joint.writeSpringSettings(cb, this._limitsSpringSettings);
     }
 
     /**

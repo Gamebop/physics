@@ -1,5 +1,5 @@
 import { Debug } from '../../../debug.mjs';
-import { createSpringSettings } from '../../utils.mjs';
+import { createSpringSettings } from './utils.mjs';
 import {
     BUFFER_READ_BOOL, BUFFER_READ_FLOAT32, BUFFER_READ_UINT32, BUFFER_READ_UINT8,
     CMD_JNT_C_SET_H_C_ANGLE, CMD_JNT_D_SET_DISTANCE, CMD_JNT_D_SET_SPRING_S, CMD_JNT_H_SET_LIMITS,

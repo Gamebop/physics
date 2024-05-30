@@ -1,9 +1,9 @@
 import { Vec3 } from 'playcanvas';
 import { Debug } from '../../../debug.mjs';
-import { Constraint } from './constraint.mjs';
 import {
     BUFFER_WRITE_BOOL, BUFFER_WRITE_VEC32, CONSTRAINT_TYPE_FIXED
 } from '../../../constants.mjs';
+import { Joint } from './base/joint.mjs';
 
 /**
  * Interface for fixed constraint.
@@ -11,7 +11,7 @@ import {
  * @group Utilities
  * @category Constraints
  */
-class FixedConstraint extends Constraint {
+class FixedConstraint extends Joint {
     _type = CONSTRAINT_TYPE_FIXED;
 
     _autoDetectPoint = true;
@@ -76,22 +76,9 @@ class FixedConstraint extends Constraint {
     }
 
     write(cb) {
-        const auto = this._autoDetectPoint;
-        if ($_DEBUG && !auto) {
-            let ok = Debug.checkVec(this._point1, 'Fixed constraint has disabled autoDetectPoint, but point1 was not provided');
-            ok = ok && Debug.checkVec(this._point2, 'Fixed constraint has disabled autoDetectPoint, but point2 was not provided');
-            if (!ok) {
-                return;
-            }
-        }
-
         super.write(cb);
 
-        cb.write(auto, BUFFER_WRITE_BOOL);
-        if (!auto) {
-            cb.write(this._point1, BUFFER_WRITE_VEC32);
-            cb.write(this._point2, BUFFER_WRITE_VEC32);
-        }
+        cb.write(this._autoDetectPoint, BUFFER_WRITE_BOOL);
         cb.write(this._axisX1, BUFFER_WRITE_VEC32);
         cb.write(this._axisY1, BUFFER_WRITE_VEC32);
         cb.write(this._axisX2, BUFFER_WRITE_VEC32);

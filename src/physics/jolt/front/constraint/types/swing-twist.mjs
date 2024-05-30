@@ -1,6 +1,6 @@
 import { Vec3 } from 'playcanvas';
 import { Debug } from '../../../debug.mjs';
-import { Constraint, Motor } from './constraint.mjs';
+import { Motor } from './base/constraint.mjs';
 import {
     BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32, CMD_JNT_ST_SET_M_F_TORQUE,
     CMD_JNT_ST_SET_N_H_C_ANGLE, CMD_JNT_ST_SET_P_H_C_ANGLE, CMD_JNT_ST_SET_SWING_M_S,
@@ -8,6 +8,7 @@ import {
     CMD_JNT_ST_SET_T_O_BS, CMD_JNT_ST_SET_T_O_CS, CONSTRAINT_TYPE_SWING_TWIST,
     OPERATOR_MODIFIER
 } from '../../../constants.mjs';
+import { Joint } from './base/joint.mjs';
 
 /**
  * Interface for swing-twist constraint.
@@ -15,7 +16,7 @@ import {
  * @group Utilities
  * @category Constraints
  */
-class SwingTwistConstraint extends Constraint {
+class SwingTwistConstraint extends Joint {
     _type = CONSTRAINT_TYPE_SWING_TWIST;
 
     _twistAxis1 = Vec3.RIGHT;
@@ -348,10 +349,8 @@ class SwingTwistConstraint extends Constraint {
     write(cb) {
         super.write(cb);
 
-        cb.write(this._point1, BUFFER_WRITE_VEC32);
         cb.write(this._twistAxis1, BUFFER_WRITE_VEC32);
         cb.write(this._planeAxis1, BUFFER_WRITE_VEC32);
-        cb.write(this._point2, BUFFER_WRITE_VEC32);
         cb.write(this._twistAxis2, BUFFER_WRITE_VEC32);
         cb.write(this._planeAxis2, BUFFER_WRITE_VEC32);
         cb.write(this._normalHalfConeAngle, BUFFER_WRITE_FLOAT32);
@@ -360,8 +359,8 @@ class SwingTwistConstraint extends Constraint {
         cb.write(this._twistMaxAngle, BUFFER_WRITE_FLOAT32);
         cb.write(this._maxFrictionTorque, BUFFER_WRITE_FLOAT32);
 
-        Constraint.writeMotorSettings(cb, this._swingMotorSettings);
-        Constraint.writeMotorSettings(cb, this._twistMotorSettings);
+        Joint.writeMotorSettings(cb, this._swingMotorSettings);
+        Joint.writeMotorSettings(cb, this._twistMotorSettings);
     }
 }
 

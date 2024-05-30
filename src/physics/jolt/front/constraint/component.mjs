@@ -25,7 +25,7 @@ class ConstraintComponent extends Component {
     _list = new Set();
 
     /**
-     * Adds a joint to this entity. Following constants available:
+     * Adds a constraint to this entity. Following constants available:
      * ```
      * CONSTRAINT_TYPE_FIXED
      * ```
@@ -53,6 +53,15 @@ class ConstraintComponent extends Component {
      * ```
      * CONSTRAINT_TYPE_PULLEY
      * ```
+     * ```
+     * CONSTRAINT_TYPE_VEHICLE_WHEEL
+     * ```
+     * ```
+     * CONSTRAINT_TYPE_VEHICLE_TRACK
+     * ```
+     * ```
+     * CONSTRAINT_TYPE_VEHICLE_MOTO
+     * ```
      *
      * @param {number} type - Constant number, representing joint type.
      * @param {import('playcanvas').Entity} otherEntity - The other entity that this entity will be
@@ -68,9 +77,9 @@ class ConstraintComponent extends Component {
      * import('./types/settings.mjs').SwingTwistConstraintSettings} [opts] - Optional joint options object.
      * @returns {FixedConstraint | PointConstraint | DistanceConstraint | HingeConstraint |
      * SliderConstraint | ConeConstraint | SixDOFConstraint | SwingTwistConstraint |
-     * PulleyConstraint | null} - A joint interface or `null`, if unable to create a joint.
+     * PulleyConstraint | null} - A constraint interface. Returns `null`, if unable to create one.
      */
-    addJoint(type, otherEntity, opts = {}) {
+    add(type, otherEntity, opts = {}) {
         let JointConstructor;
         switch (type) {
             case CONSTRAINT_TYPE_SWING_TWIST:

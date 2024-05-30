@@ -1,9 +1,9 @@
-import { Debug } from '../debug.mjs';
+import { Debug } from '../../../debug.mjs';
 import {
     BUFFER_READ_BOOL, BUFFER_READ_FLOAT32, BUFFER_READ_UINT8, CONSTRAINT_SIX_DOF_ROTATION_X,
     CONSTRAINT_SIX_DOF_ROTATION_Y, CONSTRAINT_SIX_DOF_ROTATION_Z, CONSTRAINT_SIX_DOF_TRANSLATION_X,
     CONSTRAINT_SIX_DOF_TRANSLATION_Y, CONSTRAINT_SIX_DOF_TRANSLATION_Z, SPRING_MODE_FREQUENCY
-} from '../constants.mjs';
+} from '../../../constants.mjs';
 
 function createSpringSettings(cb, Jolt) {
     const springSettings = new Jolt.SpringSettings();

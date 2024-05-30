@@ -40,6 +40,9 @@ export const CONSTRAINT_TYPE_CONE = 5;
 export const CONSTRAINT_TYPE_SWING_TWIST = 6;
 export const CONSTRAINT_TYPE_SIX_DOF = 7;
 export const CONSTRAINT_TYPE_PULLEY = 8;
+export const CONSTRAINT_TYPE_VEHICLE_WHEEL = 9;
+export const CONSTRAINT_TYPE_VEHICLE_TRACK = 10;
+export const CONSTRAINT_TYPE_VEHICLE_MOTO = 11;
 
 export const CONSTRAINT_SIX_DOF_TRANSLATION_X = 0;
 export const CONSTRAINT_SIX_DOF_TRANSLATION_Y = 1;
@@ -86,6 +89,7 @@ export const SHAPE_STATIC_COMPOUND = 7;
 export const VEHICLE_TYPE_WHEEL = 0;
 export const VEHICLE_TYPE_TRACK = 1;
 export const VEHICLE_TYPE_MOTORCYCLE = 2;
+
 export const CONTACT_TYPE_ADDED = 0;
 export const CONTACT_TYPE_PERSISTED = 1;
 export const CONTACT_TYPE_REMOVED = 2;

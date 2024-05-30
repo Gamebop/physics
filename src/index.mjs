@@ -23,7 +23,7 @@ export { SoftBodyComponentSystem } from './physics/jolt/front/softbody/system.mj
 export { ConstraintComponent } from './physics/jolt/front/constraint/component.mjs';
 export { ConstraintComponentSystem } from './physics/jolt/front/constraint/system.mjs';
 
-export { Constraint } from './physics/jolt/front/constraint/types/constraint.mjs';
+export { Constraint } from './physics/jolt/front/constraint/types/base/constraint.mjs';
 export {
     SpringSettings, MotorSettings, ConstraintSettings, ConeConstraintSettings,
     DistanceConstraintSettings, FixedConstraintSettings, HingeConstraintSettings,

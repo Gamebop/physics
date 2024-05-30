@@ -1,8 +1,8 @@
 import { Vec3 } from 'playcanvas';
-import { Constraint } from './constraint.mjs';
 import {
     BUFFER_WRITE_FLOAT32, BUFFER_WRITE_VEC32, CONSTRAINT_TYPE_PULLEY
 } from '../../../constants.mjs';
+import { Joint } from './base/joint.mjs';
 
 /**
  * Interface for pulley constraint.
@@ -10,7 +10,7 @@ import {
  * @group Utilities
  * @category Constraints
  */
-class PulleyConstraint extends Constraint {
+class PulleyConstraint extends Joint {
     _type = CONSTRAINT_TYPE_PULLEY;
 
     _fixedPoint1 = Vec3.ZERO;
@@ -99,8 +99,6 @@ class PulleyConstraint extends Constraint {
     write(cb) {
         super.write(cb);
 
-        cb.write(this._point1, BUFFER_WRITE_VEC32, false);
-        cb.write(this._point2, BUFFER_WRITE_VEC32, false);
         cb.write(this._fixedPoint1, BUFFER_WRITE_VEC32, false);
         cb.write(this._fixedPoint2, BUFFER_WRITE_VEC32, false);
         cb.write(this._ratio, BUFFER_WRITE_FLOAT32, false);
