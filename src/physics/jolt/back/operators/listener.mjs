@@ -235,7 +235,7 @@ class Listener {
 
     initVehicleEvents(constraint) {
         const Jolt = this._backend.Jolt;
-        const listener = Jolt.VehicleConstraintCallbacksJS();
+        const listener = new Jolt.VehicleConstraintCallbacksJS();
 
         listener.GetCombinedFriction = (wheelIndex, tireFrictionDirection, tireFriction, body2, subShapeID2) => {
             body2 = Jolt.wrapPointer(body2, Jolt.Body);

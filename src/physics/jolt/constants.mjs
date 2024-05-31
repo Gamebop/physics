@@ -86,9 +86,10 @@ export const SHAPE_CONVEX_HULL = 5;
 export const SHAPE_HEIGHTFIELD = 6;
 export const SHAPE_STATIC_COMPOUND = 7;
 
-export const VEHICLE_TYPE_WHEEL = 0;
-export const VEHICLE_TYPE_TRACK = 1;
-export const VEHICLE_TYPE_MOTORCYCLE = 2;
+// export const VEHICLE_TYPE_UNDEFINED = -1;
+// export const VEHICLE_TYPE_WHEEL = 0;
+// export const VEHICLE_TYPE_TRACK = 1;
+// export const VEHICLE_TYPE_MOTORCYCLE = 2;
 
 export const CONTACT_TYPE_ADDED = 0;
 export const CONTACT_TYPE_PERSISTED = 1;
@@ -249,3 +250,5 @@ export const CMD_JNT_SDF_SET_T_ANG_VEL_CS = 576;
 export const CMD_JNT_SDF_SET_T_POS_CS = 577;
 export const CMD_JNT_SDF_SET_T_ROT_CS = 578;
 export const CMD_JNT_SDF_SET_T_ROT_BS = 579;
+
+export const CMD_VEHICLE_SET_INPUT = 580;

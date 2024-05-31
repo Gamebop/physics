@@ -1,18 +1,12 @@
 import { Debug } from '../../../debug.mjs';
 import {
-    BUFFER_READ_BOOL, BUFFER_READ_FLOAT32, BUFFER_READ_UINT32, BUFFER_READ_UINT8, CONSTRAINT_SPACE_WORLD,
-    CONSTRAINT_TYPE_CONE,
-    CONSTRAINT_TYPE_DISTANCE,
-    CONSTRAINT_TYPE_FIXED,
-    CONSTRAINT_TYPE_HINGE,
-    CONSTRAINT_TYPE_POINT,
-    CONSTRAINT_TYPE_PULLEY,
-    CONSTRAINT_TYPE_SIX_DOF,
-    CONSTRAINT_TYPE_SLIDER,
-    CONSTRAINT_TYPE_SWING_TWIST,
-    CONSTRAINT_TYPE_VEHICLE_MOTO,
-    CONSTRAINT_TYPE_VEHICLE_TRACK,
-    CONSTRAINT_TYPE_VEHICLE_WHEEL
+    BUFFER_READ_BOOL, BUFFER_READ_FLOAT32, BUFFER_READ_INT32, BUFFER_READ_UINT16,
+    BUFFER_READ_UINT32, BUFFER_READ_UINT8, CONSTRAINT_SPACE_WORLD, CONSTRAINT_TYPE_CONE,
+    CONSTRAINT_TYPE_DISTANCE, CONSTRAINT_TYPE_FIXED, CONSTRAINT_TYPE_HINGE, CONSTRAINT_TYPE_POINT,
+    CONSTRAINT_TYPE_PULLEY, CONSTRAINT_TYPE_SIX_DOF, CONSTRAINT_TYPE_SLIDER,
+    CONSTRAINT_TYPE_SWING_TWIST, CONSTRAINT_TYPE_VEHICLE_MOTO, CONSTRAINT_TYPE_VEHICLE_TRACK,
+    CONSTRAINT_TYPE_VEHICLE_WHEEL, TRANSMISSION_AUTO, VEHICLE_CAST_TYPE_CYLINDER,
+    VEHICLE_CAST_TYPE_RAY, VEHICLE_CAST_TYPE_SPHERE
 } from '../../../constants.mjs';
 import { createMotorSettings, createSpringSettings, setSixDOFAxes } from './utils.mjs';
 
@@ -253,8 +247,8 @@ class ConstraintCreator {
         const tracker = backend.tracker;
         const physicsSystem = backend.physicsSystem;
 
-        const velOverride = cb.read(BUFFER_READ_UINT8);
-        const posOverride = cb.read(BUFFER_READ_UINT8);
+        const velOverride = cb.read(BUFFER_READ_UINT16);
+        const posOverride = cb.read(BUFFER_READ_UINT16);
         const idx1 = cb.read(BUFFER_READ_UINT32);
         const idx2 = cb.read(BUFFER_READ_UINT32);
         const space = (cb.read(BUFFER_READ_UINT8) === CONSTRAINT_SPACE_WORLD) ?
@@ -308,6 +302,7 @@ class ConstraintCreator {
                 settings = createSixDOFConstraintSettings(Jolt, jv, cb);
                 break;
             }
+
             default:
                 if ($_DEBUG) {
                     Debug.error(`Unrecognized constraint type: ${type}`);
@@ -356,7 +351,284 @@ class ConstraintCreator {
     }
 
     _createVehicle(type, index, cb) {
+        const creator = this._creator;
+        const backend = creator.backend;
+        const Jolt = backend.Jolt;
+        const tracker = backend.tracker;
+        const physicsSystem = backend.physicsSystem;
+        const jv = creator.jv;
+        const isWheeled = type === CONSTRAINT_TYPE_VEHICLE_WHEEL ||
+                          type === CONSTRAINT_TYPE_VEHICLE_MOTO;
 
+        try {
+            const destroySettings = (list) => {
+                for (let i = 0; i < list.length; i++) {
+                    Jolt.destroy(list[i]);
+                }
+            };
+
+            const updateCurve = (curve) => {
+                curve.Clear();
+                const count = cb.read(BUFFER_READ_UINT32);
+                for (let i = 0; i < count; i++) {
+                    const key = cb.read(BUFFER_READ_FLOAT32);
+                    const val = cb.read(BUFFER_READ_FLOAT32);
+                    curve.AddPoint(key, val);
+                }
+            };
+
+            const updateGears = (gears) => {
+                const count = cb.read(BUFFER_READ_UINT32);
+                gears.clear();
+                for (let i = 0; i < count; i++) {
+                    gears.push_back(cb.read(BUFFER_READ_FLOAT32));
+                }
+            };
+
+            const updateWheel = (wheel) => {
+                wheel.mPosition = jv.FromBuffer(cb);
+                wheel.mSuspensionForcePoint = jv.FromBuffer(cb);
+                wheel.mSuspensionDirection = jv.FromBuffer(cb);
+                wheel.mSteeringAxis = jv.FromBuffer(cb);
+                wheel.mWheelUp = jv.FromBuffer(cb);
+                wheel.mWheelForward = jv.FromBuffer(cb);
+                wheel.mSuspensionMinLength = cb.read(BUFFER_READ_FLOAT32);
+                wheel.mSuspensionMaxLength = cb.read(BUFFER_READ_FLOAT32);
+                wheel.mSuspensionPreloadLength = cb.read(BUFFER_READ_FLOAT32);
+                wheel.mRadius = cb.read(BUFFER_READ_FLOAT32);
+                wheel.mWidth = cb.read(BUFFER_READ_FLOAT32);
+                wheel.mEnableSuspensionForcePoint = cb.read(BUFFER_READ_BOOL);
+
+                const spring = wheel.mSuspensionSpring;
+                spring.mMode = cb.read(BUFFER_READ_UINT8);
+                spring.mFrequency = cb.read(BUFFER_READ_FLOAT32);
+                spring.mStiffness = cb.read(BUFFER_READ_FLOAT32);
+                spring.mDamping = cb.read(BUFFER_READ_FLOAT32);
+
+                // longitudinal friction
+                if (cb.read(BUFFER_READ_BOOL)) {
+                    updateCurve(wheel.mLongitudinalFriction);
+                }
+
+                // lateral friction
+                if (cb.read(BUFFER_READ_BOOL)) {
+                    updateCurve(wheel.mLateralFriction);
+                }
+
+                if (isWheeled) {
+                    wheel.mInertia = cb.read(BUFFER_READ_FLOAT32);
+                    wheel.mAngularDamping = cb.read(BUFFER_READ_FLOAT32);
+                    wheel.mMaxSteerAngle = cb.read(BUFFER_READ_FLOAT32);
+                    wheel.mMaxBrakeTorque = cb.read(BUFFER_READ_FLOAT32);
+                    wheel.mMaxHandBrakeTorque = cb.read(BUFFER_READ_FLOAT32);
+                }
+            };
+
+            // general
+            let constraintSettings = new Jolt.VehicleConstraintSettings();
+            constraintSettings.mNumVelocityStepsOverride = cb.read(BUFFER_READ_UINT16);
+            constraintSettings.mNumPositionStepsOverride = cb.read(BUFFER_READ_UINT16);
+            constraintSettings.mUp = jv.FromBuffer(cb);
+            constraintSettings.mForward = jv.FromBuffer(cb);
+            constraintSettings.mMaxPitchRollAngle = cb.read(BUFFER_READ_FLOAT32);
+
+            const bodyIndex = cb.read(BUFFER_READ_INT32);
+
+            // controller
+            let controllerSettings;
+            if (isWheeled) {
+                controllerSettings = type === CONSTRAINT_TYPE_VEHICLE_WHEEL ?
+                    new Jolt.WheeledVehicleControllerSettings() :
+                    new Jolt.MotorcycleControllerSettings();
+            } else {
+                controllerSettings = new Jolt.TrackedVehicleControllerSettings();
+            }
+
+            // engine
+            const engine = controllerSettings.mEngine;
+            engine.mMaxTorque = cb.read(BUFFER_READ_FLOAT32);
+            engine.mMinRPM = cb.read(BUFFER_READ_FLOAT32);
+            engine.mMaxRPM = cb.read(BUFFER_READ_FLOAT32);
+            engine.mInertia = cb.read(BUFFER_READ_FLOAT32);
+            engine.mAngularDamping = cb.read(BUFFER_READ_FLOAT32);
+
+            if (cb.read(BUFFER_READ_BOOL)) {
+                updateCurve(engine.mNormalizedTorque);
+            }
+
+            // transmission
+            const transmission = controllerSettings.mTransmission;
+            const mode = cb.read(BUFFER_READ_UINT8);
+
+            transmission.mMode = mode === TRANSMISSION_AUTO ?
+                Jolt.ETransmissionMode_Auto : Jolt.ETransmissionMode_Manual;
+
+            transmission.mSwitchTime = cb.read(BUFFER_READ_FLOAT32);
+            transmission.mClutchReleaseTime = cb.read(BUFFER_READ_FLOAT32);
+            transmission.mSwitchLatency = cb.read(BUFFER_READ_FLOAT32);
+            transmission.mShiftUpRPM = cb.read(BUFFER_READ_FLOAT32);
+            transmission.mShiftDownRPM = cb.read(BUFFER_READ_FLOAT32);
+            transmission.mClutchStrength = cb.read(BUFFER_READ_FLOAT32);
+
+            updateGears(transmission.mGearRatios);
+            updateGears(transmission.mReverseGearRatios);
+
+            // anti roll bars
+            const barsCount = cb.read(BUFFER_READ_UINT32);
+            const mAntiRollBars = constraintSettings.mAntiRollBars;
+            const bars = [];
+            for (let i = 0; i < barsCount; i++) {
+                const bar = new Jolt.VehicleAntiRollBar();
+
+                bar.mLeftWheel = cb.read(BUFFER_READ_UINT32);
+                bar.mRightWheel = cb.read(BUFFER_READ_UINT32);
+                bar.mStiffness = cb.read(BUFFER_READ_FLOAT32);
+
+                bars.push(bar);
+                mAntiRollBars.push_back(bar);
+            }
+
+            constraintSettings.mController = controllerSettings;
+
+            // wheels contact tester
+            const castType = cb.read(BUFFER_READ_UINT8);
+            const layer = cb.read(BUFFER_READ_UINT32);
+            let tester;
+            switch (castType) {
+                case VEHICLE_CAST_TYPE_RAY: {
+                    jv.FromBuffer(cb);
+                    const maxAngle = cb.read(BUFFER_READ_FLOAT32);
+                    tester = new Jolt.VehicleCollisionTesterRay(layer, jv, maxAngle);
+                    break;
+                }
+                case VEHICLE_CAST_TYPE_SPHERE: {
+                    jv.FromBuffer(cb);
+                    const maxAngle = cb.read(BUFFER_READ_FLOAT32);
+                    const radius = cb.read(BUFFER_READ_FLOAT32);
+                    tester = new Jolt.VehicleCollisionTesterCastSphere(layer, radius, jv, maxAngle);
+                    break;
+                }
+                case VEHICLE_CAST_TYPE_CYLINDER: {
+                    const fraction = cb.read(BUFFER_READ_FLOAT32);
+                    tester = new Jolt.VehicleCollisionTesterCastCylinder(layer, fraction);
+                    break;
+                }
+                default:
+                    if ($_DEBUG) {
+                        Debug.error(`Unrecognized cast type: ${castType}`);
+                    }
+                    return false;
+            }
+
+            // wheels
+            const wheelsCount = cb.read(BUFFER_READ_UINT32);
+            const mWheels = constraintSettings.mWheels;
+            const Wheel = isWheeled ? Jolt.WheelSettingsWV : Jolt.WheelSettingsTV;
+            mWheels.clear();
+            for (let i = 0; i < wheelsCount; i++) {
+                const wheel = new Wheel();
+                updateWheel(wheel);
+                mWheels.push_back(wheel);
+            }
+
+            if (!isWheeled) {
+                // get tracks and map wheels
+                const tracksCount = cb.read(BUFFER_READ_UINT32);
+                for (let t = 0; t < tracksCount; t++) {
+                    const track = controllerSettings.get_mTracks(t);
+                    const twc = cb.read(BUFFER_READ_UINT32); // track wheels count
+
+                    // Make the last wheel in the track to be a driven wheel (connected to engine)
+                    track.mDrivenWheel = twc - 1;
+
+                    for (let i = 0; i < twc; i++) {
+                        track.mWheels.push_back(cb.read(BUFFER_READ_UINT32));
+                    }
+                }
+            }
+
+            const diffs = [];
+            if (isWheeled) {
+                // differentials
+                const count = cb.read(BUFFER_READ_UINT32);
+                if (count > 0) {
+                    const differentials = controllerSettings.mDifferentials;
+
+                    for (let i = 0; i < count; i++) {
+                        const settings = new Jolt.VehicleDifferentialSettings();
+
+                        settings.mLeftWheel = cb.read(BUFFER_READ_INT32);
+                        settings.mRightWheel = cb.read(BUFFER_READ_INT32);
+                        settings.mDifferentialRatio = cb.read(BUFFER_READ_FLOAT32);
+                        settings.mLeftRightSplit = cb.read(BUFFER_READ_FLOAT32);
+                        settings.mLimitedSlipRatio = cb.read(BUFFER_READ_FLOAT32);
+                        settings.mEngineTorqueRatio = cb.read(BUFFER_READ_FLOAT32);
+
+                        diffs.push(settings);
+                        differentials.push_back(settings);
+                    }
+                }
+
+                controllerSettings.mDifferentialLimitedSlipRatio = cb.read(BUFFER_READ_FLOAT32);
+
+                if (type === CONSTRAINT_TYPE_VEHICLE_MOTO) {
+                    controllerSettings.mMaxLeanAngle = cb.read(BUFFER_READ_FLOAT32);
+                    controllerSettings.mLeanSpringConstant = cb.read(BUFFER_READ_FLOAT32);
+                    controllerSettings.mLeanSpringDamping = cb.read(BUFFER_READ_FLOAT32);
+                    controllerSettings.mLeanSpringIntegrationCoefficient = cb.read(BUFFER_READ_FLOAT32);
+                    controllerSettings.mLeanSpringIntegrationCoefficientDecay = cb.read(BUFFER_READ_FLOAT32);
+                    controllerSettings.mLeanSmoothingFactor = cb.read(BUFFER_READ_FLOAT32);
+                }
+            }
+
+            // constraint
+            const body = tracker.getBodyByPCID(bodyIndex);
+            const constraint = new Jolt.VehicleConstraint(body, constraintSettings);
+
+            // For backend to write wheels isometry
+            body.isVehicle = true;
+            body.vehicleConstraintIndex = index;
+
+            constraint.SetVehicleCollisionTester(tester);
+            constraint.isWheeled = isWheeled;
+
+            // events
+            if (backend.config.vehicleContactEventsEnabled) {
+                backend.listener.initVehicleEvents(constraint);
+            }
+
+            physicsSystem.AddConstraint(constraint);
+
+            const listener = new Jolt.VehicleConstraintStepListener(constraint);
+            physicsSystem.AddStepListener(listener);
+
+            // add references for Cleaner operator
+            body.constraints = [index];
+            constraint.listener = listener;
+
+            let Controller;
+            if (isWheeled) {
+                Controller = type === CONSTRAINT_TYPE_VEHICLE_WHEEL ?
+                    Jolt.WheeledVehicleController : Jolt.MotorcycleController;
+            } else {
+                Controller = Jolt.TrackedVehicleController;
+            }
+            constraint.controller = Jolt.castObject(constraint.GetController(), Controller);
+            constraint.wheelsCount = wheelsCount;
+
+            tracker.addConstraint(index, constraint, body);
+
+            destroySettings(diffs);
+            destroySettings(bars);
+
+        } catch (e) {
+            if ($_DEBUG) {
+                Debug.error(e);
+            }
+            return false;
+        }
+
+        return true;
     }
 }
 

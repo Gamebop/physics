@@ -10,10 +10,18 @@ import { SixDOFConstraint } from './types/six-dof.mjs';
 import { SliderConstraint } from './types/slider.mjs';
 import { SwingTwistConstraint } from './types/swing-twist.mjs';
 import {
+    BUFFER_READ_FLOAT32,
     CONSTRAINT_TYPE_CONE, CONSTRAINT_TYPE_DISTANCE, CONSTRAINT_TYPE_FIXED,
     CONSTRAINT_TYPE_HINGE, CONSTRAINT_TYPE_POINT, CONSTRAINT_TYPE_PULLEY,
-    CONSTRAINT_TYPE_SIX_DOF, CONSTRAINT_TYPE_SLIDER, CONSTRAINT_TYPE_SWING_TWIST
+    CONSTRAINT_TYPE_SIX_DOF, CONSTRAINT_TYPE_SLIDER, CONSTRAINT_TYPE_SWING_TWIST,
+    CONSTRAINT_TYPE_VEHICLE_MOTO,
+    CONSTRAINT_TYPE_VEHICLE_TRACK,
+    CONSTRAINT_TYPE_VEHICLE_WHEEL
 } from '../../constants.mjs';
+import { WheeledVehicle } from './types/wheeled-vehicle.mjs';
+import { Entity } from 'playcanvas';
+import { TrackedVehicle } from './types/tracked-vehicle.mjs';
+import { MotoVehicle } from './types/moto-vehicle.mjs';
 
 /**
  * Constraint Component. Allows to add one or multiple constraints to an entity with a
@@ -23,6 +31,12 @@ import {
  */
 class ConstraintComponent extends Component {
     _list = new Set();
+
+    _vehicleConstraint = null;
+
+    get isVehicle() {
+        return this._isVehicle;
+    }
 
     /**
      * Adds a constraint to this entity. Following constants available:
@@ -80,34 +94,47 @@ class ConstraintComponent extends Component {
      * PulleyConstraint | null} - A constraint interface. Returns `null`, if unable to create one.
      */
     add(type, otherEntity, opts = {}) {
-        let JointConstructor;
+        if (!(otherEntity instanceof Entity)) {
+            opts = otherEntity;
+        }
+
+        let Constructor;
         switch (type) {
             case CONSTRAINT_TYPE_SWING_TWIST:
-                JointConstructor = SwingTwistConstraint;
+                Constructor = SwingTwistConstraint;
                 break;
             case CONSTRAINT_TYPE_FIXED:
-                JointConstructor = FixedConstraint;
+                Constructor = FixedConstraint;
                 break;
             case CONSTRAINT_TYPE_POINT:
-                JointConstructor = PointConstraint;
+                Constructor = PointConstraint;
                 break;
             case CONSTRAINT_TYPE_DISTANCE:
-                JointConstructor = DistanceConstraint;
+                Constructor = DistanceConstraint;
                 break;
             case CONSTRAINT_TYPE_HINGE:
-                JointConstructor = HingeConstraint;
+                Constructor = HingeConstraint;
                 break;
             case CONSTRAINT_TYPE_SLIDER:
-                JointConstructor = SliderConstraint;
+                Constructor = SliderConstraint;
                 break;
             case CONSTRAINT_TYPE_CONE:
-                JointConstructor = ConeConstraint;
+                Constructor = ConeConstraint;
                 break;
             case CONSTRAINT_TYPE_SIX_DOF:
-                JointConstructor = SixDOFConstraint;
+                Constructor = SixDOFConstraint;
                 break;
             case CONSTRAINT_TYPE_PULLEY:
-                JointConstructor = PulleyConstraint;
+                Constructor = PulleyConstraint;
+                break;
+            case CONSTRAINT_TYPE_VEHICLE_WHEEL:
+                Constructor = WheeledVehicle;
+                break;
+            case CONSTRAINT_TYPE_VEHICLE_TRACK:
+                Constructor = TrackedVehicle;
+                break;
+            case CONSTRAINT_TYPE_VEHICLE_MOTO:
+                Constructor = MotoVehicle;
                 break;
             default:
                 if ($_DEBUG) {
@@ -116,21 +143,74 @@ class ConstraintComponent extends Component {
                 return null;
         }
 
-        const joint = new JointConstructor(this.entity, otherEntity, opts);
+        const isVehicle = type === CONSTRAINT_TYPE_VEHICLE_WHEEL ||
+                          type === CONSTRAINT_TYPE_VEHICLE_MOTO ||
+                          type === CONSTRAINT_TYPE_VEHICLE_TRACK;
+        const constraint = isVehicle ? new Constructor(this.entity, opts) :
+                                       new Constructor(this.entity, otherEntity, opts);
 
-        if (!otherEntity.constraint) {
-            otherEntity.addComponent('constraint');
-        }
+        // for fast access in Shape Component isometry update of wheels
+        this._vehicleConstraint = isVehicle ? constraint : null;
 
-        const index = this.system.constraintMap.add(joint);
-        joint.index = index;
+        const index = this.system.constraintMap.add(constraint);
+        constraint.index = index;
 
         this._list.add(index);
-        otherEntity.constraint.list.add(index);
 
-        this.system.createConstraint(index, joint);
+        if (!isVehicle) {
+            if (!otherEntity.constraint) {
+                otherEntity.addComponent('constraint');
+            }
+            otherEntity.constraint.list.add(index);
+        }
 
-        return joint;
+        this.system.createConstraint(index, constraint);
+
+        return constraint;
+    }
+
+    updateWheelsIsometry(cb) {
+        const vehicleConstraint = this._vehicleConstraint;
+        if (!vehicleConstraint) {
+            return;
+        }
+
+        const wheels = vehicleConstraint.wheels;
+        const type = vehicleConstraint.type;
+        const wheelsCount = wheels.length;
+        const isWheeled = type === CONSTRAINT_TYPE_VEHICLE_MOTO ||
+                          type === CONSTRAINT_TYPE_VEHICLE_MOTO;
+
+        for (let i = 0; i < wheelsCount; i++) {
+            const wheel = wheels[i];
+            const entity = wheel.entity;
+
+            if (!entity) {
+                cb.skip(7 * FLOAT32_SIZE);
+                continue;
+            }
+
+            if (isWheeled) {
+                wheel.longitudinalSlip = cb.read(BUFFER_READ_FLOAT32);
+                wheel.lateralSlip = cb.read(BUFFER_READ_FLOAT32);
+                wheel.combinedLongitudinalFriction = cb.read(BUFFER_READ_FLOAT32);
+                wheel.combinedLateralFriction = cb.read(BUFFER_READ_FLOAT32);
+                wheel.brakeImpulse = cb.read(BUFFER_READ_FLOAT32);
+            }
+
+            entity.setLocalPosition(
+                cb.read(BUFFER_READ_FLOAT32),
+                cb.read(BUFFER_READ_FLOAT32),
+                cb.read(BUFFER_READ_FLOAT32)
+            );
+
+            entity.setLocalRotation(
+                cb.read(BUFFER_READ_FLOAT32),
+                cb.read(BUFFER_READ_FLOAT32),
+                cb.read(BUFFER_READ_FLOAT32),
+                cb.read(BUFFER_READ_FLOAT32)
+            );
+        }
     }
 
     onDisable() {

@@ -127,9 +127,9 @@ class Modifier {
                 ok = this._useMotionState(cb);
                 break;
 
-            case CMD_SET_DRIVER_INPUT:
-                ok = this._setDriverInput(cb);
-                break;
+            // case CMD_SET_DRIVER_INPUT:
+            //     ok = this._setDriverInput(cb);
+            //     break;
 
             case CMD_SET_GRAVITY_FACTOR:
                 ok = this._setGravityFactor(cb);
@@ -458,27 +458,27 @@ class Modifier {
         return true;
     }
 
-    _setDriverInput(cb) {
-        const backend = this._backend;
-        const tracker = backend.tracker;
-        const index = cb.read(BUFFER_READ_UINT32);
-        const body = backend.tracker.getBodyByPCID(index);
-        const data = tracker.constraintMap.get(index);
-        if (!data || !body) {
-            return true;
-        }
+    // _setDriverInput(cb) {
+    //     const backend = this._backend;
+    //     const tracker = backend.tracker;
+    //     const index = cb.read(BUFFER_READ_UINT32);
+    //     const body = backend.tracker.getBodyByPCID(index);
+    //     const data = tracker.constraintMap.get(index);
+    //     if (!data || !body) {
+    //         return true;
+    //     }
 
-        data.constraint.controller.SetDriverInput(
-            cb.read(BUFFER_READ_FLOAT32),
-            cb.read(BUFFER_READ_FLOAT32),
-            cb.read(BUFFER_READ_FLOAT32),
-            cb.read(BUFFER_READ_FLOAT32)
-        );
+    //     data.constraint.controller.SetDriverInput(
+    //         cb.read(BUFFER_READ_FLOAT32),
+    //         cb.read(BUFFER_READ_FLOAT32),
+    //         cb.read(BUFFER_READ_FLOAT32),
+    //         cb.read(BUFFER_READ_FLOAT32)
+    //     );
 
-        backend.bodyInterface.ActivateBody(body.GetID());
+    //     backend.bodyInterface.ActivateBody(body.GetID());
 
-        return true;
-    }
+    //     return true;
+    // }
 
     _toggleGroupPair(cb) {
         const backend = this._backend;

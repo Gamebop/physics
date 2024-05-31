@@ -12,7 +12,8 @@ import {
     CMD_JNT_ST_SET_SWING_M_S, CMD_JNT_ST_SET_TWIST_M_S, CMD_JNT_ST_SET_T_ANG_VEL_CS,
     CMD_JNT_ST_SET_T_MAX_ANGLE, CMD_JNT_ST_SET_T_MIN_ANGLE, CMD_JNT_ST_SET_T_O_BS,
     CMD_JNT_ST_SET_T_O_CS, CMD_JNT_S_SET_LIMITS, CMD_JNT_S_SET_M_F_FORCE, CMD_JNT_S_SET_M_STATE,
-    CMD_JNT_S_SET_SPRING_S, CMD_JNT_S_SET_T_POS, CMD_JNT_S_SET_T_VEL
+    CMD_JNT_S_SET_SPRING_S, CMD_JNT_S_SET_T_POS, CMD_JNT_S_SET_T_VEL,
+    CMD_VEHICLE_SET_INPUT
 } from '../../../constants.mjs';
 
 class ConstraintModifier {
@@ -37,6 +38,8 @@ class ConstraintModifier {
             return this._updateConeConstraint(command, cb);
         } else if (command >= 570 && command < 580) {
             return this._updateSixDOFConstraint(command, cb);
+        } else if (command >= 580 && command < 590) {
+            return this._updateVehicleConstraint(command, cb);
         }
 
         if ($_DEBUG) {
@@ -350,7 +353,34 @@ class ConstraintModifier {
         return true;
     }
 
+    _updateVehicleConstraint(command, cb) {
+        const backend = this._modifier.backend;
+        const tracker = backend.tracker;
+        const index = cb.read(BUFFER_READ_UINT32);
+        const data = tracker.constraintMap.get(index);
+        const body = data.body1;
+        if (!data || !body) {
+            return true;
+        }
+
+        if (command === CMD_VEHICLE_SET_INPUT) {
+            const fw = cb.read(BUFFER_READ_FLOAT32);
+            const right = cb.read(BUFFER_READ_FLOAT32)
+            const brake = cb.read(BUFFER_READ_FLOAT32);
+            const handBrake = cb.read(BUFFER_READ_FLOAT32);
+            data.constraint.controller.SetDriverInput(fw, right, brake, handBrake);
+
+            if (fw || right || brake || handBrake) {
+                backend.bodyInterface.ActivateBody(body.GetID());
+            }
+        }
+
+        return true;
+    }
+
     _getConstraint(cb, type) {
+        // TODO
+        // cast the constraint type on creation, so we don't do it every time
         const index = cb.read(BUFFER_READ_UINT32);
         const { tracker, Jolt } = this._modifier.backend;
         const data = tracker.constraintMap.get(index);

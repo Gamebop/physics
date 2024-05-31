@@ -102,51 +102,53 @@ class ShapeComponentSystem extends JoltComponentSystem {
             cb.read(BUFFER_READ_FLOAT32)
         );
 
-        const component = entity.c.body || vehicleComponent;
-        component._linearVelocity.set(
+        const bodyComponent = entity.c.body;
+        bodyComponent._linearVelocity.set(
             cb.read(BUFFER_READ_FLOAT32),
             cb.read(BUFFER_READ_FLOAT32),
             cb.read(BUFFER_READ_FLOAT32)
         );
-        component._angularVelocity.set(
+        bodyComponent._angularVelocity.set(
             cb.read(BUFFER_READ_FLOAT32),
             cb.read(BUFFER_READ_FLOAT32),
             cb.read(BUFFER_READ_FLOAT32)
         );
 
-        if (vehicleComponent) {
-            const wheels = vehicleComponent.wheels;
-            const wheelsCount = wheels.length;
+        // Let vehicle constraints update their wheels isometry
+        entity.c.constraint?.updateWheelsIsometry?.(cb);
+        // if (isVehicle) {
+        //     const wheels = constraintComponent.wheels;
+        //     const wheelsCount = wheels.length;
 
-            for (let i = 0; i < wheelsCount; i++) {
-                const wheel = wheels[i];
-                const entity = wheel.entity;
+        //     for (let i = 0; i < wheelsCount; i++) {
+        //         const wheel = wheels[i];
+        //         const entity = wheel.entity;
 
-                if (!entity) {
-                    cb.skip(7 * FLOAT32_SIZE);
-                    continue;
-                }
+        //         if (!entity) {
+        //             cb.skip(7 * FLOAT32_SIZE);
+        //             continue;
+        //         }
 
-                wheel.longitudinalSlip = cb.read(BUFFER_READ_FLOAT32);
-                wheel.lateralSlip = cb.read(BUFFER_READ_FLOAT32);
-                wheel.combinedLongitudinalFriction = cb.read(BUFFER_READ_FLOAT32);
-                wheel.combinedLateralFriction = cb.read(BUFFER_READ_FLOAT32);
-                wheel.brakeImpulse = cb.read(BUFFER_READ_FLOAT32);
+        //         wheel.longitudinalSlip = cb.read(BUFFER_READ_FLOAT32);
+        //         wheel.lateralSlip = cb.read(BUFFER_READ_FLOAT32);
+        //         wheel.combinedLongitudinalFriction = cb.read(BUFFER_READ_FLOAT32);
+        //         wheel.combinedLateralFriction = cb.read(BUFFER_READ_FLOAT32);
+        //         wheel.brakeImpulse = cb.read(BUFFER_READ_FLOAT32);
 
-                entity.setLocalPosition(
-                    cb.read(BUFFER_READ_FLOAT32),
-                    cb.read(BUFFER_READ_FLOAT32),
-                    cb.read(BUFFER_READ_FLOAT32)
-                );
+        //         entity.setLocalPosition(
+        //             cb.read(BUFFER_READ_FLOAT32),
+        //             cb.read(BUFFER_READ_FLOAT32),
+        //             cb.read(BUFFER_READ_FLOAT32)
+        //         );
 
-                entity.setLocalRotation(
-                    cb.read(BUFFER_READ_FLOAT32),
-                    cb.read(BUFFER_READ_FLOAT32),
-                    cb.read(BUFFER_READ_FLOAT32),
-                    cb.read(BUFFER_READ_FLOAT32)
-                );
-            }
-        }
+        //         entity.setLocalRotation(
+        //             cb.read(BUFFER_READ_FLOAT32),
+        //             cb.read(BUFFER_READ_FLOAT32),
+        //             cb.read(BUFFER_READ_FLOAT32),
+        //             cb.read(BUFFER_READ_FLOAT32)
+        //         );
+        //     }
+        // }
     }
 }
 

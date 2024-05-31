@@ -1,6 +1,6 @@
 import { Debug } from '../../../../debug.mjs';
 import {
-    BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT32, BUFFER_WRITE_UINT8,
+    BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT16, BUFFER_WRITE_UINT32, BUFFER_WRITE_UINT8,
     CMD_JNT_SET_ENABLED, CONSTRAINT_TYPE_UNDEFINED, OPERATOR_MODIFIER, SPRING_MODE_FREQUENCY
 } from '../../../../constants.mjs';
 import { Curve, Vec3, Entity } from 'playcanvas';
@@ -9,7 +9,7 @@ function applyOptions(instance, opts) {
     for (const [key, val] of Object.entries(opts)) {
         const prop = '_' + key;
         if (!instance[prop]) continue;
-        if (typeof val === 'number' || val instanceof Entity) {
+        if (typeof val === 'number' || val instanceof Entity || val instanceof Array) {
             instance[prop] = val;
         } else if (val instanceof Vec3 || val instanceof Curve) {
             instance[prop] = val.clone();
@@ -124,11 +124,6 @@ class Constraint {
 
     _numPositionStepsOverride = 0;
 
-    // constructor(opts = {}) {
-    //     // this._numVelocityStepsOverride = opts.numVelocityStepsOverride ?? this._numVelocityStepsOverride;
-    //     // this._numPositionStepsOverride = opts.numPositionStepsOverride ?? this._numPositionStepsOverride;
-    // }
-
     /**
      * Unique constraint index to link to physics object. Index can be re-used by another constraint, when this one is
      * destroyed.
@@ -174,7 +169,7 @@ class Constraint {
      * @returns {import('../../system.mjs').ConstraintComponentSystem} - Constraint component system.
      */
     get system() {
-        return this._entity1.constraint.system;
+        return this._entity1?.constraint.system || this._entity?.constraint.system;
     }
 
     /**
@@ -207,8 +202,8 @@ class Constraint {
 
         cb.write(this._index, BUFFER_WRITE_UINT32, false);
         cb.write(this._type, BUFFER_WRITE_UINT8, false);
-        cb.write(this._numVelocityStepsOverride, BUFFER_WRITE_UINT8, false);
-        cb.write(this._numPositionStepsOverride, BUFFER_WRITE_UINT8, false);
+        cb.write(this._numVelocityStepsOverride, BUFFER_WRITE_UINT16, false);
+        cb.write(this._numPositionStepsOverride, BUFFER_WRITE_UINT16, false);
     }
 
     /**
