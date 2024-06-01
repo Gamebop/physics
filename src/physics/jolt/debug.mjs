@@ -38,81 +38,83 @@ class Debug {
         }
     }
 
-    static assert(test, ...attr) {
+    static assert(test, msg, value) {
         if (!test) {
-            Debug.errorOnce('Assert Error:', test, ...attr);
+            Debug.errorOnce('Assert Error:', msg, value);
             return false;
         }
         return true;
     }
 
-    static checkRange(number, min, max, msg) {
-        let ok = Debug.checkFloat(number, msg);
-        ok = ok && Debug.assert(number >= min, msg);
-        ok = ok && Debug.assert(number <= max, msg);
+    static checkRange(number, min, max) {
+        const msg = 'Invalid numbers range.';
+        let ok = Debug.checkFloat(number);
+        ok = ok && Debug.assert(number >= min, msg, number);
+        ok = ok && Debug.assert(number <= max, msg, number);
         return ok;
     }
 
-    static checkInt(number, msg) {
-        const ok = Debug.assert(Number.isInteger(number), msg);
+    static checkInt(number) {
+        const ok = Debug.assert(Number.isInteger(number), 'Invalid integer.', number);
         return ok;
     }
 
-    static checkUint(number, msg) {
-        let ok = Debug.checkInt(number, msg);
-        ok = ok && Debug.assert(number >= 0, msg);
+    static checkUint(number) {
+        let ok = Debug.checkInt(number);
+        ok = ok && Debug.assert(number >= 0, 'Invalid unsigned integer.', number);
         return ok;
     }
 
-    static checkFloat(number, msg) {
-        let ok = Debug.assert(typeof number === 'number', msg);
-        ok = ok && Debug.assert(!isNaN(number), msg);
+    static checkFloat(number) {
+        const msg = 'Invalid float.';
+        let ok = Debug.assert(typeof number === 'number', msg, number);
+        ok = ok && Debug.assert(!isNaN(number), msg, number);
         return ok;
     }
 
-    static checkFloatPositive(number, msg) {
-        let ok = Debug.checkFloat(number, msg);
-        ok = ok && Debug.assert(number >= 0, msg);
+    static checkFloatPositive(number) {
+        let ok = Debug.checkFloat(number);
+        ok = ok && Debug.assert(number >= 0, 'Invalid unsigned float.', number);
         return ok;
     }
 
-    static checkBool(bool, msg) {
-        return Debug.assert((bool === true || bool === false), msg);
+    static checkBool(bool) {
+        return Debug.assert((bool === true || bool === false), 'Invalid boolean.', bool);
     }
 
-    static checkVec(vec, msg) {
-        let ok = Debug.checkFloat(vec.x, msg);
-        ok = ok && Debug.checkFloat(vec.y, msg);
-        ok = ok && Debug.checkFloat(vec.z, msg);
+    static checkVec(vec) {
+        let ok = Debug.checkFloat(vec.x);
+        ok = ok && Debug.checkFloat(vec.y);
+        ok = ok && Debug.checkFloat(vec.z);
         return ok;
     }
 
-    static checkVecPositive(vec, msg) {
-        let ok = Debug.checkFloatPositive(vec.x, msg);
-        ok = ok && Debug.checkFloatPositive(vec.y, msg);
-        ok = ok && Debug.checkFloatPositive(vec.z, msg);
+    static checkVecPositive(vec) {
+        let ok = Debug.checkFloatPositive(vec.x);
+        ok = ok && Debug.checkFloatPositive(vec.y);
+        ok = ok && Debug.checkFloatPositive(vec.z);
         return ok;
     }
 
-    static checkQuat(quat, msg) {
-        let ok = Debug.checkVec(quat, msg);
-        ok = ok && Debug.checkFloat(quat.w, msg);
+    static checkQuat(quat) {
+        let ok = Debug.checkVec(quat);
+        ok = ok && Debug.checkFloat(quat.w);
         return ok;
     }
 
     static checkSpringSettings(settings) {
         let ok = Debug.assert(typeof settings === 'object', 'Invalid settings object for constraint', settings);
         if (settings.springMode != null) {
-            ok = ok && Debug.checkFloat(settings.springMode, `Invalid spring mode: ${settings.springMode}`);
+            ok = ok && Debug.checkFloat(settings.springMode);
         }
         if (settings.frequency != null) {
-            ok = ok && Debug.checkFloat(settings.frequency, `Invalid spring frequency: ${settings.frequency}`);
+            ok = ok && Debug.checkFloat(settings.frequency);
         }
         if (settings.stiffness != null) {
-            ok = ok && Debug.checkFloat(settings.stiffness, `Invalid spring stiffness: ${settings.stiffness}`);
+            ok = ok && Debug.checkFloat(settings.stiffness);
         }
         if (settings.damping != null) {
-            ok = ok && Debug.checkFloat(settings.damping, `Invalid spring stiffness: ${settings.damping}`);
+            ok = ok && Debug.checkFloat(settings.damping);
         }
         return ok;
     }
@@ -126,7 +128,7 @@ class Debug {
                     found = true;
                 }
             }
-            ok = ok && Debug.assert(found, `Component: Unrecognized options property: ${entry}`);
+            ok = ok && Debug.assert(found, 'Component: Unrecognized options property.', entry);
         });
 
         return ok;

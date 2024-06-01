@@ -1,39 +1,109 @@
 import { BUFFER_WRITE_FLOAT32, CONSTRAINT_TYPE_VEHICLE_MOTO } from '../../../constants.mjs';
-import { Vehicle, writeDifferentials, writeWheelsData } from './base/vehicle.mjs';
+import { Debug } from '../../../debug.mjs';
+import { VehicleConstraint, writeDifferentials, writeWheelsData } from './base/vehicle.mjs';
+import { math } from 'playcanvas';
 
-class MotoVehicle extends Vehicle {
+class MotoVehicleConstraint extends VehicleConstraint {
     _type = CONSTRAINT_TYPE_VEHICLE_MOTO;
 
-    // How far we're willing to make the bike lean over in turns (in radians)
-    _maxLeanAngle = 45;
+    _maxLeanAngle = 45 * math.DEG_TO_RAD;
 
-    // Spring constant for the lean spring.
     _leanSpringConstant = 5000;
 
-    // Spring damping constant for the lean spring.
     _leanSpringDamping = 1000;
 
-    // The lean spring applies an additional force equal to this coefficient * Integral(delta angle, 0, t),
-    // this effectively makes the lean spring a PID controller.
     _leanSpringIntegrationCoefficient = 0;
 
-    // How much to decay the angle integral when the wheels are not touching the floor:
-    // new_value = e^(-decay * t) * initial_value.
     _leanSpringIntegrationCoefficientDecay = 4;
 
-    // How much to smooth the lean angle (0 = no smoothing, 1 = lean angle never changes). Note that this
-    // is frame rate dependent because the formula is: smoothing_factor * previous + (1 - smoothing_factor) * current
     _leanSmoothingFactor = 0.8;
+
+    /**
+     * How much to smooth the lean angle:
+     * - `0`: no smoothing
+     * - `1`: lean angle never changes
+     *
+     * @returns {number} - Smooth coefficient.
+     * @defaultValue 0.8
+     */
+    get leanSmoothingFactor() {
+        return this._leanSmoothingFactor;
+    }
+
+    /**
+     * Spring constant for the lean spring.
+     *
+     * @returns {number} - Lean spring constant.
+     * @defaultValue 5000
+     */
+    get leanSpringConstant() {
+        return this._leanSpringConstant;
+    }
+
+    /**
+     * Spring damping constant for the lean spring.
+     *
+     * @returns {number} - Spring damping constant.
+     * @defaultValue 1000
+     */
+    get leanSpringDamping() {
+        return this._leanSpringDamping;
+    }
+
+    /**
+     * The lean spring applies an additional force equal to:
+     * ```
+     * coefficient * Integral(delta angle, 0, t)
+     * ```
+     * This effectively makes the lean spring a PID controller.
+     *
+     * @returns {number} - Integration coefficient.
+     * @defaultValue 0
+     */
+    get leanSpringIntegrationCoefficient() {
+        return this._leanSpringIntegrationCoefficient;
+    }
+
+    /**
+     * How much to decay the angle integral when the wheels are not touching the floor:
+     * ```
+     * new_value = e^(-decay * t) * initial_value.
+     * ```
+     *
+     * @returns {number} - Coefficient decay.
+     * @defaultValue 4
+     */
+    get leanSpringIntegrationCoefficientDecay() {
+        return this._leanSpringIntegrationCoefficientDecay;
+    }
+
+    /**
+     * How far we're willing to make the bike lean over in turns.
+     *
+     * @returns {number} - Lean angle (radians).
+     * @defaultValue 45 * math.DEG_TO_RAD
+     */
+    get maxLeanAngle() {
+        return this._maxLeanAngle;
+    }
 
     write(cb) {
         if ($_DEBUG) {
-            // TODO
+            let ok = Debug.checkFloat(this._maxLeanAngle);
+            ok = ok && Debug.checkFloat(this._leanSpringConstant);
+            ok = ok && Debug.checkFloat(this._leanSpringDamping);
+            ok = ok && Debug.checkFloat(this._leanSpringIntegrationCoefficient);
+            ok = ok && Debug.checkFloat(this._leanSpringIntegrationCoefficientDecay);
+            ok = ok && Debug.checkFloat(this._leanSmoothingFactor);
+            if (!ok) {
+                return;
+            }
         }
 
         super.write(cb);
 
         writeWheelsData(cb, this._wheels, true);
-        
+
         writeDifferentials(cb, this._differentials, this._differentialLimitedSlipRatio);
 
         cb.write(this._maxLeanAngle, BUFFER_WRITE_FLOAT32, false);
@@ -45,4 +115,4 @@ class MotoVehicle extends Vehicle {
     }
 }
 
-export { MotoVehicle };
+export { MotoVehicleConstraint };

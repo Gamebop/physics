@@ -1,4 +1,4 @@
-import { BUFFER_WRITE_VEC32, CONSTRAINT_TYPE_POINT } from '../../../constants.mjs';
+import { CONSTRAINT_TYPE_POINT } from '../../../constants.mjs';
 import { Joint } from './base/joint.mjs';
 
 /**

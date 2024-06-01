@@ -365,7 +365,7 @@ class ConstraintModifier {
 
         if (command === CMD_VEHICLE_SET_INPUT) {
             const fw = cb.read(BUFFER_READ_FLOAT32);
-            const right = cb.read(BUFFER_READ_FLOAT32)
+            const right = cb.read(BUFFER_READ_FLOAT32);
             const brake = cb.read(BUFFER_READ_FLOAT32);
             const handBrake = cb.read(BUFFER_READ_FLOAT32);
             data.constraint.controller.SetDriverInput(fw, right, brake, handBrake);

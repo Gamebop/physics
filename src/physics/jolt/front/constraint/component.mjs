@@ -16,7 +16,8 @@ import {
     CONSTRAINT_TYPE_SIX_DOF, CONSTRAINT_TYPE_SLIDER, CONSTRAINT_TYPE_SWING_TWIST,
     CONSTRAINT_TYPE_VEHICLE_MOTO,
     CONSTRAINT_TYPE_VEHICLE_TRACK,
-    CONSTRAINT_TYPE_VEHICLE_WHEEL
+    CONSTRAINT_TYPE_VEHICLE_WHEEL,
+    FLOAT32_SIZE
 } from '../../constants.mjs';
 import { WheeledVehicle } from './types/wheeled-vehicle.mjs';
 import { Entity } from 'playcanvas';
@@ -33,6 +34,10 @@ class ConstraintComponent extends Component {
     _list = new Set();
 
     _vehicleConstraint = null;
+
+    get vehicleConstraint() {
+        return this._vehicleConstraint;
+    }
 
     /**
      * Adds a constraint to this entity. Following constants available:
@@ -143,7 +148,7 @@ class ConstraintComponent extends Component {
                           type === CONSTRAINT_TYPE_VEHICLE_MOTO ||
                           type === CONSTRAINT_TYPE_VEHICLE_TRACK;
         const constraint = isVehicle ? new Constructor(this.entity, opts) :
-                                       new Constructor(this.entity, otherEntity, opts);
+            new Constructor(this.entity, otherEntity, opts);
 
         // for fast access in Shape Component isometry update of wheels
         this._vehicleConstraint = isVehicle ? constraint : null;

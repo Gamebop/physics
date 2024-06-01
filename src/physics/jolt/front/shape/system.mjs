@@ -79,12 +79,12 @@ class ShapeComponentSystem extends JoltComponentSystem {
     static updateDynamic(cb) {
         const index = cb.read(BUFFER_READ_UINT32);
         const entity = ShapeComponentSystem.entityMap.get(index);
-        const vehicleComponent = entity?.c.vehicle;
+        const vehicleConstraint = entity.c.constraint?.vehicleConstraint;
 
         if (!entity) {
             cb.skip(13 * FLOAT32_SIZE);
-            if (vehicleComponent) {
-                cb.skip(vehicleComponent.wheels.length * 7 * FLOAT32_SIZE);
+            if (vehicleConstraint) {
+                cb.skip(vehicleConstraint.wheels.length * 7 * FLOAT32_SIZE);
             }
             return;
         }
@@ -116,39 +116,6 @@ class ShapeComponentSystem extends JoltComponentSystem {
 
         // Let vehicle constraints update their wheels isometry
         entity.c.constraint?.updateWheelsIsometry?.(cb);
-        // if (isVehicle) {
-        //     const wheels = constraintComponent.wheels;
-        //     const wheelsCount = wheels.length;
-
-        //     for (let i = 0; i < wheelsCount; i++) {
-        //         const wheel = wheels[i];
-        //         const entity = wheel.entity;
-
-        //         if (!entity) {
-        //             cb.skip(7 * FLOAT32_SIZE);
-        //             continue;
-        //         }
-
-        //         wheel.longitudinalSlip = cb.read(BUFFER_READ_FLOAT32);
-        //         wheel.lateralSlip = cb.read(BUFFER_READ_FLOAT32);
-        //         wheel.combinedLongitudinalFriction = cb.read(BUFFER_READ_FLOAT32);
-        //         wheel.combinedLateralFriction = cb.read(BUFFER_READ_FLOAT32);
-        //         wheel.brakeImpulse = cb.read(BUFFER_READ_FLOAT32);
-
-        //         entity.setLocalPosition(
-        //             cb.read(BUFFER_READ_FLOAT32),
-        //             cb.read(BUFFER_READ_FLOAT32),
-        //             cb.read(BUFFER_READ_FLOAT32)
-        //         );
-
-        //         entity.setLocalRotation(
-        //             cb.read(BUFFER_READ_FLOAT32),
-        //             cb.read(BUFFER_READ_FLOAT32),
-        //             cb.read(BUFFER_READ_FLOAT32),
-        //             cb.read(BUFFER_READ_FLOAT32)
-        //         );
-        //     }
-        // }
     }
 }
 

@@ -86,11 +86,6 @@ export const SHAPE_CONVEX_HULL = 5;
 export const SHAPE_HEIGHTFIELD = 6;
 export const SHAPE_STATIC_COMPOUND = 7;
 
-// export const VEHICLE_TYPE_UNDEFINED = -1;
-// export const VEHICLE_TYPE_WHEEL = 0;
-// export const VEHICLE_TYPE_TRACK = 1;
-// export const VEHICLE_TYPE_MOTORCYCLE = 2;
-
 export const CONTACT_TYPE_ADDED = 0;
 export const CONTACT_TYPE_PERSISTED = 1;
 export const CONTACT_TYPE_REMOVED = 2;
@@ -98,9 +93,8 @@ export const CONTACT_TYPE_REMOVED = 2;
 export const COMPONENT_SYSTEM_MANAGER = 0;
 export const COMPONENT_SYSTEM_BODY = 1;
 export const COMPONENT_SYSTEM_CHAR = 2;
-export const COMPONENT_SYSTEM_VEHICLE = 3;
-export const COMPONENT_SYSTEM_SOFT_BODY = 4;
-export const COMPONENT_SYSTEM_CONSTRAINT = 5;
+export const COMPONENT_SYSTEM_SOFT_BODY = 3;
+export const COMPONENT_SYSTEM_CONSTRAINT = 4;
 
 export const FLOAT32_SIZE = Float32Array.BYTES_PER_ELEMENT;
 export const INT32_SIZE = Int32Array.BYTES_PER_ELEMENT;

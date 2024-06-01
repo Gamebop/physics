@@ -19,7 +19,6 @@ export { CharComponentSystem } from './physics/jolt/front/char/system.mjs';
 export { SoftBodyComponent } from './physics/jolt/front/softbody/component.mjs';
 export { SoftBodyComponentSystem } from './physics/jolt/front/softbody/system.mjs';
 
-
 export { ConstraintComponent } from './physics/jolt/front/constraint/component.mjs';
 export { ConstraintComponentSystem } from './physics/jolt/front/constraint/system.mjs';
 
@@ -39,6 +38,9 @@ export { PulleyConstraint } from './physics/jolt/front/constraint/types/pulley.m
 export { SixDOFConstraint } from './physics/jolt/front/constraint/types/six-dof.mjs';
 export { SliderConstraint } from './physics/jolt/front/constraint/types/slider.mjs';
 export { SwingTwistConstraint } from './physics/jolt/front/constraint/types/swing-twist.mjs';
+export { WheeledVehicleConstraint } from './physics/jolt/front/constraint/types/wheeled-vehicle.mjs';
+export { TrackedVehicleConstraint } from './physics/jolt/front/constraint/types/tracked-vehicle.mjs';
+export { MotoVehicleConstraint } from './physics/jolt/front/constraint/types/moto-vehicle.mjs';
 
 export { CommandsBuffer } from './physics/jolt/back/commands-buffer.mjs';
 export { IndexedCache } from './physics/indexed-cache.mjs';

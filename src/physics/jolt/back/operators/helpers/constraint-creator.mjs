@@ -10,9 +10,9 @@ import {
 } from '../../../constants.mjs';
 import { createMotorSettings, createSpringSettings, setSixDOFAxes } from './utils.mjs';
 
-function createFixedConstraintSettings(Jolt, cb) {
+function createFixedConstraintSettings(Jolt, jv, cb) {
     const settings = new Jolt.FixedConstraintSettings();
-    
+
     if (cb.flag) settings.mPoint1 = jv.FromBuffer(cb);
     if (cb.flag) settings.mPoint2 = jv.FromBuffer(cb);
     if (cb.flag) settings.mAutoDetectPoint = cb.read(BUFFER_READ_BOOL);
@@ -262,12 +262,12 @@ class ConstraintCreator {
             ok = ok && Debug.assert(!!body1, `Unable to locate body to add constraint to: ${idx1}`);
             ok = ok && Debug.assert(!!body2, `Unable to locate body to add constraint to: ${idx2}`);
             if (!ok) return false;
-        }   
+        }
 
         let settings;
         switch (type) {
             case CONSTRAINT_TYPE_FIXED:
-                settings = createFixedConstraintSettings(Jolt, cb);
+                settings = createFixedConstraintSettings(Jolt, jv, cb);
                 break;
 
             case CONSTRAINT_TYPE_POINT:
@@ -309,7 +309,7 @@ class ConstraintCreator {
                 }
                 return false;
         }
-        
+
         settings.mSpace = space;
 
         if (velOverride > 0) settings.mNumVelocityStepsOverride = velOverride;
@@ -425,7 +425,7 @@ class ConstraintCreator {
             };
 
             // general
-            let constraintSettings = new Jolt.VehicleConstraintSettings();
+            const constraintSettings = new Jolt.VehicleConstraintSettings();
             constraintSettings.mNumVelocityStepsOverride = cb.read(BUFFER_READ_UINT16);
             constraintSettings.mNumPositionStepsOverride = cb.read(BUFFER_READ_UINT16);
             constraintSettings.mUp = jv.FromBuffer(cb);

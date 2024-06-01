@@ -77,6 +77,10 @@ class JoltComponentSystem extends ComponentSystem {
         entity[this.id] = component;
         entity.c[this.id] = component;
 
+        // TODO
+        // we need to add a component to a sorted list, refer to
+        // https://github.com/playcanvas/engine/issues/6647
+
         this.initializeComponentData(component, data);
 
         return component;

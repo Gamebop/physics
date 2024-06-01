@@ -78,6 +78,17 @@ class FixedConstraint extends Joint {
     write(cb) {
         super.write(cb);
 
+        if ($_DEBUG) {
+            let ok = Debug.checkBool(this._autoDetectPoint);
+            ok = ok && Debug.checkVec(this._axisX1);
+            ok = ok && Debug.checkVec(this._axisY1);
+            ok = ok && Debug.checkVec(this._axisX2);
+            ok = ok && Debug.checkVec(this._axisY2);
+            if (!ok) {
+                return;
+            }
+        }
+
         cb.write(this._autoDetectPoint, BUFFER_WRITE_BOOL);
         cb.write(this._axisX1, BUFFER_WRITE_VEC32);
         cb.write(this._axisY1, BUFFER_WRITE_VEC32);

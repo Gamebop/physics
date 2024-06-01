@@ -1,7 +1,7 @@
 import { CONSTRAINT_TYPE_VEHICLE_TRACK } from '../../../constants.mjs';
-import { Vehicle, writeTracksData, writeWheelsData } from './base/vehicle.mjs';
+import { VehicleConstraint, writeTracksData, writeWheelsData } from './base/vehicle.mjs';
 
-class TrackedVehicle extends Vehicle {
+class TrackedVehicleConstraint extends VehicleConstraint {
     _type = CONSTRAINT_TYPE_VEHICLE_TRACK;
 
     write(cb) {
@@ -17,4 +17,4 @@ class TrackedVehicle extends Vehicle {
     }
 }
 
-export { TrackedVehicle };
+export { TrackedVehicleConstraint };

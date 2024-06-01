@@ -1,8 +1,9 @@
-import { Curve, Entity, Vec3 } from 'playcanvas';
+import { Curve, Vec3 } from 'playcanvas';
 import {
-    BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_INT32, BUFFER_WRITE_UINT32, BUFFER_WRITE_UINT8,
-    BUFFER_WRITE_VEC32, CMD_VEHICLE_SET_INPUT, CONSTRAINT_TYPE_UNDEFINED, CONSTRAINT_TYPE_VEHICLE_MOTO, CONSTRAINT_TYPE_VEHICLE_WHEEL,
-    OBJ_LAYER_MOVING, OPERATOR_MODIFIER, SPRING_MODE_FREQUENCY, TRANSMISSION_AUTO, VEHICLE_CAST_TYPE_RAY
+    BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_INT32, BUFFER_WRITE_UINT32,
+    BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32, CMD_VEHICLE_SET_INPUT, CONSTRAINT_TYPE_VEHICLE_MOTO,
+    CONSTRAINT_TYPE_VEHICLE_WHEEL, OBJ_LAYER_MOVING, OPERATOR_MODIFIER, SPRING_MODE_FREQUENCY,
+    TRANSMISSION_AUTO, VEHICLE_CAST_TYPE_CYLINDER, VEHICLE_CAST_TYPE_RAY, VEHICLE_CAST_TYPE_SPHERE
 } from '../../../../constants.mjs';
 import { Debug } from '../../../../debug.mjs';
 import { Constraint, applyOptions } from './constraint.mjs';
@@ -221,7 +222,7 @@ function writeTracksData(cb, tracks) {
     }
 }
 
-class Vehicle extends Constraint {
+class VehicleConstraint extends Constraint {
     _entity = null;
 
     // Used only when the constraint is active. Override for the number of solver
@@ -382,6 +383,10 @@ class Vehicle extends Constraint {
             ok = ok && Debug.checkVec(this._forward, `Invalid forward vector`, this._forward);
             ok = ok && Debug.checkFloat(this._maxPitchRollAngle, `Invalid angle scalar`, this._maxPitchRollAngle);
             // TODO
+
+            if (!ok) {
+                return;
+            }
         }
 
         super.write(cb);
@@ -449,4 +454,4 @@ class Vehicle extends Constraint {
     }
 }
 
-export { Vehicle, writeWheelsData, writeTracksData, writeDifferentials };
+export { VehicleConstraint, writeWheelsData, writeTracksData, writeDifferentials };
