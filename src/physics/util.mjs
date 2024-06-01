@@ -16,8 +16,8 @@ function buildAccessors(obj, schema) {
             },
             set: function (value) {
                 const oldValue = this[`_${property}`];
-                this[`_${property}`] = value;
                 this.fire('set', property, oldValue, value);
+                this[`_${property}`] = value;
             },
             configurable: true
         });

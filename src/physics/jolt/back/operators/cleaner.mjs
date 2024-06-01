@@ -143,10 +143,13 @@ class Cleaner {
         };
 
         clearIndex(body1.constraints);
-        clearIndex(body2.constraints);
-
         activate(body1);
-        activate(body2);
+
+        // Vehicle constraint has no body2
+        if (body2) {
+            clearIndex(body2.constraints);
+            activate(body2);
+        }
 
         if (Jolt.getPointer(constraint) !== 0) {
             backend.physicsSystem.RemoveConstraint(constraint);

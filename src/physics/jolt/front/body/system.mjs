@@ -48,8 +48,6 @@ class BodyComponentSystem extends ShapeComponentSystem {
         this.schema = [...this._schema, ...schema];
 
         manager.systems.set(id, this);
-
-        this.on('beforeremove', this.onBeforeRemove, this);
     }
 
     get id() {
@@ -124,12 +122,6 @@ class BodyComponentSystem extends ShapeComponentSystem {
 
     requestIsometry() {
         this.fire('write-isometry');
-    }
-
-    onBeforeRemove(entity, component) {
-        if (component.enabled) {
-            component.enabled = false;
-        }
     }
 }
 

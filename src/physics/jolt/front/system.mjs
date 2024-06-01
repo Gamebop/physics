@@ -14,6 +14,8 @@ class JoltComponentSystem extends ComponentSystem {
         super(app);
 
         this._manager = manager;
+
+        this.on('beforeremove', this.onBeforeRemove, this);
     }
 
     set schema(newSchema) {
@@ -92,6 +94,12 @@ class JoltComponentSystem extends ComponentSystem {
 
         if (component.entity.enabled && !component.isCompoundChild) {
             component.onEnable();
+        }
+    }
+
+    onBeforeRemove(entity, component) {
+        if (component.enabled) {
+            component.enabled = false;
         }
     }
 }

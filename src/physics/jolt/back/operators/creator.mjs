@@ -220,7 +220,8 @@ class Creator {
                 break;
 
             case CMD_CREATE_CONSTRAINT:
-                return this._constraintCreator.create(cb);
+                ok = this._constraintCreator.create(cb);
+                break;
 
             case CMD_CREATE_CHAR:
                 ok = this._createCharacter(cb);

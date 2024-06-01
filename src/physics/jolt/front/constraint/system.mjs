@@ -2,7 +2,7 @@ import { JoltComponentSystem } from '../system.mjs';
 import { ConstraintComponent } from './component.mjs';
 import { IndexedCache } from '../../../indexed-cache.mjs';
 import {
-    BUFFER_WRITE_UINT32, CMD_CREATE_CONSTRAINT, CMD_DESTROY_CONSTRAINT, OPERATOR_CLEANER,
+    BUFFER_WRITE_UINT32, CMD_CREATE_CONSTRAINT, CMD_DESTROY_CONSTRAINT, CONSTRAINT_TYPE_VEHICLE_MOTO, CONSTRAINT_TYPE_VEHICLE_TRACK, CONSTRAINT_TYPE_VEHICLE_WHEEL, OPERATOR_CLEANER,
     OPERATOR_CREATOR
 } from '../../constants.mjs';
 
@@ -55,8 +55,14 @@ class ConstraintComponentSystem extends JoltComponentSystem {
         const map = this._constraintMap;
         const constraint = map.get(index);
 
-        constraint.entity1.constraint.list.delete(index);
-        constraint.entity2.constraint.list.delete(index);
+        if (constraint.type === CONSTRAINT_TYPE_VEHICLE_MOTO ||
+            constraint.type === CONSTRAINT_TYPE_VEHICLE_TRACK ||
+            constraint.type === CONSTRAINT_TYPE_VEHICLE_WHEEL) {
+            constraint.entity.constraint.list.delete(index);
+        } else {
+            constraint.entity1.constraint.list.delete(index);
+            constraint.entity2.constraint.list.delete(index);
+        }
 
         map.free(index);
 

@@ -343,6 +343,10 @@ class Vehicle extends Constraint {
         applyOptions(this, opts);
     }
 
+    get entity() {
+        return this._entity;
+    }
+
     get wheels() {
         return this._wheels;
     }

@@ -34,10 +34,6 @@ class ConstraintComponent extends Component {
 
     _vehicleConstraint = null;
 
-    get isVehicle() {
-        return this._isVehicle;
-    }
-
     /**
      * Adds a constraint to this entity. Following constants available:
      * ```
