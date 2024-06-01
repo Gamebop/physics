@@ -531,8 +531,8 @@ class ConstraintCreator {
                 mWheels.push_back(wheel);
             }
 
+            // get tracks and map wheels
             if (!isWheeled) {
-                // get tracks and map wheels
                 const tracksCount = cb.read(BUFFER_READ_UINT32);
                 for (let t = 0; t < tracksCount; t++) {
                     const track = controllerSettings.get_mTracks(t);
@@ -547,9 +547,9 @@ class ConstraintCreator {
                 }
             }
 
+            // differentials
             const diffs = [];
             if (isWheeled) {
-                // differentials
                 const count = cb.read(BUFFER_READ_UINT32);
                 if (count > 0) {
                     const differentials = controllerSettings.mDifferentials;

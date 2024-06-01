@@ -88,7 +88,7 @@ class JoltManager extends PhysicsManager {
             allowCommandsBufferResize: true,
             useWebWorker: false,
             fixedStep: 1 / 30,
-            subSteps: 1,
+            subSteps: 2,
             useMotionStates: true,
             debugColorStatic: Color.GRAY,
             debugColorKinematic: Color.MAGENTA,
