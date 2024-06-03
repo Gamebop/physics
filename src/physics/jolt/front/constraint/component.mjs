@@ -9,20 +9,16 @@ import { PulleyConstraint } from './types/pulley.mjs';
 import { SixDOFConstraint } from './types/six-dof.mjs';
 import { SliderConstraint } from './types/slider.mjs';
 import { SwingTwistConstraint } from './types/swing-twist.mjs';
+import { WheeledVehicleConstraint } from './types/wheeled-vehicle.mjs';
+import { TrackedVehicleConstraint } from './types/tracked-vehicle.mjs';
+import { MotoVehicleConstraint } from './types/moto-vehicle.mjs';
 import {
-    BUFFER_READ_FLOAT32,
-    CONSTRAINT_TYPE_CONE, CONSTRAINT_TYPE_DISTANCE, CONSTRAINT_TYPE_FIXED,
-    CONSTRAINT_TYPE_HINGE, CONSTRAINT_TYPE_POINT, CONSTRAINT_TYPE_PULLEY,
-    CONSTRAINT_TYPE_SIX_DOF, CONSTRAINT_TYPE_SLIDER, CONSTRAINT_TYPE_SWING_TWIST,
-    CONSTRAINT_TYPE_VEHICLE_MOTO,
-    CONSTRAINT_TYPE_VEHICLE_TRACK,
-    CONSTRAINT_TYPE_VEHICLE_WHEEL,
-    FLOAT32_SIZE
+    BUFFER_READ_FLOAT32, CONSTRAINT_TYPE_CONE, CONSTRAINT_TYPE_DISTANCE, CONSTRAINT_TYPE_FIXED,
+    CONSTRAINT_TYPE_HINGE, CONSTRAINT_TYPE_POINT, CONSTRAINT_TYPE_PULLEY, CONSTRAINT_TYPE_SIX_DOF,
+    CONSTRAINT_TYPE_SLIDER, CONSTRAINT_TYPE_SWING_TWIST, CONSTRAINT_TYPE_VEHICLE_MOTO,
+    CONSTRAINT_TYPE_VEHICLE_TRACK, CONSTRAINT_TYPE_VEHICLE_WHEEL, FLOAT32_SIZE
 } from '../../constants.mjs';
-import { WheeledVehicle } from './types/wheeled-vehicle.mjs';
 import { Entity } from 'playcanvas';
-import { TrackedVehicle } from './types/tracked-vehicle.mjs';
-import { MotoVehicle } from './types/moto-vehicle.mjs';
 
 /**
  * Constraint Component. Allows to add one or multiple constraints to an entity with a
@@ -129,13 +125,13 @@ class ConstraintComponent extends Component {
                 Constructor = PulleyConstraint;
                 break;
             case CONSTRAINT_TYPE_VEHICLE_WHEEL:
-                Constructor = WheeledVehicle;
+                Constructor = WheeledVehicleConstraint;
                 break;
             case CONSTRAINT_TYPE_VEHICLE_TRACK:
-                Constructor = TrackedVehicle;
+                Constructor = TrackedVehicleConstraint;
                 break;
             case CONSTRAINT_TYPE_VEHICLE_MOTO:
-                Constructor = MotoVehicle;
+                Constructor = MotoVehicleConstraint;
                 break;
             default:
                 if ($_DEBUG) {
@@ -180,7 +176,7 @@ class ConstraintComponent extends Component {
         const type = vehicleConstraint.type;
         const wheelsCount = wheels.length;
         const isWheeled = type === CONSTRAINT_TYPE_VEHICLE_MOTO ||
-                          type === CONSTRAINT_TYPE_VEHICLE_MOTO;
+                          type === CONSTRAINT_TYPE_VEHICLE_WHEEL;
 
         for (let i = 0; i < wheelsCount; i++) {
             const wheel = wheels[i];
