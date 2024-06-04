@@ -82,6 +82,12 @@ class BodyComponent extends ShapeComponent {
 
     _useMotionState = true;
 
+    constructor(system, entity) {
+        super(system, entity);
+
+        this._order = -1;
+    }
+
     /**
      * When this body is created as `MOTION_TYPE_STATIC`, this setting tells Jolt system to create
      * a `MotionProperties` object internally, so that the object can be switched to kinematic or

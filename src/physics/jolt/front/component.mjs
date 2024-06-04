@@ -13,6 +13,8 @@ class Component extends EventHandler {
     // The Entity that this Component is attached to.
     _entity = null;
 
+    _order = 0;
+
     constructor(system, entity) {
         super();
 
@@ -40,6 +42,10 @@ class Component extends EventHandler {
 
     get accessorsBuilt() {
         return this._accessorsBuilt;
+    }
+
+    get order() {
+        return this._order;
     }
 
     onSetEnabled(name, oldValue, newValue) {

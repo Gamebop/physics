@@ -26,4 +26,7 @@ function buildAccessors(obj, schema) {
     obj.accessorsBuilt = true;
 }
 
-export { buildAccessors };
+const cmpOrder = (a, b) => a.order - b.order;
+const sortOrder = arr => arr.sort(cmpOrder);
+
+export { buildAccessors, sortOrder };
