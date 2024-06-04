@@ -1,10 +1,10 @@
 import { Vec3 } from 'playcanvas';
-import { Debug } from '../../../debug.mjs';
+import { Debug } from '../../../../debug.mjs';
 import {
     BUFFER_WRITE_FLOAT32, BUFFER_WRITE_VEC32, CMD_JNT_C_SET_H_C_ANGLE, CONSTRAINT_TYPE_CONE,
     OPERATOR_MODIFIER
-} from '../../../constants.mjs';
-import { Joint } from './base/joint.mjs';
+} from '../../../../constants.mjs';
+import { Joint } from '../joint.mjs';
 
 /**
  * Interface for cone constraint.

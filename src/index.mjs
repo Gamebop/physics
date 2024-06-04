@@ -22,25 +22,25 @@ export { SoftBodyComponentSystem } from './physics/jolt/front/softbody/system.mj
 export { ConstraintComponent } from './physics/jolt/front/constraint/component.mjs';
 export { ConstraintComponentSystem } from './physics/jolt/front/constraint/system.mjs';
 
-export { Constraint } from './physics/jolt/front/constraint/types/base/constraint.mjs';
+export { Constraint } from './physics/jolt/front/constraint/types/constraint.mjs';
 export {
     SpringSettings, MotorSettings, ConstraintSettings, ConeConstraintSettings,
     DistanceConstraintSettings, FixedConstraintSettings, HingeConstraintSettings,
     PulleyConstraintSettings, SixDOFConstraintSettings, SwingTwistConstraintSettings,
     SliderConstraintSettings
 } from './physics/jolt/front/constraint/types/settings.mjs';
-export { ConeConstraint } from './physics/jolt/front/constraint/types/cone.mjs';
-export { DistanceConstraint } from './physics/jolt/front/constraint/types/distance.mjs';
-export { FixedConstraint } from './physics/jolt/front/constraint/types/fixed.mjs';
-export { HingeConstraint } from './physics/jolt/front/constraint/types/hinge.mjs';
-export { PointConstraint } from './physics/jolt/front/constraint/types/point.mjs';
-export { PulleyConstraint } from './physics/jolt/front/constraint/types/pulley.mjs';
-export { SixDOFConstraint } from './physics/jolt/front/constraint/types/six-dof.mjs';
-export { SliderConstraint } from './physics/jolt/front/constraint/types/slider.mjs';
-export { SwingTwistConstraint } from './physics/jolt/front/constraint/types/swing-twist.mjs';
-export { WheeledVehicleConstraint } from './physics/jolt/front/constraint/types/wheeled-vehicle.mjs';
-export { TrackedVehicleConstraint } from './physics/jolt/front/constraint/types/tracked-vehicle.mjs';
-export { MotoVehicleConstraint } from './physics/jolt/front/constraint/types/moto-vehicle.mjs';
+export { ConeConstraint } from './physics/jolt/front/constraint/types/joint/cone.mjs';
+export { DistanceConstraint } from './physics/jolt/front/constraint/types/joint/distance.mjs';
+export { FixedConstraint } from './physics/jolt/front/constraint/types/joint/fixed.mjs';
+export { HingeConstraint } from './physics/jolt/front/constraint/types/joint/hinge.mjs';
+export { PointConstraint } from './physics/jolt/front/constraint/types/joint/point.mjs';
+export { PulleyConstraint } from './physics/jolt/front/constraint/types/joint/pulley.mjs';
+export { SixDOFConstraint } from './physics/jolt/front/constraint/types/joint/six-dof.mjs';
+export { SliderConstraint } from './physics/jolt/front/constraint/types/joint/slider.mjs';
+export { SwingTwistConstraint } from './physics/jolt/front/constraint/types/joint/swing-twist.mjs';
+export { WheeledVehicleConstraint } from './physics/jolt/front/constraint/types/vehicle/wheeled-vehicle.mjs';
+export { TrackedVehicleConstraint } from './physics/jolt/front/constraint/types/vehicle/tracked-vehicle.mjs';
+export { MotoVehicleConstraint } from './physics/jolt/front/constraint/types/vehicle/moto-vehicle.mjs';
 
 export { CommandsBuffer } from './physics/jolt/back/commands-buffer.mjs';
 export { IndexedCache } from './physics/indexed-cache.mjs';

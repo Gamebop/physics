@@ -1,5 +1,5 @@
-import { VehicleConstraint, writeDifferentials, writeWheelsData } from './base/vehicle.mjs';
-import { CONSTRAINT_TYPE_VEHICLE_WHEEL } from '../../../constants.mjs';
+import { VehicleConstraint, writeDifferentials, writeWheelsData } from '../vehicle.mjs';
+import { CONSTRAINT_TYPE_VEHICLE_WHEEL } from '../../../../constants.mjs';
 
 class WheeledVehicleConstraint extends VehicleConstraint {
     _type = CONSTRAINT_TYPE_VEHICLE_WHEEL;

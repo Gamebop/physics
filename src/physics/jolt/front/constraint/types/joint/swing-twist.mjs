@@ -1,14 +1,14 @@
 import { Vec3 } from 'playcanvas';
-import { Debug } from '../../../debug.mjs';
-import { Motor } from './base/constraint.mjs';
+import { Debug } from '../../../../debug.mjs';
+import { Motor } from '../constraint.mjs';
 import {
     BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32, CMD_JNT_ST_SET_M_F_TORQUE,
     CMD_JNT_ST_SET_N_H_C_ANGLE, CMD_JNT_ST_SET_P_H_C_ANGLE, CMD_JNT_ST_SET_SWING_M_S,
     CMD_JNT_ST_SET_TWIST_M_S, CMD_JNT_ST_SET_T_ANG_VEL_CS, CMD_JNT_ST_SET_T_MAX_ANGLE, CMD_JNT_ST_SET_T_MIN_ANGLE,
     CMD_JNT_ST_SET_T_O_BS, CMD_JNT_ST_SET_T_O_CS, CONSTRAINT_TYPE_SWING_TWIST,
     OPERATOR_MODIFIER
-} from '../../../constants.mjs';
-import { Joint } from './base/joint.mjs';
+} from '../../../../constants.mjs';
+import { Joint } from '../joint.mjs';
 
 /**
  * Interface for swing-twist constraint.
@@ -98,7 +98,7 @@ class SwingTwistConstraint extends Joint {
     }
 
     /**
-     * @returns {import('./settings.mjs').SpringSettings | null} - Returns {@link SpringSettings |
+     * @returns {import('../settings.mjs').SpringSettings | null} - Returns {@link SpringSettings |
      * Spring Settings} or `null`, if spring is not used.
      * @defaultValue null
      */
@@ -254,7 +254,7 @@ class SwingTwistConstraint extends Joint {
     }
 
     /**
-     * @returns {import('./settings.mjs').MotorSettings | null} - Returns {@link MotorSettings |
+     * @returns {import('../settings.mjs').MotorSettings | null} - Returns {@link MotorSettings |
      * Motor Settings} or `null`, if a motor is not used.
      */
     get twistMotorSettings() {

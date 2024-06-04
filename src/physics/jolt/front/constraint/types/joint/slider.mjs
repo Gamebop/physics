@@ -1,14 +1,14 @@
 import { Vec3 } from 'playcanvas';
-import { Debug } from '../../../debug.mjs';
-import { Spring, Motor } from './base/constraint.mjs';
+import { Debug } from '../../../../debug.mjs';
+import { Spring, Motor } from '../constraint.mjs';
 import {
     BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT8,
     BUFFER_WRITE_VEC32, CMD_JNT_S_SET_LIMITS, CMD_JNT_S_SET_M_F_FORCE,
     CMD_JNT_S_SET_M_STATE, CMD_JNT_S_SET_SPRING_S, CMD_JNT_S_SET_T_POS,
     CMD_JNT_S_SET_T_VEL, CONSTRAINT_TYPE_SLIDER, OPERATOR_MODIFIER,
     SPRING_MODE_FREQUENCY
-} from '../../../constants.mjs';
-import { Joint } from './base/joint.mjs';
+} from '../../../../constants.mjs';
+import { Joint } from '../joint.mjs';
 
 /**
  * Interface for slider constraint.
@@ -79,7 +79,7 @@ class SliderConstraint extends Joint {
     /**
      * Modifies the spring properties after the constraint has been created.
      *
-     * @param {import('./settings.mjs').SpringSettings} settings - Object, describing spring settings.
+     * @param {import('../settings.mjs').SpringSettings} settings - Object, describing spring settings.
      */
     set limitsSpringSettings(settings) {
         if ($_DEBUG) {
@@ -107,7 +107,7 @@ class SliderConstraint extends Joint {
     }
 
     /**
-     * @returns {import('./settings.mjs').SpringSettings | null} - If spring is used, returns
+     * @returns {import('../settings.mjs').SpringSettings | null} - If spring is used, returns
      * current spring settings. Otherwise `null`.
      * @defaultValue null
      */

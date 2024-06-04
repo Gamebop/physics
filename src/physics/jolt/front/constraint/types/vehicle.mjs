@@ -4,8 +4,8 @@ import {
     BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32, CMD_VEHICLE_SET_INPUT, CONSTRAINT_TYPE_VEHICLE_MOTO,
     CONSTRAINT_TYPE_VEHICLE_WHEEL, OBJ_LAYER_MOVING, OPERATOR_MODIFIER, SPRING_MODE_FREQUENCY,
     TRANSMISSION_AUTO, VEHICLE_CAST_TYPE_CYLINDER, VEHICLE_CAST_TYPE_RAY, VEHICLE_CAST_TYPE_SPHERE
-} from '../../../../constants.mjs';
-import { Debug } from '../../../../debug.mjs';
+} from '../../../constants.mjs';
+import { Debug } from '../../../debug.mjs';
 import { Constraint, applyOptions } from './constraint.mjs';
 
 function writeCurvePoints(cb, curve) {

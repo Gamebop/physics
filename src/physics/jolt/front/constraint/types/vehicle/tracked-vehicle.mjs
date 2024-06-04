@@ -1,5 +1,5 @@
-import { CONSTRAINT_TYPE_VEHICLE_TRACK } from '../../../constants.mjs';
-import { VehicleConstraint, writeTracksData, writeWheelsData } from './base/vehicle.mjs';
+import { CONSTRAINT_TYPE_VEHICLE_TRACK } from '../../../../constants.mjs';
+import { VehicleConstraint, writeTracksData, writeWheelsData } from '../vehicle.mjs';
 
 class TrackedVehicleConstraint extends VehicleConstraint {
     _type = CONSTRAINT_TYPE_VEHICLE_TRACK;

@@ -1,6 +1,6 @@
 import { Entity, Vec3 } from 'playcanvas';
-import { BUFFER_WRITE_UINT32, BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32, CONSTRAINT_SPACE_WORLD } from '../../../../constants.mjs';
-import { Debug } from '../../../../debug.mjs';
+import { BUFFER_WRITE_UINT32, BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32, CONSTRAINT_SPACE_WORLD } from '../../../constants.mjs';
+import { Debug } from '../../../debug.mjs';
 import { Constraint, applyOptions } from './constraint.mjs';
 
 class Joint extends Constraint {

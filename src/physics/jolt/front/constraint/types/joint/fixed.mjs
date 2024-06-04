@@ -1,9 +1,9 @@
 import { Vec3 } from 'playcanvas';
-import { Debug } from '../../../debug.mjs';
+import { Debug } from '../../../../debug.mjs';
 import {
     BUFFER_WRITE_BOOL, BUFFER_WRITE_VEC32, CONSTRAINT_TYPE_FIXED
-} from '../../../constants.mjs';
-import { Joint } from './base/joint.mjs';
+} from '../../../../constants.mjs';
+import { Joint } from '../joint.mjs';
 
 /**
  * Interface for fixed constraint.

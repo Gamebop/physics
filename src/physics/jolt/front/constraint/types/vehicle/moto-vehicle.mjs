@@ -1,6 +1,6 @@
-import { BUFFER_WRITE_FLOAT32, CONSTRAINT_TYPE_VEHICLE_MOTO } from '../../../constants.mjs';
-import { Debug } from '../../../debug.mjs';
-import { VehicleConstraint, writeDifferentials, writeWheelsData } from './base/vehicle.mjs';
+import { BUFFER_WRITE_FLOAT32, CONSTRAINT_TYPE_VEHICLE_MOTO } from '../../../../constants.mjs';
+import { Debug } from '../../../../debug.mjs';
+import { VehicleConstraint, writeDifferentials, writeWheelsData } from '../vehicle.mjs';
 import { math } from 'playcanvas';
 
 class MotoVehicleConstraint extends VehicleConstraint {

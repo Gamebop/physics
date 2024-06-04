@@ -1,17 +1,17 @@
 import { Debug } from '../../debug.mjs';
 import { Component } from '../component.mjs';
-import { ConeConstraint } from './types/cone.mjs';
-import { DistanceConstraint } from './types/distance.mjs';
-import { FixedConstraint } from './types/fixed.mjs';
-import { HingeConstraint } from './types/hinge.mjs';
-import { PointConstraint } from './types/point.mjs';
-import { PulleyConstraint } from './types/pulley.mjs';
-import { SixDOFConstraint } from './types/six-dof.mjs';
-import { SliderConstraint } from './types/slider.mjs';
-import { SwingTwistConstraint } from './types/swing-twist.mjs';
-import { WheeledVehicleConstraint } from './types/wheeled-vehicle.mjs';
-import { TrackedVehicleConstraint } from './types/tracked-vehicle.mjs';
-import { MotoVehicleConstraint } from './types/moto-vehicle.mjs';
+import { ConeConstraint } from './types/joint/cone.mjs';
+import { DistanceConstraint } from './types/joint/distance.mjs';
+import { FixedConstraint } from './types/joint/fixed.mjs';
+import { HingeConstraint } from './types/joint/hinge.mjs';
+import { PointConstraint } from './types/joint/point.mjs';
+import { PulleyConstraint } from './types/joint/pulley.mjs';
+import { SixDOFConstraint } from './types/joint/six-dof.mjs';
+import { SliderConstraint } from './types/joint/slider.mjs';
+import { SwingTwistConstraint } from './types/joint/swing-twist.mjs';
+import { WheeledVehicleConstraint } from './types/vehicle/wheeled-vehicle.mjs';
+import { TrackedVehicleConstraint } from './types/vehicle/tracked-vehicle.mjs';
+import { MotoVehicleConstraint } from './types/vehicle/moto-vehicle.mjs';
 import {
     BUFFER_READ_FLOAT32, CONSTRAINT_TYPE_CONE, CONSTRAINT_TYPE_DISTANCE, CONSTRAINT_TYPE_FIXED,
     CONSTRAINT_TYPE_HINGE, CONSTRAINT_TYPE_POINT, CONSTRAINT_TYPE_PULLEY, CONSTRAINT_TYPE_SIX_DOF,

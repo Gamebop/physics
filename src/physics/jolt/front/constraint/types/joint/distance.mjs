@@ -1,10 +1,10 @@
-import { Spring } from './base/constraint.mjs';
+import { Spring } from '../constraint.mjs';
 import {
     BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT8, CMD_JNT_D_SET_DISTANCE,
     CMD_JNT_D_SET_SPRING_S, CONSTRAINT_TYPE_DISTANCE, OPERATOR_MODIFIER, SPRING_MODE_FREQUENCY
-} from '../../../constants.mjs';
-import { Debug } from '../../../debug.mjs';
-import { Joint } from './base/joint.mjs';
+} from '../../../../constants.mjs';
+import { Debug } from '../../../../debug.mjs';
+import { Joint } from '../joint.mjs';
 
 /**
  * Interface for distance constraint.
@@ -35,7 +35,7 @@ class DistanceConstraint extends Joint {
     /**
      * Modifies the spring properties after the constraint has been created.
      *
-     * @param {import('./settings.mjs').SpringSettings} settings - Object, describing spring settings.
+     * @param {import('../settings.mjs').SpringSettings} settings - Object, describing spring settings.
      */
     set limitsSpringSettings(settings) {
         if ($_DEBUG) {
@@ -63,7 +63,7 @@ class DistanceConstraint extends Joint {
     }
 
     /**
-     * @returns {import('./settings.mjs').SpringSettings | null} - Returns limits spring settings
+     * @returns {import('../settings.mjs').SpringSettings | null} - Returns limits spring settings
      * or `null` if spring is not used.
      * @defaultValue null
      */

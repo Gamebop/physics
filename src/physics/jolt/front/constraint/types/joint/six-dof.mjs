@@ -1,6 +1,6 @@
 import { Vec3 } from 'playcanvas';
-import { Debug } from '../../../debug.mjs';
-import { Motor, Spring } from './base/constraint.mjs';
+import { Debug } from '../../../../debug.mjs';
+import { Motor, Spring } from '../constraint.mjs';
 import {
     BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT8,
     BUFFER_WRITE_VEC32, CMD_JNT_SDF_SET_M_F, CMD_JNT_SDF_SET_M_STATE,
@@ -8,8 +8,8 @@ import {
     CMD_JNT_SDF_SET_T_LIMITS, CMD_JNT_SDF_SET_T_POS_CS, CMD_JNT_SDF_SET_T_ROT_BS,
     CMD_JNT_SDF_SET_T_ROT_CS, CMD_JNT_SDF_SET_T_VEL_CS, CONSTRAINT_SWING_TYPE_CONE,
     CONSTRAINT_TYPE_SIX_DOF, OPERATOR_MODIFIER, SPRING_MODE_FREQUENCY
-} from '../../../constants.mjs';
-import { Joint } from './base/joint.mjs';
+} from '../../../../constants.mjs';
+import { Joint } from '../joint.mjs';
 
 function copyArr(src, dst) {
     for (let i = 0; i < src.length; ++i) {
@@ -202,7 +202,7 @@ class SixDOFConstraint extends Joint {
      * ```
      *
      * @param {number} axis - Axis number, zero-based.
-     * @param {import('./settings.mjs').SpringSettings} settings - Spring settings.
+     * @param {import('../settings.mjs').SpringSettings} settings - Spring settings.
      */
     setLimitsSpringSettings(axis, settings) {
         if ($_DEBUG) {
