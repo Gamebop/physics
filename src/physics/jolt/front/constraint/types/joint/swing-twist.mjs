@@ -8,15 +8,15 @@ import {
     CMD_JNT_ST_SET_T_O_BS, CMD_JNT_ST_SET_T_O_CS, CONSTRAINT_TYPE_SWING_TWIST,
     OPERATOR_MODIFIER
 } from '../../../../constants.mjs';
-import { Joint } from '../joint.mjs';
+import { JointConstraint } from '../joint-constraint.mjs';
 
 /**
- * Interface for swing-twist constraint.
+ * Swing-twist constraint.
  *
  * @group Utilities
  * @category Constraints
  */
-class SwingTwistConstraint extends Joint {
+class SwingTwistConstraint extends JointConstraint {
     _type = CONSTRAINT_TYPE_SWING_TWIST;
 
     _twistAxis1 = Vec3.RIGHT;

@@ -27,7 +27,9 @@ export {
     SpringSettings, MotorSettings, ConstraintSettings, ConeConstraintSettings,
     DistanceConstraintSettings, FixedConstraintSettings, HingeConstraintSettings,
     PulleyConstraintSettings, SixDOFConstraintSettings, SwingTwistConstraintSettings,
-    SliderConstraintSettings
+    SliderConstraintSettings, VehicleConstraintSettings, WheeledVehicleConstraintSettings,
+    MotoVehicleConstraintSettings, TrackedVehicleConstraintSettings, WheelSettings, BarSettings,
+    WheelTVSettings, WheelWVSettings
 } from './physics/jolt/front/constraint/types/settings.mjs';
 export { ConeConstraint } from './physics/jolt/front/constraint/types/joint/cone.mjs';
 export { DistanceConstraint } from './physics/jolt/front/constraint/types/joint/distance.mjs';
@@ -41,6 +43,10 @@ export { SwingTwistConstraint } from './physics/jolt/front/constraint/types/join
 export { WheeledVehicleConstraint } from './physics/jolt/front/constraint/types/vehicle/wheeled-vehicle.mjs';
 export { TrackedVehicleConstraint } from './physics/jolt/front/constraint/types/vehicle/tracked-vehicle.mjs';
 export { MotoVehicleConstraint } from './physics/jolt/front/constraint/types/vehicle/moto-vehicle.mjs';
+export { JointConstraint } from './physics/jolt/front/constraint/types/joint-constraint.mjs'
+export { VehicleConstraint } from './physics/jolt/front/constraint/types/vehicle-constraint.mjs'
+export { WheelWV } from './physics/jolt/front/constraint/types/vehicle/wheel-wv.mjs';
+export { WheelTV } from './physics/jolt/front/constraint/types/vehicle/wheel-tv.mjs';
 
 export { CommandsBuffer } from './physics/jolt/back/commands-buffer.mjs';
 export { IndexedCache } from './physics/indexed-cache.mjs';

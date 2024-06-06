@@ -3,15 +3,15 @@ import { Debug } from '../../../../debug.mjs';
 import {
     BUFFER_WRITE_BOOL, BUFFER_WRITE_VEC32, CONSTRAINT_TYPE_FIXED
 } from '../../../../constants.mjs';
-import { Joint } from '../joint.mjs';
+import { JointConstraint } from '../joint-constraint.mjs';
 
 /**
- * Interface for fixed constraint.
+ * Fixed constraint.
  *
  * @group Utilities
  * @category Constraints
  */
-class FixedConstraint extends Joint {
+class FixedConstraint extends JointConstraint {
     _type = CONSTRAINT_TYPE_FIXED;
 
     _autoDetectPoint = true;

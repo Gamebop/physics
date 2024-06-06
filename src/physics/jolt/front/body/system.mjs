@@ -39,6 +39,7 @@ const schema = [
 /**
  * Body Component System description.
  *
+ * @group Components
  * @category Body Component
  */
 class BodyComponentSystem extends ShapeComponentSystem {

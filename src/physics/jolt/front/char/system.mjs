@@ -38,6 +38,7 @@ const schema = [
 /**
  * Char Component System handles all Char Components.
  *
+ * @group Components
  * @category Char Component
  */
 class CharComponentSystem extends ShapeComponentSystem {

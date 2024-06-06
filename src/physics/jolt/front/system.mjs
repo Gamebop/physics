@@ -80,8 +80,8 @@ class JoltComponentSystem extends ComponentSystem {
         // TODO
         // we need to add a component to a sorted list, refer to
         // https://github.com/playcanvas/engine/issues/6647
-        entity.oc.push(component);
-        sortOrder(entity.oc);
+        // entity.oc.push(component);
+        // sortOrder(entity.oc);
 
         this.initializeComponentData(component, data);
 

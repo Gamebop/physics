@@ -15,6 +15,7 @@ import {
 /**
  * Char Component. Describes the properties of a Jolt Virtual Character.
  *
+ * @group Components
  * @category Char Component
  */
 class CharComponent extends ShapeComponent {

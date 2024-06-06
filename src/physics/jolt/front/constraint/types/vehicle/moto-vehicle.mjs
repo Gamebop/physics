@@ -1,11 +1,16 @@
 import { BUFFER_WRITE_FLOAT32, CONSTRAINT_TYPE_VEHICLE_MOTO } from '../../../../constants.mjs';
 import { Debug } from '../../../../debug.mjs';
-import { VehicleConstraint, writeDifferentials, writeWheelsData } from '../vehicle.mjs';
+import { VehicleConstraint, createWheels, writeDifferentials, writeWheelsData } from '../vehicle-constraint.mjs';
 import { math } from 'playcanvas';
+import { WheelWV } from './wheel-wv.mjs';
 
+/**
+ * Motorcycle Vehicle Constraint.
+ *
+ * @group Utilities
+ * @category Constraints
+ */
 class MotoVehicleConstraint extends VehicleConstraint {
-    _type = CONSTRAINT_TYPE_VEHICLE_MOTO;
-
     _maxLeanAngle = 45 * math.DEG_TO_RAD;
 
     _leanSpringConstant = 5000;
@@ -17,6 +22,16 @@ class MotoVehicleConstraint extends VehicleConstraint {
     _leanSpringIntegrationCoefficientDecay = 4;
 
     _leanSmoothingFactor = 0.8;
+
+    constructor(entity, opts = {}) {
+        super(entity, opts);
+
+        this._type = CONSTRAINT_TYPE_VEHICLE_MOTO;
+
+        if (opts.wheels) {
+            createWheels(this._wheels, opts.wheels, WheelWV);
+        }
+    }
 
     /**
      * How much to smooth the lean angle:

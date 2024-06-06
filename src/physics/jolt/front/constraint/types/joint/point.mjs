@@ -1,13 +1,13 @@
 import { CONSTRAINT_TYPE_POINT } from '../../../../constants.mjs';
-import { Joint } from '../joint.mjs';
+import { JointConstraint } from '../joint-constraint.mjs';
 
 /**
- * Interface for point constraint.
+ * Point constraint.
  *
  * @group Utilities
  * @category Constraints
  */
-class PointConstraint extends Joint {
+class PointConstraint extends JointConstraint {
     _type = CONSTRAINT_TYPE_POINT;
 
     constructor(entity1, entity2, opts = {}) {

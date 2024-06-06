@@ -24,6 +24,7 @@ import { Entity } from 'playcanvas';
  * Constraint Component. Allows to add one or multiple constraints to an entity with a
  * {@link BodyComponent | Body Component}.
  *
+ * @group Components
  * @category Constraint Component
  */
 class ConstraintComponent extends Component {
@@ -64,15 +65,6 @@ class ConstraintComponent extends Component {
      * ```
      * CONSTRAINT_TYPE_PULLEY
      * ```
-     * ```
-     * CONSTRAINT_TYPE_VEHICLE_WHEEL
-     * ```
-     * ```
-     * CONSTRAINT_TYPE_VEHICLE_TRACK
-     * ```
-     * ```
-     * CONSTRAINT_TYPE_VEHICLE_MOTO
-     * ```
      *
      * @param {number} type - Constant number, representing joint type.
      * @param {import('playcanvas').Entity} otherEntity - The other entity that this entity will be
@@ -85,16 +77,12 @@ class ConstraintComponent extends Component {
      * import('./types/settings.mjs').PulleyConstraintSettings |
      * import('./types/settings.mjs').SixDOFConstraintSettings |
      * import('./types/settings.mjs').SliderConstraintSettings |
-     * import('./types/settings.mjs').SwingTwistConstraintSettings} [opts] - Optional joint options object.
+     * import('./types/settings.mjs').SwingTwistConstraintSettings } [opts] - Optional joint options object.
      * @returns {FixedConstraint | PointConstraint | DistanceConstraint | HingeConstraint |
      * SliderConstraint | ConeConstraint | SixDOFConstraint | SwingTwistConstraint |
      * PulleyConstraint | null} - A constraint interface. Returns `null`, if unable to create one.
      */
-    add(type, otherEntity, opts = {}) {
-        if (!(otherEntity instanceof Entity)) {
-            opts = otherEntity;
-        }
-
+    addJoint(type, otherEntity, opts = {}) {
         let Constructor;
         switch (type) {
             case CONSTRAINT_TYPE_SWING_TWIST:
@@ -143,6 +131,14 @@ class ConstraintComponent extends Component {
         const isVehicle = type === CONSTRAINT_TYPE_VEHICLE_WHEEL ||
                           type === CONSTRAINT_TYPE_VEHICLE_MOTO ||
                           type === CONSTRAINT_TYPE_VEHICLE_TRACK;
+
+        if (isVehicle && this._vehicleConstraint) {
+            if ($_DEBUG) {
+                Debug.warn('Trying to add a vehicle constraint to an entity that already has one. Aborting.');
+            }
+            return;
+        }
+
         const constraint = isVehicle ? new Constructor(this.entity, opts) :
             new Constructor(this.entity, otherEntity, opts);
 
@@ -166,52 +162,69 @@ class ConstraintComponent extends Component {
         return constraint;
     }
 
-    updateWheelsIsometry(cb) {
-        const vehicleConstraint = this._vehicleConstraint;
-        if (!vehicleConstraint) {
+    /**
+     * Adds a vehicle type constraint. Following types available:
+     * ```
+     * CONSTRAINT_TYPE_VEHICLE_WHEEL
+     * ```
+     * ```
+     * CONSTRAINT_TYPE_VEHICLE_TRACK
+     * ```
+     * ```
+     * CONSTRAINT_TYPE_VEHICLE_MOTO
+     * ```
+     *
+     * @param {number} type - Vehicle constraint type.
+     * @param {import('./types/settings.mjs').WheeledVehicleConstraintSettings |
+     * import('./types/settings.mjs').MotoVehicleConstraintSettings |
+     * import('./types/settings.mjs').TrackedVehicleConstraintSettings} [opts] - Constraint settings.
+     * @returns {WheeledVehicleConstraint | MotoVehicleConstraint | TrackedVehicleConstraint}
+     */
+    addVehicle(type, opts = {}) {
+        let Constructor;
+        switch (type) {
+            case CONSTRAINT_TYPE_VEHICLE_WHEEL:
+                Constructor = WheeledVehicleConstraint;
+                break;
+            case CONSTRAINT_TYPE_VEHICLE_TRACK:
+                Constructor = TrackedVehicleConstraint;
+                break;
+            case CONSTRAINT_TYPE_VEHICLE_MOTO:
+                Constructor = MotoVehicleConstraint;
+                break;
+            default:
+                if ($_DEBUG) {
+                    Debug.warn(`Trying to add unrecognized constraint type: ${type}`);
+                }
+                return null;
+        }
+
+        if (this._vehicleConstraint) {
+            if ($_DEBUG) {
+                Debug.warn('Trying to add a vehicle constraint to an entity that already has one. Aborting.');
+            }
             return;
         }
 
-        const wheels = vehicleConstraint.wheels;
-        const type = vehicleConstraint.type;
-        const wheelsCount = wheels.length;
-        const isWheeled = type === CONSTRAINT_TYPE_VEHICLE_MOTO ||
-                          type === CONSTRAINT_TYPE_VEHICLE_WHEEL;
+        const constraint = new Constructor(this.entity, opts);
 
-        for (let i = 0; i < wheelsCount; i++) {
-            const wheel = wheels[i];
-            const entity = wheel.entity;
+        // for fast access in Shape Component isometry update of wheels
+        this._vehicleConstraint = constraint;
 
-            if (!entity) {
-                cb.skip(7 * FLOAT32_SIZE);
-                continue;
-            }
+        const index = this.system.constraintMap.add(constraint);
+        constraint.index = index;
 
-            if (isWheeled) {
-                wheel.longitudinalSlip = cb.read(BUFFER_READ_FLOAT32);
-                wheel.lateralSlip = cb.read(BUFFER_READ_FLOAT32);
-                wheel.combinedLongitudinalFriction = cb.read(BUFFER_READ_FLOAT32);
-                wheel.combinedLateralFriction = cb.read(BUFFER_READ_FLOAT32);
-                wheel.brakeImpulse = cb.read(BUFFER_READ_FLOAT32);
-            }
+        this._list.add(index);
 
-            entity.setLocalPosition(
-                cb.read(BUFFER_READ_FLOAT32),
-                cb.read(BUFFER_READ_FLOAT32),
-                cb.read(BUFFER_READ_FLOAT32)
-            );
+        this.system.createConstraint(index, constraint);
 
-            entity.setLocalRotation(
-                cb.read(BUFFER_READ_FLOAT32),
-                cb.read(BUFFER_READ_FLOAT32),
-                cb.read(BUFFER_READ_FLOAT32),
-                cb.read(BUFFER_READ_FLOAT32)
-            );
-        }
+        return constraint;
     }
 
     onDisable() {
         const system = this.system;
+
+        this._vehicleConstraint = null;
 
         this._list.forEach((idx) => {
             system.destroyConstraint(idx);

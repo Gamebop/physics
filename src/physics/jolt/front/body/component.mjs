@@ -23,6 +23,7 @@ const vec3 = new Vec3();
 /**
  * Body Component description.
  *
+ * @group Components
  * @category Body Component
  */
 class BodyComponent extends ShapeComponent {

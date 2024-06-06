@@ -4,15 +4,15 @@ import {
     BUFFER_WRITE_FLOAT32, BUFFER_WRITE_VEC32, CMD_JNT_C_SET_H_C_ANGLE, CONSTRAINT_TYPE_CONE,
     OPERATOR_MODIFIER
 } from '../../../../constants.mjs';
-import { Joint } from '../joint.mjs';
+import { JointConstraint } from '../joint-constraint.mjs';
 
 /**
- * Interface for cone constraint.
+ * Cone constraint.
  *
  * @group Utilities
  * @category Constraints
  */
-class ConeConstraint extends Joint {
+class ConeConstraint extends JointConstraint {
     _type = CONSTRAINT_TYPE_CONE;
 
     _twistAxis1 = Vec3.RIGHT;

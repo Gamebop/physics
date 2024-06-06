@@ -12,6 +12,7 @@ const schema = ['list'];
  * Constraint Component System. Creates and destroys constraints from
  * {@link ConstraintComponent | Constraint Components} on the backend.
  *
+ * @group Components
  * @category Constraint Component
  */
 class ConstraintComponentSystem extends JoltComponentSystem {

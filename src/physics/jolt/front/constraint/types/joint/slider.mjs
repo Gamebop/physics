@@ -8,15 +8,15 @@ import {
     CMD_JNT_S_SET_T_VEL, CONSTRAINT_TYPE_SLIDER, OPERATOR_MODIFIER,
     SPRING_MODE_FREQUENCY
 } from '../../../../constants.mjs';
-import { Joint } from '../joint.mjs';
+import { JointConstraint } from '../joint-constraint.mjs';
 
 /**
- * Interface for slider constraint.
+ * Slider constraint.
  *
  * @group Utilities
  * @category Constraints
  */
-class SliderConstraint extends Joint {
+class SliderConstraint extends JointConstraint {
     _type = CONSTRAINT_TYPE_SLIDER;
 
     _sliderAxis1 = Vec3.RIGHT;

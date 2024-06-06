@@ -9,6 +9,7 @@ import {
 /**
  * A SoftBody Component.
  *
+ * @group Components
  * @category SoftBody Component
  */
 class SoftBodyComponent extends BodyComponent {

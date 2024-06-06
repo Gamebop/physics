@@ -39,6 +39,7 @@ const schema = [
  * Shape Component System. A base system for the most of the Jolt component systems. Most probably
  * you don't need to use it directly.
  *
+ * @group Components
  * @category Shape Component
  */
 class ShapeComponentSystem extends JoltComponentSystem {
@@ -113,9 +114,8 @@ class ShapeComponentSystem extends JoltComponentSystem {
             cb.read(BUFFER_READ_FLOAT32),
             cb.read(BUFFER_READ_FLOAT32)
         );
-
-        // Let vehicle constraints update their wheels isometry
-        entity.c.constraint?.updateWheelsIsometry?.(cb);
+        
+        vehicleConstraint?.updateWheelsIsometry(cb);
     }
 }
 

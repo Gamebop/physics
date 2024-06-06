@@ -9,7 +9,7 @@ import {
     CMD_JNT_SDF_SET_T_ROT_CS, CMD_JNT_SDF_SET_T_VEL_CS, CONSTRAINT_SWING_TYPE_CONE,
     CONSTRAINT_TYPE_SIX_DOF, OPERATOR_MODIFIER, SPRING_MODE_FREQUENCY
 } from '../../../../constants.mjs';
-import { Joint } from '../joint.mjs';
+import { JointConstraint } from '../joint-constraint.mjs';
 
 function copyArr(src, dst) {
     for (let i = 0; i < src.length; ++i) {
@@ -26,12 +26,12 @@ function copySettings(Constructor, src) {
 }
 
 /**
- * Interface for six degrees of freedom (six DOF) constraint.
+ * Six degrees of freedom (six DOF) constraint.
  *
  * @group Utilities
  * @category Constraints
  */
-class SixDOFConstraint extends Joint {
+class SixDOFConstraint extends JointConstraint {
     _type = CONSTRAINT_TYPE_SIX_DOF;
 
     _axisX1 = Vec3.RIGHT;

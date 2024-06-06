@@ -405,22 +405,18 @@ class ConstraintCreator {
                 spring.mStiffness = cb.read(BUFFER_READ_FLOAT32);
                 spring.mDamping = cb.read(BUFFER_READ_FLOAT32);
 
-                // longitudinal friction
-                if (cb.read(BUFFER_READ_BOOL)) {
-                    updateCurve(wheel.mLongitudinalFriction);
-                }
-
-                // lateral friction
-                if (cb.read(BUFFER_READ_BOOL)) {
-                    updateCurve(wheel.mLateralFriction);
-                }
-
                 if (isWheeled) {
+                    updateCurve(wheel.mLongitudinalFriction);
+                    updateCurve(wheel.mLateralFriction);
+
                     wheel.mInertia = cb.read(BUFFER_READ_FLOAT32);
                     wheel.mAngularDamping = cb.read(BUFFER_READ_FLOAT32);
                     wheel.mMaxSteerAngle = cb.read(BUFFER_READ_FLOAT32);
                     wheel.mMaxBrakeTorque = cb.read(BUFFER_READ_FLOAT32);
                     wheel.mMaxHandBrakeTorque = cb.read(BUFFER_READ_FLOAT32);
+                } else {
+                    wheel.mLongitudinalFriction = cb.read(BUFFER_READ_FLOAT32);
+                    wheel.mLateralFriction = cb.read(BUFFER_READ_FLOAT32);
                 }
             };
 
@@ -451,10 +447,7 @@ class ConstraintCreator {
             engine.mMaxRPM = cb.read(BUFFER_READ_FLOAT32);
             engine.mInertia = cb.read(BUFFER_READ_FLOAT32);
             engine.mAngularDamping = cb.read(BUFFER_READ_FLOAT32);
-
-            if (cb.read(BUFFER_READ_BOOL)) {
-                updateCurve(engine.mNormalizedTorque);
-            }
+            updateCurve(engine.mNormalizedTorque);
 
             // transmission
             const transmission = controllerSettings.mTransmission;
@@ -527,7 +520,7 @@ class ConstraintCreator {
             mWheels.clear();
             for (let i = 0; i < wheelsCount; i++) {
                 const wheel = new Wheel();
-                updateWheel(wheel);
+                updateWheel(wheel, isWheeled);
                 mWheels.push_back(wheel);
             }
 

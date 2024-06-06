@@ -3,7 +3,13 @@ import { BUFFER_WRITE_UINT32, BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32, CONSTRAINT
 import { Debug } from '../../../debug.mjs';
 import { Constraint, applyOptions } from './constraint.mjs';
 
-class Joint extends Constraint {
+/**
+ * Base class for different types of joints.
+ *
+ * @group Utilities
+ * @category Constraints
+ */
+class JointConstraint extends Constraint {
     _point1 = Vec3.ZERO;
 
     _point2 = Vec3.ZERO;
@@ -96,4 +102,4 @@ class Joint extends Constraint {
     }
 }
 
-export { Joint };
+export { JointConstraint };

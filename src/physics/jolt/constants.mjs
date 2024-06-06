@@ -71,6 +71,10 @@ export const VEHICLE_CAST_TYPE_CYLINDER = 2;
 export const TRANSMISSION_AUTO = 0;
 export const TRANSMISSION_MANUAL = 1;
 
+export const WHEEL_UNDEFINED = -1;
+export const WHEEL_WHEELED = 0;
+export const WHEEL_TRACKED = 1;
+
 export const OBJ_LAYER_NON_MOVING = 0;
 export const OBJ_LAYER_MOVING = 1;
 

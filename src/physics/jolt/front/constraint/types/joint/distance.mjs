@@ -4,15 +4,15 @@ import {
     CMD_JNT_D_SET_SPRING_S, CONSTRAINT_TYPE_DISTANCE, OPERATOR_MODIFIER, SPRING_MODE_FREQUENCY
 } from '../../../../constants.mjs';
 import { Debug } from '../../../../debug.mjs';
-import { Joint } from '../joint.mjs';
+import { JointConstraint } from '../joint-constraint.mjs';
 
 /**
- * Interface for distance constraint.
+ * Distance constraint.
  *
  * @group Utilities
  * @category Constraints
  */
-class DistanceConstraint extends Joint {
+class DistanceConstraint extends JointConstraint {
     _type = CONSTRAINT_TYPE_DISTANCE;
 
     _minDistance = -1;

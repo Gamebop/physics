@@ -45,6 +45,7 @@ const indices = [];
 /**
  * SoftBody Component System. Handles all SoftBody Components.
  *
+ * @group Components
  * @category SoftBody Component
  */
 class SoftBodyComponentSystem extends BodyComponentSystem {

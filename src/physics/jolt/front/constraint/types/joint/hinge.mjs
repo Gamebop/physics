@@ -8,15 +8,15 @@ import {
     CMD_JNT_H_SET_T_ANG_VEL, CONSTRAINT_TYPE_HINGE, OPERATOR_MODIFIER,
     SPRING_MODE_FREQUENCY
 } from '../../../../constants.mjs';
-import { Joint } from '../joint.mjs';
+import { JointConstraint } from '../joint-constraint.mjs';
 
 /**
- * Interface for hinge constraint.
+ * Hinge constraint.
  *
  * @group Utilities
  * @category Constraints
  */
-class HingeConstraint extends Joint {
+class HingeConstraint extends JointConstraint {
     _type = CONSTRAINT_TYPE_HINGE;
 
     _hingeAxis1 = Vec3.UP;

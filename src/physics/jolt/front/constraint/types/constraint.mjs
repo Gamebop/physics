@@ -7,12 +7,12 @@ import { Curve, Vec3, Entity } from 'playcanvas';
 
 function applyOptions(instance, opts) {
     for (const [key, val] of Object.entries(opts)) {
-        const prop = '_' + key;
-        if (!instance[prop]) continue;
-        if (typeof val === 'number' || val instanceof Entity || val instanceof Array) {
-            instance[prop] = val;
-        } else if (val instanceof Vec3 || val instanceof Curve) {
+        const prop = '_' + key;        
+        if (instance[prop] === undefined || key === 'wheels') continue;
+        if (val instanceof Vec3 || val instanceof Curve) {
             instance[prop] = val.clone();
+        } else {
+            instance[prop] = val;
         }
     }
 }
