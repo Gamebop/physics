@@ -1,5 +1,5 @@
 import { CONSTRAINT_TYPE_POINT } from '../../../../constants.mjs';
-import { JointConstraint } from '../joint-constraint.mjs';
+import { JointConstraint } from './joint-constraint.mjs';
 
 /**
  * Point constraint.

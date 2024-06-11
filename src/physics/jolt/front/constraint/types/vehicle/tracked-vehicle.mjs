@@ -1,5 +1,5 @@
 import { CONSTRAINT_TYPE_VEHICLE_TRACK } from '../../../../constants.mjs';
-import { VehicleConstraint, createWheels, writeTracksData, writeWheelsData } from '../vehicle-constraint.mjs';
+import { VehicleConstraint, createWheels, writeTracksData, writeWheelsData } from './vehicle-constraint.mjs';
 import { WheelTV } from './wheel-tv.mjs';
 
 /**

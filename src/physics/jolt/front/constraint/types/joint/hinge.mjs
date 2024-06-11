@@ -8,7 +8,7 @@ import {
     CMD_JNT_H_SET_T_ANG_VEL, CONSTRAINT_TYPE_HINGE, OPERATOR_MODIFIER,
     SPRING_MODE_FREQUENCY
 } from '../../../../constants.mjs';
-import { JointConstraint } from '../joint-constraint.mjs';
+import { JointConstraint } from './joint-constraint.mjs';
 
 /**
  * Hinge constraint.
@@ -213,8 +213,8 @@ class HingeConstraint extends JointConstraint {
         cb.write(this._limitsMax, BUFFER_WRITE_FLOAT32);
         cb.write(this._maxFrictionTorque, BUFFER_WRITE_FLOAT32);
 
-        Joint.writeSpringSettings(cb, this._limitsSpringSettings);
-        Joint.writeMotorSettings(cb, this._motorSettings);
+        JointConstraint.writeSpringSettings(cb, this._limitsSpringSettings);
+        JointConstraint.writeMotorSettings(cb, this._motorSettings);
     }
 
     /**

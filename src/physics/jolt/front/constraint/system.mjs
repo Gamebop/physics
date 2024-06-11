@@ -40,15 +40,13 @@ class ConstraintComponentSystem extends JoltComponentSystem {
 
     onMessage(msg) {}
 
-    createConstraint(index, joint) {
+    createConstraint(index, joint, opts) {
         const cb = this.manager.commandsBuffer;
 
         cb.writeOperator(OPERATOR_CREATOR);
         cb.writeCommand(CMD_CREATE_CONSTRAINT);
 
-        joint.write(cb);
-
-        return index;
+        joint.write(cb, opts);
     }
 
     destroyConstraint(index) {

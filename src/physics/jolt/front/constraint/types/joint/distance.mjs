@@ -4,7 +4,7 @@ import {
     CMD_JNT_D_SET_SPRING_S, CONSTRAINT_TYPE_DISTANCE, OPERATOR_MODIFIER, SPRING_MODE_FREQUENCY
 } from '../../../../constants.mjs';
 import { Debug } from '../../../../debug.mjs';
-import { JointConstraint } from '../joint-constraint.mjs';
+import { JointConstraint } from './joint-constraint.mjs';
 
 /**
  * Distance constraint.
@@ -13,22 +13,22 @@ import { JointConstraint } from '../joint-constraint.mjs';
  * @category Constraints
  */
 class DistanceConstraint extends JointConstraint {
-    _type = CONSTRAINT_TYPE_DISTANCE;
-
     _minDistance = -1;
 
     _maxDistance = -1;
 
-    _limitsSpringSettings = null;
+    _limitsSpring = null;
 
     constructor(entity1, entity2, opts = {}) {
         super(entity1, entity2, opts);
+
+        this._type = CONSTRAINT_TYPE_DISTANCE;
 
         this._minDistance = opts.minDistance ?? this._minDistance;
         this._maxDistance = opts.maxDistance ?? this._maxDistance;
 
         if (opts.limitsSpringSettings) {
-            this._limitsSpringSettings = new Spring(opts.limitsSpringSettings);
+            this._limitsSpring = new Spring(opts.limitsSpringSettings);
         }
     }
 
@@ -37,7 +37,7 @@ class DistanceConstraint extends JointConstraint {
      *
      * @param {import('../settings.mjs').SpringSettings} settings - Object, describing spring settings.
      */
-    set limitsSpringSettings(settings) {
+    set limitsSpring(settings) {
         if ($_DEBUG) {
             const ok = Debug.checkSpringSettings(settings);
             if (!ok) {
@@ -45,20 +45,20 @@ class DistanceConstraint extends JointConstraint {
             }
         }
 
-        this._limitsSpringSettings = settings;
+        const spring = new Spring(settings);
+        this._limitsSpring = spring;
 
-        const mode = settings.springMode ?? SPRING_MODE_FREQUENCY;
-        const freqOrStiff = mode === SPRING_MODE_FREQUENCY ?
-            settings.frequency : settings.stiffness;
+        const value = spring.springMode === SPRING_MODE_FREQUENCY ?
+                      spring.frequency : spring.stiffness;
 
         // TODO
         // needs update after we get rid of flags
         this.system.addCommand(
             OPERATOR_MODIFIER, CMD_JNT_D_SET_SPRING_S, this._index,
             true, BUFFER_WRITE_BOOL, false,
-            settings.springMode, BUFFER_WRITE_UINT8, true,
-            freqOrStiff, BUFFER_WRITE_FLOAT32, true,
-            settings.damping, BUFFER_WRITE_FLOAT32, true
+            spring.springMode, BUFFER_WRITE_UINT8, true,
+            value, BUFFER_WRITE_FLOAT32, true,
+            spring.damping, BUFFER_WRITE_FLOAT32, true
         );
     }
 
@@ -67,8 +67,8 @@ class DistanceConstraint extends JointConstraint {
      * or `null` if spring is not used.
      * @defaultValue null
      */
-    get limitsSpringSettings() {
-        return this._limitsSpringSettings;
+    get limitsSpring() {
+        return this._limitsSpring;
     }
 
     /**
@@ -106,10 +106,10 @@ class DistanceConstraint extends JointConstraint {
     write(cb) {
         super.write(cb);
 
-        cb.write(this._minDistance, BUFFER_WRITE_FLOAT32);
-        cb.write(this._maxDistance, BUFFER_WRITE_FLOAT32);
+        cb.write(this._minDistance, BUFFER_WRITE_FLOAT32, false);
+        cb.write(this._maxDistance, BUFFER_WRITE_FLOAT32, false);
 
-        Joint.writeSpringSettings(cb, this._limitsSpringSettings);
+        JointConstraint.writeSpringSettings(cb, this._limitsSpring);
     }
 
     /**

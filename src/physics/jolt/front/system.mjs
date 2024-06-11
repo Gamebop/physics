@@ -1,5 +1,5 @@
 import { Debug } from '../debug.mjs';
-import { buildAccessors, sortOrder } from '../../util.mjs';
+import { buildAccessors } from '../../util.mjs';
 import { BUFFER_WRITE_UINT32 } from '../constants.mjs';
 import { ComponentSystem } from 'playcanvas';
 

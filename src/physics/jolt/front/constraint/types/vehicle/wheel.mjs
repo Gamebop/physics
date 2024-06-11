@@ -1,5 +1,6 @@
-import { Curve, Vec3 } from 'playcanvas';
+import { Vec3 } from 'playcanvas';
 import { SPRING_MODE_FREQUENCY, WHEEL_UNDEFINED } from '../../../../constants.mjs';
+import { Spring } from '../constraint.mjs';
 
 // TODO
 
@@ -10,7 +11,6 @@ class Wheel {
     static defaultSpringSettings = {
         mode: SPRING_MODE_FREQUENCY,
         frequency: 1.5,
-        stiffness: 1.5,
         damping: 0.5
     };
 
@@ -19,7 +19,7 @@ class Wheel {
     _entity = null;
 
     _position = Vec3.ZERO;
-    
+
     _suspensionForcePoint = Vec3.ZERO;
 
     _suspensionDirection = Vec3.DOWN;
@@ -172,7 +172,10 @@ class Wheel {
         return this._suspensionPreloadLength;
     }
 
-    /** @private */
+    /**
+     * @private
+     * @returns {number} Wheel type constant.
+     */
     get type() {
         return this._type;
     }

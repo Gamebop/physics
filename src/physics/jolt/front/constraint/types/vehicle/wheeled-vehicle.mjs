@@ -1,4 +1,4 @@
-import { VehicleConstraint, createWheels, writeDifferentials, writeWheelsData } from '../vehicle-constraint.mjs';
+import { VehicleConstraint, createWheels, writeDifferentials, writeWheelsData } from './vehicle-constraint.mjs';
 import { CONSTRAINT_TYPE_VEHICLE_WHEEL } from '../../../../constants.mjs';
 import { WheelWV } from './wheel-wv.mjs';
 

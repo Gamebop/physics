@@ -8,7 +8,7 @@ import {
     CMD_JNT_ST_SET_T_O_BS, CMD_JNT_ST_SET_T_O_CS, CONSTRAINT_TYPE_SWING_TWIST,
     OPERATOR_MODIFIER
 } from '../../../../constants.mjs';
-import { JointConstraint } from '../joint-constraint.mjs';
+import { JointConstraint } from './joint-constraint.mjs';
 
 /**
  * Swing-twist constraint.
@@ -359,8 +359,8 @@ class SwingTwistConstraint extends JointConstraint {
         cb.write(this._twistMaxAngle, BUFFER_WRITE_FLOAT32);
         cb.write(this._maxFrictionTorque, BUFFER_WRITE_FLOAT32);
 
-        Joint.writeMotorSettings(cb, this._swingMotorSettings);
-        Joint.writeMotorSettings(cb, this._twistMotorSettings);
+        JointConstraint.writeMotorSettings(cb, this._swingMotorSettings);
+        JointConstraint.writeMotorSettings(cb, this._twistMotorSettings);
     }
 }
 

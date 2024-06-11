@@ -36,10 +36,11 @@ function createPointConstraintSettings(Jolt, jv, cb) {
 function createDistanceConstraintSettings(Jolt, jv, cb) {
     const settings = new Jolt.DistanceConstraintSettings();
 
-    if (cb.flag) settings.mPoint1 = jv.FromBuffer(cb);
-    if (cb.flag) settings.mPoint2 = jv.FromBuffer(cb);
-    if (cb.flag) settings.mMinDistance = cb.read(BUFFER_READ_FLOAT32);
-    if (cb.flag) settings.mMaxDistance = cb.read(BUFFER_READ_FLOAT32);
+    settings.mPoint1 = jv.FromBuffer(cb);
+    settings.mPoint2 = jv.FromBuffer(cb);
+    settings.mMinDistance = cb.read(BUFFER_READ_FLOAT32);
+    settings.mMaxDistance = cb.read(BUFFER_READ_FLOAT32);
+
     if (cb.read(BUFFER_READ_BOOL)) {
         const springSettings = createSpringSettings(cb, Jolt);
         settings.mLimitsSpringSettings = springSettings;
@@ -399,11 +400,26 @@ class ConstraintCreator {
                 wheel.mWidth = cb.read(BUFFER_READ_FLOAT32);
                 wheel.mEnableSuspensionForcePoint = cb.read(BUFFER_READ_BOOL);
 
-                const spring = wheel.mSuspensionSpring;
-                spring.mMode = cb.read(BUFFER_READ_UINT8);
-                spring.mFrequency = cb.read(BUFFER_READ_FLOAT32);
-                spring.mStiffness = cb.read(BUFFER_READ_FLOAT32);
-                spring.mDamping = cb.read(BUFFER_READ_FLOAT32);
+                if (cb.read(BUFFER_READ_BOOL)) {
+                    // const spring = wheel.mSuspensionSpring;
+
+                    createSpringSettings(cb, Jolt, wheel.mSuspensionSpring);
+
+                    // const isFrequencyMode = cb.read(BUFFER_READ_UINT8) === SPRING_MODE_FREQUENCY;
+                    // spring.mMode = isFrequencyMode ?
+                    //     Jolt.ESpringMode_FrequencyAndDamping : Jolt.ESpringMode_StiffnessAndDamping;
+                    // if (isFrequencyMode) {
+                    //     spring.mFrequency = cb.read(BUFFER_READ_FLOAT32);
+                    // } else {
+                    //     spring.mStiffness = cb.read(BUFFER_READ_FLOAT32);
+                    // }
+                    // spring.mDamping = cb.read(BUFFER_READ_FLOAT32);
+                    
+                    // spring.mMode = cb.read(BUFFER_READ_UINT8);
+                    // spring.mFrequency = cb.read(BUFFER_READ_FLOAT32);
+                    // spring.mStiffness = cb.read(BUFFER_READ_FLOAT32);
+                    // spring.mDamping = cb.read(BUFFER_READ_FLOAT32);
+                }
 
                 if (isWheeled) {
                     updateCurve(wheel.mLongitudinalFriction);

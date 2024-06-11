@@ -1,6 +1,6 @@
 import { BUFFER_WRITE_FLOAT32, CONSTRAINT_TYPE_VEHICLE_MOTO } from '../../../../constants.mjs';
 import { Debug } from '../../../../debug.mjs';
-import { VehicleConstraint, createWheels, writeDifferentials, writeWheelsData } from '../vehicle-constraint.mjs';
+import { VehicleConstraint, createWheels, writeDifferentials, writeWheelsData } from './vehicle-constraint.mjs';
 import { math } from 'playcanvas';
 import { WheelWV } from './wheel-wv.mjs';
 
@@ -28,8 +28,8 @@ class MotoVehicleConstraint extends VehicleConstraint {
 
         this._type = CONSTRAINT_TYPE_VEHICLE_MOTO;
 
-        if (opts.wheels) {
-            createWheels(this._wheels, opts.wheels, WheelWV);
+        if (opts.wheelsSettings) {
+            createWheels(this._wheels, opts.wheelsSettings, WheelWV);
         }
     }
 
@@ -102,7 +102,7 @@ class MotoVehicleConstraint extends VehicleConstraint {
         return this._maxLeanAngle;
     }
 
-    write(cb) {
+    write(cb, opts) {
         if ($_DEBUG) {
             let ok = Debug.checkFloat(this._maxLeanAngle);
             ok = ok && Debug.checkFloat(this._leanSpringConstant);
@@ -117,9 +117,9 @@ class MotoVehicleConstraint extends VehicleConstraint {
 
         super.write(cb);
 
-        writeWheelsData(cb, this._wheels, true);
+        writeWheelsData(cb, opts, true);
 
-        writeDifferentials(cb, this._differentials, this._differentialLimitedSlipRatio);
+        // writeDifferentials(cb, opts.differentials, opts.differentialLimitedSlipRatio);
 
         cb.write(this._maxLeanAngle, BUFFER_WRITE_FLOAT32, false);
         cb.write(this._leanSpringConstant, BUFFER_WRITE_FLOAT32, false);

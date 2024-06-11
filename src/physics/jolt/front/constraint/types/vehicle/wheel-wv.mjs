@@ -9,44 +9,46 @@ import { Wheel } from './wheel.mjs';
  * @group Utilities
  * @category Constraints
  */
-class WheelWV extends Wheel {
-    static defaultLateralFrictionCurve = new Curve([0, 0, 3, 1.2, 20, 1]);
+class WheelWV {
+    // static defaultLateralFrictionCurve = new Curve([0, 0, 3, 1.2, 20, 1]);
 
-    static defaultLongitudinalFrictionCurve = new Curve([0, 0, 0.06, 1.2, 0.2, 1]);
+    // static defaultLongitudinalFrictionCurve = new Curve([0, 0, 0.06, 1.2, 0.2, 1]);
 
-    _angularDamping = 0.2;
+    // _angularDamping = 0.2;
 
-    _inertia = 0.9;
-    
-    _combinedLongitudinalFriction = 0;
-    
-    _combinedLateralFriction = 0;
-    
+    // _inertia = 0.9;
+
     _brakeImpulse = 0;
 
-    _lateralFrictionCurve = null;
+    _combinedLongitudinalFriction = 0;
 
-    _longitudinalFrictionCurve = null;
+    _combinedLateralFriction = 0;
+
+    _entity = null;
+
+    // _lateralFrictionCurve = null;
+
+    // _longitudinalFrictionCurve = null;
 
     _lateralSlip = 0;
 
     _longitudinalSlip = 0;
 
-    _maxHandBrakeTorque = 4000;
+    // _maxHandBrakeTorque = 4000;
 
-    _maxBrakeTorque = 1500;
+    // _maxBrakeTorque = 1500;
 
-    _maxSteerAngle = 1.2217304763960306;
+    // _maxSteerAngle = 1.2217304763960306;
 
-    constructor(opts = {}) {
-        super(opts);
+    constructor() {
+        // super(opts);
 
         this._type = WHEEL_WHEELED;
 
-        applyOptions(this, opts);
+        // applyOptions(this, opts);
 
-        this._lateralFrictionCurve ||= WheelWV.defaultLateralFrictionCurve;
-        this._longitudinalFrictionCurve ||= WheelWV.defaultLongitudinalFrictionCurve;
+        // this._lateralFrictionCurve ||= WheelWV.defaultLateralFrictionCurve;
+        // this._longitudinalFrictionCurve ||= WheelWV.defaultLongitudinalFrictionCurve;
     }
 
     /**
@@ -58,9 +60,9 @@ class WheelWV extends Wheel {
      * @returns {number} Angular damping.
      * @defaultValue 0.2
      */
-    get angularDamping() {
-        return this._angularDamping;
-    }
+    // get angularDamping() {
+    //     return this._angularDamping;
+    // }
 
     /**
      * @param {number} impulse - Brake impulse.
@@ -115,7 +117,18 @@ class WheelWV extends Wheel {
     }
 
     /**
-     * Moment of inertia `(kg m^2)`. For a cylinder this would be
+     * PlayCanvas Entity that will be used as a visual wheel. Its position and rotation will be
+     * updated automatically to match the physical wheel.
+     *
+     * @returns {import('playcanvas').Entity | null} Entity or `null`, if none is set.
+     * @defaultValue null
+     */
+    get entity() {
+        return this._entity;
+    }
+
+    /**
+     * Moment of inertia. For a cylinder this would be
      * ```
      * 0.5 * M * R^2
      * ```
@@ -124,9 +137,9 @@ class WheelWV extends Wheel {
      * @returns {number} Moment of inertia.
      * @defaultValue 0.9
      */
-    get inertia() {
-        return this._inertia;
-    }
+    // get inertia() {
+    //     return this._inertia;
+    // }
 
     /**
      * Friction in sideway direction of tire as a function of the slip angle (degrees): angle
@@ -139,16 +152,16 @@ class WheelWV extends Wheel {
      * @returns {Curve | null} LateralFrictionCurve
      * @defaultValue Curve([0, 0, 3, 1.2, 20, 1])
      */
-    get lateralFrictionCurve() {
-        return this._lateralFrictionCurve;
-    }
+    // get lateralFrictionCurve() {
+    //     return this._lateralFrictionCurve;
+    // }
 
     /**
      * Friction in forward direction of tire as a function of the slip ratio (fraction):
      * ```
      * (omega_wheel * r_wheel - v_longitudinal) / |v_longitudinal|.
      * ```
-     * 
+     *
      * Slip ratio here is a ratio of wheel spinning relative to the floor. At `0` the wheel has
      * full traction and is rolling perfectly in sync with the ground. At 1 the wheel is locked and
      * is sliding over the ground.
@@ -156,9 +169,9 @@ class WheelWV extends Wheel {
      * @returns {Curve | null} Longitudinal friction curve.
      * @defaultValue Curve([0, 0, 0.06, 1.2, 0.2, 1])
      */
-    get longitudinalFrictionCurve() {
-        return this._longitudinalFrictionCurve;
-    }
+    // get longitudinalFrictionCurve() {
+    //     return this._longitudinalFrictionCurve;
+    // }
 
     /**
      * @param {number} slip - Lateral slip.
@@ -186,6 +199,8 @@ class WheelWV extends Wheel {
 
     /**
      * Read-only. Velocity difference between ground and wheel relative to ground velocity.
+     *
+     * @returns {number} Longitudinal slip.
      */
     get longitudinalSlip() {
         return this._longitudinalSlip;
@@ -197,9 +212,9 @@ class WheelWV extends Wheel {
      * @returns {number} Max brake torque.
      * @defaultValue 1500 (Nm)
      */
-    get maxBrakeTorque() {
-        return this._maxBrakeTorque;
-    }
+    // get maxBrakeTorque() {
+    //     return this._maxBrakeTorque;
+    // }
 
     /**
      * How much torque (Nm) the hand brake can apply to this wheel (usually only applied to the
@@ -208,9 +223,9 @@ class WheelWV extends Wheel {
      * @returns {number} Max hand brake torque.
      * @defaultValue 4000 (Nm)
      */
-    get maxHandBrakeTorque() {
-        return this._maxHandBrakeTorque;
-    }
+    // get maxHandBrakeTorque() {
+    //     return this._maxHandBrakeTorque;
+    // }
 
     /**
      * How much this wheel can steer.
@@ -218,9 +233,9 @@ class WheelWV extends Wheel {
      * @returns {number} Max steer angle.
      * @defaultValue ~1.22 rad (70 degrees).
      */
-    get maxSteerAngle() {
-        return this._maxSteerAngle;
-    }
+    // get maxSteerAngle() {
+    //     return this._maxSteerAngle;
+    // }
 }
 
 export { WheelWV };

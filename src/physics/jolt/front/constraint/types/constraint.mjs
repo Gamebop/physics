@@ -3,11 +3,11 @@ import {
     BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT16, BUFFER_WRITE_UINT32, BUFFER_WRITE_UINT8,
     CMD_JNT_SET_ENABLED, CONSTRAINT_TYPE_UNDEFINED, OPERATOR_MODIFIER, SPRING_MODE_FREQUENCY
 } from '../../../constants.mjs';
-import { Curve, Vec3, Entity } from 'playcanvas';
+import { Curve, Vec3 } from 'playcanvas';
 
 function applyOptions(instance, opts) {
     for (const [key, val] of Object.entries(opts)) {
-        const prop = '_' + key;        
+        const prop = '_' + key;
         if (instance[prop] === undefined || key === 'wheels') continue;
         if (val instanceof Vec3 || val instanceof Curve) {
             instance[prop] = val.clone();
@@ -105,14 +105,14 @@ class Constraint {
 
     static writeSpringSettings(cb, settings) {
         cb.write(!!settings, BUFFER_WRITE_BOOL, false);
-        if (settings !== null) {
-            cb.write(settings.springMode, BUFFER_WRITE_UINT8);
+        if (settings != null) {
+            cb.write(settings.springMode ?? SPRING_MODE_FREQUENCY, BUFFER_WRITE_UINT8, false);
             if (settings.springMode === SPRING_MODE_FREQUENCY) {
-                cb.write(settings.frequency, BUFFER_WRITE_FLOAT32);
+                cb.write(settings.frequency ?? 1.5, BUFFER_WRITE_FLOAT32, false);
             } else {
-                cb.write(settings.stiffness, BUFFER_WRITE_FLOAT32);
+                cb.write(settings.stiffness ?? 1.5, BUFFER_WRITE_FLOAT32, false);
             }
-            cb.write(settings.damping, BUFFER_WRITE_FLOAT32);
+            cb.write(settings.damping ?? 0.5, BUFFER_WRITE_FLOAT32, false);
         }
     }
 

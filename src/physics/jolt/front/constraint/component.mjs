@@ -13,12 +13,11 @@ import { WheeledVehicleConstraint } from './types/vehicle/wheeled-vehicle.mjs';
 import { TrackedVehicleConstraint } from './types/vehicle/tracked-vehicle.mjs';
 import { MotoVehicleConstraint } from './types/vehicle/moto-vehicle.mjs';
 import {
-    BUFFER_READ_FLOAT32, CONSTRAINT_TYPE_CONE, CONSTRAINT_TYPE_DISTANCE, CONSTRAINT_TYPE_FIXED,
+    CONSTRAINT_TYPE_CONE, CONSTRAINT_TYPE_DISTANCE, CONSTRAINT_TYPE_FIXED,
     CONSTRAINT_TYPE_HINGE, CONSTRAINT_TYPE_POINT, CONSTRAINT_TYPE_PULLEY, CONSTRAINT_TYPE_SIX_DOF,
     CONSTRAINT_TYPE_SLIDER, CONSTRAINT_TYPE_SWING_TWIST, CONSTRAINT_TYPE_VEHICLE_MOTO,
-    CONSTRAINT_TYPE_VEHICLE_TRACK, CONSTRAINT_TYPE_VEHICLE_WHEEL, FLOAT32_SIZE
+    CONSTRAINT_TYPE_VEHICLE_TRACK, CONSTRAINT_TYPE_VEHICLE_WHEEL
 } from '../../constants.mjs';
-import { Entity } from 'playcanvas';
 
 /**
  * Constraint Component. Allows to add one or multiple constraints to an entity with a
@@ -32,6 +31,7 @@ class ConstraintComponent extends Component {
 
     _vehicleConstraint = null;
 
+    /** @private */
     get vehicleConstraint() {
         return this._vehicleConstraint;
     }
@@ -112,15 +112,6 @@ class ConstraintComponent extends Component {
             case CONSTRAINT_TYPE_PULLEY:
                 Constructor = PulleyConstraint;
                 break;
-            case CONSTRAINT_TYPE_VEHICLE_WHEEL:
-                Constructor = WheeledVehicleConstraint;
-                break;
-            case CONSTRAINT_TYPE_VEHICLE_TRACK:
-                Constructor = TrackedVehicleConstraint;
-                break;
-            case CONSTRAINT_TYPE_VEHICLE_MOTO:
-                Constructor = MotoVehicleConstraint;
-                break;
             default:
                 if ($_DEBUG) {
                     Debug.warn(`Trying to add unrecognized constraint type: ${type}`);
@@ -128,34 +119,17 @@ class ConstraintComponent extends Component {
                 return null;
         }
 
-        const isVehicle = type === CONSTRAINT_TYPE_VEHICLE_WHEEL ||
-                          type === CONSTRAINT_TYPE_VEHICLE_MOTO ||
-                          type === CONSTRAINT_TYPE_VEHICLE_TRACK;
-
-        if (isVehicle && this._vehicleConstraint) {
-            if ($_DEBUG) {
-                Debug.warn('Trying to add a vehicle constraint to an entity that already has one. Aborting.');
-            }
-            return;
-        }
-
-        const constraint = isVehicle ? new Constructor(this.entity, opts) :
-            new Constructor(this.entity, otherEntity, opts);
-
-        // for fast access in Shape Component isometry update of wheels
-        this._vehicleConstraint = isVehicle ? constraint : null;
-
+        const constraint = new Constructor(this.entity, otherEntity, opts);
         const index = this.system.constraintMap.add(constraint);
+
         constraint.index = index;
 
         this._list.add(index);
 
-        if (!isVehicle) {
-            if (!otherEntity.constraint) {
-                otherEntity.addComponent('constraint');
-            }
-            otherEntity.constraint.list.add(index);
+        if (!otherEntity.constraint) {
+            otherEntity.addComponent('constraint');
         }
+        otherEntity.constraint.list.add(index);
 
         this.system.createConstraint(index, constraint);
 
@@ -178,7 +152,8 @@ class ConstraintComponent extends Component {
      * @param {import('./types/settings.mjs').WheeledVehicleConstraintSettings |
      * import('./types/settings.mjs').MotoVehicleConstraintSettings |
      * import('./types/settings.mjs').TrackedVehicleConstraintSettings} [opts] - Constraint settings.
-     * @returns {WheeledVehicleConstraint | MotoVehicleConstraint | TrackedVehicleConstraint}
+     * @returns {WheeledVehicleConstraint | MotoVehicleConstraint | TrackedVehicleConstraint} -
+     * Vehicle constraint.
      */
     addVehicle(type, opts = {}) {
         let Constructor;
@@ -216,7 +191,7 @@ class ConstraintComponent extends Component {
 
         this._list.add(index);
 
-        this.system.createConstraint(index, constraint);
+        this.system.createConstraint(index, constraint, opts);
 
         return constraint;
     }

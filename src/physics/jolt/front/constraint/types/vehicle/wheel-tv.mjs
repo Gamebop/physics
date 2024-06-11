@@ -29,14 +29,16 @@ class WheelTV extends Wheel {
     get lateralFriction() {
         return this._lateralFriction;
     }
-    
+
     /**
      * Friction in forward direction of tire.
+     *
+     * @returns {number} Longitudinal friction.
      */
     get longitudinalFriction() {
         return this._longitudinalFriction;
     }
-    
+
     // TODO
     // expose tracked vehicle properties
 }

@@ -5,18 +5,17 @@ import {
     CONSTRAINT_SIX_DOF_TRANSLATION_Y, CONSTRAINT_SIX_DOF_TRANSLATION_Z, SPRING_MODE_FREQUENCY
 } from '../../../constants.mjs';
 
-function createSpringSettings(cb, Jolt) {
-    const springSettings = new Jolt.SpringSettings();
-    const mode = cb.flag ? cb.read(BUFFER_READ_UINT8) : SPRING_MODE_FREQUENCY;
-    const isFrequencyMode = mode === SPRING_MODE_FREQUENCY;
+function createSpringSettings(cb, Jolt, spring) {
+    const springSettings = spring || new Jolt.SpringSettings();
+    const isFrequencyMode = cb.read(BUFFER_READ_UINT8) === SPRING_MODE_FREQUENCY;
     springSettings.mMode = isFrequencyMode ?
         Jolt.ESpringMode_FrequencyAndDamping : Jolt.ESpringMode_StiffnessAndDamping;
     if (isFrequencyMode) {
-        if (cb.flag) springSettings.mFrequency = cb.read(BUFFER_READ_FLOAT32);
+        springSettings.mFrequency = cb.read(BUFFER_READ_FLOAT32);
     } else {
-        if (cb.flag) springSettings.mStiffness = cb.read(BUFFER_READ_FLOAT32);
+        springSettings.mStiffness = cb.read(BUFFER_READ_FLOAT32);
     }
-    if (cb.flag) springSettings.mDamping = cb.read(BUFFER_READ_FLOAT32);
+    springSettings.mDamping = cb.read(BUFFER_READ_FLOAT32);
     return springSettings;
 }
 

@@ -2,7 +2,7 @@ import { Vec3 } from 'playcanvas';
 import {
     BUFFER_WRITE_FLOAT32, BUFFER_WRITE_VEC32, CONSTRAINT_TYPE_PULLEY
 } from '../../../../constants.mjs';
-import { JointConstraint } from '../joint-constraint.mjs';
+import { JointConstraint } from './joint-constraint.mjs';
 
 /**
  * Pulley constraint.

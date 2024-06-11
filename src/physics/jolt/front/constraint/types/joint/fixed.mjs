@@ -3,7 +3,7 @@ import { Debug } from '../../../../debug.mjs';
 import {
     BUFFER_WRITE_BOOL, BUFFER_WRITE_VEC32, CONSTRAINT_TYPE_FIXED
 } from '../../../../constants.mjs';
-import { JointConstraint } from '../joint-constraint.mjs';
+import { JointConstraint } from './joint-constraint.mjs';
 
 /**
  * Fixed constraint.
@@ -12,8 +12,6 @@ import { JointConstraint } from '../joint-constraint.mjs';
  * @category Constraints
  */
 class FixedConstraint extends JointConstraint {
-    _type = CONSTRAINT_TYPE_FIXED;
-
     _autoDetectPoint = true;
 
     _axisX1 = Vec3.RIGHT;
@@ -27,12 +25,14 @@ class FixedConstraint extends JointConstraint {
     constructor(entity1, entity2, opts = {}) {
         super(entity1, entity2, opts);
 
+        this._type = CONSTRAINT_TYPE_FIXED;
+
         this._autoDetectPoint = opts.autoDetectPoint ?? this._autoDetectPoint;
 
-        if (opts.axisX1) this._axisX1 = opts.axisX1;
-        if (opts.axisX2) this._axisX2 = opts.axisX2;
-        if (opts.axisY1) this._axisY1 = opts.axisY1;
-        if (opts.axisY2) this._axisY2 = opts.axisY2;
+        this._axisX1 = opts.axisX1 || this._axisX1;
+        this._axisX2 = opts.axisX2 || this._axisX2;
+        this._axisY1 = opts.axisY1 || this._axisY1;
+        this._axisY2 = opts.axisY2 || this._axisY2;
     }
 
     /**
@@ -67,15 +67,7 @@ class FixedConstraint extends JointConstraint {
         return this._axisY2;
     }
 
-    /**
-     * @returns {number} - Constraint type alias number.
-     * @defaultValue CONSTRAINT_TYPE_FIXED
-     */
-    get type() {
-        return this._type;
-    }
-
-    write(cb) {
+    write(cb, opts) {
         super.write(cb);
 
         if ($_DEBUG) {

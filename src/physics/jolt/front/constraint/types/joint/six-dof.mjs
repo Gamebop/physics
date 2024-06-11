@@ -9,7 +9,7 @@ import {
     CMD_JNT_SDF_SET_T_ROT_CS, CMD_JNT_SDF_SET_T_VEL_CS, CONSTRAINT_SWING_TYPE_CONE,
     CONSTRAINT_TYPE_SIX_DOF, OPERATOR_MODIFIER, SPRING_MODE_FREQUENCY
 } from '../../../../constants.mjs';
-import { JointConstraint } from '../joint-constraint.mjs';
+import { JointConstraint } from './joint-constraint.mjs';
 
 function copyArr(src, dst) {
     for (let i = 0; i < src.length; ++i) {
@@ -393,9 +393,9 @@ class SixDOFConstraint extends JointConstraint {
         const limitMin = this._limitMin;
         const limitMax = this._limitMax;
 
-        Joint.writeAxes(cb, this._freeAxes);
-        Joint.writeAxes(cb, this._fixedAxes);
-        Joint.writeAxes(cb, this._limitedAxes, true);
+        JointConstraint.writeAxes(cb, this._freeAxes);
+        JointConstraint.writeAxes(cb, this._fixedAxes);
+        JointConstraint.writeAxes(cb, this._limitedAxes, true);
 
         cb.write(this._axisX1, BUFFER_WRITE_VEC32, false);
         cb.write(this._axisY1, BUFFER_WRITE_VEC32, false);
@@ -429,14 +429,14 @@ class SixDOFConstraint extends JointConstraint {
         cb.write(!!limitsSpringSettings, BUFFER_WRITE_BOOL, false);
         if (!!limitsSpringSettings) {
             for (let i = 0; i < 6; ++i) {
-                Joint.writeSpringSettings(cb, limitsSpringSettings[i]);
+                JointConstraint.writeSpringSettings(cb, limitsSpringSettings[i]);
             }
         }
 
         cb.write(!!motorSettings, BUFFER_WRITE_BOOL, false);
         if (!!motorSettings) {
             for (let i = 0; i < 6; ++i) {
-                Joint.writeMotorSettings(cb, motorSettings[i]);
+                JointConstraint.writeMotorSettings(cb, motorSettings[i]);
             }
         }
     }

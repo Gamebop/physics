@@ -114,7 +114,7 @@ class ShapeComponentSystem extends JoltComponentSystem {
             cb.read(BUFFER_READ_FLOAT32),
             cb.read(BUFFER_READ_FLOAT32)
         );
-        
+
         vehicleConstraint?.updateWheelsIsometry(cb);
     }
 }

@@ -3,159 +3,11 @@ import {
     BUFFER_READ_FLOAT32,
     BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_INT32, BUFFER_WRITE_UINT32,
     BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32, CMD_VEHICLE_SET_INPUT, CONSTRAINT_TYPE_VEHICLE_MOTO,
-    CONSTRAINT_TYPE_VEHICLE_WHEEL, FLOAT32_SIZE, OBJ_LAYER_MOVING, OPERATOR_MODIFIER, SPRING_MODE_FREQUENCY,
+    CONSTRAINT_TYPE_VEHICLE_WHEEL, FLOAT32_SIZE, OBJ_LAYER_MOVING, OPERATOR_MODIFIER,
     TRANSMISSION_AUTO, VEHICLE_CAST_TYPE_CYLINDER, VEHICLE_CAST_TYPE_RAY, VEHICLE_CAST_TYPE_SPHERE
-} from '../../../constants.mjs';
-import { Debug } from '../../../debug.mjs';
-import { Constraint, applyOptions } from './constraint.mjs';
-
-function createWheels(wheels, settings, WheelConstructor) {
-    for (let i = 0; i < settings.length; i++) {
-        wheels.push(new WheelConstructor(settings[i]));
-    }
-}
-
-function writeCurvePoints(cb, curve) {
-    const keys = curve.keys;
-    const count = keys.length;
-
-    cb.write(count, BUFFER_WRITE_UINT32, false);
-
-    for (let i = 0; i < keys.length; i++) {
-        const key = keys[i];
-
-        cb.write(key[0], BUFFER_WRITE_FLOAT32, false);
-        cb.write(key[1], BUFFER_WRITE_FLOAT32, false);
-    }
-}
-
-function writeGears(cb, gears) {
-    const count = gears.length;
-    cb.write(count, BUFFER_WRITE_UINT32, false);
-    for (let i = 0; i < count; i++) {
-        cb.write(gears[i], BUFFER_WRITE_FLOAT32, false);
-    }
-}
-
-function writeWheelsData(cb, wheels, isWheeled) {
-    const count = wheels.length;
-    cb.write(count, BUFFER_WRITE_UINT32, false);
-
-    for (let i = 0; i < count; i++) {
-        const desc = wheels[i];
-
-        if ($_DEBUG) {
-            let ok = Debug.assert(
-                desc.position,
-                'A wheel description requires an attachment position of wheel suspension in local ' +
-                'space of the vehicle',
-                desc
-            );
-            if (desc.spring) {
-                ok = ok && Debug.checkSpringSettings(desc.spring);
-            }
-            if (!ok) {
-                return;
-            }
-        }
-
-        cb.write(desc.position, BUFFER_WRITE_VEC32, false);
-        cb.write(desc.suspensionForcePoint, BUFFER_WRITE_VEC32, false);
-        cb.write(desc.suspensionDirection, BUFFER_WRITE_VEC32, false);
-        cb.write(desc.steeringAxis, BUFFER_WRITE_VEC32, false);
-        cb.write(desc.wheelUp, BUFFER_WRITE_VEC32, false);
-        cb.write(desc.wheelForward, BUFFER_WRITE_VEC32, false);
-        cb.write(desc.suspensionMinLength, BUFFER_WRITE_FLOAT32, false);
-        cb.write(desc.suspensionMaxLength, BUFFER_WRITE_FLOAT32, false);
-        cb.write(desc.suspensionPreloadLength, BUFFER_WRITE_FLOAT32, false);
-        cb.write(desc.radius, BUFFER_WRITE_FLOAT32, false);
-        cb.write(desc.width, BUFFER_WRITE_FLOAT32, false);
-        cb.write(desc.enableSuspensionForcePoint, BUFFER_WRITE_BOOL, false);
-
-        const spring = desc.spring || {};
-        cb.write(spring.springMode, BUFFER_WRITE_UINT8, false);
-        cb.write(spring.frequency, BUFFER_WRITE_FLOAT32, false);
-        cb.write(spring.stiffness, BUFFER_WRITE_FLOAT32, false);
-        cb.write(spring.damping, BUFFER_WRITE_FLOAT32, false);
-
-        if (isWheeled) {
-            writeCurvePoints(cb, desc.longitudinalFrictionCurve);
-            writeCurvePoints(cb, desc.lateralFrictionCurve);
-
-            cb.write(desc.inertia, BUFFER_WRITE_FLOAT32, false);
-            cb.write(desc.angularDamping, BUFFER_WRITE_FLOAT32, false);
-            cb.write(desc.maxSteerAngle, BUFFER_WRITE_FLOAT32, false);
-            cb.write(desc.maxBrakeTorque, BUFFER_WRITE_FLOAT32, false);
-            cb.write(desc.maxHandBrakeTorque, BUFFER_WRITE_FLOAT32, false);
-        } else {
-            cb.write(desc.longitudinalFriction, BUFFER_WRITE_FLOAT32, false);
-            cb.write(desc.lateralFriction, BUFFER_WRITE_FLOAT32, false);
-        }
-    }
-}
-
-function writeDifferentials(cb, differentials, ratio) {
-    const count = differentials.length;
-
-    if ($_DEBUG && count === 0) {
-        Debug.warnOnce('Vehicle component is missing wheels differentials.' +
-            'Default values will make a vehicle without wheels.');
-    }
-
-    cb.write(count, BUFFER_WRITE_UINT32, false);
-
-    for (let i = 0; i < count; i++) {
-        const diff = differentials[i];
-
-        // Index (in mWheels) that represents the left wheel of this
-        // differential (can be -1 to indicate no wheel)
-        cb.write(diff.leftWheel ?? -1, BUFFER_WRITE_INT32, false);
-
-        // Same as leftWheel, but for the right one.
-        cb.write(diff.rightWheel ?? -1, BUFFER_WRITE_INT32, false);
-
-        // Ratio between rotation speed of gear box and wheels.
-        cb.write(diff.differentialRatio ?? 3.42, BUFFER_WRITE_FLOAT32, false);
-
-        // Defines how the engine torque is split across the left and right
-        // wheel (0 = left, 0.5 = center, 1 = right)
-        cb.write(diff.leftRightSplit ?? 0.5, BUFFER_WRITE_FLOAT32, false);
-
-        // Ratio max / min wheel speed. When this ratio is exceeded, all
-        // torque gets distributed to the slowest moving wheel. This allows
-        // implementing a limited slip differential. Set to Number.MAX_VALUE
-        // for an open differential. Value should be > 1.
-        cb.write(diff.limitedSlipRatio ?? 1.4, BUFFER_WRITE_FLOAT32, false);
-
-        // How much of the engines torque is applied to this differential
-        // (0 = none, 1 = full), make sure the sum of all differentials is 1.
-        cb.write(diff.engineTorqueRatio ?? 1, BUFFER_WRITE_FLOAT32, false);
-    }
-
-    cb.write(ratio, BUFFER_WRITE_FLOAT32, false);
-}
-
-function writeTracksData(cb, tracks) {
-    const count = tracks.length;
-
-    if ($_DEBUG && count === 0) {
-        Debug.warn('Invalid tracks data. Need at least one track.', tracks);
-        return;
-    }
-
-    cb.write(count, BUFFER_WRITE_UINT32, false);
-
-    for (let t = 0; t < count; t++) {
-        const track = tracks[t];
-        const wheelsCount = track.length;
-
-        cb.write(wheelsCount, BUFFER_WRITE_UINT32, false);
-
-        for (let i = 0; i < wheelsCount; i++) {
-            cb.write(track[i], BUFFER_WRITE_UINT32, false);
-        }
-    }
-}
+} from '../../../../constants.mjs';
+import { Debug } from '../../../../debug.mjs';
+import { Constraint, applyOptions } from '../constraint.mjs';
 
 /**
  * Base class for different types of vehicles.
@@ -164,6 +16,10 @@ function writeTracksData(cb, tracks) {
  * @category Constraints
  */
 class VehicleConstraint extends Constraint {
+    static defaultLateralFrictionCurve = new Curve([0, 0, 3, 1.2, 20, 1]);
+    
+    static defaultLongitudinalFrictionCurve = new Curve([0, 0, 0.06, 1.2, 0.2, 1]);
+
     static defaultNormalizedTorque = new Curve([0, 0.8]);
 
     _entity = null;
@@ -547,8 +403,8 @@ class VehicleConstraint extends Constraint {
     /**
      * An array of objects that describe each wheel.
      *
-     * @returns {Array<import('./vehicle/wheel-wv.mjs').WheelWV> |
-     * Array<import('./vehicle/wheel-tv.mjs').WheelTV>} Array of wheels.
+     * @returns {Array<import('./wheel-wv.mjs').WheelWV> |
+     * Array<import('./wheel-tv.mjs').WheelTV>} Array of wheels.
      * @defaultValue []
      */
     get wheels() {
@@ -686,6 +542,164 @@ class VehicleConstraint extends Constraint {
                 cb.read(BUFFER_READ_FLOAT32),
                 cb.read(BUFFER_READ_FLOAT32)
             );
+        }
+    }
+}
+
+function createWheels(wheels, settings, WheelConstructor) {
+    for (let i = 0; i < settings.length; i++) {
+        wheels.push(new WheelConstructor(settings[i]));
+    }
+}
+
+function writeCurvePoints(cb, curve) {
+    const keys = curve.keys;
+    const count = keys.length;
+
+    cb.write(count, BUFFER_WRITE_UINT32, false);
+
+    for (let i = 0; i < keys.length; i++) {
+        const key = keys[i];
+
+        cb.write(key[0], BUFFER_WRITE_FLOAT32, false);
+        cb.write(key[1], BUFFER_WRITE_FLOAT32, false);
+    }
+}
+
+function writeGears(cb, gears) {
+    const count = gears.length;
+    cb.write(count, BUFFER_WRITE_UINT32, false);
+    for (let i = 0; i < count; i++) {
+        cb.write(gears[i], BUFFER_WRITE_FLOAT32, false);
+    }
+}
+
+function writeWheelsData(cb, opts, isWheeled) {
+    if ($_DEBUG) {
+        const ok = Debug.assert(!!opts.wheelsSettings, 'Missing wheels settings.');
+        // TODO
+
+        if (!ok) {
+            return;
+        }
+    }
+
+    const count = opts.wheelsSettings.length;
+    cb.write(count, BUFFER_WRITE_UINT32, false);
+
+    for (let i = 0; i < count; i++) {
+        const desc = opts.wheelsSettings[i];
+
+        if ($_DEBUG) {
+            let ok = Debug.assert(
+                desc.position,
+                'A wheel description requires an attachment position of wheel suspension in local ' +
+                'space of the vehicle',
+                desc
+            );
+            if (desc.spring) {
+                ok = ok && Debug.checkSpringSettings(desc.spring);
+            }
+            if (!ok) {
+                return;
+            }
+        }
+
+        cb.write(desc.position || Vec3.ZERO, BUFFER_WRITE_VEC32, false);
+        cb.write(desc.suspensionForcePoint || Vec3.ZERO, BUFFER_WRITE_VEC32, false);
+        cb.write(desc.suspensionDirection || Vec3.DOWN, BUFFER_WRITE_VEC32, false);
+        cb.write(desc.steeringAxis || Vec3.UP, BUFFER_WRITE_VEC32, false);
+        cb.write(desc.wheelUp || Vec3.UP, BUFFER_WRITE_VEC32, false);
+        cb.write(desc.wheelForward || Vec3.BACK, BUFFER_WRITE_VEC32, false);
+        cb.write(desc.suspensionMinLength ?? 0.3, BUFFER_WRITE_FLOAT32, false);
+        cb.write(desc.suspensionMaxLength ?? 0.5, BUFFER_WRITE_FLOAT32, false);
+        cb.write(desc.suspensionPreloadLength ?? 0, BUFFER_WRITE_FLOAT32, false);
+        cb.write(desc.radius ?? 0.3, BUFFER_WRITE_FLOAT32, false);
+        cb.write(desc.width ?? 0.1, BUFFER_WRITE_FLOAT32, false);
+        cb.write(desc.enableSuspensionForcePoint ?? false, BUFFER_WRITE_BOOL, false);
+
+        Constraint.writeSpringSettings(cb, desc.springSettings);
+        // const spring = new Spring(desc.springSettings);
+        // cb.write(spring.springMode, BUFFER_WRITE_UINT8, false);
+        // cb.write(spring.frequency, BUFFER_WRITE_FLOAT32, false);
+        // cb.write(spring.stiffness, BUFFER_WRITE_FLOAT32, false);
+        // cb.write(spring.damping, BUFFER_WRITE_FLOAT32, false);
+
+        if (isWheeled) {
+            writeCurvePoints(cb, desc.longitudinalFrictionCurve || VehicleConstraint.defaultLongitudinalFrictionCurve);
+            writeCurvePoints(cb, desc.lateralFrictionCurve || VehicleConstraint.defaultLateralFrictionCurve);
+
+            cb.write(desc.inertia ?? 0.9, BUFFER_WRITE_FLOAT32, false);
+            cb.write(desc.angularDamping ?? 0.2, BUFFER_WRITE_FLOAT32, false);
+            cb.write(desc.maxSteerAngle ?? 1.2217304763960306, BUFFER_WRITE_FLOAT32, false);
+            cb.write(desc.maxBrakeTorque ?? 1500, BUFFER_WRITE_FLOAT32, false);
+            cb.write(desc.maxHandBrakeTorque ?? 4000, BUFFER_WRITE_FLOAT32, false);
+        } else {
+            cb.write(desc.longitudinalFriction ?? 4, BUFFER_WRITE_FLOAT32, false);
+            cb.write(desc.lateralFriction ?? 2, BUFFER_WRITE_FLOAT32, false);
+        }
+    }
+}
+
+function writeDifferentials(cb, differentials = [], ratio = ) {
+    const count = differentials.length;
+
+    if ($_DEBUG && count === 0) {
+        Debug.warnOnce('Vehicle component is missing wheels differentials.' +
+            'Default values will make a vehicle without wheels.');
+    }
+
+    cb.write(count, BUFFER_WRITE_UINT32, false);
+
+    for (let i = 0; i < count; i++) {
+        const diff = differentials[i];
+
+        // Index (in mWheels) that represents the left wheel of this
+        // differential (can be -1 to indicate no wheel)
+        cb.write(diff.leftWheel ?? -1, BUFFER_WRITE_INT32, false);
+
+        // Same as leftWheel, but for the right one.
+        cb.write(diff.rightWheel ?? -1, BUFFER_WRITE_INT32, false);
+
+        // Ratio between rotation speed of gear box and wheels.
+        cb.write(diff.differentialRatio ?? 3.42, BUFFER_WRITE_FLOAT32, false);
+
+        // Defines how the engine torque is split across the left and right
+        // wheel (0 = left, 0.5 = center, 1 = right)
+        cb.write(diff.leftRightSplit ?? 0.5, BUFFER_WRITE_FLOAT32, false);
+
+        // Ratio max / min wheel speed. When this ratio is exceeded, all
+        // torque gets distributed to the slowest moving wheel. This allows
+        // implementing a limited slip differential. Set to Number.MAX_VALUE
+        // for an open differential. Value should be > 1.
+        cb.write(diff.limitedSlipRatio ?? 1.4, BUFFER_WRITE_FLOAT32, false);
+
+        // How much of the engines torque is applied to this differential
+        // (0 = none, 1 = full), make sure the sum of all differentials is 1.
+        cb.write(diff.engineTorqueRatio ?? 1, BUFFER_WRITE_FLOAT32, false);
+    }
+
+    cb.write(ratio, BUFFER_WRITE_FLOAT32, false);
+}
+
+function writeTracksData(cb, tracks) {
+    const count = tracks.length;
+
+    if ($_DEBUG && count === 0) {
+        Debug.warn('Invalid tracks data. Need at least one track.', tracks);
+        return;
+    }
+
+    cb.write(count, BUFFER_WRITE_UINT32, false);
+
+    for (let t = 0; t < count; t++) {
+        const track = tracks[t];
+        const wheelsCount = track.length;
+
+        cb.write(wheelsCount, BUFFER_WRITE_UINT32, false);
+
+        for (let i = 0; i < wheelsCount; i++) {
+            cb.write(track[i], BUFFER_WRITE_UINT32, false);
         }
     }
 }
