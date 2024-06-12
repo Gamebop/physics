@@ -9,7 +9,7 @@ import { JointConstraint } from './joint-constraint.mjs';
  * Fixed constraint.
  *
  * @group Utilities
- * @category Constraints
+ * @category Joint Constraints
  */
 class FixedConstraint extends JointConstraint {
     _autoDetectPoint = true;

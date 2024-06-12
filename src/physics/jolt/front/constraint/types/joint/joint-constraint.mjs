@@ -7,7 +7,7 @@ import { Constraint, applyOptions } from '../constraint.mjs';
  * Base class for different types of joints.
  *
  * @group Utilities
- * @category Constraints
+ * @category Joint Constraints
  */
 class JointConstraint extends Constraint {
     _point1 = Vec3.ZERO;

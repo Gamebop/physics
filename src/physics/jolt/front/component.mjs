@@ -24,27 +24,48 @@ class Component extends EventHandler {
         this.on('set_enabled', this.onSetEnabled, this);
     }
 
-    /** @private */
+    /**
+     * @type {import('playcanvas').Entity | null}
+     * @private
+     */
     get entity() {
         return this._entity;
     }
 
-    /** @private */
+    /**
+     * @type {import('./body/system.mjs').BodyComponentSystem |
+     * import('./char/system.mjs').CharComponentSystem |
+     * import('./constraint/system.mjs').ConstraintComponentSystem |
+     * import('./shape/system.mjs').ShapeComponentSystem |
+     * import('./softbody/system.mjs').SoftBodyComponentSystem | null}
+     * @private
+     */
     get system() {
         return this._system;
     }
 
-    /** @private */
-    set accessorsBuilt(isSet) {
-        this._accessorsBuilt = isSet;
+    /**
+     * @param {boolean} bool - Whether the component accessor's are built.
+     * @private
+     */
+    set accessorsBuilt(bool) {
+        this._accessorsBuilt = bool;
     }
 
-    /** @private */
+    /**
+     * @type {boolean}
+     * @private
+     */
     get accessorsBuilt() {
         return this._accessorsBuilt;
     }
 
-    /** @private */
+    /**
+     * // TODO
+     *
+     * @type {number}
+     * @private
+     */
     get order() {
         return this._order;
     }

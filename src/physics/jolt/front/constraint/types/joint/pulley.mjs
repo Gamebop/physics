@@ -8,7 +8,7 @@ import { JointConstraint } from './joint-constraint.mjs';
  * Pulley constraint.
  *
  * @group Utilities
- * @category Constraints
+ * @category Joint Constraints
  */
 class PulleyConstraint extends JointConstraint {
     _type = CONSTRAINT_TYPE_PULLEY;

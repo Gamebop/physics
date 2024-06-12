@@ -5,7 +5,7 @@ import { JointConstraint } from './joint-constraint.mjs';
  * Point constraint.
  *
  * @group Utilities
- * @category Constraints
+ * @category Joint Constraints
  */
 class PointConstraint extends JointConstraint {
     _type = CONSTRAINT_TYPE_POINT;

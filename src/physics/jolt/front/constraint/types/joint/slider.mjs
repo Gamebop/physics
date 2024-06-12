@@ -14,7 +14,7 @@ import { JointConstraint } from './joint-constraint.mjs';
  * Slider constraint.
  *
  * @group Utilities
- * @category Constraints
+ * @category Joint Constraints
  */
 class SliderConstraint extends JointConstraint {
     _type = CONSTRAINT_TYPE_SLIDER;

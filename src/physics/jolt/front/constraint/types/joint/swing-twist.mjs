@@ -14,7 +14,7 @@ import { JointConstraint } from './joint-constraint.mjs';
  * Swing-twist constraint.
  *
  * @group Utilities
- * @category Constraints
+ * @category Joint Constraints
  */
 class SwingTwistConstraint extends JointConstraint {
     _type = CONSTRAINT_TYPE_SWING_TWIST;

@@ -1,23 +1,23 @@
+import { Constraint } from '../constraint.mjs';
+import { Debug } from '../../../../debug.mjs';
 import { Curve, Vec3 } from 'playcanvas';
 import {
     BUFFER_READ_FLOAT32,
-    BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_INT32, BUFFER_WRITE_UINT32,
-    BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32, CMD_VEHICLE_SET_INPUT, CONSTRAINT_TYPE_VEHICLE_MOTO,
+    BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT32, BUFFER_WRITE_UINT8,
+    BUFFER_WRITE_VEC32, CMD_VEHICLE_SET_INPUT, CONSTRAINT_TYPE_VEHICLE_MOTO,
     CONSTRAINT_TYPE_VEHICLE_WHEEL, FLOAT32_SIZE, OBJ_LAYER_MOVING, OPERATOR_MODIFIER,
     TRANSMISSION_AUTO, VEHICLE_CAST_TYPE_CYLINDER, VEHICLE_CAST_TYPE_RAY, VEHICLE_CAST_TYPE_SPHERE
 } from '../../../../constants.mjs';
-import { Debug } from '../../../../debug.mjs';
-import { Constraint, applyOptions } from '../constraint.mjs';
 
 /**
  * Base class for different types of vehicles.
  *
  * @group Utilities
- * @category Constraints
+ * @category Vehicle Constraints
  */
 class VehicleConstraint extends Constraint {
     static defaultLateralFrictionCurve = new Curve([0, 0, 3, 1.2, 20, 1]);
-    
+
     static defaultLongitudinalFrictionCurve = new Curve([0, 0, 0.06, 1.2, 0.2, 1]);
 
     static defaultNormalizedTorque = new Curve([0, 0.8]);
@@ -29,8 +29,6 @@ class VehicleConstraint extends Constraint {
     _forward = Vec3.BACK;
 
     _maxPitchRollAngle = 1.0471975511965976;
-
-    _tracks = [];
 
     _wheels = [];
 
@@ -82,9 +80,8 @@ class VehicleConstraint extends Constraint {
         super();
 
         this._entity = entity;
-        this._normalizedTorque ||= VehicleConstraint.defaultNormalizedTorque;
-
-        applyOptions(this, opts);
+        this._normalizedTorque = opts.normalizedTorque ||
+            VehicleConstraint.defaultNormalizedTorque;
     }
 
     /**
@@ -92,8 +89,7 @@ class VehicleConstraint extends Constraint {
      * vehicle makes in sharp corners See: {@link https://en.wikipedia.org/wiki/Anti-roll_bar |
      * Anti-roll Bar}
      *
-     * TODO
-     * @returns {}
+     * @type {Array<import('../settings.mjs').BarSettings>}
      * @defaultValue []
      */
     get antiRollBars() {
@@ -361,23 +357,6 @@ class VehicleConstraint extends Constraint {
     }
 
     /**
-     * An array of arrays. Each array represents a track and lists indices of wheels that are
-     * inside that track. The last element in each track array will become a driven wheel (an index
-     * that points to a wheel that is connected to the engine).
-     *
-     * Example with 2 tracks, and each having 4 wheels:
-     * ```
-     * [[0, 1, 2, 3], [4, 5, 6, 7]]
-     * ```
-     *
-     * @returns {Array<Array<number>>} Arrays with tracks of wheels.
-     * @defaultValue []
-     */
-    get tracks() {
-        return this._tracks;
-    }
-
-    /**
      * Vector indicating the up direction of the vehicle (in local space to the body).
      *
      * @returns {Vec3} Vehicle up vector.
@@ -574,21 +553,19 @@ function writeGears(cb, gears) {
     }
 }
 
-function writeWheelsData(cb, opts, isWheeled) {
+function writeWheelsData(cb, wheelsSettings, isWheeled) {
     if ($_DEBUG) {
-        const ok = Debug.assert(!!opts.wheelsSettings, 'Missing wheels settings.');
-        // TODO
-
+        const ok = Debug.assert(!!wheelsSettings, 'Missing wheels settings.');
         if (!ok) {
             return;
         }
     }
 
-    const count = opts.wheelsSettings.length;
+    const count = wheelsSettings.length;
     cb.write(count, BUFFER_WRITE_UINT32, false);
 
     for (let i = 0; i < count; i++) {
-        const desc = opts.wheelsSettings[i];
+        const desc = wheelsSettings[i];
 
         if ($_DEBUG) {
             let ok = Debug.assert(
@@ -600,6 +577,9 @@ function writeWheelsData(cb, opts, isWheeled) {
             if (desc.spring) {
                 ok = ok && Debug.checkSpringSettings(desc.spring);
             }
+
+            // TODO
+
             if (!ok) {
                 return;
             }
@@ -619,11 +599,6 @@ function writeWheelsData(cb, opts, isWheeled) {
         cb.write(desc.enableSuspensionForcePoint ?? false, BUFFER_WRITE_BOOL, false);
 
         Constraint.writeSpringSettings(cb, desc.springSettings);
-        // const spring = new Spring(desc.springSettings);
-        // cb.write(spring.springMode, BUFFER_WRITE_UINT8, false);
-        // cb.write(spring.frequency, BUFFER_WRITE_FLOAT32, false);
-        // cb.write(spring.stiffness, BUFFER_WRITE_FLOAT32, false);
-        // cb.write(spring.damping, BUFFER_WRITE_FLOAT32, false);
 
         if (isWheeled) {
             writeCurvePoints(cb, desc.longitudinalFrictionCurve || VehicleConstraint.defaultLongitudinalFrictionCurve);
@@ -639,47 +614,6 @@ function writeWheelsData(cb, opts, isWheeled) {
             cb.write(desc.lateralFriction ?? 2, BUFFER_WRITE_FLOAT32, false);
         }
     }
-}
-
-function writeDifferentials(cb, differentials = [], ratio = ) {
-    const count = differentials.length;
-
-    if ($_DEBUG && count === 0) {
-        Debug.warnOnce('Vehicle component is missing wheels differentials.' +
-            'Default values will make a vehicle without wheels.');
-    }
-
-    cb.write(count, BUFFER_WRITE_UINT32, false);
-
-    for (let i = 0; i < count; i++) {
-        const diff = differentials[i];
-
-        // Index (in mWheels) that represents the left wheel of this
-        // differential (can be -1 to indicate no wheel)
-        cb.write(diff.leftWheel ?? -1, BUFFER_WRITE_INT32, false);
-
-        // Same as leftWheel, but for the right one.
-        cb.write(diff.rightWheel ?? -1, BUFFER_WRITE_INT32, false);
-
-        // Ratio between rotation speed of gear box and wheels.
-        cb.write(diff.differentialRatio ?? 3.42, BUFFER_WRITE_FLOAT32, false);
-
-        // Defines how the engine torque is split across the left and right
-        // wheel (0 = left, 0.5 = center, 1 = right)
-        cb.write(diff.leftRightSplit ?? 0.5, BUFFER_WRITE_FLOAT32, false);
-
-        // Ratio max / min wheel speed. When this ratio is exceeded, all
-        // torque gets distributed to the slowest moving wheel. This allows
-        // implementing a limited slip differential. Set to Number.MAX_VALUE
-        // for an open differential. Value should be > 1.
-        cb.write(diff.limitedSlipRatio ?? 1.4, BUFFER_WRITE_FLOAT32, false);
-
-        // How much of the engines torque is applied to this differential
-        // (0 = none, 1 = full), make sure the sum of all differentials is 1.
-        cb.write(diff.engineTorqueRatio ?? 1, BUFFER_WRITE_FLOAT32, false);
-    }
-
-    cb.write(ratio, BUFFER_WRITE_FLOAT32, false);
 }
 
 function writeTracksData(cb, tracks) {
@@ -704,4 +638,4 @@ function writeTracksData(cb, tracks) {
     }
 }
 
-export { VehicleConstraint, writeWheelsData, writeTracksData, writeDifferentials, createWheels };
+export { VehicleConstraint, writeWheelsData, writeTracksData, createWheels };

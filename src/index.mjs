@@ -23,14 +23,6 @@ export { ConstraintComponent } from './physics/jolt/front/constraint/component.m
 export { ConstraintComponentSystem } from './physics/jolt/front/constraint/system.mjs';
 
 export { Constraint } from './physics/jolt/front/constraint/types/constraint.mjs';
-export {
-    SpringSettings, MotorSettings, ConstraintSettings, ConeConstraintSettings,
-    DistanceConstraintSettings, FixedConstraintSettings, HingeConstraintSettings,
-    PulleyConstraintSettings, SixDOFConstraintSettings, SwingTwistConstraintSettings,
-    SliderConstraintSettings, VehicleConstraintSettings, WheeledVehicleConstraintSettings,
-    MotoVehicleConstraintSettings, TrackedVehicleConstraintSettings, WheelSettings, BarSettings,
-    WheelTVSettings, WheelWVSettings
-} from './physics/jolt/front/constraint/types/settings.mjs';
 export { ConeConstraint } from './physics/jolt/front/constraint/types/joint/cone.mjs';
 export { DistanceConstraint } from './physics/jolt/front/constraint/types/joint/distance.mjs';
 export { FixedConstraint } from './physics/jolt/front/constraint/types/joint/fixed.mjs';
@@ -51,6 +43,7 @@ export { WheelTV } from './physics/jolt/front/constraint/types/vehicle/wheel-tv.
 export { CommandsBuffer } from './physics/jolt/back/commands-buffer.mjs';
 export { IndexedCache } from './physics/indexed-cache.mjs';
 
+export * from './physics/jolt/front/constraint/types/settings.mjs';
 export * from './physics/jolt/constants.mjs';
 
 export { init };

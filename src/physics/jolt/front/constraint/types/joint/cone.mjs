@@ -10,7 +10,7 @@ import { JointConstraint } from './joint-constraint.mjs';
  * Cone constraint.
  *
  * @group Utilities
- * @category Constraints
+ * @category Joint Constraints
  */
 class ConeConstraint extends JointConstraint {
     _type = CONSTRAINT_TYPE_CONE;

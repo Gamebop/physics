@@ -1,16 +1,16 @@
 import { BUFFER_WRITE_FLOAT32, CONSTRAINT_TYPE_VEHICLE_MOTO } from '../../../../constants.mjs';
+import { WheeledVehicleConstraint } from './wheeled-vehicle.mjs';
+import { applyOptions } from '../constraint.mjs';
 import { Debug } from '../../../../debug.mjs';
-import { VehicleConstraint, createWheels, writeDifferentials, writeWheelsData } from './vehicle-constraint.mjs';
 import { math } from 'playcanvas';
-import { WheelWV } from './wheel-wv.mjs';
 
 /**
  * Motorcycle Vehicle Constraint.
  *
  * @group Utilities
- * @category Constraints
+ * @category Vehicle Constraints
  */
-class MotoVehicleConstraint extends VehicleConstraint {
+class MotoVehicleConstraint extends WheeledVehicleConstraint {
     _maxLeanAngle = 45 * math.DEG_TO_RAD;
 
     _leanSpringConstant = 5000;
@@ -28,9 +28,7 @@ class MotoVehicleConstraint extends VehicleConstraint {
 
         this._type = CONSTRAINT_TYPE_VEHICLE_MOTO;
 
-        if (opts.wheelsSettings) {
-            createWheels(this._wheels, opts.wheelsSettings, WheelWV);
-        }
+        applyOptions(this, opts);
     }
 
     /**
@@ -115,11 +113,7 @@ class MotoVehicleConstraint extends VehicleConstraint {
             }
         }
 
-        super.write(cb);
-
-        writeWheelsData(cb, opts, true);
-
-        // writeDifferentials(cb, opts.differentials, opts.differentialLimitedSlipRatio);
+        super.write(cb, opts);
 
         cb.write(this._maxLeanAngle, BUFFER_WRITE_FLOAT32, false);
         cb.write(this._leanSpringConstant, BUFFER_WRITE_FLOAT32, false);

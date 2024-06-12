@@ -1,7 +1,7 @@
 /**
  * @interface
  * @group Utilities
- * @category Settings
+ * @category Constraints
  */
 class ConstraintSettings {
     /**
@@ -58,7 +58,7 @@ class ConstraintSettings {
 /**
  * @interface
  * @group Utilities
- * @category Settings
+ * @category Constraints
  */
 class SpringSettings {
     /**
@@ -102,7 +102,7 @@ class SpringSettings {
 /**
  * @interface
  * @group Utilities
- * @category Settings
+ * @category Constraints
  */
 class MotorSettings {
     /**
@@ -154,7 +154,7 @@ class MotorSettings {
 /**
  * @interface
  * @group Utilities
- * @category Settings
+ * @category Joint Constraints
  */
 class ConeConstraintSettings extends ConstraintSettings {
     /**
@@ -185,7 +185,7 @@ class ConeConstraintSettings extends ConstraintSettings {
 /**
  * @interface
  * @group Utilities
- * @category Settings
+ * @category Joint Constraints
  */
 class DistanceConstraintSettings extends ConstraintSettings {
     /**
@@ -220,7 +220,7 @@ class DistanceConstraintSettings extends ConstraintSettings {
 /**
  * @interface
  * @group Utilities
- * @category Settings
+ * @category Joint Constraints
  */
 class FixedConstraintSettings extends ConstraintSettings {
     /**
@@ -260,7 +260,7 @@ class FixedConstraintSettings extends ConstraintSettings {
 /**
  * @interface
  * @group Utilities
- * @category Settings
+ * @category Joint Constraints
  */
 class HingeConstraintSettings extends ConstraintSettings {
     /**
@@ -333,7 +333,7 @@ class HingeConstraintSettings extends ConstraintSettings {
 /**
  * @interface
  * @group Utilities
- * @category Settings
+ * @category Joint Constraints
  */
 class PulleyConstraintSettings extends ConstraintSettings {
     /**
@@ -385,7 +385,7 @@ class PulleyConstraintSettings extends ConstraintSettings {
 /**
  * @interface
  * @group Utilities
- * @category Settings
+ * @category Joint Constraints
  */
 class SixDOFConstraintSettings extends ConstraintSettings {
     /**
@@ -543,7 +543,7 @@ class SixDOFConstraintSettings extends ConstraintSettings {
 /**
  * @interface
  * @group Utilities
- * @category Settings
+ * @category Joint Constraints
  */
 class SliderConstraintSettings extends ConstraintSettings {
     /**
@@ -614,7 +614,7 @@ class SliderConstraintSettings extends ConstraintSettings {
 /**
  * @interface
  * @group Utilities
- * @category Settings
+ * @category Joint Constraints
  */
 class SwingTwistConstraintSettings extends ConstraintSettings {
     /**
@@ -687,7 +687,7 @@ class SwingTwistConstraintSettings extends ConstraintSettings {
 /**
  * @interface
  * @group Utilities
- * @category Settings
+ * @category Vehicle Constraints
  */
 class BarSettings {
     /**
@@ -718,7 +718,7 @@ class BarSettings {
 /**
  * @interface
  * @group Utilities
- * @category Settings
+ * @category Vehicle Constraints
  */
 class WheelSettings {
     /**
@@ -850,7 +850,7 @@ class WheelSettings {
 /**
  * @interface
  * @group Utilities
- * @category Settings
+ * @category Vehicle Constraints
  */
 class WheelWVSettings extends WheelSettings {
     /**
@@ -933,7 +933,7 @@ class WheelWVSettings extends WheelSettings {
 /**
  * @interface
  * @group Utilities
- * @category Settings
+ * @category Vehicle Constraints
  */
 class WheelTVSettings {
     /**
@@ -956,7 +956,7 @@ class WheelTVSettings {
 /**
  * @interface
  * @group Utilities
- * @category Settings
+ * @category Vehicle Constraints
  */
 class VehicleConstraintSettings {
     /**
@@ -993,7 +993,7 @@ class VehicleConstraintSettings {
      * @type {Array<WheelWVSettings> | Array<WheelTVSettings>}
      * @defaultValue []
      */
-    wheels;
+    wheelsSettings;
 
     /**
      * @type {number}
@@ -1131,7 +1131,7 @@ class VehicleConstraintSettings {
 /**
  * @interface
  * @group Utilities
- * @category Settings
+ * @category Vehicle Constraints
  */
 class WheeledVehicleConstraintSettings extends VehicleConstraintSettings {
     /**
@@ -1150,7 +1150,7 @@ class WheeledVehicleConstraintSettings extends VehicleConstraintSettings {
 /**
  * @interface
  * @group Utilities
- * @category Settings
+ * @category Vehicle Constraints
  */
 class MotoVehicleConstraintSettings extends VehicleConstraintSettings {
     /**
@@ -1193,14 +1193,79 @@ class MotoVehicleConstraintSettings extends VehicleConstraintSettings {
 /**
  * @interface
  * @group Utilities
- * @category Settings
+ * @category Vehicle Constraints
  */
 class TrackedVehicleConstraintSettings extends VehicleConstraintSettings {}
+
+/**
+ * @interface
+ * @group Utilities
+ * @category Vehicle Constraints
+ */
+class DifferentialSettings {
+    /**
+     * Index (in mWheels) that represents the left wheel of this differential (can be `-1` to
+     * indicate no wheel).
+     *
+     * @type {number}
+     * @defaultValue -1
+     */
+    leftWheel;
+
+    /**
+     * Same as {@link leftWheel}, but for the right one.
+     *
+     * @type {number}
+     * @defaultValue -1
+     */
+    rightWheel;
+
+    /**
+     * Ratio between rotation speed of gear box and wheels.
+     *
+     * @type {number}
+     * @defaultValue 3.42
+     */
+    differentialRatio;
+
+    /**
+     * Defines how the engine torque is split across the left and right wheel:
+     * - `0`: left
+     * - `0.5`: center
+     * - `1`: right
+     *
+     * @type {number}
+     * @defaultValue 0.5
+     */
+    leftRightSplit;
+
+    /**
+     * Ratio max / min wheel speed. When this ratio is exceeded, all torque gets distributed to the
+     * slowest moving wheel. This allows implementing a limited slip differential. Set to
+     * `Number.MAX_VALUE` for an open differential. Value should be `> 1`.
+     *
+     * @type {number}
+     * @defaultValue 1.4
+     */
+    limitedSlipRatio;
+
+    /**
+     * How much of the engines torque is applied to this differential:
+     * - `0`: none
+     * - `1`: full
+     *
+     * Make sure the sum of all differentials is `1`.
+     *
+     * @type {number}
+     * @defaultValue 1
+     */
+    engineTorqueRatio;
+}
 
 export {
     SpringSettings, MotorSettings, ConstraintSettings, ConeConstraintSettings, DistanceConstraintSettings,
     FixedConstraintSettings, HingeConstraintSettings, PulleyConstraintSettings, SixDOFConstraintSettings,
     SliderConstraintSettings, SwingTwistConstraintSettings, VehicleConstraintSettings, WheelSettings,
     WheeledVehicleConstraintSettings, MotoVehicleConstraintSettings, TrackedVehicleConstraintSettings,
-    BarSettings, WheelTVSettings, WheelWVSettings
+    BarSettings, WheelTVSettings, WheelWVSettings, DifferentialSettings
 };

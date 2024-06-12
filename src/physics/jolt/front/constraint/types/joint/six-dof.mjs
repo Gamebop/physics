@@ -29,7 +29,7 @@ function copySettings(Constructor, src) {
  * Six degrees of freedom (six DOF) constraint.
  *
  * @group Utilities
- * @category Constraints
+ * @category Joint Constraints
  */
 class SixDOFConstraint extends JointConstraint {
     _type = CONSTRAINT_TYPE_SIX_DOF;

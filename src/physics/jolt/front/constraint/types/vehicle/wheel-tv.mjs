@@ -1,46 +1,29 @@
 import { WHEEL_TRACKED } from '../../../../constants.mjs';
-import { applyOptions } from '../constraint.mjs';
-import { Wheel } from './wheel.mjs';
 
 /**
  * A tracked vehicle wheel.
  *
  * @group Utilities
- * @category Constraints
+ * @category Vehicle Constraints
  */
-class WheelTV extends Wheel {
-    _lateralFriction = 2;
-
-    _longitudinalFriction = 4;
+class WheelTV {
+    _entity = null;
 
     constructor(opts = {}) {
-        super(opts);
-
         this._type = WHEEL_TRACKED;
-
-        applyOptions(this, opts);
+        this._entity = opts.entity || this._entity;
     }
 
     /**
-     * Friction in sideway direction of tire.
+     * PlayCanvas Entity that will be used as a visual wheel. Its position and rotation will be
+     * updated automatically to match the physical wheel.
      *
-     * @returns {number} Friction.
+     * @type {import('playcanvas').Entity | null}
+     * @defaultValue null
      */
-    get lateralFriction() {
-        return this._lateralFriction;
+    get entity() {
+        return this._entity;
     }
-
-    /**
-     * Friction in forward direction of tire.
-     *
-     * @returns {number} Longitudinal friction.
-     */
-    get longitudinalFriction() {
-        return this._longitudinalFriction;
-    }
-
-    // TODO
-    // expose tracked vehicle properties
 }
 
 export { WheelTV };

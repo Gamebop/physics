@@ -10,7 +10,7 @@ import { JointConstraint } from './joint-constraint.mjs';
  * Distance constraint.
  *
  * @group Utilities
- * @category Constraints
+ * @category Joint Constraints
  */
 class DistanceConstraint extends JointConstraint {
     _minDistance = -1;
@@ -49,7 +49,7 @@ class DistanceConstraint extends JointConstraint {
         this._limitsSpring = spring;
 
         const value = spring.springMode === SPRING_MODE_FREQUENCY ?
-                      spring.frequency : spring.stiffness;
+            spring.frequency : spring.stiffness;
 
         // TODO
         // needs update after we get rid of flags

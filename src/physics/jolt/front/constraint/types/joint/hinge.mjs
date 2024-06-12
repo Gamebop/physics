@@ -14,7 +14,7 @@ import { JointConstraint } from './joint-constraint.mjs';
  * Hinge constraint.
  *
  * @group Utilities
- * @category Constraints
+ * @category Joint Constraints
  */
 class HingeConstraint extends JointConstraint {
     _type = CONSTRAINT_TYPE_HINGE;

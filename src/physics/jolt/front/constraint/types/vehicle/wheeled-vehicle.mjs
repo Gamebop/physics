@@ -1,12 +1,40 @@
-import { VehicleConstraint, createWheels, writeDifferentials, writeWheelsData } from './vehicle-constraint.mjs';
-import { CONSTRAINT_TYPE_VEHICLE_WHEEL } from '../../../../constants.mjs';
+import { VehicleConstraint, createWheels, writeWheelsData } from './vehicle-constraint.mjs';
+import { applyOptions } from '../constraint.mjs';
+import { Debug } from '../../../../debug.mjs';
 import { WheelWV } from './wheel-wv.mjs';
+import {
+    BUFFER_WRITE_FLOAT32, BUFFER_WRITE_INT32, BUFFER_WRITE_UINT32, CONSTRAINT_TYPE_VEHICLE_WHEEL
+} from '../../../../constants.mjs';
+
+function writeDifferentials(cb, differentials, ratio) {
+    const count = differentials.length;
+
+    if ($_DEBUG && count === 0) {
+        Debug.warnOnce('Vehicle component is missing wheels differentials. ' +
+            'Default values will make a vehicle without wheels.');
+    }
+
+    cb.write(count, BUFFER_WRITE_UINT32, false);
+
+    for (let i = 0; i < count; i++) {
+        const diff = differentials[i];
+
+        cb.write(diff.leftWheel ?? -1, BUFFER_WRITE_INT32, false);
+        cb.write(diff.rightWheel ?? -1, BUFFER_WRITE_INT32, false);
+        cb.write(diff.differentialRatio ?? 3.42, BUFFER_WRITE_FLOAT32, false);
+        cb.write(diff.leftRightSplit ?? 0.5, BUFFER_WRITE_FLOAT32, false);
+        cb.write(diff.limitedSlipRatio ?? 1.4, BUFFER_WRITE_FLOAT32, false);
+        cb.write(diff.engineTorqueRatio ?? 1, BUFFER_WRITE_FLOAT32, false);
+    }
+
+    cb.write(ratio, BUFFER_WRITE_FLOAT32, false);
+}
 
 /**
  * Wheeled Vehicle Constraint.
  *
  * @group Utilities
- * @category Constraints
+ * @category Vehicle Constraints
  */
 class WheeledVehicleConstraint extends VehicleConstraint {
     _differentialLimitedSlipRatio = 1.4;
@@ -18,8 +46,10 @@ class WheeledVehicleConstraint extends VehicleConstraint {
 
         this._type = CONSTRAINT_TYPE_VEHICLE_WHEEL;
 
-        if (opts.wheels) {
-            createWheels(this._wheels, opts.wheels, WheelWV);
+        applyOptions(this, opts);
+
+        if (opts.wheelsSettings) {
+            createWheels(this._wheels, opts.wheelsSettings, WheelWV);
         }
     }
 
@@ -39,18 +69,17 @@ class WheeledVehicleConstraint extends VehicleConstraint {
     /**
      * List of differentials and their properties.
      *
-     * TODO
-     * @returns {}
+     * @type {Array<import('../settings.mjs').DifferentialSettings>}
      * @defaultValue []
      */
     get differentials() {
         return this._differentials;
     }
 
-    write(cb) {
+    write(cb, opts) {
         super.write(cb);
 
-        writeWheelsData(cb, this._wheels, true);
+        writeWheelsData(cb, opts.wheelsSettings, true);
 
         writeDifferentials(cb, this._differentials, this._differentialLimitedSlipRatio);
     }
