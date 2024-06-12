@@ -19,6 +19,72 @@ import {
     OPERATOR_CREATOR, OPERATOR_MODIFIER, OPERATOR_QUERIER
 } from './constants.mjs';
 
+/**
+ * @interface
+ * @group Managers
+ */
+class ShapeSettings {
+    /**
+     * @see {@link ShapeComponent.density}
+     * @type {number}
+     * @defaultValue 1000
+     */
+    density;
+
+    /**
+     * @see {@link ShapeComponent.shapePosition}
+     * @type {Vec3}
+     * @defaultValue Vec3(0, 0, 0)
+     */
+    shapePosition;
+
+    /**
+     * @see {@link ShapeComponent.shapeRotation}
+     * @type {Quat}
+     * @defaultValue Quat(0, 0, 0, 1)
+     */
+    shapeRotation;
+
+    /**
+     * Scales the shape. Uniform scale is always fine. Non-uniform scale is supported only by some
+     * shapes. For example:
+     * - you can use non-uniform scale on a box shape, but not on a sphere, etc.
+     * - you can use non-uniform scale on a cylinder/capsule, but `X` and `Z` must be uniform.
+     *
+     * @type {Vec3}
+     * @defaultValue Vec3(1, 1, 1)
+     */
+    scale;
+
+    /**
+     * @see {@link ShapeComponent.halfExtent}
+     * @type {Vec3}
+     * @defaultValue Vec3(0.5, 0.5, 0.5)
+     */
+    halfExtent;
+
+    /**
+     * @see {@link ShapeComponent.convexRadius}
+     * @type {number}
+     * @defaultValue 0.05 (m)
+     */
+    convexRadius;
+
+    /**
+     * @see {@link ShapeComponent.halfHeight}
+     * @type {number}
+     * @defaultValue 0.5 (m)
+     */
+    halfHeight;
+
+    /**
+     * @see {@link ShapeComponent.radius}
+     * @type {number}
+     * @defaultValue 0.5 (m)
+     */
+    radius;
+}
+
 function getColor(type, config) {
     switch (type) {
         case MOTION_TYPE_STATIC:
@@ -78,9 +144,14 @@ function debugDraw(app, data, config) {
     }
 }
 
-const halfExtent = new Vec3(0.5, 0.5, 0.5);
-
+/**
+ * Jolt Manager is responsible to handle the Jolt Physics backend.
+ *
+ * @group Managers
+ */
 class JoltManager extends PhysicsManager {
+    defaultHalfExtent = new Vec3(0.5, 0.5, 0.5);
+
     constructor(app, opts, resolve) {
         const config = {
             useSharedArrayBuffer: true,
@@ -155,6 +226,11 @@ class JoltManager extends PhysicsManager {
         this.sendUncompressed(msg);
     }
 
+    /**
+     * Sets the physics world gravity.
+     *
+     * @param {Vec3} gravity - Gravity vector.
+     */
     set gravity(gravity) {
         if ($_DEBUG) {
             const ok = Debug.checkVec(gravity, `Invalid gravity vector`, gravity);
@@ -173,10 +249,20 @@ class JoltManager extends PhysicsManager {
         }
     }
 
+    /**
+     * Gets the current gravity vector.
+     *
+     * @type {Vec3}
+     * @defaultValue Vec3(0, -9.81, 0)
+     */
     get gravity() {
         return this._gravity;
     }
 
+    /**
+     * @type {IndexedCache}
+     * @private
+     */
     get queryMap() {
         return this._queryMap;
     }
@@ -238,18 +324,31 @@ class JoltManager extends PhysicsManager {
         this._backend.updateCallback = null;
     }
 
+    /**
+     * Creates a shape in the physics backend. Note, that the shape is not added to the physics
+     * world after it is created, so it won't affect the simulation.
+     *
+     * This is useful, when you want to use a shape for a shapecast, or want your kinematic
+     * character controller to change current shape (e.g. standing, sitting, laying, etc).
+     *
+     * Once you no longer need the shape, you must {@link destroyShape} to avoid memory leaks.
+     *
+     * @param {number} type - Shape type number.
+     * options.
+     * @param {ShapeSettings} [options] - Optional shape settings.
+     * @see {@link ShapeComponent.shape} for available shape type options.
+     * @returns {number} Shape index.
+     */
     createShape(type, options = {}) {
         const cb = this._outBuffer;
 
-        // TODO
-        // expose to docs?
         const opts = {
             // defaults
             density: 1000,
             shapePosition: Vec3.ZERO,
             shapeRotation: Quat.IDENTITY,
             scale: Vec3.ONE,
-            halfExtent,
+            halfExtent: JoltManager.defaultHalfExtent,
             convexRadius: 0.05,
             halfHeight: 0.5,
             radius: 0.5,
@@ -275,6 +374,11 @@ class JoltManager extends PhysicsManager {
         return index;
     }
 
+    /**
+     * Destroys a shape that was previously created with {@link createShape}.
+     *
+     * @param {number} index - Shape index number.
+     */
     destroyShape(index) {
         if ($_DEBUG) {
             const ok = Debug.checkUint(index, `Invalid shape number: ${index}`);
@@ -493,4 +597,4 @@ class JoltManager extends PhysicsManager {
     }
 }
 
-export { JoltManager };
+export { JoltManager, ShapeSettings };

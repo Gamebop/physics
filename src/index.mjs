@@ -7,6 +7,8 @@
 
 import { init } from './physics/init.mjs';
 
+export { JoltManager, ShapeSettings } from './physics/jolt/manager.mjs';
+
 export { ShapeComponent } from './physics/jolt/front/shape/component.mjs';
 export { ShapeComponentSystem } from './physics/jolt/front/shape/system.mjs';
 
@@ -45,5 +47,7 @@ export { IndexedCache } from './physics/indexed-cache.mjs';
 
 export * from './physics/jolt/front/constraint/types/settings.mjs';
 export * from './physics/jolt/constants.mjs';
+
+export { JoltBackend } from './physics/jolt/back/backend.mjs';
 
 export { init };

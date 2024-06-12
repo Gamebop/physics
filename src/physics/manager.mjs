@@ -32,30 +32,64 @@ class PhysicsManager {
         this._app = app;
     }
 
+    /**
+     * @param {import('./jolt/back/backend.mjs').JoltBackend} instance - Jolt backend instance.
+     */
     set backend(instance) {
         this._backend = instance;
     }
 
+    /**
+     * @type {import('./jolt/back/backend.mjs').JoltBackend | null}
+     * @private
+     */
     get backend() {
         return this._backend;
     }
 
+    /**
+     * @type {Map<number, import('./jolt/front/body/system.mjs').BodyComponentSystem |
+     * import('./jolt/front/char/system.mjs').CharComponentSystem |
+     * import('./jolt/front/constraint/system.mjs').ConstraintComponentSystem |
+     * import('./jolt/front/shape/system.mjs').ShapeComponentSystem |
+     * import('./jolt/front/softbody/system.mjs').SoftBodyComponentSystem>}
+     * @private
+     */
     get systems() {
         return this._systems;
     }
 
+    /**
+     * Allows to pause/unpause physics update. Useful, when you have some UI popup and want to
+     * freeze the game world, but still be able to interact with the application.
+     *
+     * @param {boolean} bool - If `true`, will pause the physics world update.
+     */
     set paused(bool) {
         this._paused = bool;
     }
 
+    /**
+     * Gets the current state of the physics world. Whether it is paused or not.
+     *
+     * @type {boolean}
+     * @defaultValue false
+     */
     get paused() {
         return this._paused;
     }
 
+    /**
+     * @type {CommandsBuffer}
+     * @private
+     */
     get commandsBuffer() {
         return this._outBuffer;
     }
 
+    /**
+     * @type {}
+     */
     get config() {
         return this._config;
     }

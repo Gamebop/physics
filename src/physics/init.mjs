@@ -2,100 +2,184 @@ import { Debug } from './jolt/debug.mjs';
 import { JoltManager } from './jolt/manager.mjs';
 
 /**
+ * An options object to configure Jolt Physics backend. All options are optional.
+ *
+ * @interface
+ * @group Managers
+ */
+class JoltInitSettings {
+    /**
+     * Specifies, if {@link CommandsBuffer} can be resized, when it is full. On every frame the
+     * buffer starts writing from the beginning, so it has a full capacity available for it. If
+     * there is more data that needs to be written than the initial size specified with
+     * {@link commandsBufferSize}, then it will grow by `50%` of the current size and try to write
+     * it again. It will never shrink down, and will remain at the new size until it has to grow
+     * again.
+     *
+     * If this is set to `false`, the growth becomes forbidden and the commands that did not fit
+     * into the buffer will be ignored. Generally, 10kb is enough to move about 100-150 primitive
+     * objects every frame.
+     *
+     * @type {boolean}
+     * @defaultValue true
+     */
+    allowCommandsBufferResize;
+
+    /**
+     * Baumgarte stabilization factor (how much of the position error to "fix" in 1 update):
+     * - `0`: nothing
+     * - `1`: 100%
+     *
+     * @type {number}
+     * @defaultValue 0.2 (dimensionless)
+     */
+    baumgarte;
+
+    /**
+     * Maximum relative delta orientation for body pairs to be able to reuse collision results from
+     * last update, stored as `cos(max angle / 2)`.
+     *
+     * @type {number}
+     * @defaultValue 0.9998476951563912 (radians)
+     */
+    bodyPairCacheCosMaxDeltaRotationDiv2;
+
+    /**
+     * Initial size of the {@link CommandsBuffer} in bytes.
+     *
+     * @type {number}
+     * @defaultValue 10000 (10kb)
+     */
+    commandsBufferSize;
+
+    /**
+     * Line color of the dynamic objects during a debug draw.
+     *
+     * @type {import('playcanvas').Color}
+     * @defaultValue Color.YELLOW
+     */
+    debugColorDynamic;
+
+    /**
+     * Line color of the kinematic objects during a debug draw.
+     *
+     * @type {import('playcanvas').Color}
+     * @defaultValue Color.MAGENTA
+     */
+    debugColorKinematic;
+
+    /**
+     * Line color of the static objects during a debug draw.
+     *
+     * @type {import('playcanvas').Color}
+     * @defaultValue Color.GRAY
+     */
+    debugColorStatic;
+
+    /**
+     * The PlayCanvas Layer ID, where to debug draw lines.
+     *
+     * @type {number}
+     * @defaultValue LAYERID_IMMEDIATE
+     */
+    debugDrawLayerId;
+
+    /**
+     * If `true`, debug draw will consider scene depth, so lines that are behind a visual mesh will
+     * not be drawn ontop of it.
+     *
+     * @type {boolean}
+     * @defaultValue true
+     */
+    debugDrawDepth;
+
+    /**
+     * A fixed time intervals to update physics simulation at. Affects performance, so try to set
+     * it as large as possible (fewer updates per second), until you start getting collision and
+     * motion artifacts. Generally, `1/30` (30 updates per second) is a good option.
+     *
+     * @type {number}
+     * @defaultValue 1/30
+     */
+    fixedStep;
+
+    /**
+     * Maximum number of physics updates we allow to fast-forward. For example, if we switch a
+     * browser tab, the main thread will pause. Once the app comes back to focus, the delta time
+     * from the last update will be large. The system will try to catch up the missed time by
+     * looping the physics update until the accumulated time is exhausted.
+     *
+     * This setting effectively clamps the missed time, so the resulting delta time is small on
+     * resume. For example, if we missed 1000 updates, and this setting is set to 5, then once
+     * application resumes, the system will run 5 updates before continuing running updates as
+     * usual.
+     *
+     * It is difficult to advice on a good number, as it depends on {@link fixedStep},
+     * {@link subSteps}, and others. Probably 2-5 is a good range to start with. Keep it low and
+     * experiment with your app switching tabs. The lower this number is the better.
+     *
+     * @type {number}
+     * @defaultValue 3
+     */
+    maxSkippedSteps;
+
+    /**
+     * A number of sub-steps per single {@link fixedStep}. Affects performance, so try to keep it
+     * low. Increasing the number of substeps will make constraints feel stronger and collisions
+     * more rigid.
+     *
+     * @type {number}
+     * @defaultValue 2
+     */
+    subSteps;
+
+    /**
+     * If `true`, enables the use of motion states for all physical objects that support it. When
+     * disabled, the position of an object is updated once a physics update completes (which
+     * happens at {@link fixedStep} intervals). If the browser refresh rate is faster than
+     * {@link fixedStep}, the object will visibly "stutter" while moving. To make its motion
+     * smooth, you can make {@link fixedStep} smaller to match the browser refresh rate (expensive)
+     * or use this motion state option.
+     * 
+     * When enabled, the system will interpolate the object's position and rotation, based on its
+     * current velocities. It effectively "guesses" the isometry of an object at the next frame,
+     * until the real physics update happens.
+     *
+     * @type {boolean}
+     * @defaultValue true
+     */
+    useMotionStates;
+
+    /**
+     * If `true`, tries to use a `Shared Array Buffer` (SAB) for the {@link CommandsBuffer}. If SAB
+     * is not supported, or `false` is set, then falls back to `Array Buffer`.
+     *
+     * @type {boolean}
+     * @defaultValue true
+     */
+    useSharedArrayBuffer;
+
+    /**
+     * If `true`, tries to run the physics backend in a Web Worker. If the Web Worker is not
+     * supported, or this option is set to `false`, will fall back to main thread.
+     *
+     * Note, that some features, like debug draw, are disabled, when using Web Worker.
+     *
+     * @type {boolean}
+     * @defaultValue false
+     */
+    useWebWorker;
+}
+
+/**
  * Components initialization method.
  *
  * @param {import('playcanvas').Application} app - PlayCanvas Application instance
- * @param {object} opts - An options object to configure the physics backend. All options are
- * optional:
- * @param {string} opts.backend - Name of the physics backend to initialize.
+ * @param {JoltInitSettings} opts - Jolt Physics initialization settings.
+ * 
  *
- * Default: `jolt`.
- * @param {boolean} opts.useSharedArrayBuffer - If `true`, tries to use a Shared Array Buffer (SAB)
- * for the {@link CommandsBuffer | Commands Buffer}. If SAB is not supported, or `false` is set,
- * then falls back to Array Buffer.
  *
- * Default: `true`.
- * @param {number} opts.commandsBufferSize - Initial size of the
- * {@link CommandsBuffer | Commands Buffer} in bytes.
- *
- * Default: `10000` (10kb).
- * @param {boolean} opts.allowCommandsBufferResize - Specifies, if
- * {@link CommandsBuffer | Commands Buffer} can be resized, when full. On every frame the buffer
- * starts writing from the beginning, so it has a full capacity available for it. If there is more
- * data that needs to be written than the initial size specified with `commandsBufferSize`, then it
- * will grow by 50% of the current size and try to write it again. It will never shrink down, and
- * remain at the new size until it has to grow again. If this is set to `false`, the growth becomes
- * forbidden and the commands that did not fit into the buffer will be ignored. Generally, 10kb is
- * enough to move about 100-150 primitive objects every frame.
- *
- * Default: `true`.
- * @param {boolean} opts.useWebWorker - If `true`, tries to run the physics backend in Web Worker.
- * If Web Worker is not supported, or this option is set to `false`, will fall back to main thread.
- * Note, that some features, like debug draw, are disabled, when using Web Worker.
- *
- * Default: `false`.
- * @param {number} opts.fixedStep - A fixed time intervals to update physics simulation at. Affects
- * performance, so try to set it as large as possible (fewer updates per second), until you start
- * getting collision and motion artifacts.
- *
- * Default: `1/30` (30 updates per second).
- * @param {number} opts.subSteps - A number of sub-steps in a single update. Affects
- * performance, so try to keep at 1, unless you start getting collision and motion artifacts.
- * Increasing the number of substeps will make constraints feel stronger and collisions "harder".
- *
- * Default: `1`.
- * @param {boolean} opts.useMotionStates - If `true`, enables the use of motion states for all
- * physical objects that support it. When disabled, the position of an object is updated once a
- * physics update completes (which happens at `fixedStep` intervals). If the browser refresh rate
- * is faster than `fixedStep`, the object will visibly "stutter" while moving. To make its motion
- * smooth, you can make `fixedStep` smaller to match the browser refresh rate (expensive) or use
- * this motion state option. When enabled, the system will interpolate the object's position and
- * rotation, based on its current velocities. It effectively "guesses" the isometry of an object
- * at the next frame, until the real physics update happens.
- *
- * Default: `true`.
- * @param {import('playcanvas').Color} opts.debugColorStatic - Line color of the static objects
- * during a debug draw.
- *
- * Default: `Color.GRAY`
- * @param {import('playcanvas').Color} opts.debugColorKinematic - Line color of the kinematic
- * objects during a debug draw.
- *
- * Default: `Color.MAGENTA`
- * @param {import('playcanvas').Color} opts.debugColorDynamic - Line color of the dynamic objects
- * during a debug draw.
- *
- * Default: `Color.YELLOW`
- * @param {number} opts.debugDrawLayerId - The PlayCanvas Layer ID, where to debug draw lines.
- *
- * Default: `LAYERID_IMMEDIATE` (alias integer)
- * @param {boolean} opts.debugDrawDepth - If `true`, debug draw will consider scene depth, so lines
- * that are behind a visual mesh will not be drawn ontop of it.
- *
- * Default: `true`.
- * @param {number} opts.baumgarte - Baumgarte stabilization factor (how much of the position error
- * to "fix" in 1 update)
- * - 0 = nothing
- * - 1 = 100%
- *
- * Default: `0.2` (dimensionless)
- * @param {number} opts.maxSkippedSteps - Maximum number of physics updates we allow to
- * fast-forward. For example, if we switch a browser tab, the main thread will pause. Once the app
- * comes back to focus, the delta time from the last update will be large. The system will try to
- * catch up the missed time by looping the physics update until the accumulated time is exhausted.
- * This setting effectively clamps the missed time, so the resulting delta time is small on resume.
- * For example, if we missed 1000 updates, and this setting is set to 5, then once application
- * resumes, the system will run 5 updates before continuing running updates as usual. It is
- * difficult to advice on a good number, as it depends on `fixedStep`, `subSteps`, and others.
- * Probably 2-5 is a good range to start with. Keep it low and experiment your app switching tabs.
- * The lower this number is the better.
- *
- * Default: `3`.
- * @param {number} opts.bodyPairCacheCosMaxDeltaRotationDiv2 - Maximum relative delta orientation
- * for body pairs to be able to reuse collision results from last update, stored as
- * `cos(max angle / 2)`.
- *
- * Default: `0.9998476951563912` (radians).
+
  * @param {number} opts.bodyPairCacheMaxDeltaPositionSq - Maximum relative delta position for body
  * pairs to be able to reuse collision results from last update.
  *
@@ -265,7 +349,7 @@ import { JoltManager } from './jolt/manager.mjs';
 function init(app, opts = {}) {
     const options = {
         backend: 'jolt',
-        propertyName: 'physics',    // TODO: remove this, as we remove the pc namespace
+        propertyName: 'physics',
         ...opts
     };
 
