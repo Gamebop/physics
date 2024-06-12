@@ -23,6 +23,7 @@ const vec3 = new Vec3();
 /**
  * Body Component description.
  *
+ * @group Components
  * @category Body Component
  */
 class BodyComponent extends ShapeComponent {
@@ -81,6 +82,12 @@ class BodyComponent extends ShapeComponent {
     _subGroup = -1;
 
     _useMotionState = true;
+
+    constructor(system, entity) {
+        super(system, entity);
+
+        this._order = -1;
+    }
 
     /**
      * When this body is created as `MOTION_TYPE_STATIC`, this setting tells Jolt system to create

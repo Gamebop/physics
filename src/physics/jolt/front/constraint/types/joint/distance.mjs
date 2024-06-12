@@ -1,43 +1,43 @@
-import { Constraint, Spring } from './constraint.mjs';
+import { Spring } from '../constraint.mjs';
 import {
-    BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT8,
-    BUFFER_WRITE_VEC32, CMD_JNT_D_SET_DISTANCE, CMD_JNT_D_SET_SPRING_S,
-    CONSTRAINT_TYPE_DISTANCE, OPERATOR_MODIFIER, SPRING_MODE_FREQUENCY
-} from '../../../constants.mjs';
-import { Debug } from '../../../debug.mjs';
+    BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT8, CMD_JNT_D_SET_DISTANCE,
+    CMD_JNT_D_SET_SPRING_S, CONSTRAINT_TYPE_DISTANCE, OPERATOR_MODIFIER, SPRING_MODE_FREQUENCY
+} from '../../../../constants.mjs';
+import { Debug } from '../../../../debug.mjs';
+import { JointConstraint } from './joint-constraint.mjs';
 
 /**
- * Interface for distance constraint.
+ * Distance constraint.
  *
  * @group Utilities
- * @category Constraints
+ * @category Joint Constraints
  */
-class DistanceConstraint extends Constraint {
-    _type = CONSTRAINT_TYPE_DISTANCE;
-
+class DistanceConstraint extends JointConstraint {
     _minDistance = -1;
 
     _maxDistance = -1;
 
-    _limitsSpringSettings = null;
+    _limitsSpring = null;
 
     constructor(entity1, entity2, opts = {}) {
         super(entity1, entity2, opts);
+
+        this._type = CONSTRAINT_TYPE_DISTANCE;
 
         this._minDistance = opts.minDistance ?? this._minDistance;
         this._maxDistance = opts.maxDistance ?? this._maxDistance;
 
         if (opts.limitsSpringSettings) {
-            this._limitsSpringSettings = new Spring(opts.limitsSpringSettings);
+            this._limitsSpring = new Spring(opts.limitsSpringSettings);
         }
     }
 
     /**
      * Modifies the spring properties after the constraint has been created.
      *
-     * @param {import('./settings.mjs').SpringSettings} settings - Object, describing spring settings.
+     * @param {import('../settings.mjs').SpringSettings} settings - Object, describing spring settings.
      */
-    set limitsSpringSettings(settings) {
+    set limitsSpring(settings) {
         if ($_DEBUG) {
             const ok = Debug.checkSpringSettings(settings);
             if (!ok) {
@@ -45,30 +45,30 @@ class DistanceConstraint extends Constraint {
             }
         }
 
-        this._limitsSpringSettings = settings;
+        const spring = new Spring(settings);
+        this._limitsSpring = spring;
 
-        const mode = settings.springMode ?? SPRING_MODE_FREQUENCY;
-        const freqOrStiff = mode === SPRING_MODE_FREQUENCY ?
-            settings.frequency : settings.stiffness;
+        const value = spring.springMode === SPRING_MODE_FREQUENCY ?
+            spring.frequency : spring.stiffness;
 
         // TODO
         // needs update after we get rid of flags
         this.system.addCommand(
             OPERATOR_MODIFIER, CMD_JNT_D_SET_SPRING_S, this._index,
             true, BUFFER_WRITE_BOOL, false,
-            settings.springMode, BUFFER_WRITE_UINT8, true,
-            freqOrStiff, BUFFER_WRITE_FLOAT32, true,
-            settings.damping, BUFFER_WRITE_FLOAT32, true
+            spring.springMode, BUFFER_WRITE_UINT8, true,
+            value, BUFFER_WRITE_FLOAT32, true,
+            spring.damping, BUFFER_WRITE_FLOAT32, true
         );
     }
 
     /**
-     * @returns {import('./settings.mjs').SpringSettings | null} - Returns limits spring settings
+     * @returns {import('../settings.mjs').SpringSettings | null} - Returns limits spring settings
      * or `null` if spring is not used.
      * @defaultValue null
      */
-    get limitsSpringSettings() {
-        return this._limitsSpringSettings;
+    get limitsSpring() {
+        return this._limitsSpring;
     }
 
     /**
@@ -106,12 +106,10 @@ class DistanceConstraint extends Constraint {
     write(cb) {
         super.write(cb);
 
-        cb.write(this._point1, BUFFER_WRITE_VEC32);
-        cb.write(this._point2, BUFFER_WRITE_VEC32);
-        cb.write(this._minDistance, BUFFER_WRITE_FLOAT32);
-        cb.write(this._maxDistance, BUFFER_WRITE_FLOAT32);
+        cb.write(this._minDistance, BUFFER_WRITE_FLOAT32, false);
+        cb.write(this._maxDistance, BUFFER_WRITE_FLOAT32, false);
 
-        Constraint.writeSpringSettings(cb, this._limitsSpringSettings);
+        JointConstraint.writeSpringSettings(cb, this._limitsSpring);
     }
 
     /**

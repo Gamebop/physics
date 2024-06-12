@@ -39,6 +39,7 @@ const schema = [
  * Shape Component System. A base system for the most of the Jolt component systems. Most probably
  * you don't need to use it directly.
  *
+ * @group Components
  * @category Shape Component
  */
 class ShapeComponentSystem extends JoltComponentSystem {
@@ -79,12 +80,12 @@ class ShapeComponentSystem extends JoltComponentSystem {
     static updateDynamic(cb) {
         const index = cb.read(BUFFER_READ_UINT32);
         const entity = ShapeComponentSystem.entityMap.get(index);
-        const vehicleComponent = entity?.c.vehicle;
+        const vehicleConstraint = entity.c.constraint?.vehicleConstraint;
 
         if (!entity) {
             cb.skip(13 * FLOAT32_SIZE);
-            if (vehicleComponent) {
-                cb.skip(vehicleComponent.wheels.length * 7 * FLOAT32_SIZE);
+            if (vehicleConstraint) {
+                cb.skip(vehicleConstraint.wheels.length * 7 * FLOAT32_SIZE);
             }
             return;
         }
@@ -102,51 +103,19 @@ class ShapeComponentSystem extends JoltComponentSystem {
             cb.read(BUFFER_READ_FLOAT32)
         );
 
-        const component = entity.c.body || vehicleComponent;
-        component._linearVelocity.set(
+        const bodyComponent = entity.c.body;
+        bodyComponent._linearVelocity.set(
             cb.read(BUFFER_READ_FLOAT32),
             cb.read(BUFFER_READ_FLOAT32),
             cb.read(BUFFER_READ_FLOAT32)
         );
-        component._angularVelocity.set(
+        bodyComponent._angularVelocity.set(
             cb.read(BUFFER_READ_FLOAT32),
             cb.read(BUFFER_READ_FLOAT32),
             cb.read(BUFFER_READ_FLOAT32)
         );
 
-        if (vehicleComponent) {
-            const wheels = vehicleComponent.wheels;
-            const wheelsCount = wheels.length;
-
-            for (let i = 0; i < wheelsCount; i++) {
-                const wheel = wheels[i];
-                const entity = wheel.entity;
-
-                if (!entity) {
-                    cb.skip(7 * FLOAT32_SIZE);
-                    continue;
-                }
-
-                wheel.longitudinalSlip = cb.read(BUFFER_READ_FLOAT32);
-                wheel.lateralSlip = cb.read(BUFFER_READ_FLOAT32);
-                wheel.combinedLongitudinalFriction = cb.read(BUFFER_READ_FLOAT32);
-                wheel.combinedLateralFriction = cb.read(BUFFER_READ_FLOAT32);
-                wheel.brakeImpulse = cb.read(BUFFER_READ_FLOAT32);
-
-                entity.setLocalPosition(
-                    cb.read(BUFFER_READ_FLOAT32),
-                    cb.read(BUFFER_READ_FLOAT32),
-                    cb.read(BUFFER_READ_FLOAT32)
-                );
-
-                entity.setLocalRotation(
-                    cb.read(BUFFER_READ_FLOAT32),
-                    cb.read(BUFFER_READ_FLOAT32),
-                    cb.read(BUFFER_READ_FLOAT32),
-                    cb.read(BUFFER_READ_FLOAT32)
-                );
-            }
-        }
+        vehicleConstraint?.updateWheelsIsometry(cb);
     }
 }
 

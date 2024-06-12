@@ -1,17 +1,15 @@
 import { EventHandler } from 'playcanvas';
 
 class Component extends EventHandler {
-    // Flag, whether the accessors were set on this component.
     _accessorsBuilt = false;
 
-    // Enable / disable component
     _enabled = true;
 
-    // The ComponentSystem used to create this Component.
     _system = null;
 
-    // The Entity that this Component is attached to.
     _entity = null;
+
+    _order = 0;
 
     constructor(system, entity) {
         super();
@@ -26,20 +24,50 @@ class Component extends EventHandler {
         this.on('set_enabled', this.onSetEnabled, this);
     }
 
+    /**
+     * @type {import('playcanvas').Entity | null}
+     * @private
+     */
     get entity() {
         return this._entity;
     }
 
+    /**
+     * @type {import('./body/system.mjs').BodyComponentSystem |
+     * import('./char/system.mjs').CharComponentSystem |
+     * import('./constraint/system.mjs').ConstraintComponentSystem |
+     * import('./shape/system.mjs').ShapeComponentSystem |
+     * import('./softbody/system.mjs').SoftBodyComponentSystem | null}
+     * @private
+     */
     get system() {
         return this._system;
     }
 
-    set accessorsBuilt(isSet) {
-        this._accessorsBuilt = isSet;
+    /**
+     * @param {boolean} bool - Whether the component accessor's are built.
+     * @private
+     */
+    set accessorsBuilt(bool) {
+        this._accessorsBuilt = bool;
     }
 
+    /**
+     * @type {boolean}
+     * @private
+     */
     get accessorsBuilt() {
         return this._accessorsBuilt;
+    }
+
+    /**
+     * // TODO
+     *
+     * @type {number}
+     * @private
+     */
+    get order() {
+        return this._order;
     }
 
     onSetEnabled(name, oldValue, newValue) {

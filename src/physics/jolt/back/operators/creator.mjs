@@ -1,19 +1,15 @@
 import { Debug } from '../../debug.mjs';
 import { MotionState } from '../motion-state.mjs';
-import { createSpringSettings, createMotorSettings, setSixDOFAxes } from '../utils.mjs';
 import {
-    BFM_IGNORE_BACK_FACES, BUFFER_READ_BOOL, BUFFER_READ_FLOAT32, BUFFER_READ_INT32,
+    BFM_IGNORE_BACK_FACES, BUFFER_READ_BOOL, BUFFER_READ_FLOAT32,
     BUFFER_READ_UINT16, BUFFER_READ_UINT32, BUFFER_READ_UINT8, CMD_CREATE_BODY,
     CMD_CREATE_CHAR, CMD_CREATE_CONSTRAINT, CMD_CREATE_GROUPS, CMD_CREATE_SHAPE,
-    CMD_CREATE_SOFT_BODY, CMD_CREATE_VEHICLE, CONSTRAINT_SPACE_WORLD, CONSTRAINT_TYPE_CONE,
-    CONSTRAINT_TYPE_DISTANCE, CONSTRAINT_TYPE_FIXED, CONSTRAINT_TYPE_HINGE, CONSTRAINT_TYPE_POINT,
-    CONSTRAINT_TYPE_PULLEY, CONSTRAINT_TYPE_SIX_DOF, CONSTRAINT_TYPE_SLIDER,
-    CONSTRAINT_TYPE_SWING_TWIST, MOTION_QUALITY_DISCRETE, MOTION_TYPE_DYNAMIC,
+    CMD_CREATE_SOFT_BODY, CMD_CREATE_VEHICLE, MOTION_QUALITY_DISCRETE, MOTION_TYPE_DYNAMIC,
     MOTION_TYPE_KINEMATIC, OMP_CALCULATE_MASS_AND_INERTIA, OMP_MASS_AND_INERTIA_PROVIDED,
     SHAPE_BOX, SHAPE_CAPSULE, SHAPE_CONVEX_HULL, SHAPE_CYLINDER, SHAPE_HEIGHTFIELD, SHAPE_MESH,
-    SHAPE_SPHERE, SHAPE_STATIC_COMPOUND, TRANSMISSION_AUTO, VEHICLE_CAST_TYPE_CYLINDER,
-    VEHICLE_CAST_TYPE_RAY, VEHICLE_CAST_TYPE_SPHERE, VEHICLE_TYPE_MOTORCYCLE, VEHICLE_TYPE_WHEEL
+    SHAPE_SPHERE, SHAPE_STATIC_COMPOUND
 } from '../../constants.mjs';
+import { ConstraintCreator } from './helpers/constraint-creator.mjs';
 
 class Creator {
     static createShapeSettings(cb, meshBuffers, Jolt, jv, jq) {
@@ -180,10 +176,24 @@ class Creator {
         return settings;
     }
 
+    _joltVec3 = null;
+
+    _backend = null;
+
     constructor(backend) {
         this._backend = backend;
 
         this.createPhysicsSystem();
+
+        this._constraintCreator = new ConstraintCreator(this);
+    }
+
+    get backend() {
+        return this._backend;
+    }
+
+    get jv() {
+        return this._joltVec3;
     }
 
     create(meshBuffers) {
@@ -205,7 +215,7 @@ class Creator {
                 break;
 
             case CMD_CREATE_CONSTRAINT:
-                ok = this._createConstraint(cb);
+                ok = this._constraintCreator.create(cb);
                 break;
 
             case CMD_CREATE_CHAR:
@@ -579,281 +589,6 @@ class Creator {
         return true;
     }
 
-    _createVehicle(cb) {
-        const backend = this._backend;
-        const Jolt = backend.Jolt;
-        const tracker = backend.tracker;
-        const physicsSystem = backend.physicsSystem;
-        const jv = this._joltVec3;
-        const index = cb.read(BUFFER_READ_UINT32);
-        const type = cb.read(BUFFER_READ_UINT8);
-        const isWheeled = type === VEHICLE_TYPE_WHEEL || type === VEHICLE_TYPE_MOTORCYCLE;
-
-        try {
-            const destroySettings = (list) => {
-                for (let i = 0; i < list.length; i++) {
-                    Jolt.destroy(list[i]);
-                }
-            };
-
-            const updateCurve = (curve) => {
-                curve.Clear();
-                const count = cb.read(BUFFER_READ_UINT32);
-                for (let i = 0; i < count; i++) {
-                    const key = cb.read(BUFFER_READ_FLOAT32);
-                    const val = cb.read(BUFFER_READ_FLOAT32);
-                    curve.AddPoint(key, val);
-                }
-            };
-
-            const updateGears = (gears) => {
-                const count = cb.read(BUFFER_READ_UINT32);
-                gears.clear();
-                for (let i = 0; i < count; i++) {
-                    gears.push_back(cb.read(BUFFER_READ_FLOAT32));
-                }
-            };
-
-            const updateWheel = (wheel) => {
-                wheel.mPosition = jv.FromBuffer(cb);
-                wheel.mSuspensionForcePoint = jv.FromBuffer(cb);
-                wheel.mSuspensionDirection = jv.FromBuffer(cb);
-                wheel.mSteeringAxis = jv.FromBuffer(cb);
-                wheel.mWheelUp = jv.FromBuffer(cb);
-                wheel.mWheelForward = jv.FromBuffer(cb);
-                wheel.mSuspensionMinLength = cb.read(BUFFER_READ_FLOAT32);
-                wheel.mSuspensionMaxLength = cb.read(BUFFER_READ_FLOAT32);
-                wheel.mSuspensionPreloadLength = cb.read(BUFFER_READ_FLOAT32);
-                wheel.mRadius = cb.read(BUFFER_READ_FLOAT32);
-                wheel.mWidth = cb.read(BUFFER_READ_FLOAT32);
-                wheel.mEnableSuspensionForcePoint = cb.read(BUFFER_READ_BOOL);
-
-                const spring = wheel.mSuspensionSpring;
-                spring.mMode = cb.read(BUFFER_READ_UINT8);
-                spring.mFrequency = cb.read(BUFFER_READ_FLOAT32);
-                spring.mStiffness = cb.read(BUFFER_READ_FLOAT32);
-                spring.mDamping = cb.read(BUFFER_READ_FLOAT32);
-
-                // longitudinal friction
-                if (cb.read(BUFFER_READ_BOOL)) {
-                    updateCurve(wheel.mLongitudinalFriction);
-                }
-
-                // lateral friction
-                if (cb.read(BUFFER_READ_BOOL)) {
-                    updateCurve(wheel.mLateralFriction);
-                }
-
-                if (isWheeled) {
-                    wheel.mInertia = cb.read(BUFFER_READ_FLOAT32);
-                    wheel.mAngularDamping = cb.read(BUFFER_READ_FLOAT32);
-                    wheel.mMaxSteerAngle = cb.read(BUFFER_READ_FLOAT32);
-                    wheel.mMaxBrakeTorque = cb.read(BUFFER_READ_FLOAT32);
-                    wheel.mMaxHandBrakeTorque = cb.read(BUFFER_READ_FLOAT32);
-                }
-            };
-
-            // general
-            let constraintSettings = new Jolt.VehicleConstraintSettings();
-            constraintSettings.mNumVelocityStepsOverride = cb.read(BUFFER_READ_UINT16);
-            constraintSettings.mNumPositionStepsOverride = cb.read(BUFFER_READ_UINT16);
-            constraintSettings.mUp = jv.FromBuffer(cb);
-            constraintSettings.mForward = jv.FromBuffer(cb);
-            constraintSettings.mMaxPitchRollAngle = cb.read(BUFFER_READ_FLOAT32);
-
-            // controller
-            let controllerSettings;
-            if (isWheeled) {
-                controllerSettings = type === VEHICLE_TYPE_WHEEL ?
-                    new Jolt.WheeledVehicleControllerSettings() :
-                    new Jolt.MotorcycleControllerSettings();
-            } else {
-                constraintSettings = new Jolt.TrackedVehicleControllerSettings();
-            }
-
-            // engine
-            const engine = controllerSettings.mEngine;
-            engine.mMaxTorque = cb.read(BUFFER_READ_FLOAT32);
-            engine.mMinRPM = cb.read(BUFFER_READ_FLOAT32);
-            engine.mMaxRPM = cb.read(BUFFER_READ_FLOAT32);
-            engine.mInertia = cb.read(BUFFER_READ_FLOAT32);
-            engine.mAngularDamping = cb.read(BUFFER_READ_FLOAT32);
-
-            if (cb.read(BUFFER_READ_BOOL)) {
-                updateCurve(engine.mNormalizedTorque);
-            }
-
-            // transmission
-            const transmission = controllerSettings.mTransmission;
-            const mode = cb.read(BUFFER_READ_UINT8);
-
-            transmission.mMode = mode === TRANSMISSION_AUTO ?
-                Jolt.ETransmissionMode_Auto : Jolt.ETransmissionMode_Manual;
-
-            transmission.mSwitchTime = cb.read(BUFFER_READ_FLOAT32);
-            transmission.mClutchReleaseTime = cb.read(BUFFER_READ_FLOAT32);
-            transmission.mSwitchLatency = cb.read(BUFFER_READ_FLOAT32);
-            transmission.mShiftUpRPM = cb.read(BUFFER_READ_FLOAT32);
-            transmission.mShiftDownRPM = cb.read(BUFFER_READ_FLOAT32);
-            transmission.mClutchStrength = cb.read(BUFFER_READ_FLOAT32);
-            updateGears(transmission.mGearRatios);
-            updateGears(transmission.mReverseGearRatios);
-
-            // wheels
-            const wheelsCount = cb.read(BUFFER_READ_UINT32);
-            const mWheels = constraintSettings.mWheels;
-            const Wheel = isWheeled ? Jolt.WheelSettingsWV : Jolt.WheelSettingsTV;
-            mWheels.clear();
-            for (let i = 0; i < wheelsCount; i++) {
-                const wheel = new Wheel();
-                updateWheel(wheel);
-                mWheels.push_back(wheel);
-            }
-
-            if (!isWheeled) {
-                // get tracks and map wheels
-                const tracksCount = cb.read(BUFFER_READ_UINT32);
-                for (let t = 0; t < tracksCount; t++) {
-                    const track = controllerSettings.get_mTracks(t);
-                    const twc = cb.read(BUFFER_READ_UINT32); // track wheels count
-
-                    // Make the last wheel in the track to be a driven wheel (connected to engine)
-                    track.mDrivenWheel = twc - 1;
-
-                    for (let i = 0; i < twc; i++) {
-                        track.mWheels.push_back(cb.read(BUFFER_READ_UINT32));
-                    }
-                }
-            }
-
-            const diffs = [];
-            if (isWheeled) {
-                // differentials
-                const count = cb.read(BUFFER_READ_UINT32);
-                if (count > 0) {
-                    const differentials = controllerSettings.mDifferentials;
-
-                    for (let i = 0; i < count; i++) {
-                        const settings = new Jolt.VehicleDifferentialSettings();
-
-                        settings.mLeftWheel = cb.read(BUFFER_READ_INT32);
-                        settings.mRightWheel = cb.read(BUFFER_READ_INT32);
-                        settings.mDifferentialRatio = cb.read(BUFFER_READ_FLOAT32);
-                        settings.mLeftRightSplit = cb.read(BUFFER_READ_FLOAT32);
-                        settings.mLimitedSlipRatio = cb.read(BUFFER_READ_FLOAT32);
-                        settings.mEngineTorqueRatio = cb.read(BUFFER_READ_FLOAT32);
-
-                        diffs.push(settings);
-                        differentials.push_back(settings);
-                    }
-                }
-
-                controllerSettings.mDifferentialLimitedSlipRatio = cb.read(BUFFER_READ_FLOAT32);
-
-                if (type === VEHICLE_TYPE_MOTORCYCLE) {
-                    controllerSettings.mMaxLeanAngle = cb.read(BUFFER_READ_FLOAT32);
-                    controllerSettings.mLeanSpringConstant = cb.read(BUFFER_READ_FLOAT32);
-                    controllerSettings.mLeanSpringDamping = cb.read(BUFFER_READ_FLOAT32);
-                    controllerSettings.mLeanSpringIntegrationCoefficient = cb.read(BUFFER_READ_FLOAT32);
-                    controllerSettings.mLeanSpringIntegrationCoefficientDecay = cb.read(BUFFER_READ_FLOAT32);
-                    controllerSettings.mLeanSmoothingFactor = cb.read(BUFFER_READ_FLOAT32);
-                }
-            }
-
-            // anti roll bars
-            const barsCount = cb.read(BUFFER_READ_UINT32);
-            const mAntiRollBars = constraintSettings.mAntiRollBars;
-            const bars = [];
-            for (let i = 0; i < barsCount; i++) {
-                const bar = new Jolt.VehicleAntiRollBar();
-
-                bar.mLeftWheel = cb.read(BUFFER_READ_UINT32);
-                bar.mRightWheel = cb.read(BUFFER_READ_UINT32);
-                bar.mStiffness = cb.read(BUFFER_READ_FLOAT32);
-
-                bars.push(bar);
-                mAntiRollBars.push_back(bar);
-            }
-
-            constraintSettings.mController = controllerSettings;
-
-            // constraint
-            const body = tracker.getBodyByPCID(index);
-            const constraint = new Jolt.VehicleConstraint(body, constraintSettings);
-            const castType = cb.read(BUFFER_READ_UINT8);
-            const layer = cb.read(BUFFER_READ_UINT32);
-
-            // For backend to write wheels isometry
-            body.isVehicle = true;
-
-            // wheels contact tester
-            let tester;
-            switch (castType) {
-                case VEHICLE_CAST_TYPE_RAY: {
-                    jv.FromBuffer(cb);
-                    const maxAngle = cb.read(BUFFER_READ_FLOAT32);
-                    tester = new Jolt.VehicleCollisionTesterRay(layer, jv, maxAngle);
-                    break;
-                }
-                case VEHICLE_CAST_TYPE_SPHERE: {
-                    jv.FromBuffer(cb);
-                    const maxAngle = cb.read(BUFFER_READ_FLOAT32);
-                    const radius = cb.read(BUFFER_READ_FLOAT32);
-                    tester = new Jolt.VehicleCollisionTesterCastSphere(layer, radius, jv, maxAngle);
-                    break;
-                }
-                case VEHICLE_CAST_TYPE_CYLINDER: {
-                    const fraction = cb.read(BUFFER_READ_FLOAT32);
-                    tester = new Jolt.VehicleCollisionTesterCastCylinder(layer, fraction);
-                    break;
-                }
-                default:
-                    if ($_DEBUG) {
-                        Debug.error(`Unrecognized cast type: ${castType}`);
-                    }
-                    return false;
-            }
-            constraint.SetVehicleCollisionTester(tester);
-
-            // events
-            if (backend.config.vehicleContactEventsEnabled) {
-                backend.listener.initVehicleEvents(constraint);
-            }
-
-            physicsSystem.AddConstraint(constraint);
-
-            const listener = new Jolt.VehicleConstraintStepListener(constraint);
-            physicsSystem.AddStepListener(listener);
-
-            // add references for Cleaner operator
-            body.constraints = [index];
-            constraint.listener = listener;
-
-            let Controller;
-            if (isWheeled) {
-                Controller = type === VEHICLE_TYPE_WHEEL ?
-                    Jolt.WheeledVehicleController : Jolt.MotorcycleController;
-            } else {
-                Controller = Jolt.TrackedVehicleController;
-            }
-            constraint.controller = Jolt.castObject(constraint.GetController(), Controller);
-            constraint.wheelsCount = wheelsCount;
-
-            tracker.addConstraint(index, constraint, body);
-
-            destroySettings(diffs);
-            destroySettings(bars);
-
-        } catch (e) {
-            if ($_DEBUG) {
-                Debug.error(e);
-            }
-            return false;
-        }
-
-        return true;
-    }
-
     _createGroups(cb) {
         const backend = this._backend;
         const Jolt = backend.Jolt;
@@ -880,261 +615,6 @@ class Creator {
                 table.maxIndex = subGroupsCount - 1;
             }
         }
-
-        return true;
-    }
-
-    _createConstraint(cb) {
-        const jv = this._joltVec3;
-        const backend = this._backend;
-        const Jolt = backend.Jolt;
-        const tracker = backend.tracker;
-        const physicsSystem = backend.physicsSystem;
-
-        const index = cb.read(BUFFER_READ_UINT32);
-        const type = cb.read(BUFFER_READ_UINT8);
-        const idx1 = cb.read(BUFFER_READ_UINT32);
-        const idx2 = cb.read(BUFFER_READ_UINT32);
-        const velOverride = cb.read(BUFFER_READ_UINT8);
-        const posOverride = cb.read(BUFFER_READ_UINT8);
-        const space = (cb.read(BUFFER_READ_UINT8) === CONSTRAINT_SPACE_WORLD) ?
-            Jolt.EConstraintSpace_WorldSpace : Jolt.EConstraintSpace_LocalToBodyCOM;
-
-        const body1 = tracker.getBodyByPCID(idx1);
-        const body2 = tracker.getBodyByPCID(idx2);
-
-        if ($_DEBUG) {
-            let ok = true;
-            ok = ok && Debug.assert(!!body1, `Unable to locate body to add constraint to: ${idx1}`);
-            ok = ok && Debug.assert(!!body2, `Unable to locate body to add constraint to: ${idx2}`);
-            if (!ok) return false;
-        }
-
-        // TODO
-        // refactor to own methods
-
-        let settings;
-        switch (type) {
-            case CONSTRAINT_TYPE_FIXED:
-                settings = new Jolt.FixedConstraintSettings();
-                if (cb.flag) settings.mAutoDetectPoint = cb.read(BUFFER_READ_BOOL);
-                if (!settings.mAutoDetectPoint) {
-                    if (cb.flag) settings.mPoint1 = jv.FromBuffer(cb);
-                    if (cb.flag) settings.mPoint2 = jv.FromBuffer(cb);
-                }
-                if (cb.flag) settings.mAxisX1 = jv.FromBuffer(cb);
-                if (cb.flag) settings.mAxisY1 = jv.FromBuffer(cb);
-                if (cb.flag) settings.mAxisX2 = jv.FromBuffer(cb);
-                if (cb.flag) settings.mAxisY2 = jv.FromBuffer(cb);
-                break;
-
-            case CONSTRAINT_TYPE_POINT:
-                settings = new Jolt.PointConstraintSettings();
-                if (cb.flag) settings.mPoint1 = jv.FromBuffer(cb);
-                if (cb.flag) settings.mPoint2 = jv.FromBuffer(cb);
-                break;
-
-            case CONSTRAINT_TYPE_DISTANCE:
-                settings = new Jolt.DistanceConstraintSettings();
-                if (cb.flag) settings.mPoint1 = jv.FromBuffer(cb);
-                if (cb.flag) settings.mPoint2 = jv.FromBuffer(cb);
-                if (cb.flag) settings.mMinDistance = cb.read(BUFFER_READ_FLOAT32);
-                if (cb.flag) settings.mMaxDistance = cb.read(BUFFER_READ_FLOAT32);
-                if (cb.read(BUFFER_READ_BOOL)) {
-                    const springSettings = createSpringSettings(cb, Jolt);
-                    settings.mLimitsSpringSettings = springSettings;
-                    Jolt.destroy(springSettings);
-                }
-                break;
-
-            case CONSTRAINT_TYPE_HINGE:
-                settings = new Jolt.HingeConstraintSettings();
-                if (cb.flag) settings.mPoint1 = jv.FromBuffer(cb);
-                if (cb.flag) settings.mHingeAxis1 = jv.FromBuffer(cb);
-                if (cb.flag) settings.mNormalAxis1 = jv.FromBuffer(cb);
-                if (cb.flag) settings.mPoint2 = jv.FromBuffer(cb);
-                if (cb.flag) settings.mHingeAxis2 = jv.FromBuffer(cb);
-                if (cb.flag) settings.mNormalAxis2 = jv.FromBuffer(cb);
-                if (cb.flag) settings.mLimitsMin = cb.read(BUFFER_READ_FLOAT32);
-                if (cb.flag) settings.mLimitsMax = cb.read(BUFFER_READ_FLOAT32);
-                if (cb.flag) settings.mMaxFrictionTorque = cb.read(BUFFER_READ_FLOAT32);
-                if (cb.read(BUFFER_READ_BOOL)) {
-                    const springSettings = createSpringSettings(cb, Jolt);
-                    settings.mLimitsSpringSettings = springSettings;
-                    Jolt.destroy(springSettings);
-                }
-                if (cb.read(BUFFER_READ_BOOL)) {
-                    const motorSettings = createMotorSettings(cb, Jolt);
-                    settings.mMotorSettings = motorSettings;
-                    Jolt.destroy(motorSettings);
-                }
-                break;
-
-            case CONSTRAINT_TYPE_SLIDER:
-                settings = new Jolt.SliderConstraintSettings();
-                if (cb.flag) settings.mAutoDetectPoint = cb.read(BUFFER_READ_BOOL);
-                if (!settings.mAutoDetectPoint) {
-                    if (cb.flag) settings.mPoint1 = jv.FromBuffer(cb);
-                    if (cb.flag) settings.mPoint2 = jv.FromBuffer(cb);
-                }
-                if (cb.flag) settings.mSliderAxis1 = jv.FromBuffer(cb);
-                if (cb.flag) settings.mNormalAxis1 = jv.FromBuffer(cb);
-                if (cb.flag) settings.mSliderAxis2 = jv.FromBuffer(cb);
-                if (cb.flag) settings.mNormalAxis2 = jv.FromBuffer(cb);
-                if (cb.flag) settings.mLimitsMin = cb.read(BUFFER_READ_FLOAT32);
-                if (cb.flag) settings.mLimitsMax = cb.read(BUFFER_READ_FLOAT32);
-                if (cb.flag) settings.mMaxFrictionForce = cb.read(BUFFER_READ_FLOAT32);
-                if (cb.read(BUFFER_READ_BOOL)) {
-                    const springSettings = createSpringSettings(cb, Jolt);
-                    settings.mLimitsSpringSettings = springSettings;
-                    Jolt.destroy(springSettings);
-                }
-                if (cb.read(BUFFER_READ_BOOL)) {
-                    const motorSettings = createMotorSettings(cb, Jolt);
-                    settings.mMotorSettings = motorSettings;
-                    Jolt.destroy(motorSettings);
-                }
-                break;
-
-            case CONSTRAINT_TYPE_CONE:
-                settings = new Jolt.ConeConstraintSettings();
-                if (cb.flag) settings.mPoint1 = jv.FromBuffer(cb);
-                if (cb.flag) settings.mTwistAxis1 = jv.FromBuffer(cb);
-                if (cb.flag) settings.mPoint2 = jv.FromBuffer(cb);
-                if (cb.flag) settings.mTwistAxis2 = jv.FromBuffer(cb);
-                if (cb.flag) settings.mHalfConeAngle = cb.read(BUFFER_READ_FLOAT32);
-                break;
-
-            case CONSTRAINT_TYPE_SWING_TWIST:
-                settings = new Jolt.SwingTwistConstraintSettings();
-                if (cb.flag) settings.mPosition1 = jv.FromBuffer(cb);
-                if (cb.flag) settings.mTwistAxis1 = jv.FromBuffer(cb);
-                if (cb.flag) settings.mPlaneAxis1 = jv.FromBuffer(cb);
-                if (cb.flag) settings.mPosition2 = jv.FromBuffer(cb);
-                if (cb.flag) settings.mTwistAxis2 = jv.FromBuffer(cb);
-                if (cb.flag) settings.mPlaneAxis2 = jv.FromBuffer(cb);
-                if (cb.flag) settings.mNormalHalfConeAngle = cb.read(BUFFER_READ_FLOAT32);
-                if (cb.flag) settings.mPlaneHalfConeAngle = cb.read(BUFFER_READ_FLOAT32);
-                if (cb.flag) settings.mTwistMinAngle = cb.read(BUFFER_READ_FLOAT32);
-                if (cb.flag) settings.mTwistMaxAngle = cb.read(BUFFER_READ_FLOAT32);
-                if (cb.flag) settings.mMaxFrictionTorque = cb.read(BUFFER_READ_FLOAT32);
-                if (cb.read(BUFFER_READ_BOOL)) {
-                    const swingMotorSettings = createMotorSettings(cb, Jolt);
-                    settings.mSwingMotorSettings = swingMotorSettings;
-                    Jolt.destroy(swingMotorSettings);
-                }
-                if (cb.read(BUFFER_READ_BOOL)) {
-                    const twistMotorSettings = createMotorSettings(cb, Jolt);
-                    settings.mTwistMotorSettings = twistMotorSettings;
-                    Jolt.destroy(twistMotorSettings);
-                }
-                break;
-
-            case CONSTRAINT_TYPE_PULLEY:
-                settings = new Jolt.PulleyConstraintSettings();
-                settings.mBodyPoint1 = jv.FromBuffer(cb);
-                settings.mBodyPoint2 = jv.FromBuffer(cb);
-                settings.mFixedPoint1 = jv.FromBuffer(cb);
-                settings.mFixedPoint2 = jv.FromBuffer(cb);
-                settings.mRatio = cb.read(BUFFER_READ_FLOAT32);
-                settings.mMinLength = cb.read(BUFFER_READ_FLOAT32);
-                settings.mMaxLength = cb.read(BUFFER_READ_FLOAT32);
-                break;
-
-            case CONSTRAINT_TYPE_SIX_DOF: {
-                settings = new Jolt.SixDOFConstraintSettings();
-                // free axes
-                if (cb.read(BUFFER_READ_BOOL)) {
-                    setSixDOFAxes(cb, settings, 'MakeFreeAxis', Jolt, false /* isLimited */);
-                }
-                // fixed axes
-                if (cb.read(BUFFER_READ_BOOL)) {
-                    setSixDOFAxes(cb, settings, 'MakeFixedAxis', Jolt, false /* isLimited */);
-                }
-                // limited axes
-                if (cb.read(BUFFER_READ_BOOL)) {
-                    setSixDOFAxes(cb, settings, 'SetLimitedAxis', Jolt, true /* isLimited */);
-                }
-                settings.mPosition1 = jv.FromBuffer(cb);
-                settings.mAxisX1 = jv.FromBuffer(cb);
-                settings.mAxisY1 = jv.FromBuffer(cb);
-                settings.mPosition2 = jv.FromBuffer(cb);
-                settings.mAxisX2 = jv.FromBuffer(cb);
-                settings.mAxisY2 = jv.FromBuffer(cb);
-
-                // TODO
-                // refactor
-
-                if (cb.read(BUFFER_READ_BOOL)) {
-                    for (let i = 0; i < 6; ++i) {
-                        settings.set_mMaxFriction(i, cb.read(BUFFER_READ_FLOAT32));
-                    }
-                }
-                if (cb.read(BUFFER_READ_BOOL)) {
-                    for (let i = 0; i < 6; ++i) {
-                        settings.set_mLimitMin(i, cb.read(BUFFER_READ_FLOAT32));
-                    }
-                }
-                if (cb.read(BUFFER_READ_BOOL)) {
-                    for (let i = 0; i < 6; ++i) {
-                        settings.set_mLimitMax(i, cb.read(BUFFER_READ_FLOAT32));
-                    }
-                }
-                if (cb.read(BUFFER_READ_BOOL)) {
-                    for (let i = 0; i < 6; ++i) {
-                        if (cb.read(BUFFER_READ_BOOL)) {
-                            const springSettings = createSpringSettings(cb, Jolt);
-                            settings.set_mLimitsSpringSettings(i, springSettings);
-                            Jolt.destroy(springSettings);
-                        }
-                    }
-                }
-                if (cb.read(BUFFER_READ_BOOL)) {
-                    for (let i = 0; i < 6; ++i) {
-                        if (cb.read(BUFFER_READ_BOOL)) {
-                            const motorSettings = createMotorSettings(cb, Jolt);
-                            settings.set_mMotorSettings(i, motorSettings);
-                            Jolt.destroy(motorSettings);
-                        }
-                    }
-                }
-                break;
-            }
-            default:
-                if ($_DEBUG) {
-                    Debug.error(`Unrecognized constraint type: ${type}`);
-                }
-                return false;
-        }
-
-        if (velOverride > 0) settings.mNumVelocityStepsOverride = velOverride;
-        if (posOverride > 0) settings.mNumPositionStepsOverride = posOverride;
-        settings.mSpace = space;
-
-        const constraint = settings.Create(body1, body2);
-
-        if (!body1.constraints) {
-            body1.constraints = [];
-            body1.linked = new Set();
-        }
-
-        if (!body2.constraints) {
-            body2.constraints = [];
-            body2.linked = new Set();
-        }
-
-        body1.constraints.push(index);
-        body2.constraints.push(index);
-
-        // TODO
-        // Change body linking. Current method doesn't allow 2 different joints between the same
-        // two bodies.
-        body1.linked.add(body2);
-        body2.linked.add(body1);
-
-        tracker.addConstraint(index, constraint, body1, body2);
-
-        physicsSystem.AddConstraint(constraint);
 
         return true;
     }

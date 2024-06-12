@@ -40,6 +40,9 @@ export const CONSTRAINT_TYPE_CONE = 5;
 export const CONSTRAINT_TYPE_SWING_TWIST = 6;
 export const CONSTRAINT_TYPE_SIX_DOF = 7;
 export const CONSTRAINT_TYPE_PULLEY = 8;
+export const CONSTRAINT_TYPE_VEHICLE_WHEEL = 9;
+export const CONSTRAINT_TYPE_VEHICLE_TRACK = 10;
+export const CONSTRAINT_TYPE_VEHICLE_MOTO = 11;
 
 export const CONSTRAINT_SIX_DOF_TRANSLATION_X = 0;
 export const CONSTRAINT_SIX_DOF_TRANSLATION_Y = 1;
@@ -68,6 +71,10 @@ export const VEHICLE_CAST_TYPE_CYLINDER = 2;
 export const TRANSMISSION_AUTO = 0;
 export const TRANSMISSION_MANUAL = 1;
 
+export const WHEEL_UNDEFINED = -1;
+export const WHEEL_WHEELED = 0;
+export const WHEEL_TRACKED = 1;
+
 export const OBJ_LAYER_NON_MOVING = 0;
 export const OBJ_LAYER_MOVING = 1;
 
@@ -83,9 +90,6 @@ export const SHAPE_CONVEX_HULL = 5;
 export const SHAPE_HEIGHTFIELD = 6;
 export const SHAPE_STATIC_COMPOUND = 7;
 
-export const VEHICLE_TYPE_WHEEL = 0;
-export const VEHICLE_TYPE_TRACK = 1;
-export const VEHICLE_TYPE_MOTORCYCLE = 2;
 export const CONTACT_TYPE_ADDED = 0;
 export const CONTACT_TYPE_PERSISTED = 1;
 export const CONTACT_TYPE_REMOVED = 2;
@@ -93,9 +97,8 @@ export const CONTACT_TYPE_REMOVED = 2;
 export const COMPONENT_SYSTEM_MANAGER = 0;
 export const COMPONENT_SYSTEM_BODY = 1;
 export const COMPONENT_SYSTEM_CHAR = 2;
-export const COMPONENT_SYSTEM_VEHICLE = 3;
-export const COMPONENT_SYSTEM_SOFT_BODY = 4;
-export const COMPONENT_SYSTEM_CONSTRAINT = 5;
+export const COMPONENT_SYSTEM_SOFT_BODY = 3;
+export const COMPONENT_SYSTEM_CONSTRAINT = 4;
 
 export const FLOAT32_SIZE = Float32Array.BYTES_PER_ELEMENT;
 export const INT32_SIZE = Int32Array.BYTES_PER_ELEMENT;
@@ -245,3 +248,5 @@ export const CMD_JNT_SDF_SET_T_ANG_VEL_CS = 576;
 export const CMD_JNT_SDF_SET_T_POS_CS = 577;
 export const CMD_JNT_SDF_SET_T_ROT_CS = 578;
 export const CMD_JNT_SDF_SET_T_ROT_BS = 579;
+
+export const CMD_VEHICLE_SET_INPUT = 580;

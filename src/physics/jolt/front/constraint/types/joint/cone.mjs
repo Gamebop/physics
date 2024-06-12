@@ -1,18 +1,18 @@
 import { Vec3 } from 'playcanvas';
-import { Debug } from '../../../debug.mjs';
+import { Debug } from '../../../../debug.mjs';
 import {
     BUFFER_WRITE_FLOAT32, BUFFER_WRITE_VEC32, CMD_JNT_C_SET_H_C_ANGLE, CONSTRAINT_TYPE_CONE,
     OPERATOR_MODIFIER
-} from '../../../constants.mjs';
-import { Constraint } from './constraint.mjs';
+} from '../../../../constants.mjs';
+import { JointConstraint } from './joint-constraint.mjs';
 
 /**
- * Interface for cone constraint.
+ * Cone constraint.
  *
  * @group Utilities
- * @category Constraints
+ * @category Joint Constraints
  */
-class ConeConstraint extends Constraint {
+class ConeConstraint extends JointConstraint {
     _type = CONSTRAINT_TYPE_CONE;
 
     _twistAxis1 = Vec3.RIGHT;
@@ -90,9 +90,7 @@ class ConeConstraint extends Constraint {
     write(cb) {
         super.write(cb);
 
-        cb.write(this._point1, BUFFER_WRITE_VEC32);
         cb.write(this._twistAxis1, BUFFER_WRITE_VEC32);
-        cb.write(this._point2, BUFFER_WRITE_VEC32);
         cb.write(this._twistAxis2, BUFFER_WRITE_VEC32);
         cb.write(this._halfConeAngle, BUFFER_WRITE_FLOAT32);
     }

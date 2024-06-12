@@ -14,6 +14,7 @@ const defaultHalfExtent = new Vec3(0.5, 0.5, 0.5);
  * This is a base component for other components. Most probably you don't need to use it directly,
  * but use a derived component instead.
  *
+ * @group Components
  * @category Shape Component
  */
 class ShapeComponent extends Component {
@@ -359,7 +360,7 @@ class ShapeComponent extends Component {
      * SHAPE_STATIC_COMPOUND
      * ```
      *
-     * @param {number} shape - Shape type number.
+     * @param {number} shapeNum - Shape type number.
      */
     set shape(shapeNum) {
         if (this._shape === shapeNum) {

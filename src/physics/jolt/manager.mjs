@@ -8,15 +8,15 @@ import { ConstraintComponentSystem } from './front/constraint/system.mjs';
 import { ResponseHandler } from './front/response-handler.mjs';
 import { SoftBodyComponentSystem } from './front/softbody/system.mjs';
 import { ShapeComponentSystem } from './front/shape/system.mjs';
-import { VehicleComponentSystem } from './front/vehicle/system.mjs';
 import { Quat, Vec3, Color, LAYERID_IMMEDIATE, KEY_Q, EVENT_KEYDOWN } from 'playcanvas';
 import {
-    BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT16, BUFFER_WRITE_UINT32, BUFFER_WRITE_UINT8,
-    BUFFER_WRITE_VEC32, CMD_CAST_RAY, CMD_CAST_SHAPE, CMD_CHANGE_GRAVITY, CMD_COLLIDE_POINT,
-    CMD_COLLIDE_SHAPE_IDX, CMD_CREATE_GROUPS, CMD_CREATE_SHAPE, CMD_DESTROY_SHAPE, CMD_TOGGLE_GROUP_PAIR,
-    COMPONENT_SYSTEM_BODY, COMPONENT_SYSTEM_CHAR, COMPONENT_SYSTEM_CONSTRAINT, COMPONENT_SYSTEM_MANAGER,
-    COMPONENT_SYSTEM_SOFT_BODY, COMPONENT_SYSTEM_VEHICLE, MOTION_TYPE_DYNAMIC, MOTION_TYPE_KINEMATIC,
-    MOTION_TYPE_STATIC, OPERATOR_CLEANER, OPERATOR_CREATOR, OPERATOR_MODIFIER, OPERATOR_QUERIER
+    BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT16, BUFFER_WRITE_UINT32,
+    BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32, CMD_CAST_RAY, CMD_CAST_SHAPE, CMD_CHANGE_GRAVITY,
+    CMD_COLLIDE_POINT, CMD_COLLIDE_SHAPE_IDX, CMD_CREATE_GROUPS, CMD_CREATE_SHAPE,
+    CMD_DESTROY_SHAPE, CMD_TOGGLE_GROUP_PAIR, COMPONENT_SYSTEM_BODY, COMPONENT_SYSTEM_CHAR,
+    COMPONENT_SYSTEM_CONSTRAINT, COMPONENT_SYSTEM_MANAGER, COMPONENT_SYSTEM_SOFT_BODY,
+    MOTION_TYPE_DYNAMIC, MOTION_TYPE_KINEMATIC, MOTION_TYPE_STATIC, OPERATOR_CLEANER,
+    OPERATOR_CREATOR, OPERATOR_MODIFIER, OPERATOR_QUERIER
 } from './constants.mjs';
 
 function getColor(type, config) {
@@ -88,7 +88,7 @@ class JoltManager extends PhysicsManager {
             allowCommandsBufferResize: true,
             useWebWorker: false,
             fixedStep: 1 / 30,
-            subSteps: 1,
+            subSteps: 2,
             useMotionStates: true,
             debugColorStatic: Color.GRAY,
             debugColorKinematic: Color.MAGENTA,
@@ -108,7 +108,6 @@ class JoltManager extends PhysicsManager {
 
         app.systems.add(new BodyComponentSystem(app, this, COMPONENT_SYSTEM_BODY));
         app.systems.add(new CharComponentSystem(app, this, COMPONENT_SYSTEM_CHAR));
-        app.systems.add(new VehicleComponentSystem(app, this, COMPONENT_SYSTEM_VEHICLE));
         app.systems.add(new SoftBodyComponentSystem(app, this, COMPONENT_SYSTEM_SOFT_BODY));
         app.systems.add(new ConstraintComponentSystem(app, this, COMPONENT_SYSTEM_CONSTRAINT));
 

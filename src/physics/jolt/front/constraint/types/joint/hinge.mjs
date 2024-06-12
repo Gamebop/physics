@@ -1,21 +1,22 @@
 import { Vec3 } from 'playcanvas';
-import { Debug } from '../../../debug.mjs';
-import { Constraint, Spring, Motor } from './constraint.mjs';
+import { Debug } from '../../../../debug.mjs';
+import { Spring, Motor } from '../constraint.mjs';
 import {
     BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT8,
     BUFFER_WRITE_VEC32, CMD_JNT_H_SET_LIMITS, CMD_JNT_H_SET_M_F_TORQUE,
     CMD_JNT_H_SET_M_S, CMD_JNT_H_SET_SPRING_S, CMD_JNT_H_SET_T_ANGLE,
     CMD_JNT_H_SET_T_ANG_VEL, CONSTRAINT_TYPE_HINGE, OPERATOR_MODIFIER,
     SPRING_MODE_FREQUENCY
-} from '../../../constants.mjs';
+} from '../../../../constants.mjs';
+import { JointConstraint } from './joint-constraint.mjs';
 
 /**
- * Interface for hinge constraint.
+ * Hinge constraint.
  *
  * @group Utilities
- * @category Constraints
+ * @category Joint Constraints
  */
-class HingeConstraint extends Constraint {
+class HingeConstraint extends JointConstraint {
     _type = CONSTRAINT_TYPE_HINGE;
 
     _hingeAxis1 = Vec3.UP;
@@ -100,7 +101,7 @@ class HingeConstraint extends Constraint {
     /**
      * Modifies the spring properties after the constraint has been created.
      *
-     * @param {import('./settings.mjs').SpringSettings} settings - Object, describing spring settings.
+     * @param {import('../settings.mjs').SpringSettings} settings - Object, describing spring settings.
      */
     set limitsSpringSettings(settings) {
         if ($_DEBUG) {
@@ -128,7 +129,7 @@ class HingeConstraint extends Constraint {
     }
 
     /**
-     * @returns {import('./settings.mjs').SpringSettings | null} - If spring is used, returns
+     * @returns {import('../settings.mjs').SpringSettings | null} - If spring is used, returns
      * current spring settings. Otherwise `null`.
      * @defaultValue null
      */
@@ -170,7 +171,7 @@ class HingeConstraint extends Constraint {
      * You cannot create a motor after the constraint has been created - you can only modify
      * existing one.
      *
-     * @returns {import('./settings.mjs').MotorSettings | null} - Returns motor settings or null,
+     * @returns {import('../settings.mjs').MotorSettings | null} - Returns motor settings or null,
      * if motor is not used.
      */
     get motorSettings() {
@@ -204,18 +205,16 @@ class HingeConstraint extends Constraint {
     write(cb) {
         super.write(cb);
 
-        cb.write(this._point1, BUFFER_WRITE_VEC32);
         cb.write(this._hingeAxis1, BUFFER_WRITE_VEC32);
         cb.write(this._normalAxis1, BUFFER_WRITE_VEC32);
-        cb.write(this._point2, BUFFER_WRITE_VEC32);
         cb.write(this._hingeAxis2, BUFFER_WRITE_VEC32);
         cb.write(this._normalAxis2, BUFFER_WRITE_VEC32);
         cb.write(this._limitsMin, BUFFER_WRITE_FLOAT32);
         cb.write(this._limitsMax, BUFFER_WRITE_FLOAT32);
         cb.write(this._maxFrictionTorque, BUFFER_WRITE_FLOAT32);
 
-        Constraint.writeSpringSettings(cb, this._limitsSpringSettings);
-        Constraint.writeMotorSettings(cb, this._motorSettings);
+        JointConstraint.writeSpringSettings(cb, this._limitsSpringSettings);
+        JointConstraint.writeMotorSettings(cb, this._motorSettings);
     }
 
     /**

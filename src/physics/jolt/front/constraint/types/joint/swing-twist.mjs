@@ -1,21 +1,22 @@
 import { Vec3 } from 'playcanvas';
-import { Debug } from '../../../debug.mjs';
-import { Constraint, Motor } from './constraint.mjs';
+import { Debug } from '../../../../debug.mjs';
+import { Motor } from '../constraint.mjs';
 import {
     BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32, CMD_JNT_ST_SET_M_F_TORQUE,
     CMD_JNT_ST_SET_N_H_C_ANGLE, CMD_JNT_ST_SET_P_H_C_ANGLE, CMD_JNT_ST_SET_SWING_M_S,
     CMD_JNT_ST_SET_TWIST_M_S, CMD_JNT_ST_SET_T_ANG_VEL_CS, CMD_JNT_ST_SET_T_MAX_ANGLE, CMD_JNT_ST_SET_T_MIN_ANGLE,
     CMD_JNT_ST_SET_T_O_BS, CMD_JNT_ST_SET_T_O_CS, CONSTRAINT_TYPE_SWING_TWIST,
     OPERATOR_MODIFIER
-} from '../../../constants.mjs';
+} from '../../../../constants.mjs';
+import { JointConstraint } from './joint-constraint.mjs';
 
 /**
- * Interface for swing-twist constraint.
+ * Swing-twist constraint.
  *
  * @group Utilities
- * @category Constraints
+ * @category Joint Constraints
  */
-class SwingTwistConstraint extends Constraint {
+class SwingTwistConstraint extends JointConstraint {
     _type = CONSTRAINT_TYPE_SWING_TWIST;
 
     _twistAxis1 = Vec3.RIGHT;
@@ -97,7 +98,7 @@ class SwingTwistConstraint extends Constraint {
     }
 
     /**
-     * @returns {import('./settings.mjs').SpringSettings | null} - Returns {@link SpringSettings |
+     * @returns {import('../settings.mjs').SpringSettings | null} - Returns {@link SpringSettings |
      * Spring Settings} or `null`, if spring is not used.
      * @defaultValue null
      */
@@ -253,7 +254,7 @@ class SwingTwistConstraint extends Constraint {
     }
 
     /**
-     * @returns {import('./settings.mjs').MotorSettings | null} - Returns {@link MotorSettings |
+     * @returns {import('../settings.mjs').MotorSettings | null} - Returns {@link MotorSettings |
      * Motor Settings} or `null`, if a motor is not used.
      */
     get twistMotorSettings() {
@@ -348,10 +349,8 @@ class SwingTwistConstraint extends Constraint {
     write(cb) {
         super.write(cb);
 
-        cb.write(this._point1, BUFFER_WRITE_VEC32);
         cb.write(this._twistAxis1, BUFFER_WRITE_VEC32);
         cb.write(this._planeAxis1, BUFFER_WRITE_VEC32);
-        cb.write(this._point2, BUFFER_WRITE_VEC32);
         cb.write(this._twistAxis2, BUFFER_WRITE_VEC32);
         cb.write(this._planeAxis2, BUFFER_WRITE_VEC32);
         cb.write(this._normalHalfConeAngle, BUFFER_WRITE_FLOAT32);
@@ -360,8 +359,8 @@ class SwingTwistConstraint extends Constraint {
         cb.write(this._twistMaxAngle, BUFFER_WRITE_FLOAT32);
         cb.write(this._maxFrictionTorque, BUFFER_WRITE_FLOAT32);
 
-        Constraint.writeMotorSettings(cb, this._swingMotorSettings);
-        Constraint.writeMotorSettings(cb, this._twistMotorSettings);
+        JointConstraint.writeMotorSettings(cb, this._swingMotorSettings);
+        JointConstraint.writeMotorSettings(cb, this._twistMotorSettings);
     }
 }
 

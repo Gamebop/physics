@@ -1,10 +1,21 @@
-import { Vec3 } from 'playcanvas';
 import { Debug } from '../../../debug.mjs';
 import {
-    BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT32,
-    BUFFER_WRITE_UINT8, CMD_JNT_SET_ENABLED, CONSTRAINT_SPACE_WORLD,
-    CONSTRAINT_TYPE_UNDEFINED, OPERATOR_MODIFIER, SPRING_MODE_FREQUENCY
+    BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT16, BUFFER_WRITE_UINT32, BUFFER_WRITE_UINT8,
+    CMD_JNT_SET_ENABLED, CONSTRAINT_TYPE_UNDEFINED, OPERATOR_MODIFIER, SPRING_MODE_FREQUENCY
 } from '../../../constants.mjs';
+import { Curve, Vec3 } from 'playcanvas';
+
+function applyOptions(instance, opts) {
+    for (const [key, val] of Object.entries(opts)) {
+        const prop = '_' + key;
+        if (instance[prop] === undefined) continue;
+        if (val instanceof Vec3 || val instanceof Curve) {
+            instance[prop] = val.clone();
+        } else {
+            instance[prop] = val;
+        }
+    }
+}
 
 class Spring {
     springMode = SPRING_MODE_FREQUENCY;
@@ -94,58 +105,24 @@ class Constraint {
 
     static writeSpringSettings(cb, settings) {
         cb.write(!!settings, BUFFER_WRITE_BOOL, false);
-        if (settings !== null) {
-            cb.write(settings.springMode, BUFFER_WRITE_UINT8);
+        if (settings != null) {
+            cb.write(settings.springMode ?? SPRING_MODE_FREQUENCY, BUFFER_WRITE_UINT8, false);
             if (settings.springMode === SPRING_MODE_FREQUENCY) {
-                cb.write(settings.frequency, BUFFER_WRITE_FLOAT32);
+                cb.write(settings.frequency ?? 1.5, BUFFER_WRITE_FLOAT32, false);
             } else {
-                cb.write(settings.stiffness, BUFFER_WRITE_FLOAT32);
+                cb.write(settings.stiffness ?? 1.5, BUFFER_WRITE_FLOAT32, false);
             }
-            cb.write(settings.damping, BUFFER_WRITE_FLOAT32);
+            cb.write(settings.damping ?? 0.5, BUFFER_WRITE_FLOAT32, false);
         }
     }
 
     _index = -1;
 
-    _point1 = new Vec3();
-
-    _point2 = new Vec3();
-
     _type = CONSTRAINT_TYPE_UNDEFINED;
-
-    _entity1 = null;
-
-    _entity2 = null;
 
     _numVelocityStepsOverride = 0;
 
     _numPositionStepsOverride = 0;
-
-    _space = CONSTRAINT_SPACE_WORLD;
-
-    constructor(entity1, entity2, opts = {}) {
-        if ($_DEBUG) {
-            let ok = Debug.assert(!!entity1 && !!entity1.body, 'Invalid entity1 when adding a constraint', entity1);
-            ok = ok && Debug.assert(!!entity2 && !!entity2.body, 'Invalid entity1 when adding a constraint', entity2);
-            if (opts.point1) {
-                ok = ok && Debug.assert(opts.point1 instanceof Vec3, 'Invalid point1 when adding a constraint. Expected a vector.', opts.point1);
-            }
-            if (opts.point2) {
-                ok = ok && Debug.assert(opts.point2 instanceof Vec3, 'Invalid point1 when adding a constraint. Expected a vector.', opts.point2);
-            }
-            if (!ok) {
-                return;
-            }
-        }
-
-        this._entity1 = entity1;
-        this._entity2 = entity2;
-        if (opts.point1) this._point1.copy(opts.point1);
-        if (opts.point2) this._point2.copy(opts.point2);
-        this._numVelocityStepsOverride = opts.numVelocityStepsOverride ?? this._numVelocityStepsOverride;
-        this._numPositionStepsOverride = opts.numPositionStepsOverride ?? this._numPositionStepsOverride;
-        this._space = opts.space ?? this._space;
-    }
 
     /**
      * Unique constraint index to link to physics object. Index can be re-used by another constraint, when this one is
@@ -163,46 +140,6 @@ class Constraint {
      */
     get index() {
         return this._index;
-    }
-
-    /**
-     * First body position in constraint reference frame. Space is determined by {@link space}
-     * property.
-     *
-     * @type {import('playcanvas').Vec3}
-     * @defaultValue Vec3(0, 0, 0)
-     */
-    get point1() {
-        return this._point1;
-    }
-
-    /**
-     * Second body position in constraint reference frame. Space is determined by {@link space}
-     * property.
-     *
-     * @type {import('playcanvas').Vec3}
-     * @defaultValue Vec3(0, 0, 0)
-     */
-    get point2() {
-        return this._point2;
-    }
-
-    /**
-     * First entity this joint is connected to.
-     *
-     * @returns {import('playcanvas').Entity} - First entity the joint is connected to.
-     */
-    get entity1() {
-        return this._entity1;
-    }
-
-    /**
-     * Second entity this joint is connected to.
-     *
-     * @returns {import('playcanvas').Entity} - Second entity the joint is connected to.
-     */
-    get entity2() {
-        return this._entity2;
     }
 
     /**
@@ -228,21 +165,11 @@ class Constraint {
     }
 
     /**
-     * Reference frame space that `point1` and `point2` use.
-     *
-     * @returns {number} - Number, representing reference space.
-     * @defaultValue CONSTRAINT_SPACE_WORLD
-     */
-    get space() {
-        return this._space;
-    }
-
-    /**
      * @hidden
      * @returns {import('../system.mjs').ConstraintComponentSystem} - Constraint component system.
      */
     get system() {
-        return this._entity1.constraint.system;
+        return this._entity1?.constraint.system || this._entity?.constraint.system;
     }
 
     /**
@@ -254,20 +181,29 @@ class Constraint {
     }
 
     /**
-     * Destroy this joint. The connected bodies will be activated.
+     * Destroy this constraint. The connected bodies will be activated.
      */
     destroy() {
         this.system.destroyConstraint(this._index);
     }
 
     write(cb) {
+        if ($_DEBUG) {
+            let ok = Debug.checkUint(this._numVelocityStepsOverride,
+                                     'Invalid number of velocity steps',
+                                     this._numVelocityStepsOverride);
+            ok = ok && Debug.checkUint(this._numPositionStepsOverride,
+                                       'Invalid number of velocity steps',
+                                       this._numPositionStepsOverride);
+            if (!ok) {
+                return;
+            }
+        }
+
         cb.write(this._index, BUFFER_WRITE_UINT32, false);
         cb.write(this._type, BUFFER_WRITE_UINT8, false);
-        cb.write(this._entity1.body.index, BUFFER_WRITE_UINT32, false);
-        cb.write(this._entity2.body.index, BUFFER_WRITE_UINT32, false);
-        cb.write(this._numVelocityStepsOverride, BUFFER_WRITE_UINT8, false);
-        cb.write(this._numPositionStepsOverride, BUFFER_WRITE_UINT8, false);
-        cb.write(this._space, BUFFER_WRITE_UINT8, false);
+        cb.write(this._numVelocityStepsOverride, BUFFER_WRITE_UINT16, false);
+        cb.write(this._numPositionStepsOverride, BUFFER_WRITE_UINT16, false);
     }
 
     /**
@@ -293,4 +229,4 @@ class Constraint {
     }
 }
 
-export { Constraint, Motor, Spring };
+export { Constraint, Motor, Spring, applyOptions };

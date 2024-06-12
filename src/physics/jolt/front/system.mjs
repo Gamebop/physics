@@ -14,6 +14,8 @@ class JoltComponentSystem extends ComponentSystem {
         super(app);
 
         this._manager = manager;
+
+        this.on('beforeremove', this.onBeforeRemove, this);
     }
 
     set schema(newSchema) {
@@ -75,6 +77,12 @@ class JoltComponentSystem extends ComponentSystem {
         entity[this.id] = component;
         entity.c[this.id] = component;
 
+        // TODO
+        // we need to add a component to a sorted list, refer to
+        // https://github.com/playcanvas/engine/issues/6647
+        // entity.oc.push(component);
+        // sortOrder(entity.oc);
+
         this.initializeComponentData(component, data);
 
         return component;
@@ -92,6 +100,12 @@ class JoltComponentSystem extends ComponentSystem {
 
         if (component.entity.enabled && !component.isCompoundChild) {
             component.onEnable();
+        }
+    }
+
+    onBeforeRemove(entity, component) {
+        if (component.enabled) {
+            component.enabled = false;
         }
     }
 }

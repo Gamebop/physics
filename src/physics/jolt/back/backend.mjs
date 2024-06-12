@@ -809,7 +809,7 @@ class JoltBackend {
 
                 // If it is a vehicle, write wheels isometry as well
                 if (body.isVehicle) {
-                    const data = tracker.constraintMap.get(index);
+                    const data = tracker.constraintMap.get(body.vehicleConstraintIndex);
                     const constraint = data.constraint;
                     const wheelsCount = constraint.wheelsCount;
                     const modifier = this._modifier;
@@ -821,14 +821,18 @@ class JoltBackend {
                     jv2.Set(1, 0, 0);
 
                     for (let i = 0; i < wheelsCount; i++) {
+                        const isWheeled = constraint.isWheeled;
                         const transform = constraint.GetWheelLocalTransform(i, jv1, jv2);
-                        const wheel = Jolt.castObject(constraint.GetWheel(i), Jolt.WheelWV);
+                        const JoltWheel = isWheeled ? Jolt.WheelWV : Jolt.WheelTV;
+                        const wheel = Jolt.castObject(constraint.GetWheel(i), JoltWheel);
 
-                        cb.write(wheel.mLongitudinalSlip, BUFFER_WRITE_FLOAT32, false);
-                        cb.write(wheel.mLateralSlip, BUFFER_WRITE_FLOAT32, false);
-                        cb.write(wheel.mCombinedLongitudinalFriction, BUFFER_WRITE_FLOAT32, false);
-                        cb.write(wheel.mCombinedLateralFriction, BUFFER_WRITE_FLOAT32, false);
-                        cb.write(wheel.mBrakeImpulse, BUFFER_WRITE_FLOAT32, false);
+                        if (isWheeled) {
+                            cb.write(wheel.mLongitudinalSlip, BUFFER_WRITE_FLOAT32, false);
+                            cb.write(wheel.mLateralSlip, BUFFER_WRITE_FLOAT32, false);
+                            cb.write(wheel.mCombinedLongitudinalFriction, BUFFER_WRITE_FLOAT32, false);
+                            cb.write(wheel.mCombinedLateralFriction, BUFFER_WRITE_FLOAT32, false);
+                            cb.write(wheel.mBrakeImpulse, BUFFER_WRITE_FLOAT32, false);
+                        }
                         cb.write(transform.GetTranslation(), BUFFER_WRITE_JOLTVEC32, false);
                         cb.write(transform.GetRotation().GetQuaternion(), BUFFER_WRITE_JOLTVEC32, false);
                     }

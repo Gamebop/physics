@@ -1,6 +1,6 @@
 import { Vec3 } from 'playcanvas';
-import { Debug } from '../../../debug.mjs';
-import { Constraint, Motor, Spring } from './constraint.mjs';
+import { Debug } from '../../../../debug.mjs';
+import { Motor, Spring } from '../constraint.mjs';
 import {
     BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT8,
     BUFFER_WRITE_VEC32, CMD_JNT_SDF_SET_M_F, CMD_JNT_SDF_SET_M_STATE,
@@ -8,7 +8,8 @@ import {
     CMD_JNT_SDF_SET_T_LIMITS, CMD_JNT_SDF_SET_T_POS_CS, CMD_JNT_SDF_SET_T_ROT_BS,
     CMD_JNT_SDF_SET_T_ROT_CS, CMD_JNT_SDF_SET_T_VEL_CS, CONSTRAINT_SWING_TYPE_CONE,
     CONSTRAINT_TYPE_SIX_DOF, OPERATOR_MODIFIER, SPRING_MODE_FREQUENCY
-} from '../../../constants.mjs';
+} from '../../../../constants.mjs';
+import { JointConstraint } from './joint-constraint.mjs';
 
 function copyArr(src, dst) {
     for (let i = 0; i < src.length; ++i) {
@@ -25,12 +26,12 @@ function copySettings(Constructor, src) {
 }
 
 /**
- * Interface for six degrees of freedom (six DOF) constraint.
+ * Six degrees of freedom (six DOF) constraint.
  *
  * @group Utilities
- * @category Constraints
+ * @category Joint Constraints
  */
-class SixDOFConstraint extends Constraint {
+class SixDOFConstraint extends JointConstraint {
     _type = CONSTRAINT_TYPE_SIX_DOF;
 
     _axisX1 = Vec3.RIGHT;
@@ -201,7 +202,7 @@ class SixDOFConstraint extends Constraint {
      * ```
      *
      * @param {number} axis - Axis number, zero-based.
-     * @param {import('./settings.mjs').SpringSettings} settings - Spring settings.
+     * @param {import('../settings.mjs').SpringSettings} settings - Spring settings.
      */
     setLimitsSpringSettings(axis, settings) {
         if ($_DEBUG) {
@@ -392,14 +393,12 @@ class SixDOFConstraint extends Constraint {
         const limitMin = this._limitMin;
         const limitMax = this._limitMax;
 
-        Constraint.writeAxes(cb, this._freeAxes);
-        Constraint.writeAxes(cb, this._fixedAxes);
-        Constraint.writeAxes(cb, this._limitedAxes, true);
+        JointConstraint.writeAxes(cb, this._freeAxes);
+        JointConstraint.writeAxes(cb, this._fixedAxes);
+        JointConstraint.writeAxes(cb, this._limitedAxes, true);
 
-        cb.write(this._point1, BUFFER_WRITE_VEC32, false);
         cb.write(this._axisX1, BUFFER_WRITE_VEC32, false);
         cb.write(this._axisY1, BUFFER_WRITE_VEC32, false);
-        cb.write(this._point2, BUFFER_WRITE_VEC32, false);
         cb.write(this._axisX2, BUFFER_WRITE_VEC32, false);
         cb.write(this._axisY2, BUFFER_WRITE_VEC32, false);
 
@@ -430,14 +429,14 @@ class SixDOFConstraint extends Constraint {
         cb.write(!!limitsSpringSettings, BUFFER_WRITE_BOOL, false);
         if (!!limitsSpringSettings) {
             for (let i = 0; i < 6; ++i) {
-                Constraint.writeSpringSettings(cb, limitsSpringSettings[i]);
+                JointConstraint.writeSpringSettings(cb, limitsSpringSettings[i]);
             }
         }
 
         cb.write(!!motorSettings, BUFFER_WRITE_BOOL, false);
         if (!!motorSettings) {
             for (let i = 0; i < 6; ++i) {
-                Constraint.writeMotorSettings(cb, motorSettings[i]);
+                JointConstraint.writeMotorSettings(cb, motorSettings[i]);
             }
         }
     }

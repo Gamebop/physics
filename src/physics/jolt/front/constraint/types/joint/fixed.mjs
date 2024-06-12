@@ -1,19 +1,17 @@
 import { Vec3 } from 'playcanvas';
-import { Debug } from '../../../debug.mjs';
-import { Constraint } from './constraint.mjs';
+import { Debug } from '../../../../debug.mjs';
 import {
     BUFFER_WRITE_BOOL, BUFFER_WRITE_VEC32, CONSTRAINT_TYPE_FIXED
-} from '../../../constants.mjs';
+} from '../../../../constants.mjs';
+import { JointConstraint } from './joint-constraint.mjs';
 
 /**
- * Interface for fixed constraint.
+ * Fixed constraint.
  *
  * @group Utilities
- * @category Constraints
+ * @category Joint Constraints
  */
-class FixedConstraint extends Constraint {
-    _type = CONSTRAINT_TYPE_FIXED;
-
+class FixedConstraint extends JointConstraint {
     _autoDetectPoint = true;
 
     _axisX1 = Vec3.RIGHT;
@@ -27,12 +25,14 @@ class FixedConstraint extends Constraint {
     constructor(entity1, entity2, opts = {}) {
         super(entity1, entity2, opts);
 
+        this._type = CONSTRAINT_TYPE_FIXED;
+
         this._autoDetectPoint = opts.autoDetectPoint ?? this._autoDetectPoint;
 
-        if (opts.axisX1) this._axisX1 = opts.axisX1;
-        if (opts.axisX2) this._axisX2 = opts.axisX2;
-        if (opts.axisY1) this._axisY1 = opts.axisY1;
-        if (opts.axisY2) this._axisY2 = opts.axisY2;
+        this._axisX1 = opts.axisX1 || this._axisX1;
+        this._axisX2 = opts.axisX2 || this._axisX2;
+        this._axisY1 = opts.axisY1 || this._axisY1;
+        this._axisY2 = opts.axisY2 || this._axisY2;
     }
 
     /**
@@ -67,31 +67,21 @@ class FixedConstraint extends Constraint {
         return this._axisY2;
     }
 
-    /**
-     * @returns {number} - Constraint type alias number.
-     * @defaultValue CONSTRAINT_TYPE_FIXED
-     */
-    get type() {
-        return this._type;
-    }
+    write(cb, opts) {
+        super.write(cb);
 
-    write(cb) {
-        const auto = this._autoDetectPoint;
-        if ($_DEBUG && !auto) {
-            let ok = Debug.checkVec(this._point1, 'Fixed constraint has disabled autoDetectPoint, but point1 was not provided');
-            ok = ok && Debug.checkVec(this._point2, 'Fixed constraint has disabled autoDetectPoint, but point2 was not provided');
+        if ($_DEBUG) {
+            let ok = Debug.checkBool(this._autoDetectPoint);
+            ok = ok && Debug.checkVec(this._axisX1);
+            ok = ok && Debug.checkVec(this._axisY1);
+            ok = ok && Debug.checkVec(this._axisX2);
+            ok = ok && Debug.checkVec(this._axisY2);
             if (!ok) {
                 return;
             }
         }
 
-        super.write(cb);
-
-        cb.write(auto, BUFFER_WRITE_BOOL);
-        if (!auto) {
-            cb.write(this._point1, BUFFER_WRITE_VEC32);
-            cb.write(this._point2, BUFFER_WRITE_VEC32);
-        }
+        cb.write(this._autoDetectPoint, BUFFER_WRITE_BOOL);
         cb.write(this._axisX1, BUFFER_WRITE_VEC32);
         cb.write(this._axisY1, BUFFER_WRITE_VEC32);
         cb.write(this._axisX2, BUFFER_WRITE_VEC32);

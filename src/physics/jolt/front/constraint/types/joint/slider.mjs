@@ -1,21 +1,22 @@
 import { Vec3 } from 'playcanvas';
-import { Debug } from '../../../debug.mjs';
-import { Constraint, Spring, Motor } from './constraint.mjs';
+import { Debug } from '../../../../debug.mjs';
+import { Spring, Motor } from '../constraint.mjs';
 import {
     BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT8,
     BUFFER_WRITE_VEC32, CMD_JNT_S_SET_LIMITS, CMD_JNT_S_SET_M_F_FORCE,
     CMD_JNT_S_SET_M_STATE, CMD_JNT_S_SET_SPRING_S, CMD_JNT_S_SET_T_POS,
     CMD_JNT_S_SET_T_VEL, CONSTRAINT_TYPE_SLIDER, OPERATOR_MODIFIER,
     SPRING_MODE_FREQUENCY
-} from '../../../constants.mjs';
+} from '../../../../constants.mjs';
+import { JointConstraint } from './joint-constraint.mjs';
 
 /**
- * Interface for slider constraint.
+ * Slider constraint.
  *
  * @group Utilities
- * @category Constraints
+ * @category Joint Constraints
  */
-class SliderConstraint extends Constraint {
+class SliderConstraint extends JointConstraint {
     _type = CONSTRAINT_TYPE_SLIDER;
 
     _sliderAxis1 = Vec3.RIGHT;
@@ -78,7 +79,7 @@ class SliderConstraint extends Constraint {
     /**
      * Modifies the spring properties after the constraint has been created.
      *
-     * @param {import('./settings.mjs').SpringSettings} settings - Object, describing spring settings.
+     * @param {import('../settings.mjs').SpringSettings} settings - Object, describing spring settings.
      */
     set limitsSpringSettings(settings) {
         if ($_DEBUG) {
@@ -106,7 +107,7 @@ class SliderConstraint extends Constraint {
     }
 
     /**
-     * @returns {import('./settings.mjs').SpringSettings | null} - If spring is used, returns
+     * @returns {import('../settings.mjs').SpringSettings | null} - If spring is used, returns
      * current spring settings. Otherwise `null`.
      * @defaultValue null
      */
@@ -203,12 +204,7 @@ class SliderConstraint extends Constraint {
     write(cb) {
         super.write(cb);
 
-        const auto = this._autoDetectPoint;
-        cb.write(auto, BUFFER_WRITE_BOOL);
-        if (!auto) {
-            cb.write(this._point1, BUFFER_WRITE_VEC32);
-            cb.write(this._point2, BUFFER_WRITE_VEC32);
-        }
+        cb.write(this._autoDetectPoint, BUFFER_WRITE_BOOL);
         cb.write(this._sliderAxis1, BUFFER_WRITE_VEC32);
         cb.write(this._normalAxis1, BUFFER_WRITE_VEC32);
         cb.write(this._sliderAxis2, BUFFER_WRITE_VEC32);
@@ -217,8 +213,8 @@ class SliderConstraint extends Constraint {
         cb.write(this._limitsMax, BUFFER_WRITE_FLOAT32);
         cb.write(this._maxFrictionForce, BUFFER_WRITE_FLOAT32);
 
-        Constraint.writeSpringSettings(cb, this._limitsSpringSettings);
-        Constraint.writeMotorSettings(cb, this._motorSettings);
+        JointConstraint.writeSpringSettings(cb, this._limitsSpringSettings);
+        JointConstraint.writeMotorSettings(cb, this._motorSettings);
     }
 
     /**
