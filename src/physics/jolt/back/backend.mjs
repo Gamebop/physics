@@ -15,6 +15,12 @@ import {
     OPERATOR_CREATOR, OPERATOR_MODIFIER, OPERATOR_QUERIER
 } from '../constants.mjs';
 
+/**
+ * Jolt Backend.
+ *
+ * @group Private
+ * @private
+ */
 class JoltBackend {
     constructor(messenger, data) {
         const config = {

@@ -1,5 +1,6 @@
 import { Debug } from '../../debug.mjs';
 import {
+    BFM_IGNORE_BACK_FACES,
     BUFFER_READ_BOOL, BUFFER_READ_FLOAT32, BUFFER_READ_UINT32, BUFFER_READ_UINT8, BUFFER_WRITE_BOOL,
     BUFFER_WRITE_FLOAT32, BUFFER_WRITE_JOLTVEC32, BUFFER_WRITE_UINT16, BUFFER_WRITE_UINT32, CMD_CAST_RAY,
     CMD_CAST_SHAPE, CMD_COLLIDE_POINT, CMD_COLLIDE_SHAPE_IDX, COMPONENT_SYSTEM_MANAGER
@@ -289,8 +290,14 @@ class Querier {
             } else {
                 offset.Set(0, 0, 0);
             }
-            if (cb.flag) castSettings.mBackFaceModeTriangles = cb.read(BUFFER_READ_UINT8);
-            if (cb.flag) castSettings.mBackFaceModeConvex = cb.read(BUFFER_READ_UINT8);
+            if (cb.flag) {
+                castSettings.mBackFaceModeTriangles = cb.read(BUFFER_READ_UINT8) === BFM_IGNORE_BACK_FACES ?
+                    Jolt.EBackFaceMode_IgnoreBackFaces : Jolt.EBackFaceMode_CollideWithBackFaces;
+            }
+            if (cb.flag) {
+                castSettings.mBackFaceModeConvex = cb.read(BUFFER_READ_UINT8) === BFM_IGNORE_BACK_FACES ?
+                Jolt.EBackFaceMode_IgnoreBackFaces : Jolt.EBackFaceMode_CollideWithBackFaces;
+            }
             if (cb.flag) castSettings.mUseShrunkenShapeAndConvexRadius = cb.read(BUFFER_READ_BOOL);
             if (cb.flag) castSettings.mReturnDeepestPoint = cb.read(BUFFER_READ_BOOL);
 

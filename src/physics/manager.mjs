@@ -40,8 +40,24 @@ class PhysicsManager {
     }
 
     /**
+     * Gets the Jolt Backend instance. This is useful, when components are not sufficient and you
+     * wish to access Jolt's API directly.
+     *
+     * Note, this will be `null`, if the backend runs in a Web Worker.
+     *
+     * @example
+     * ```js
+     * const backend = app.physics.backend;
+     * const Jolt = backend.Jolt;
+     * const joltVec = new Jolt.Vec3(0, 0, 0);
+     * 
+     * // common Jolt interfaces, which the backend has instantiated
+     * backend.physicsSystem;
+     * backend.bodyInterface;
+     * backend.joltInterface;
+     * ```
+     * 
      * @type {import('./jolt/back/backend.mjs').JoltBackend | null}
-     * @private
      */
     get backend() {
         return this._backend;
@@ -88,16 +104,30 @@ class PhysicsManager {
     }
 
     /**
-     * @type {}
+     * @type {import('./init.mjs').JoltInitSettings}
+     * @private
      */
     get config() {
         return this._config;
     }
 
+    /**
+     * Gets the number of times the physics world has been updated (steps count).
+     *
+     * @type {number}
+     * @defaultValue 0
+     */
     get steps() {
         return this._steps;
     }
 
+    /**
+     * Gets the fixed timestep size that the physics world is stepping with. This was set via
+     * {@link JoltInitSettings.fixedStep}.
+     *
+     * @type {number}
+     * @defaultValue 1/30
+     */
     get fixedStep() {
         return this._fixedStep;
     }
