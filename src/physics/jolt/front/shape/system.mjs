@@ -81,18 +81,14 @@ class ShapeComponentSystem extends JoltComponentSystem {
         const index = cb.read(BUFFER_READ_UINT32);
         const entity = ShapeComponentSystem.entityMap.get(index);
         if (!entity) {
-            return;
-        }
-
-        const vehicleConstraint = entity.c.constraint?.vehicleConstraint;
-
-        if (!entity) {
             cb.skip(13 * FLOAT32_SIZE);
             if (vehicleConstraint) {
                 cb.skip(vehicleConstraint.wheels.length * 7 * FLOAT32_SIZE);
             }
             return;
         }
+
+        const vehicleConstraint = entity.c.constraint?.vehicleConstraint;
 
         entity.setPosition(
             cb.read(BUFFER_READ_FLOAT32),
