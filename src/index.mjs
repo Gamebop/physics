@@ -48,5 +48,9 @@ export * from './physics/jolt/front/constraint/types/settings.mjs';
 export * from './physics/jolt/constants.mjs';
 
 export { JoltBackend } from './physics/jolt/back/backend.mjs';
+export { Querier } from './physics/jolt/back/operators/querier.mjs';
+export { Creator } from './physics/jolt/back/operators/creator.mjs';
+export { Listener } from './physics/jolt/back/operators/listener.mjs';
+export { Tracker } from './physics/jolt/back/operators/tracker.mjs';
 
 export { init, JoltInitSettings } from './physics/init.mjs';

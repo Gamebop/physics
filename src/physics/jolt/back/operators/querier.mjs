@@ -53,6 +53,10 @@ function writeCollideShapeHit(cb, system, tracker, calculateNormal, hit, Jolt) {
 let collidePointResult;
 let params = [];
 
+/**
+ * @group Private
+ * @private
+ */
 class Querier {
     constructor(backend) {
         this._backend = backend;
