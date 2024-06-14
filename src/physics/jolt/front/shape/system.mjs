@@ -80,6 +80,10 @@ class ShapeComponentSystem extends JoltComponentSystem {
     static updateDynamic(cb) {
         const index = cb.read(BUFFER_READ_UINT32);
         const entity = ShapeComponentSystem.entityMap.get(index);
+        if (!entity) {
+            return;
+        }
+
         const vehicleConstraint = entity.c.constraint?.vehicleConstraint;
 
         if (!entity) {
