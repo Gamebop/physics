@@ -2,6 +2,7 @@ import { IndexedCache } from '../../../indexed-cache.mjs';
 import { JoltComponentSystem } from '../system.mjs';
 import { ShapeComponent } from './component.mjs';
 import {
+    BUFFER_READ_BOOL,
     BUFFER_READ_FLOAT32, BUFFER_READ_UINT32, FLOAT32_SIZE
 } from '../../constants.mjs';
 
@@ -82,8 +83,8 @@ class ShapeComponentSystem extends JoltComponentSystem {
         const entity = ShapeComponentSystem.entityMap.get(index);
         if (!entity) {
             cb.skip(13 * FLOAT32_SIZE);
-            if (vehicleConstraint) {
-                cb.skip(vehicleConstraint.wheels.length * 7 * FLOAT32_SIZE);
+            if (cb.read(BUFFER_READ_BOOL) /* isVehicle */) {
+                cb.skip(cb.read(BUFFER_READ_UINT32) /* wheels count */ * 7 * FLOAT32_SIZE);
             }
             return;
         }
