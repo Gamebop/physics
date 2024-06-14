@@ -296,7 +296,7 @@ class Querier {
             }
             if (cb.flag) {
                 castSettings.mBackFaceModeConvex = cb.read(BUFFER_READ_UINT8) === BFM_IGNORE_BACK_FACES ?
-                Jolt.EBackFaceMode_IgnoreBackFaces : Jolt.EBackFaceMode_CollideWithBackFaces;
+                    Jolt.EBackFaceMode_IgnoreBackFaces : Jolt.EBackFaceMode_CollideWithBackFaces;
             }
             if (cb.flag) castSettings.mUseShrunkenShapeAndConvexRadius = cb.read(BUFFER_READ_BOOL);
             if (cb.flag) castSettings.mReturnDeepestPoint = cb.read(BUFFER_READ_BOOL);

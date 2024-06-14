@@ -50,13 +50,13 @@ class PhysicsManager {
      * const backend = app.physics.backend;
      * const Jolt = backend.Jolt;
      * const joltVec = new Jolt.Vec3(0, 0, 0);
-     * 
+     *
      * // common Jolt interfaces, which the backend has instantiated
      * backend.physicsSystem;
      * backend.bodyInterface;
      * backend.joltInterface;
      * ```
-     * 
+     *
      * @type {import('./jolt/back/backend.mjs').JoltBackend | null}
      */
     get backend() {

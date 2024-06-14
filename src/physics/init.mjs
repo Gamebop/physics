@@ -6,6 +6,7 @@ import { JoltManager } from './jolt/manager.mjs';
  *
  * @interface
  * @group Managers
+ * @category Utilities
  */
 class JoltInitSettings {
     /**
@@ -203,7 +204,7 @@ class JoltInitSettings {
      * @defaultValue true
      */
     deterministicSimulation;
- 
+
     /**
      * A fixed time intervals to update physics simulation at. Affects performance, so try to set
      * it as large as possible (fewer updates per second), until you start getting collision and
@@ -278,7 +279,7 @@ class JoltInitSettings {
      * @defaultValue 0.2 (meters)
      */
     maxPenetrationDistance;
- 
+
     /**
      * Maximum number of physics updates we allow to fast-forward. For example, if we switch a
      * browser tab, the main thread will pause. Once the app comes back to focus, the delta time
@@ -396,7 +397,7 @@ class JoltInitSettings {
      * @defaultValue 8
      */
     stepListenersBatchSize;
- 
+
     /**
      * A number of sub-steps per single {@link fixedStep}. Affects performance, so try to keep it
      * low. Increasing the number of substeps will make constraints feel stronger and collisions
@@ -451,7 +452,7 @@ class JoltInitSettings {
      * {@link fixedStep}, the object will visibly "stutter" while moving. To make its motion
      * smooth, you can make {@link fixedStep} smaller to match the browser refresh rate (expensive)
      * or use this motion state option.
-     * 
+     *
      * When enabled, the system will interpolate the object's position and rotation, based on its
      * current velocities. It effectively "guesses" the isometry of an object at the next frame,
      * until the real physics update happens.
@@ -497,10 +498,10 @@ class JoltInitSettings {
  * @example
  * ```js
  * // load-jolt.mjs
- * 
+ *
  * import { ScriptType } from 'playcanvas';
  * import { init } from './physics.dbg.mjs';
- * 
+ *
  * export class LoadJolt extends ScriptType {
  *     async initialize() {
  *         await init(this.app, {
@@ -517,6 +518,7 @@ class JoltInitSettings {
  * @param {import('playcanvas').Application} app - PlayCanvas Application instance
  * @param {JoltInitSettings} opts - Jolt Physics initialization settings.
  * @group Managers
+ * @category Utilities
  * @returns {Promise<import('./jolt/manager.mjs').JoltManager>} - A Promise to return a Jolt Manager
  */
 function init(app, opts = {}) {

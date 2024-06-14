@@ -19,209 +19,6 @@ import {
     OPERATOR_CREATOR, OPERATOR_MODIFIER, OPERATOR_QUERIER
 } from './constants.mjs';
 
-/**
- * @interface
- * @group Managers
- */
-class CastSettings {
-    /**
-     * Whether to return only the first contact.
-     *
-     * @type {boolean}
-     * @defaultValue true
-     */
-    firstOnly;
-
-    /**
-     * If `true`, will calculate and add to results a contact normal at contact point.
-     *
-     * @type {boolean}
-     * @defaultValue false
-     */
-    calculateNormal;
-
-    /**
-     * If `true`, the ray will ignore sensors.
-     *
-     * @type {boolean}
-     * @defaultValue false
-     */
-    ignoreSensors;
-
-    /**
-     * Broadphase layer number for filtering.
-     *
-     * @type {number}
-     * @defaultValue BP_LAYER_MOVING (1)
-     */
-    bpFilterLayer;
-
-    /**
-     * Object layer number for filtering.
-     *
-     * @type {number}
-     * @defaultValue OBJ_LAYER_MOVING (1)
-     */
-    objFilterLayer;
-}
-
-
-/**
- * @interface
- * @group Managers
- */
-class CastRaySettings extends CastSettings {
-    /**
-     * If `true`, the ray will ignore shape backfaces.
-     *
-     * @type {boolean}
-     * @defaultValue true
-     */
-    ignoreBackFaces;
-
-    /**
-     * If `true`, the convex shapes will be treated as "solid". That is, if a ray starts from
-     * inside a convex shape, it will report a contact.
-     *
-     * @type {boolean}
-     * @defaultValue true
-     */
-    treatConvexAsSolid;
-}
-
-/**
- * @interface
- * @group Managers
- */
-class CastShapeSettings extends CastSettings {
-    /**
-     * Scales the shape used during a cast. Allows to re-use existing shapes, if only scale is
-     * different.
-     *
-     * @type {Vec3}
-     * @defaultValue Vec3(1, 1, 1)
-     */
-    scale;
-
-    /**
-     * All hit results will be returned relative to this offset, can be zero to get results in
-     * world position, but when you're testing far from the origin you get better precision by
-     * picking a position that's closer since floats are most accurate near the origin.
-     *
-     * @type {Vec3}
-     * @defaultValue Vec3(0, 0, 0)
-     */
-    offset;
-
-    /**
-     * Sets whether to ignore triangle backfaces. Following options available:
-     * ```
-     * BFM_IGNORE_BACK_FACES
-     * ```
-     * ```
-     * BFM_COLLIDE_BACK_FACES
-     * ```
-     *
-     * @type {number}
-     * @defaultValue BFM_IGNORE_BACK_FACES
-     */
-    backFaceModeTriangles;
-
-    /**
-     * Sets whether to ignore backfaces of convex shapes. See {@link backFaceModeTriangles} for
-     * available options.
-     *
-     * @type {number}
-     * @defaultValue BFM_IGNORE_BACK_FACES
-     */
-    backFaceModeConvex;
-
-    /**
-     * Indicates if we want to shrink the shape by the convex radius and then expand it again. This
-     * speeds up collision detection and gives a more accurate normal at the cost of a more
-     * "rounded" shape.
-     *
-     * @type {boolean}
-     * @defaultValue false
-     */
-    useShrunkenShapeAndConvexRadius;
-
-    /**
-     * When true, and the shape is intersecting at the beginning of the cast (fraction = 0) then
-     * this will calculate the deepest penetration point (costing additional CPU time).
-     *
-     * @type {boolean}
-     * @defaultValue false
-     */
-    returnDeepestPoint;
-}
-
-/**
- * @interface
- * @group Managers
- */
-class ShapeSettings {
-    /**
-     * @see {@link ShapeComponent.density}
-     * @type {number}
-     * @defaultValue 1000
-     */
-    density;
-
-    /**
-     * @see {@link ShapeComponent.shapePosition}
-     * @type {Vec3}
-     * @defaultValue Vec3(0, 0, 0)
-     */
-    shapePosition;
-
-    /**
-     * @see {@link ShapeComponent.shapeRotation}
-     * @type {Quat}
-     * @defaultValue Quat(0, 0, 0, 1)
-     */
-    shapeRotation;
-
-    /**
-     * Scales the shape. Uniform scale is always fine. Non-uniform scale is supported only by some
-     * shapes. For example:
-     * - you can use non-uniform scale on a box shape, but not on a sphere, etc.
-     * - you can use non-uniform scale on a cylinder/capsule, but `X` and `Z` must be uniform.
-     *
-     * @type {Vec3}
-     * @defaultValue Vec3(1, 1, 1)
-     */
-    scale;
-
-    /**
-     * @see {@link ShapeComponent.halfExtent}
-     * @type {Vec3}
-     * @defaultValue Vec3(0.5, 0.5, 0.5)
-     */
-    halfExtent;
-
-    /**
-     * @see {@link ShapeComponent.convexRadius}
-     * @type {number}
-     * @defaultValue 0.05 (m)
-     */
-    convexRadius;
-
-    /**
-     * @see {@link ShapeComponent.halfHeight}
-     * @type {number}
-     * @defaultValue 0.5 (m)
-     */
-    halfHeight;
-
-    /**
-     * @see {@link ShapeComponent.radius}
-     * @type {number}
-     * @defaultValue 0.5 (m)
-     */
-    radius;
-}
-
 function getColor(type, config) {
     switch (type) {
         case MOTION_TYPE_STATIC:
@@ -285,6 +82,7 @@ function debugDraw(app, data, config) {
  * Jolt Manager is responsible to handle the Jolt Physics backend.
  *
  * @group Managers
+ * @category Jolt
  */
 class JoltManager extends PhysicsManager {
     defaultHalfExtent = new Vec3(0.5, 0.5, 0.5);
@@ -447,7 +245,7 @@ class JoltManager extends PhysicsManager {
      * we update virtual kinematic characters and step the physics world.
      *
      * Note, this feature is disabled, when the backend runs in a Web Worker.
-     * 
+     *
      * @param {function} func - Callback function to execute before stepping the physics world.
      */
     addUpdateCallback(func) {
@@ -483,6 +281,17 @@ class JoltManager extends PhysicsManager {
      * character controller to change current shape (e.g. standing, sitting, laying, etc).
      *
      * Once you no longer need the shape, you must {@link destroyShape} to avoid memory leaks.
+     *
+     * @example
+     * ```js
+     * import { SHAPE_CAPSULE } from './physics.dbg.mjs';
+     *
+     * // create a 2m high and 0.6m wide capsule.
+     * const shapeIndex = app.physics.createShape(SHAPE_CAPSULE, {
+     *     halfHeight: 1,
+     *     radius: 0.3
+     * });
+     * ```
      *
      * @param {number} type - Shape type number.
      * options.
@@ -547,84 +356,27 @@ class JoltManager extends PhysicsManager {
     }
 
     /**
-     * Allows to create collision groups. Note, that collision groups are more expensive than
-     * broadphase layers.
-     *
-     * The groups are created by giving an array of numbers, where each number represents the count
-     * of subgroups in it. For example:
-     * - `[3, 5]` would create `2` groups. The first group will have `3` subgroups, and the second
-     * one will have `5`.
-     *
-     * For additional information, refer to Jolt's official documentation on
-     * [Collision Filtering](https://jrouwe.github.io/JoltPhysics/index.html#collision-filtering).
-     * 
-     * @param {Array<number>} groups - Collision groups.
-     */
-    createCollisionGroups(groups) {
-        const cb = this._outBuffer;
-        const groupsCount = groups.length;
-
-        cb.writeOperator(OPERATOR_CREATOR);
-        cb.writeCommand(CMD_CREATE_GROUPS);
-        cb.write(groupsCount, BUFFER_WRITE_UINT32, false);
-
-        for (let i = 0; i < groupsCount; i++) {
-            // sub groups count
-            cb.write(groups[i], BUFFER_WRITE_UINT32, false);
-        }
-    }
-
-    /**
-     * Toggles a collision between 2 subgroups inside a group.
-     *
-     * @param {number} group - Group index number.
-     * @param {number} subGroup1 - First subgroup number.
-     * @param {number} subGroup2 - Second subgroup number.
-     * @param {boolean} enable - `true` to enable, `false` to disable collision.
-     */
-    toggleGroupPair(group, subGroup1, subGroup2, enable) {
-        if ($_DEBUG) {
-            let ok = Debug.checkUint(group, `Invalid group 1: ${group}`);
-            ok = ok && Debug.checkUint(subGroup1, `Invalid group 1: ${subGroup1}`);
-            ok = ok && Debug.checkUint(subGroup2, `Invalid group 2: ${subGroup2}`);
-            ok = ok && Debug.checkBool(enable, `Invalid toggle flag: ${enable}`);
-            if (!ok) {
-                return;
-            }
-        }
-
-        const cb = this._outBuffer;
-
-        cb.writeOperator(OPERATOR_MODIFIER);
-        cb.writeCommand(CMD_TOGGLE_GROUP_PAIR);
-        cb.write(enable, BUFFER_WRITE_BOOL, false);
-        cb.write(group, BUFFER_WRITE_UINT16, false);
-        cb.write(subGroup1, BUFFER_WRITE_UINT16, false);
-        cb.write(subGroup2, BUFFER_WRITE_UINT16, false);
-    }
-
-    /**
      * Creates a raycast query to the physics world.
-     * 
+     *
      * @example
      * ```
+     * // Cast a 10 meters ray from (0, 5, 0) straight down.
+     * const origin = new Vec3(0, 5, 0);
+     * const dir = new Vec3(0, -10, 0);
+     * app.physics.castRay(origin, dir, onResults, { firstOnly: false });
+     *
      * function onResults(results) {
      *     if (results.length === 0) {
      *         return;
      *     }
      *     // do something with results
      * }
-     *
-     * // Cast a 10 meters ray from (0, 5, 0) straight down.
-     * const origin = new Vec3(0, 5, 0);
-     * const dir = new Vec3(0, -10, 0);
-     * app.physics.castRay(origin, dir, onResults, { firstOnly: false });
      * ```
-     * 
+     *
      * @param {Vec3} origin - World point where the ray originates from.
      * @param {Vec3} dir - Non-normalized ray direction. The magnitude is ray's distance.
      * @param {function} callback - Your function that will accept the raycast result.
-     * @param {CastRaySettings} [opts] - Settings object to customize the query.
+     * @param {import('./settings.mjs').CastRaySettings} [opts] - Settings object to customize the query.
      */
     castRay(origin, dir, callback, opts) {
         if ($_DEBUG) {
@@ -683,13 +435,6 @@ class JoltManager extends PhysicsManager {
      * @example
      * ```
      * import { SHAPE_SPHERE } from './physics.dbg.mjs';
-     * 
-     * function onResults(results) {
-     *     if (results.length === 0) {
-     *         return;
-     *     }
-     *     // do something with results
-     * }
      *
      * // Do a 10 meters cast with a 0.3 radius sphere from (0, 5, 0) straight down.
      * const shapeIndex = app.physics.createShape(SHAPE_SPHERE, { radius: 0.3 });
@@ -698,14 +443,21 @@ class JoltManager extends PhysicsManager {
      * app.physics.castShape(shapeIndex, pos, Quat.IDENTITY, dir, onResults, {
      *     ignoreSensors: true
      * });
+     *
+     * function onResults(results) {
+     *     if (results.length === 0) {
+     *         return;
+     *     }
+     *     // do something with results
+     * }
      * ```
      *
      * @param {number} shapeIndex - Shape index number. Create one using {@link createShape}.
      * @param {Vec3} pos - World point where the cast is originated from.
      * @param {Quat} rot - Shape rotation.
-     * @param {Vec3} dir - Non-normalized ray direction. The magnitude is ray's distance. 
+     * @param {Vec3} dir - Non-normalized ray direction. The magnitude is ray's distance.
      * @param {function} callback - Your function that will accept the shapecast result.
-     * @param {CastShapeSettings} [opts] - Settings object to customize the query.
+     * @param {import('./settings.mjs').CastShapeSettings} [opts] - Settings object to customize the query.
      */
     castShape(shapeIndex, pos, rot, dir, callback, opts) {
         if ($_DEBUG) {
@@ -748,6 +500,28 @@ class JoltManager extends PhysicsManager {
         cb.write(opts?.objFilterLayer, BUFFER_WRITE_UINT32);
     }
 
+    /**
+     * Check if a world point is inside any body shape. For this test all shapes are treated as if
+     * they were solid. For a mesh shape, this test will only provide sensible information if the
+     * mesh is a closed manifold.
+     *
+     * @example
+     * ```js
+     * // get all entities that overlap a world position (0, 5, 0)
+     * app.physics.collidePoint(new Vec3(0, 5, 0), onResults, { ignoreSensors: true });
+     *
+     * function onResults(results) {
+     *     if (results.length === 0) {
+     *         return;
+     *     }
+     *     // do something with results
+     * }
+     * ```
+     *
+     * @param {Vec3} point - World position to test.
+     * @param {function} callback - Function to take the query results.
+     * @param {import('./settings.mjs').QuerySettings} opts - Query customization settings.
+     */
     collidePoint(point, callback, opts) {
         if ($_DEBUG) {
             let ok = Debug.checkVec(point, `Invalid point vector`);
@@ -774,6 +548,37 @@ class JoltManager extends PhysicsManager {
         cb.write(point, BUFFER_WRITE_VEC32, false);
     }
 
+    /**
+     * Gets all entities that collide with a given shape.
+     *
+     * @example
+     * ```js
+     * import { SHAPE_BOX } from './physics.dbg.mjs';
+     *
+     * // create a box with a half extent (1, 1, 1) meters
+     * const shapeIndex = app.physics.createShape(SHAPE_BOX, { halfExtent: Vec3.ONE });
+     *
+     * // get all entities that intersect a box with half extent (0.2, 0.5, 0.2) at world position
+     * // (0, 10, 0)
+     * const scale = new Vec3(0.2, 0.5, 0.2);
+     * const pos = new Vec3(0, 10, 0);
+     * app.physics.collideShape(shapeIndex, pos, Quat.IDENTITY, onResults, { scale });
+     *
+     * function onResults(results) {
+     *     if (results.length === 0) {
+     *         return;
+     *     }
+     *     // do something with the results
+     * }
+     *
+     * ```
+     *
+     * @param {number} shapeIndex - Shape index created with {@link createShape}.
+     * @param {Vec3} position - World position of the shape.
+     * @param {Vec3} rotation - World rotation of the shape.
+     * @param {function} callback - Callback function that will take the query results.
+     * @param {import('./settings.mjs').CollideShapeSettings} opts - Query customization settings.
+     */
     collideShape(shapeIndex, position, rotation, callback, opts) {
         if ($_DEBUG) {
             let ok = Debug.checkInt(shapeIndex, `Invalid shape index`);
@@ -821,6 +626,67 @@ class JoltManager extends PhysicsManager {
         cb.write(opts?.bpFilterLayer, BUFFER_WRITE_UINT32);
         cb.write(opts?.objFilterLayer, BUFFER_WRITE_UINT32);
     }
+
+    /**
+     * Allows to create collision groups. Note, that collision groups are more expensive than
+     * broadphase layers.
+     *
+     * The groups are created by giving an array of numbers, where each element adds a group and
+     * its number represents the count of subgroups in it.
+     *
+     * @example
+     * ```js
+     * // Create `2` groups. The first group has `3` subgroups, the second `5`.
+     * app.physics.createGroups([3, 5]);
+     * ```
+     *
+     * For additional information, refer to Jolt's official documentation on
+     * [Collision Filtering](https://jrouwe.github.io/JoltPhysics/index.html#collision-filtering).
+     *
+     * @param {Array<number>} groups - Collision groups.
+     */
+    createCollisionGroups(groups) {
+        const cb = this._outBuffer;
+        const groupsCount = groups.length;
+
+        cb.writeOperator(OPERATOR_CREATOR);
+        cb.writeCommand(CMD_CREATE_GROUPS);
+        cb.write(groupsCount, BUFFER_WRITE_UINT32, false);
+
+        for (let i = 0; i < groupsCount; i++) {
+            // sub groups count
+            cb.write(groups[i], BUFFER_WRITE_UINT32, false);
+        }
+    }
+
+    /**
+     * Toggles a collision between 2 subgroups inside a group.
+     *
+     * @param {number} group - Group index number.
+     * @param {number} subGroup1 - First subgroup number.
+     * @param {number} subGroup2 - Second subgroup number.
+     * @param {boolean} enable - `true` to enable, `false` to disable collision.
+     */
+    toggleGroupPair(group, subGroup1, subGroup2, enable) {
+        if ($_DEBUG) {
+            let ok = Debug.checkUint(group, `Invalid group 1: ${group}`);
+            ok = ok && Debug.checkUint(subGroup1, `Invalid group 1: ${subGroup1}`);
+            ok = ok && Debug.checkUint(subGroup2, `Invalid group 2: ${subGroup2}`);
+            ok = ok && Debug.checkBool(enable, `Invalid toggle flag: ${enable}`);
+            if (!ok) {
+                return;
+            }
+        }
+
+        const cb = this._outBuffer;
+
+        cb.writeOperator(OPERATOR_MODIFIER);
+        cb.writeCommand(CMD_TOGGLE_GROUP_PAIR);
+        cb.write(enable, BUFFER_WRITE_BOOL, false);
+        cb.write(group, BUFFER_WRITE_UINT16, false);
+        cb.write(subGroup1, BUFFER_WRITE_UINT16, false);
+        cb.write(subGroup2, BUFFER_WRITE_UINT16, false);
+    }
 }
 
-export { JoltManager, ShapeSettings, CastRaySettings, CastShapeSettings };
+export { JoltManager };

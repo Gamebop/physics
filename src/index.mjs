@@ -5,11 +5,8 @@
  * @module PhysicsComponents
  */
 
-import { init, JoltInitSettings } from './physics/init.mjs';
-
-export {
-    JoltManager, ShapeSettings, CastRaySettings, CastShapeSettings
-} from './physics/jolt/manager.mjs';
+export { JoltManager } from './physics/jolt/manager.mjs';
+export * from './physics/jolt/settings.mjs';
 
 export { ShapeComponent } from './physics/jolt/front/shape/component.mjs';
 export { ShapeComponentSystem } from './physics/jolt/front/shape/system.mjs';
@@ -52,4 +49,4 @@ export * from './physics/jolt/constants.mjs';
 
 export { JoltBackend } from './physics/jolt/back/backend.mjs';
 
-export { init, JoltInitSettings };
+export { init, JoltInitSettings } from './physics/init.mjs';
