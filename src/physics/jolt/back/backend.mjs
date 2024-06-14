@@ -808,7 +808,7 @@ class JoltBackend {
                 cb.write(body.GetAngularVelocity(), BUFFER_WRITE_JOLTVEC32, false);
 
                 // If it is a vehicle, write wheels isometry as well
-                const isVehicle = body.isVehicle;
+                const isVehicle = !!body.isVehicle;
                 cb.write(isVehicle, BUFFER_WRITE_BOOL, false);
                 if (isVehicle) {
                     const data = tracker.constraintMap.get(body.vehicleConstraintIndex);

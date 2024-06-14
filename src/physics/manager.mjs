@@ -40,10 +40,6 @@ class PhysicsManager {
         return this._backend;
     }
 
-    get systems() {
-        return this._systems;
-    }
-
     set paused(bool) {
         this._paused = bool;
     }

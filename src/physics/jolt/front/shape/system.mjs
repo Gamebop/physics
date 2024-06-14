@@ -83,13 +83,12 @@ class ShapeComponentSystem extends JoltComponentSystem {
         const entity = ShapeComponentSystem.entityMap.get(index);
         if (!entity) {
             cb.skip(13 * FLOAT32_SIZE);
-            if (cb.read(BUFFER_READ_BOOL) /* isVehicle */) {
+            const isVehicle = cb.read(BUFFER_READ_BOOL);
+            if (isVehicle) {
                 cb.skip(cb.read(BUFFER_READ_UINT32) /* wheels count */ * 7 * FLOAT32_SIZE);
             }
             return;
         }
-
-        const vehicleConstraint = entity.c.constraint?.vehicleConstraint;
 
         entity.setPosition(
             cb.read(BUFFER_READ_FLOAT32),
@@ -116,7 +115,11 @@ class ShapeComponentSystem extends JoltComponentSystem {
             cb.read(BUFFER_READ_FLOAT32)
         );
 
-        vehicleConstraint?.updateWheelsIsometry(cb);
+        // If vehicle, update wheels
+        if (cb.read(BUFFER_READ_BOOL)) {
+            const vehicleConstraint = entity.c.constraint?.vehicleConstraint;
+            vehicleConstraint?.updateWheelsIsometry(cb);
+        }
     }
 }
 

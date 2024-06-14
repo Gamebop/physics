@@ -106,17 +106,27 @@ class JoltManager extends PhysicsManager {
 
         super(app, config);
 
-        app.systems.add(new BodyComponentSystem(app, this, COMPONENT_SYSTEM_BODY));
-        app.systems.add(new CharComponentSystem(app, this, COMPONENT_SYSTEM_CHAR));
-        app.systems.add(new SoftBodyComponentSystem(app, this, COMPONENT_SYSTEM_SOFT_BODY));
-        app.systems.add(new ConstraintComponentSystem(app, this, COMPONENT_SYSTEM_CONSTRAINT));
+        const bodyCS = new BodyComponentSystem(app, this);
+        const charCS = new CharComponentSystem(app, this);
+        const softBodyCS = new SoftBodyComponentSystem(app, this);
+        const constraintCS = new ConstraintComponentSystem(app, this);
+
+        app.systems.add(bodyCS);
+        app.systems.add(charCS);
+        app.systems.add(softBodyCS);
+        app.systems.add(constraintCS);
+
+        const systems = this._systems;
+        systems.set(COMPONENT_SYSTEM_BODY, bodyCS);
+        systems.set(COMPONENT_SYSTEM_CHAR, charCS);
+        systems.set(COMPONENT_SYSTEM_SOFT_BODY, softBodyCS);
+        systems.set(COMPONENT_SYSTEM_CONSTRAINT, constraintCS);
+        systems.set(COMPONENT_SYSTEM_MANAGER, this);
 
         this._queryMap = new IndexedCache();
         this._shapeMap = new IndexedCache();
         this._gravity = new Vec3(0, -9.81, 0);
         this._resolve = resolve;
-
-        this._systems.set(COMPONENT_SYSTEM_MANAGER, this);
 
         const msg = Object.create(null);
         msg.type = 'create-backend';
