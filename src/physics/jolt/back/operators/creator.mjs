@@ -11,6 +11,10 @@ import {
 } from '../../constants.mjs';
 import { ConstraintCreator } from './helpers/constraint-creator.mjs';
 
+/**
+ * @group Private
+ * @private
+ */
 class Creator {
     static createShapeSettings(cb, meshBuffers, Jolt, jv, jq) {
         const shapeType = cb.read(BUFFER_READ_UINT8);

@@ -18,49 +18,49 @@ const defaultHalfExtent = new Vec3(0.5, 0.5, 0.5);
  * @category Shape Component
  */
 class ShapeComponent extends Component {
-    _shape = SHAPE_BOX;
-
-    _index = -1;
-
-    _renderAsset = null;
-
-    _mesh = null;
-
-    _isCompoundChild = false;
-
-    _useEntityScale = true;
+    _convexRadius = 0.05;
 
     _debugDraw = false;
 
+    _density = 1000;
+
     _halfExtent = defaultHalfExtent;
-
-    _radius = 0.5;
-
-    _convexRadius = 0.05;
 
     _halfHeight = 0.5;
 
-    _density = 1000;
+    _hfActiveEdgeCosThresholdAngle = 0.996195;
+
+    _hfBitsPerSample = 8;
+
+    _hfBlockSize = 2;
+
+    _hfOffset = Vec3.ZERO;
+
+    _hfSampleCount = 0;
+
+    _hfSamples = null;
+
+    _hfScale = Vec3.ONE;
+
+    _index = -1;
+
+    _isCompoundChild = false;
+
+    _massOffset = Vec3.ZERO;
+
+    _mesh = null;
+
+    _radius = 0.5;
+
+    _renderAsset = null;
+
+    _shape = SHAPE_BOX;
 
     _shapePosition = Vec3.ZERO;
 
     _shapeRotation = Quat.IDENTITY;
 
-    _massOffset = Vec3.ZERO;
-
-    _hfSamples = null;
-
-    _hfSampleCount = 0;
-
-    _hfBlockSize = 2;
-
-    _hfBitsPerSample = 8;
-
-    _hfActiveEdgeCosThresholdAngle = 0.996195;
-
-    _hfScale = Vec3.ONE;
-
-    _hfOffset = Vec3.ZERO;
+    _useEntityScale = true;
 
     /**
      * Internally the convex radius will be subtracted from the half extent, so the total size will
