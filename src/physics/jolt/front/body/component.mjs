@@ -27,7 +27,7 @@ const vec3 = new Vec3();
  * @category Body Component
  */
 class BodyComponent extends ShapeComponent {
-    // ---- BODY PROPS ----
+    static order = -1;
 
     _angularVelocity = new Vec3();
 
