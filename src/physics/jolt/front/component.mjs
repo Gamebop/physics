@@ -1,6 +1,8 @@
 import { EventHandler } from 'playcanvas';
 
 class Component extends EventHandler {
+    static order = 0;
+
     _accessorsBuilt = false;
 
     _enabled = true;
@@ -8,8 +10,6 @@ class Component extends EventHandler {
     _system = null;
 
     _entity = null;
-
-    _order = 0;
 
     constructor(system, entity) {
         super();
