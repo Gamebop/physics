@@ -42,15 +42,13 @@ const schema = [
  * @category Char Component
  */
 class CharComponentSystem extends ShapeComponentSystem {
-    constructor(app, manager, id) {
+    constructor(app, manager) {
         super(app, manager);
 
         this._schema = [...this._schema, ...schema];
         this._queryMap = new IndexedCache();
 
         this._exposeConstants();
-
-        manager.systems.set(id, this);
     }
 
     get id() {

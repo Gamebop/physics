@@ -1,3 +1,7 @@
+/**
+ * @group Private
+ * @private
+ */
 class Tracker {
     constructor(Jolt) {
         this._Jolt = Jolt;

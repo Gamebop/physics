@@ -32,38 +32,102 @@ class PhysicsManager {
         this._app = app;
     }
 
+    /**
+     * @param {import('./jolt/back/backend.mjs').JoltBackend} instance - Jolt backend instance.
+     */
     set backend(instance) {
         this._backend = instance;
     }
 
+    /**
+     * Gets the Jolt Backend instance. This is useful, when components are not sufficient and you
+     * wish to access Jolt's API directly.
+     *
+     * Note, this will be `null`, if the backend runs in a Web Worker.
+     *
+     * @example
+     * ```js
+     * const backend = app.physics.backend;
+     * const Jolt = backend.Jolt;
+     * const joltVec = new Jolt.Vec3(0, 0, 0);
+     *
+     * // common Jolt interfaces, which the backend has instantiated
+     * backend.physicsSystem;
+     * backend.bodyInterface;
+     * backend.joltInterface;
+     * ```
+     *
+     * @type {import('./jolt/back/backend.mjs').JoltBackend | null}
+     */
     get backend() {
         return this._backend;
     }
 
+    /**
+     * @type {Map<number, import('./jolt/front/body/system.mjs').BodyComponentSystem |
+     * import('./jolt/front/char/system.mjs').CharComponentSystem |
+     * import('./jolt/front/constraint/system.mjs').ConstraintComponentSystem |
+     * import('./jolt/front/shape/system.mjs').ShapeComponentSystem |
+     * import('./jolt/front/softbody/system.mjs').SoftBodyComponentSystem>}
+     * @private
+     */
     get systems() {
         return this._systems;
     }
 
+    /**
+     * Allows to pause/unpause physics update. Useful, when you have some UI popup and want to
+     * freeze the game world, but still be able to interact with the application.
+     *
+     * @param {boolean} bool - If `true`, will pause the physics world update.
+     */
     set paused(bool) {
         this._paused = bool;
     }
 
+    /**
+     * Gets the current state of the physics world. Whether it is paused or not.
+     *
+     * @type {boolean}
+     * @defaultValue false
+     */
     get paused() {
         return this._paused;
     }
 
+    /**
+     * @type {CommandsBuffer}
+     * @private
+     */
     get commandsBuffer() {
         return this._outBuffer;
     }
 
+    /**
+     * @type {import('./init.mjs').JoltInitSettings}
+     * @private
+     */
     get config() {
         return this._config;
     }
 
+    /**
+     * Gets the number of times the physics world has been updated (steps count).
+     *
+     * @type {number}
+     * @defaultValue 0
+     */
     get steps() {
         return this._steps;
     }
 
+    /**
+     * Gets the fixed timestep size that the physics world is stepping with. This was set via
+     * {@link JoltInitSettings.fixedStep}.
+     *
+     * @type {number}
+     * @defaultValue 1/30
+     */
     get fixedStep() {
         return this._fixedStep;
     }
