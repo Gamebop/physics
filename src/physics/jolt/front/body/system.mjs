@@ -43,12 +43,10 @@ const schema = [
  * @category Body Component
  */
 class BodyComponentSystem extends ShapeComponentSystem {
-    constructor(app, manager, id) {
+    constructor(app, manager) {
         super(app, manager);
 
         this.schema = [...this._schema, ...schema];
-
-        manager.systems.set(id, this);
     }
 
     get id() {

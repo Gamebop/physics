@@ -49,12 +49,10 @@ const indices = [];
  * @category SoftBody Component
  */
 class SoftBodyComponentSystem extends BodyComponentSystem {
-    constructor(app, manager, id) {
+    constructor(app, manager) {
         super(app, manager);
 
         this._schema = [...this._schema, ...schema];
-
-        manager.systems.set(id, this);
     }
 
     get id() {

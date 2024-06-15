@@ -2,6 +2,7 @@ import { IndexedCache } from '../../../indexed-cache.mjs';
 import { JoltComponentSystem } from '../system.mjs';
 import { ShapeComponent } from './component.mjs';
 import {
+    BUFFER_READ_BOOL,
     BUFFER_READ_FLOAT32, BUFFER_READ_UINT32, FLOAT32_SIZE
 } from '../../constants.mjs';
 
@@ -80,12 +81,11 @@ class ShapeComponentSystem extends JoltComponentSystem {
     static updateDynamic(cb) {
         const index = cb.read(BUFFER_READ_UINT32);
         const entity = ShapeComponentSystem.entityMap.get(index);
-        const vehicleConstraint = entity.c.constraint?.vehicleConstraint;
-
         if (!entity) {
             cb.skip(13 * FLOAT32_SIZE);
-            if (vehicleConstraint) {
-                cb.skip(vehicleConstraint.wheels.length * 7 * FLOAT32_SIZE);
+            const isVehicle = cb.read(BUFFER_READ_BOOL);
+            if (isVehicle) {
+                cb.skip(cb.read(BUFFER_READ_UINT32) /* wheels count */ * 7 * FLOAT32_SIZE);
             }
             return;
         }
@@ -115,7 +115,11 @@ class ShapeComponentSystem extends JoltComponentSystem {
             cb.read(BUFFER_READ_FLOAT32)
         );
 
-        vehicleConstraint?.updateWheelsIsometry(cb);
+        // If vehicle, update wheels
+        if (cb.read(BUFFER_READ_BOOL)) {
+            const vehicleConstraint = entity.c.constraint?.vehicleConstraint;
+            vehicleConstraint?.updateWheelsIsometry(cb);
+        }
     }
 }
 

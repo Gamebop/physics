@@ -18,12 +18,10 @@ const schema = ['list'];
 class ConstraintComponentSystem extends JoltComponentSystem {
     _constraintMap = new IndexedCache();
 
-    constructor(app, manager, id) {
+    constructor(app, manager) {
         super(app, manager);
 
         this._schema = [...this._schema, ...schema];
-
-        manager.systems.set(id, this);
     }
 
     get id() {
