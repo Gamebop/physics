@@ -180,6 +180,8 @@ class ResponseHandler {
         const firstOnly = cb.read(BUFFER_READ_BOOL);
         const hitsCount = cb.read(BUFFER_READ_UINT16);
 
+        // TODO
+        // always use array
         let result = firstOnly ? null : [];
 
         for (let i = 0; i < hitsCount; i++) {

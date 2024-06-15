@@ -15,8 +15,8 @@ class IndexedCache {
     /**
      * Store an element in the cache. Will return one of the freed indices, or a new one.
      *
-     * @param {*} element - An object or a function to store in the cache
-     * @returns {number} - TODO
+     * @param {object | function} element - An object or a function to store in the cache
+     * @returns {number} - Index number under which the element is stored.
      */
     add(element) {
         const freed = this._freed;
@@ -33,7 +33,7 @@ class IndexedCache {
      * Retrieves a stored element under the given index.
      *
      * @param {number} index - An index of the element to retrieve.
-     * @returns {*} - TODO
+     * @returns {object | function} - Element stored under given index.
      */
     get(index) {
         return this._storage[index];

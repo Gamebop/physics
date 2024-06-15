@@ -5,7 +5,8 @@
  * @module PhysicsComponents
  */
 
-import { init } from './physics/init.mjs';
+export { JoltManager } from './physics/jolt/manager.mjs';
+export * from './physics/jolt/settings.mjs';
 
 export { ShapeComponent } from './physics/jolt/front/shape/component.mjs';
 export { ShapeComponentSystem } from './physics/jolt/front/shape/system.mjs';
@@ -46,4 +47,10 @@ export { IndexedCache } from './physics/indexed-cache.mjs';
 export * from './physics/jolt/front/constraint/types/settings.mjs';
 export * from './physics/jolt/constants.mjs';
 
-export { init };
+export { JoltBackend } from './physics/jolt/back/backend.mjs';
+export { Querier } from './physics/jolt/back/operators/querier.mjs';
+export { Creator } from './physics/jolt/back/operators/creator.mjs';
+export { Listener } from './physics/jolt/back/operators/listener.mjs';
+export { Tracker } from './physics/jolt/back/operators/tracker.mjs';
+
+export { init, JoltInitSettings } from './physics/init.mjs';

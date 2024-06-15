@@ -6,7 +6,8 @@
 class ConstraintSettings {
     /**
      * Override for the number of solver position iterations to run. If set to `0`, the constraint
-     * will use global default set by Physics initialization setting (TODO add link).
+     * will use global default set by Physics initialization setting
+     * {@link JoltInitSettings.numPositionSteps}.
      *
      * @type {number}
      * @defaultValue 0
@@ -15,7 +16,8 @@ class ConstraintSettings {
 
     /**
      * Override for the number of solver velocity iterations to run. If set to `0`, the constraint
-     * will use global default set by Physics initialization setting (TODO add link).
+     * will use global default set by Physics initialization setting
+     * {@link JoltInitSettings.numVelocitySteps}.
      *
      * @type {number}
      * @defaultValue 0
