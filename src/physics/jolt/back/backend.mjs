@@ -828,7 +828,7 @@ class JoltBackend {
                     jv1.Set(0, 1, 0);
                     jv2.Set(1, 0, 0);
 
-                    cb.write(wheelsCount, BUFFER_WRITE_UINT32, false);
+                    // cb.write(wheelsCount, BUFFER_WRITE_UINT32, false);
 
                     for (let i = 0; i < wheelsCount; i++) {
                         const isWheeled = constraint.isWheeled;
@@ -844,7 +844,7 @@ class JoltBackend {
                             cb.write(wheel.mBrakeImpulse, BUFFER_WRITE_FLOAT32, false);
                         }
                         cb.write(transform.GetTranslation(), BUFFER_WRITE_JOLTVEC32, false);
-                        cb.write(transform.GetRotation().GetQuaternion(), BUFFER_WRITE_JOLTVEC32, false);
+                        cb.write(transform.GetQuaternion(), BUFFER_WRITE_JOLTVEC32, false);
                     }
                 }
             }

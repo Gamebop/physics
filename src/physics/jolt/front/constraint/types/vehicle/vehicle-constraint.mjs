@@ -497,6 +497,9 @@ class VehicleConstraint extends Constraint {
             const entity = wheel.entity;
 
             if (!entity) {
+                if (isWheeled) {
+                    cb.skip(5 * FLOAT32_SIZE);
+                }
                 cb.skip(7 * FLOAT32_SIZE);
                 continue;
             }
