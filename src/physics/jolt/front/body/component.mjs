@@ -1463,6 +1463,8 @@ class BodyComponent extends ShapeComponent {
                 this.getMeshes(() => {
                     system.createBody(this);
                 });
+            } else {
+                system.createBody(this);
             }
         } else if (!isCompoundChild) {
             system.createBody(this);
