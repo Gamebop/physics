@@ -22,6 +22,8 @@ class ShapeComponent extends Component {
 
     _debugDraw = false;
 
+    _debugDrawDepth = true;
+
     _density = 1000;
 
     _halfExtent = defaultHalfExtent;
@@ -112,6 +114,24 @@ class ShapeComponent extends Component {
      * @defaultValue false
      */
     get debugDraw() {
+        return this._debugDraw;
+    }
+
+    /**
+     * If {@link debugDraw} is enabled, this will specify whether to consider scene depth or not.
+     * If set to `false`, the debug lines will be drawn on top of everything, through other meshes.
+     *
+     * @param {boolean} bool - Boolean, telling whether to consider scene depth.
+     */
+    set debugDrawDepth(bool) {
+        this._debugDraw = bool;
+    }
+
+    /**
+     * @type {boolean}
+     * @defaultValue true
+     */
+    get debugDrawDepth() {
         return this._debugDraw;
     }
 
