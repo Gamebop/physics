@@ -7,6 +7,11 @@ import {
 } from '../constants.mjs';
 import { fromBuffer } from '../math.mjs';
 
+/**
+ * @import {Entity} from 'playcanvas'
+ * @import {Vec3} from 'playcanvas'
+ */
+
 class ContactResult {
     constructor(entity, normal, depth, point = null, offset = null, points1 = null, points2 = null) {
         this.entity = entity;
@@ -29,6 +34,12 @@ class CharContactResult {
     }
 }
 
+/**
+ * @interface
+ * @param {Entity} entity - Entity that query has detected.
+ * @param {Vec3} point - A point in world space where the contact was detected.
+ * @param {number} fraction - A fraction 
+ */
 class CastResult {
     constructor(entity, point, fraction, normal) {
         this.entity = entity;
@@ -306,4 +317,4 @@ class ResponseHandler {
     }
 }
 
-export { ResponseHandler };
+export { ResponseHandler, CastResult };

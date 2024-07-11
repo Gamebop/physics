@@ -6,7 +6,8 @@
  */
 
 export { JoltManager } from './physics/jolt/manager.mjs';
-export * from './physics/jolt/settings.mjs';
+export * from './physics/jolt/interfaces/settings.mjs';
+export * from './physics/jolt/interfaces/query-results.mjs';
 
 export { ShapeComponent } from './physics/jolt/front/shape/component.mjs';
 export { ShapeComponentSystem } from './physics/jolt/front/shape/system.mjs';
