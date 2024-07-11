@@ -188,15 +188,6 @@ class JoltInitSettings {
     debugDrawLayerId;
 
     /**
-     * If `true`, debug draw will consider scene depth, so lines that are behind a visual mesh will
-     * not be drawn ontop of it.
-     *
-     * @type {boolean}
-     * @defaultValue true
-     */
-    debugDrawDepth;
-
-    /**
      * Makes the simulation deterministic at the cost of performance. Simulation runs faster, if
      * determinism is disabled.
      *

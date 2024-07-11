@@ -83,11 +83,15 @@ class Drawer {
                     const buffer = Jolt.HEAPF32.buffer;
 
                     this._data.push(
-                        ...data, motionType, buffer,
+                        ...data, motionType, body.debugDrawDepth, buffer,
                         pos.GetX(), pos.GetY(), pos.GetZ(),
                         rot.GetX(), rot.GetY(), rot.GetZ(), rot.GetW()
                     );
-                    this._buffers.push(buffer);
+
+                    const index = this._buffers.indexOf(buffer);
+                    if (index < 0) {
+                        this._buffers.push(buffer);
+                    }
 
                     return true;
                 }
@@ -109,7 +113,7 @@ class Drawer {
             body.triContext = triContext;
 
             this._data.push(
-                index, length, byteOffset, motionType, buffer,
+                index, length, byteOffset, motionType, body.debugDrawDepth, buffer,
                 pos.GetX(), pos.GetY(), pos.GetZ(),
                 rot.GetX(), rot.GetY(), rot.GetZ(), rot.GetW()
             );

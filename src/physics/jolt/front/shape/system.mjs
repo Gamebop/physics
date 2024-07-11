@@ -15,6 +15,7 @@ const schema = [
     'useEntityScale',
     'useMotionState',
     'debugDraw',
+    'debugDrawDepth',
 
     // Jolt shape
     'shape',

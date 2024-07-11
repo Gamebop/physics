@@ -188,6 +188,7 @@ export const CMD_SET_VEL_STEPS = 57;
 export const CMD_SET_POS_STEPS = 58;
 export const CMD_SET_SHAPE = 59;
 export const CMD_SET_DEBUG_DRAW = 60;
+export const CMD_SET_DEBUG_DRAW_DEPTH = 61;
 
 
 // Char Virtual 400-499

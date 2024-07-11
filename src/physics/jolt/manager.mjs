@@ -33,7 +33,6 @@ function getColor(type, config) {
 }
 
 function debugDraw(app, data, config) {
-    const useDepth = config.debugDrawDepth;
     const layer = app.scene.layers.getLayerById(config.debugDrawLayerId);
     const tempVectors = ShapeComponentSystem.tempVectors;
 
@@ -47,17 +46,18 @@ function debugDraw(app, data, config) {
     const v4 = tempVectors[3];
     const q1 = tempVectors[4];
 
-    for (let d = 0, total = data.length; d < total; d += 12) {
+    for (let d = 0, total = data.length; d < total; d += 13) {
         const length = data[d + 1];
         const byteOffset = data[d + 2];
         const motionType = data[d + 3];
-        const buffer = data[d + 4];
+        const depth = data[d + 4];
+        const buffer = data[d + 5];
 
         const view = new Float32Array(buffer, byteOffset, length);
         const color = getColor(motionType, config);
 
-        const p = v4.set(data[d + 5], data[d + 6], data[d + 7]);
-        const r = q1.set(data[d + 8], data[d + 9], data[d + 10], data[d + 11]);
+        const p = v4.set(data[d + 6], data[d + 7], data[d + 8]);
+        const r = q1.set(data[d + 9], data[d + 10], data[d + 11], data[d + 12]);
 
         for (let i = 0, end = view.length; i < end; i += 9) {
             v1.set(view[i], view[i + 1], view[i + 2]);
@@ -71,9 +71,9 @@ function debugDraw(app, data, config) {
             v2.add(p);
             v3.add(p);
 
-            app.drawLine(v1, v2, color, useDepth, layer);
-            app.drawLine(v2, v3, color, useDepth, layer);
-            app.drawLine(v3, v1, color, useDepth, layer);
+            app.drawLine(v1, v2, color, depth, layer);
+            app.drawLine(v2, v3, color, depth, layer);
+            app.drawLine(v3, v1, color, depth, layer);
         }
     }
 }
