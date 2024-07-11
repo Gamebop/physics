@@ -8,11 +8,12 @@ import {
     CMD_CLAMP_LIN_VEL, CMD_MOVE_BODY, CMD_MOVE_KINEMATIC, CMD_RESET_MOTION, CMD_RESET_SLEEP_TIMER,
     CMD_SET_ALLOW_SLEEPING, CMD_SET_ANG_FACTOR, CMD_SET_ANG_VEL, CMD_SET_ANG_VEL_CLAMPED,
     CMD_SET_APPLY_GYRO_FORCE, CMD_SET_AUTO_UPDATE_ISOMETRY, CMD_SET_COL_GROUP, CMD_SET_DEBUG_DRAW,
-    CMD_SET_DOF, CMD_SET_FRICTION, CMD_SET_GRAVITY_FACTOR, CMD_SET_INTERNAL_EDGE, CMD_SET_IS_SENSOR,
-    CMD_SET_KIN_COL_NON_DYN, CMD_SET_LIN_VEL, CMD_SET_LIN_VEL_CLAMPED, CMD_SET_MAX_ANG_VEL,
-    CMD_SET_MAX_LIN_VEL, CMD_SET_MOTION_QUALITY, CMD_SET_MOTION_TYPE, CMD_SET_OBJ_LAYER,
-    CMD_SET_POS_STEPS, CMD_SET_RESTITUTION, CMD_SET_SHAPE, CMD_SET_VEL_STEPS, CMD_TOGGLE_GROUP_PAIR,
-    CMD_USE_MOTION_STATE, MOTION_QUALITY_DISCRETE, MOTION_TYPE_DYNAMIC, MOTION_TYPE_KINEMATIC
+    CMD_SET_DEBUG_DRAW_DEPTH, CMD_SET_DOF, CMD_SET_FRICTION, CMD_SET_GRAVITY_FACTOR,
+    CMD_SET_INTERNAL_EDGE, CMD_SET_IS_SENSOR, CMD_SET_KIN_COL_NON_DYN, CMD_SET_LIN_VEL,
+    CMD_SET_LIN_VEL_CLAMPED, CMD_SET_MAX_ANG_VEL, CMD_SET_MAX_LIN_VEL, CMD_SET_MOTION_QUALITY,
+    CMD_SET_MOTION_TYPE, CMD_SET_OBJ_LAYER, CMD_SET_POS_STEPS, CMD_SET_RESTITUTION, CMD_SET_SHAPE,
+    CMD_SET_VEL_STEPS, CMD_TOGGLE_GROUP_PAIR, CMD_USE_MOTION_STATE, MOTION_QUALITY_DISCRETE,
+    MOTION_TYPE_DYNAMIC, MOTION_TYPE_KINEMATIC
 } from '../../constants.mjs';
 import { Creator } from './creator.mjs';
 import { Cleaner } from './cleaner.mjs';
@@ -152,6 +153,10 @@ class Modifier {
 
             case CMD_SET_DEBUG_DRAW:
                 ok = this._setDebugDraw(cb);
+                break;
+
+            case CMD_SET_DEBUG_DRAW_DEPTH:
+                ok = this._setDebugDrawDepth(cb);
                 break;
 
             case CMD_SET_ALLOW_SLEEPING:
@@ -621,10 +626,6 @@ class Modifier {
     }
 
     _setDebugDraw(cb) {
-        if (!$_DEBUG) {
-            return true;
-        }
-
         const body = this._getBody(cb);
         const toDraw = cb.read(BUFFER_READ_BOOL);
         const debugBodies = this._backend.tracker.debug;
@@ -642,6 +643,14 @@ class Modifier {
             }
             return false;
         }
+
+        return true;
+    }
+
+    _setDebugDrawDepth(cb) {
+        const body = this._getBody(cb);
+
+        body.debugDrawDepth = cb.read(BUFFER_READ_BOOL);
 
         return true;
     }

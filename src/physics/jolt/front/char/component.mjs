@@ -714,6 +714,7 @@ class CharComponent extends ShapeComponent {
         cb.write(rot, BUFFER_WRITE_VEC32, false);
 
         if ($_DEBUG) {
+            cb.write(this._debugDrawDepth, BUFFER_WRITE_BOOL, false);
             cb.write(this._debugDraw, BUFFER_WRITE_BOOL, false);
         }
     }

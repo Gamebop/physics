@@ -489,6 +489,7 @@ class Creator {
         body.autoUpdateIsometry = cb.read(BUFFER_READ_BOOL);
 
         if ($_DEBUG) {
+            body.debugDrawDepth = cb.read(BUFFER_READ_BOOL);
             this._addDebugDraw(cb.read(BUFFER_READ_BOOL), body);
         }
 
@@ -582,6 +583,7 @@ class Creator {
         bodyInterface.AddBody(body.GetID(), Jolt.EActivation_Activate);
 
         if ($_DEBUG) {
+            body.debugDrawDepth = cb.read(BUFFER_READ_BOOL);
             this._addDebugDraw(cb.read(BUFFER_READ_BOOL), body);
         }
 
@@ -691,6 +693,7 @@ class Creator {
         const character = new Jolt.CharacterVirtual(settings, jv, jq, backend.physicsSystem);
 
         if ($_DEBUG) {
+            character.debugDrawDepth = cb.read(BUFFER_READ_BOOL);
             this._addDebugDraw(cb.read(BUFFER_READ_BOOL), character);
         }
 

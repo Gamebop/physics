@@ -3,9 +3,9 @@ import { Debug } from '../../debug.mjs';
 import { Component } from '../component.mjs';
 import {
     BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT32, BUFFER_WRITE_UINT8,
-    BUFFER_WRITE_VEC32, CMD_SET_DEBUG_DRAW, CMD_SET_SHAPE, FLOAT32_SIZE, OPERATOR_MODIFIER,
-    SHAPE_BOX, SHAPE_CAPSULE, SHAPE_CONVEX_HULL, SHAPE_CYLINDER, SHAPE_HEIGHTFIELD, SHAPE_MESH,
-    SHAPE_SPHERE, SHAPE_STATIC_COMPOUND
+    BUFFER_WRITE_VEC32, CMD_SET_DEBUG_DRAW, CMD_SET_DEBUG_DRAW_DEPTH, CMD_SET_SHAPE, FLOAT32_SIZE,
+    OPERATOR_MODIFIER, SHAPE_BOX, SHAPE_CAPSULE, SHAPE_CONVEX_HULL, SHAPE_CYLINDER,
+    SHAPE_HEIGHTFIELD, SHAPE_MESH, SHAPE_SPHERE, SHAPE_STATIC_COMPOUND
 } from '../../constants.mjs';
 
 const defaultHalfExtent = new Vec3(0.5, 0.5, 0.5);
@@ -21,6 +21,8 @@ class ShapeComponent extends Component {
     _convexRadius = 0.05;
 
     _debugDraw = false;
+
+    _debugDrawDepth = true;
 
     _density = 1000;
 
@@ -84,25 +86,25 @@ class ShapeComponent extends Component {
      * @param {boolean} bool - Boolean to enable/disable a debug draw.
      */
     set debugDraw(bool) {
+        if (!$_DEBUG) {
+            this._debugDraw = false;
+            return;
+        }
+
         if (this._debugDraw === bool) {
             return;
         }
 
-        // Debug draw is only available in a debug build.
-        if ($_DEBUG) {
-            const ok = Debug.checkBool(bool, `Invalid debug draw bool: ${bool}`);
-            if (!ok) {
-                return;
-            }
-
-            this._debugDraw = bool;
-            this.system.addCommand(
-                OPERATOR_MODIFIER, CMD_SET_DEBUG_DRAW, this._index,
-                bool, BUFFER_WRITE_BOOL, false
-            );
-        } else {
-            this._debugDraw = false;
+        const ok = Debug.checkBool(bool);
+        if (!ok) {
+            return;
         }
+
+        this._debugDraw = bool;
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_SET_DEBUG_DRAW, this._index,
+            bool, BUFFER_WRITE_BOOL, false
+        );
     }
 
     /**
@@ -113,6 +115,37 @@ class ShapeComponent extends Component {
      */
     get debugDraw() {
         return this._debugDraw;
+    }
+
+    /**
+     * If {@link debugDraw} is enabled, this will specify whether to consider scene depth or not.
+     * If set to `false`, the debug lines will be drawn on top of everything, through other meshes.
+     *
+     * @param {boolean} bool - Boolean, telling whether to consider scene depth.
+     */
+    set debugDrawDepth(bool) {
+        if (!$_DEBUG || this._debugDrawDepth === bool) {
+            return;
+        }
+
+        const ok = Debug.checkBool(bool);
+        if (!ok) {
+            return;
+        }
+
+        this._debugDrawDepth = bool;
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_SET_DEBUG_DRAW_DEPTH, this._index,
+            bool, BUFFER_WRITE_BOOL, false
+        );
+    }
+
+    /**
+     * @type {boolean}
+     * @defaultValue true
+     */
+    get debugDrawDepth() {
+        return this._debugDrawDepth;
     }
 
     /**

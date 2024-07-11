@@ -152,6 +152,7 @@ class SoftBodyComponent extends BodyComponent {
         cb.write(this._allowSleeping, BUFFER_WRITE_BOOL, false);
 
         if ($_DEBUG) {
+            cb.write(this._debugDrawDepth, BUFFER_WRITE_BOOL, false);
             cb.write(this._debugDraw, BUFFER_WRITE_BOOL, false);
         }
     }
