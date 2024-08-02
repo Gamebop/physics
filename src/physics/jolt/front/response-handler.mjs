@@ -7,6 +7,8 @@ import {
 } from '../constants.mjs';
 import { fromBuffer } from '../math.mjs';
 
+const emptyResult = [];
+
 /**
  * @import {Entity} from 'playcanvas'
  * @import {Vec3} from 'playcanvas'
@@ -156,7 +158,8 @@ class ResponseHandler {
             const charIndex = cb.read(BUFFER_READ_UINT32);
             const contactsCount = cb.read(BUFFER_READ_UINT32);
             const charEntity = map.get(charIndex);
-            const results = [];
+
+            let results = emptyResult;
 
             if (!charEntity.hasEvent('contact:char')) {
                 cb.skip(1 * contactsCount, UINT8_SIZE);
@@ -179,6 +182,9 @@ class ResponseHandler {
                 const nv = fromBuffer(cb); // new char velocity
 
                 const result = new CharContactResult(otherEntity, cp, cn, cv, nv);
+                if (results === emptyResult) {
+                    results = [];
+                }
                 results.push(result);
             }
 
@@ -191,12 +197,22 @@ class ResponseHandler {
         const firstOnly = cb.read(BUFFER_READ_BOOL);
         const hitsCount = cb.read(BUFFER_READ_UINT16);
 
-        // TODO
-        // always use array
-        let result = firstOnly ? null : [];
+        let result = emptyResult;
 
         for (let i = 0; i < hitsCount; i++) {
             const bodyIndex = cb.read(BUFFER_READ_UINT32);
+
+            const entity = ShapeComponentSystem.entityMap.get(bodyIndex);
+            if (!entity) {
+                // Entity could have been deleted by the time the raycast result arrived.
+                // We just ignore this result then.
+
+                cb.skip(4 * FLOAT32_SIZE); // point + fraction
+                if (cb.flag) {
+                    cb.skip(3 * FLOAT32_SIZE); // normal
+                }
+                continue;
+            }
 
             const point = new Vec3(
                 cb.read(BUFFER_READ_FLOAT32),
@@ -215,20 +231,12 @@ class ResponseHandler {
                 );
             }
 
-            const entity = ShapeComponentSystem.entityMap.get(bodyIndex);
-            if (!entity) {
-                // Entity could have been deleted by the time the raycast result arrived.
-                // We just ignore this result then.
-                continue;
-            }
-
             const r = new CastResult(entity, point, fraction, normal);
 
-            if (firstOnly) {
-                result = r;
-            } else {
-                result.push(r);
+            if (result === emptyResult) {
+                result = [];
             }
+            result.push(r);
         }
 
         const callback = queryMap.get(queryIndex);
@@ -240,7 +248,7 @@ class ResponseHandler {
         const queryIndex = cb.read(BUFFER_READ_UINT16);
         const hitsCount = cb.read(BUFFER_READ_UINT16);
 
-        const result = [];
+        let result = emptyResult;
 
         for (let i = 0; i < hitsCount; i++) {
             const bodyIndex = cb.read(BUFFER_READ_UINT32);
@@ -250,6 +258,9 @@ class ResponseHandler {
                 continue;
             }
 
+            if (result === emptyResult) {
+                result = [];
+            }
             result.push(entity);
         }
 
@@ -263,29 +274,16 @@ class ResponseHandler {
         const firstOnly = cb.read(BUFFER_READ_BOOL);
         const hitsCount = cb.read(BUFFER_READ_UINT16);
 
-        let result = null;
+        let result = emptyResult;
 
         if (firstOnly) {
             if (hitsCount > 0) {
                 const bodyIndex = cb.read(BUFFER_READ_UINT32);
                 const entity = ShapeComponentSystem.entityMap.get(bodyIndex);
                 if (entity) {
-                    result = new CollideShapeResult(
-                        entity,
-                        fromBuffer(cb),
-                        fromBuffer(cb),
-                        fromBuffer(cb),
-                        cb.read(BUFFER_READ_FLOAT32),
-                        cb.flag ? fromBuffer(cb) : null
-                    );
-                }
-            }
-        } else {
-            result = [];
-            for (let i = 0; i < hitsCount; i++) {
-                const bodyIndex = cb.read(BUFFER_READ_UINT32);
-                const entity = ShapeComponentSystem.entityMap.get(bodyIndex);
-                if (entity) {
+                    if (result === emptyResult) {
+                        result = [];
+                    }
                     result.push(new CollideShapeResult(
                         entity,
                         fromBuffer(cb),
@@ -294,6 +292,34 @@ class ResponseHandler {
                         cb.read(BUFFER_READ_FLOAT32),
                         cb.flag ? fromBuffer(cb) : null
                     ));
+                } else {
+                    cb.skip(10 * FLOAT32_SIZE);
+                    if (cb.flag) {
+                        cb.skip(3 * FLOAT32_SIZE);
+                    }
+                }
+            }
+        } else {
+            for (let i = 0; i < hitsCount; i++) {
+                const bodyIndex = cb.read(BUFFER_READ_UINT32);
+                const entity = ShapeComponentSystem.entityMap.get(bodyIndex);
+                if (entity) {
+                    if (result === emptyResult) {
+                        result = [];
+                    }
+                    result.push(new CollideShapeResult(
+                        entity,
+                        fromBuffer(cb),
+                        fromBuffer(cb),
+                        fromBuffer(cb),
+                        cb.read(BUFFER_READ_FLOAT32),
+                        cb.flag ? fromBuffer(cb) : null
+                    ));
+                } else {
+                    cb.skip(10 * FLOAT32_SIZE);
+                    if (cb.flag) {
+                        cb.skip(3 * FLOAT32_SIZE);
+                    }
                 }
             }
         }
