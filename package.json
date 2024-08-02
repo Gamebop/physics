@@ -35,7 +35,8 @@
                         "defaultValue",
                         "category",
                         "group",
-                        "hidden"
+                        "hidden",
+                        "import"
                     ]
                 }
             ]
@@ -67,7 +68,7 @@
         "rimraf": "^5.0.5",
         "rollup": "^4.17.1",
         "rollup-plugin-jscc": "^2.0.0",
-        "typedoc": "^0.25.8",
-        "typescript": "^5.3.3"
+        "typedoc": "^0.26.4",
+        "typescript": "^5.5.3"
     }
 }

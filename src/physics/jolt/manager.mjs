@@ -19,6 +19,8 @@ import {
     OPERATOR_CREATOR, OPERATOR_MODIFIER, OPERATOR_QUERIER
 } from './constants.mjs';
 
+/** @import { CastShapeCallback } from "./interfaces/query-results.mjs" */
+
 function getColor(type, config) {
     switch (type) {
         case MOTION_TYPE_STATIC:
@@ -386,7 +388,7 @@ class JoltManager extends PhysicsManager {
      * @param {Vec3} origin - World point where the ray originates from.
      * @param {Vec3} dir - Non-normalized ray direction. The magnitude is ray's distance.
      * @param {function} callback - Your function that will accept the raycast result.
-     * @param {import('./settings.mjs').CastRaySettings} [opts] - Settings object to customize the query.
+     * @param {import('./interfaces/settings.mjs').CastRaySettings} [opts] - Settings object to customize the query.
      */
     castRay(origin, dir, callback, opts) {
         if ($_DEBUG) {
@@ -466,8 +468,8 @@ class JoltManager extends PhysicsManager {
      * @param {Vec3} pos - World point where the cast is originated from.
      * @param {Quat} rot - Shape rotation.
      * @param {Vec3} dir - Non-normalized ray direction. The magnitude is ray's distance.
-     * @param {function} callback - Your function that will accept the shapecast result.
-     * @param {import('./settings.mjs').CastShapeSettings} [opts] - Settings object to customize the query.
+     * @param {CastShapeCallback} callback - Your function that will accept the shapecast result.
+     * @param {CastShapeSettings} [opts] - Settings object to customize the query.
      */
     castShape(shapeIndex, pos, rot, dir, callback, opts) {
         if ($_DEBUG) {
@@ -530,7 +532,7 @@ class JoltManager extends PhysicsManager {
      *
      * @param {Vec3} point - World position to test.
      * @param {function} callback - Function to take the query results.
-     * @param {import('./settings.mjs').QuerySettings} opts - Query customization settings.
+     * @param {import('./interfaces/settings.mjs').QuerySettings} opts - Query customization settings.
      */
     collidePoint(point, callback, opts) {
         if ($_DEBUG) {
@@ -587,7 +589,7 @@ class JoltManager extends PhysicsManager {
      * @param {Vec3} position - World position of the shape.
      * @param {Vec3} rotation - World rotation of the shape.
      * @param {function} callback - Callback function that will take the query results.
-     * @param {import('./settings.mjs').CollideShapeSettings} opts - Query customization settings.
+     * @param {import('./interfaces/settings.mjs').CollideShapeSettings} opts - Query customization settings.
      */
     collideShape(shapeIndex, position, rotation, callback, opts) {
         if ($_DEBUG) {
