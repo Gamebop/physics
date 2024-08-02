@@ -9,4 +9,4 @@
  */
 function CastShapeCallback(results) {}
 
-export { CastShapeCallback, CastResult };
+export { CastShapeCallback };

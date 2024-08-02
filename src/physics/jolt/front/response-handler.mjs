@@ -40,7 +40,7 @@ class CharContactResult {
  * @interface
  * @param {Entity} entity - Entity that query has detected.
  * @param {Vec3} point - A point in world space where the contact was detected.
- * @param {number} fraction - A fraction 
+ * @param {number} fraction - A normalized fraction of the ray length.
  */
 class CastResult {
     constructor(entity, point, fraction, normal) {
@@ -194,7 +194,6 @@ class ResponseHandler {
 
     static handleCastQuery(cb, queryMap) {
         const queryIndex = cb.read(BUFFER_READ_UINT16);
-        const firstOnly = cb.read(BUFFER_READ_BOOL);
         const hitsCount = cb.read(BUFFER_READ_UINT16);
 
         let result = emptyResult;

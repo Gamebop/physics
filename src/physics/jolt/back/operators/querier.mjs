@@ -211,8 +211,6 @@ class Querier {
                 bodyFilter = backend.bodyFilter;
             }
 
-            buffer.write(firstOnly, BUFFER_WRITE_BOOL, false);
-
             castSettings.mBackFaceMode = ignoreBackFaces ? Jolt.EBackFaceMode_IgnoreBackFaces : Jolt.EBackFaceMode_CollideWithBackFaces;
             castSettings.mTreatConvexAsSolid = solidConvex;
 
@@ -310,8 +308,6 @@ class Querier {
             const ignoreSensors = cb.flag ? cb.read(BUFFER_READ_BOOL) : false;
             const collector = firstOnly ? this._collectorShapeFirst : this._collectorShapeAll;
             const shapeIndex = cb.read(BUFFER_READ_UINT32);
-
-            buffer.write(firstOnly, BUFFER_WRITE_BOOL, false);
 
             params.length = 0;
 
