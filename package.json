@@ -2,7 +2,7 @@
     "name": "@gamebop/physics",
     "description": "Physics components for PlayCanvas engine",
     "version": "0.2.1",
-    "main": "dist/index.dbg.mjs",
+    "main": "dist/physics.min.mjs",
     "author": "Gamebop",
     "license": "MIT",
     "type": "module",
