@@ -12,6 +12,7 @@ import { Quat, Vec3, Color, LAYERID_IMMEDIATE, KEY_Q, EVENT_KEYDOWN } from 'play
 import {
     BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT16, BUFFER_WRITE_UINT32,
     BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32, CMD_CAST_RAY, CMD_CAST_SHAPE, CMD_CHANGE_GRAVITY,
+    CMD_CHAR_CAN_WALK_STAIRS,
     CMD_COLLIDE_POINT, CMD_COLLIDE_SHAPE_IDX, CMD_CREATE_GROUPS, CMD_CREATE_SHAPE,
     CMD_DESTROY_SHAPE, CMD_TOGGLE_GROUP_PAIR, COMPONENT_SYSTEM_BODY, COMPONENT_SYSTEM_CHAR,
     COMPONENT_SYSTEM_CONSTRAINT, COMPONENT_SYSTEM_MANAGER, COMPONENT_SYSTEM_SOFT_BODY,
@@ -131,6 +132,8 @@ class JoltManager extends PhysicsManager {
         systems.set(COMPONENT_SYSTEM_CONSTRAINT, constraintCS);
         systems.set(COMPONENT_SYSTEM_MANAGER, this);
 
+        // TODO
+        // clear caches on destroy
         this._queryMap = new IndexedCache();
         this._shapeMap = new IndexedCache();
         this._gravity = new Vec3(0, -9.81, 0);
@@ -429,7 +432,7 @@ class JoltManager extends PhysicsManager {
 
         cb.writeOperator(OPERATOR_QUERIER);
         cb.writeCommand(CMD_CAST_RAY);
-        cb.write(callbackIndex, BUFFER_WRITE_UINT32, false);
+        cb.write(callbackIndex, BUFFER_WRITE_UINT16, false);
         cb.write(origin, BUFFER_WRITE_VEC32, false);
         cb.write(dir, BUFFER_WRITE_VEC32, false);
         cb.write(opts?.firstOnly, BUFFER_WRITE_BOOL);
@@ -490,7 +493,7 @@ class JoltManager extends PhysicsManager {
 
         cb.writeOperator(OPERATOR_QUERIER);
         cb.writeCommand(CMD_CAST_SHAPE);
-        cb.write(queryIndex, BUFFER_WRITE_UINT32, false);
+        cb.write(queryIndex, BUFFER_WRITE_UINT16, false);
         cb.write(pos, BUFFER_WRITE_VEC32, false);
         cb.write(rot, BUFFER_WRITE_VEC32, false);
         cb.write(dir, BUFFER_WRITE_VEC32, false);
@@ -553,7 +556,7 @@ class JoltManager extends PhysicsManager {
 
         cb.writeOperator(OPERATOR_QUERIER);
         cb.writeCommand(CMD_COLLIDE_POINT);
-        cb.write(queryIndex, BUFFER_WRITE_UINT32, false);
+        cb.write(queryIndex, BUFFER_WRITE_UINT16, false);
         cb.write(opts?.ignoreSensors, BUFFER_WRITE_BOOL);
         cb.write(opts?.bpFilterLayer, BUFFER_WRITE_UINT32);
         cb.write(opts?.objFilterLayer, BUFFER_WRITE_UINT32);
@@ -624,7 +627,7 @@ class JoltManager extends PhysicsManager {
 
         cb.writeOperator(OPERATOR_QUERIER);
         cb.writeCommand(CMD_COLLIDE_SHAPE_IDX);
-        cb.write(queryIndex, BUFFER_WRITE_UINT32, false);
+        cb.write(queryIndex, BUFFER_WRITE_UINT16, false);
         cb.write(opts?.firstOnly, BUFFER_WRITE_BOOL);
         cb.write(opts?.ignoreSensors, BUFFER_WRITE_BOOL);
         cb.write(shapeIndex, BUFFER_WRITE_UINT32, false);

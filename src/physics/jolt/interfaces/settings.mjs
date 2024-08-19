@@ -3,15 +3,7 @@
  * @group Managers
  * @category Utilities
  */
-class QuerySettings {
-    /**
-     * If `true`, the ray will ignore sensors.
-     *
-     * @type {boolean}
-     * @defaultValue false
-     */
-    ignoreSensors;
-
+class FilterSettings {
     /**
      * Broadphase layer number for filtering.
      *
@@ -27,6 +19,21 @@ class QuerySettings {
      * @defaultValue OBJ_LAYER_MOVING (1)
      */
     objFilterLayer;
+}
+
+/**
+ * @interface
+ * @group Managers
+ * @category Utilities
+ */
+class QuerySettings extends FilterSettings {
+    /**
+     * If `true`, the ray will ignore sensors.
+     *
+     * @type {boolean}
+     * @defaultValue false
+     */
+    ignoreSensors;
 }
 
 /**
@@ -257,5 +264,5 @@ class ShapeSettings {
 
 export {
     QuerySettings, CastSettings, CastRaySettings, CastShapeSettings, CollideShapeSettings,
-    ShapeSettings
+    ShapeSettings, FilterSettings
 };

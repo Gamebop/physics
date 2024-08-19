@@ -4,7 +4,7 @@ import { CharComponent } from './component.mjs';
 import { ResponseHandler } from '../response-handler.mjs';
 import { ShapeComponentSystem } from '../shape/system.mjs';
 import {
-    BUFFER_READ_UINT32, CMD_CREATE_CHAR, CMD_REPORT_CONTACTS, CMD_REPORT_SET_SHAPE,
+    BUFFER_READ_UINT32, CMD_CHAR_CAN_WALK_STAIRS, CMD_CHAR_WALK_STAIRS, CMD_CREATE_CHAR, CMD_REPORT_CONTACTS, CMD_REPORT_SET_SHAPE,
     CMD_REPORT_TRANSFORMS, OPERATOR_CREATOR
 } from '../../constants.mjs';
 
@@ -46,7 +46,6 @@ class CharComponentSystem extends ShapeComponentSystem {
         super(app, manager);
 
         this._schema = [...this._schema, ...schema];
-        this._queryMap = new IndexedCache();
 
         this._exposeConstants();
     }
@@ -76,7 +75,9 @@ class CharComponentSystem extends ShapeComponentSystem {
                 break;
 
             case CMD_REPORT_SET_SHAPE:
-                ResponseHandler.handleCharSetShape(cb, this._manager.queryMap);
+            case CMD_CHAR_CAN_WALK_STAIRS:
+            case CMD_CHAR_WALK_STAIRS:
+                ResponseHandler.handleCharCallback(cb, this._manager.queryMap);
                 break;
         }
     }

@@ -328,17 +328,13 @@ class ResponseHandler {
         callback?.(result);
     }
 
-    static handleCharSetShape(cb, queryMap) {
-        const cbIndex = cb.read(BUFFER_READ_UINT32);
+    static handleCharCallback(cb, queryMap) {
+        const cbIndex = cb.read(BUFFER_READ_UINT16);
         const callback = queryMap.get(cbIndex);
-
-        if ($_DEBUG && !callback) {
-            Debug.warn(`Unable to locate callback with index: ${cbIndex}`);
-            return;
-        }
+        const bool = cb.read(BUFFER_READ_BOOL);
 
         queryMap.free(cbIndex);
-        callback();
+        callback?.(bool);
     }
 }
 

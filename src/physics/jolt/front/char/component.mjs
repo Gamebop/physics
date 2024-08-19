@@ -9,8 +9,17 @@ import {
     CMD_DESTROY_BODY, CMD_CHAR_PAIR_BODY, CMD_USE_MOTION_STATE, GROUND_STATE_NOT_SUPPORTED,
     OPERATOR_CLEANER, OPERATOR_MODIFIER, SHAPE_CAPSULE, CMD_CHAR_SET_REC_SPD,
     CMD_CHAR_SET_NUM_HITS, CMD_CHAR_SET_HIT_RED_ANGLE, CMD_CHAR_SET_SHAPE_OFFSET,
-    CMD_CHAR_SET_USER_DATA, CMD_CHAR_SET_UP
+    CMD_CHAR_SET_USER_DATA, CMD_CHAR_SET_UP,
+    OPERATOR_QUERIER,
+    CMD_CHAR_CAN_WALK_STAIRS,
+    BUFFER_WRITE_UINT16,
+    CMD_CHAR_WALK_STAIRS
 } from '../../constants.mjs';
+
+/**
+ * @import {CanWalkStairsCallback, CharSetShapeCallback} from "../../interfaces/query-results.mjs"
+ * @import {FilterSettings} from "../../interfaces/settings.mjs"
+ */
 
 /**
  * Char Component. Describes the properties of a Jolt Virtual Character.
@@ -175,7 +184,7 @@ class CharComponent extends ShapeComponent {
         }
 
         if ($_DEBUG) {
-            const ok = Debug.checkFloat(angle, `Invalid angle scalar: ${angle}`);
+            const ok = Debug.checkFloat(angle);
             if (!ok) {
                 return;
             }
@@ -230,7 +239,7 @@ class CharComponent extends ShapeComponent {
         }
 
         if ($_DEBUG) {
-            Debug.checkVec(vel, `Invalid character linear velocity`, vel);
+            Debug.checkVec(vel);
         }
 
         // backend response will write to this._linearVelocity
@@ -261,7 +270,7 @@ class CharComponent extends ShapeComponent {
         }
 
         if ($_DEBUG) {
-            const ok = Debug.checkFloat(mass, `Invalid mass: ${mass}`);
+            const ok = Debug.checkFloat(mass);
             if (!ok) {
                 return;
             }
@@ -316,7 +325,7 @@ class CharComponent extends ShapeComponent {
         }
 
         if ($_DEBUG) {
-            const ok = Debug.checkFloat(hits, `Invalid hits scalar: ${hits}`);
+            const ok = Debug.checkFloat(hits);
             if (!ok) {
                 return;
             }
@@ -358,7 +367,7 @@ class CharComponent extends ShapeComponent {
         }
 
         if ($_DEBUG) {
-            const ok = Debug.checkFloat(strength, `Invalid strength scalar: ${strength}`);
+            const ok = Debug.checkFloat(strength);
             if (!ok) {
                 return;
             }
@@ -398,7 +407,7 @@ class CharComponent extends ShapeComponent {
      */
     set pairedEntity(entity) {
         if ($_DEBUG) {
-            const ok = Debug.assert(!!entity.body, `Invalid entity to pair. Needs to have a "body" component.`, entity);
+            const ok = Debug.assert(!!entity.body);
             if (!ok)
                 return;
         }
@@ -432,7 +441,7 @@ class CharComponent extends ShapeComponent {
         }
 
         if ($_DEBUG) {
-            const ok = Debug.checkFloat(factor, `Invalid speed factor: ${factor}`);
+            const ok = Debug.checkFloat(factor);
             if (!ok) {
                 return;
             }
@@ -488,7 +497,7 @@ class CharComponent extends ShapeComponent {
         }
 
         if ($_DEBUG) {
-            const ok = Debug.checkVec(offset, `Invalid offset vector: ${offset}`);
+            const ok = Debug.checkVec(offset);
             if (!ok) {
                 return;
             }
@@ -539,7 +548,7 @@ class CharComponent extends ShapeComponent {
         }
 
         if ($_DEBUG) {
-            const ok = Debug.checkVec(vec, `Invalid up vector`, vec);
+            const ok = Debug.checkVec(vec);
             if (!ok) {
                 return;
             }
@@ -578,7 +587,7 @@ class CharComponent extends ShapeComponent {
      */
     set userData(num) {
         if ($_DEBUG) {
-            const ok = Debug.checkFloat(num, `Invalid user data value. Should be a number: ${num}`);
+            const ok = Debug.checkFloat(num);
             if (!ok) {
                 return;
             }
@@ -613,7 +622,7 @@ class CharComponent extends ShapeComponent {
         }
 
         if ($_DEBUG) {
-            const ok = Debug.checkBool(bool, `Invalid bool value for useMotionState property: ${bool}`);
+            const ok = Debug.checkBool(bool);
             if (!ok)
                 return;
         }
@@ -637,6 +646,32 @@ class CharComponent extends ShapeComponent {
     }
 
     /**
+     * This function will return true if the character has moved into a slope that is too steep
+     * (e.g. a vertical wall). You would call WalkStairs to attempt to step up stairs.
+     * 
+     * @param {Vec3} linVel - The linear velocity that the player desired. This is used to
+     * determine if we're pushing into a step.
+     * @param {CanWalkStairsCallback} callback - A callback function that will return `true` or
+     * `false`, if a char can walk up the stairs.
+     */
+    canWalkStairs(linVel, callback) {
+        if ($_DEBUG) {
+            let ok = Debug.checkVec(linVel);
+            ok = ok && Debug.checkFunc(callback);
+            if (!ok) {
+                return;
+            }
+        }
+
+        this.system.addCommand(
+            OPERATOR_QUERIER, CMD_CHAR_CAN_WALK_STAIRS, this._index,
+            linVel, BUFFER_WRITE_VEC32, false
+        );
+
+        this._writeCallback(callback);
+    }
+
+    /**
      * Instant position and rotation change.
      *
      * @param {Vec3} pos - Character position.
@@ -644,8 +679,8 @@ class CharComponent extends ShapeComponent {
      */
     teleport(pos, rot = Quat.IDENTITY) {
         if ($_DEBUG) {
-            let ok = Debug.checkVec(pos, `Invalid position vector`, pos);
-            ok = ok && Debug.checkQuat(rot, `Invalid rotation quaternion`, rot);
+            let ok = Debug.checkVec(pos);
+            ok = ok && Debug.checkQuat(rot);
             if (!ok) {
                 return;
             }
@@ -665,18 +700,30 @@ class CharComponent extends ShapeComponent {
         }
     }
 
-    setShape(shapeIndex = null, callback = null) {
-        const system = this.system;
+    /**
+     * Allows to change the shape of the character collider.
+     * 
+     * @param {number} shapeIndex - The shape index to switch to. It can be created by
+     * {@link JoltManager.createShape | createShape}. Use negative number to reset to original
+     * shape.
+     * @param {CharSetShapeCallback} callback - Callback function that will accept a boolean,
+     * telling if the shape change was successful.
+     */
+    setShape(shapeIndex, callback) {
+        if ($_DEBUG) {
+            let ok = Debug.checkInt(shapeIndex);
+            ok = ok && Debug.checkFunc(callback);
+            if (!ok) {
+                return;
+            }
+        }
 
-        system.addCommand(
+        this.system.addCommand(
             OPERATOR_MODIFIER, CMD_CHAR_SET_SHAPE, this._index,
-            !!callback, BUFFER_WRITE_BOOL, false,
-            shapeIndex, BUFFER_WRITE_UINT32, true
+            shapeIndex < 0 ? null : shapeIndex, BUFFER_WRITE_UINT32
         );
 
-        if (callback) {
-            this._writeCallback(callback);
-        }
+        this._writeCallback(callback);
     }
 
     writeComponentData(cb) {
@@ -790,11 +837,59 @@ class CharComponent extends ShapeComponent {
         system.addCommand(OPERATOR_CLEANER, CMD_DESTROY_BODY, componentIndex);
     }
 
+    /**
+     * When stair walking is needed, you can call the WalkStairs function to cast up, forward and
+     * down again to try to find a valid position.
+     * 
+     * @param {number} dt - Time step to simulate.
+     * @param {Vec3} stepUp - The direction and distance to step up (this corresponds to the max
+     * step height).
+     * @param {Vec3} stepForward - The direction and distance to step forward after the step up.
+     * @param {Vec3} stepForwardTest - When running at a high frequency, inStepForward can be very
+     * small and it's likely that you hit the side of the stairs on the way down. This could
+     * produce a normal that violates the max slope angle. If this happens, we test again using
+     * this distance from the up position to see if we find a valid slope.
+     * @param {Vec3} stepDownExtra - An additional translation that is added when stepping down at
+     * the end. Allows you to step further down than up. Set to zero if you don't want this. Should
+     * be in the opposite direction of up.
+     * @param {CanWalkStairsCallback} callback - Callback function that accepts a boolean, telling
+     * if the walk was successful.
+     * @param {FilterSettings} opts - Filtering settings, affecting which bodies character can
+     * collide with.
+     */
+    walkStairs(dt, stepUp, stepForward, stepForwardTest, stepDownExtra, callback, opts) {
+        if ($_DEBUG) {
+            let ok = Debug.checkFloat(dt);
+            ok = ok && Debug.checkVec(stepUp);
+            ok = ok && Debug.checkVec(stepForward);
+            ok = ok && Debug.checkVec(stepForwardTest);
+            ok = ok && Debug.checkVec(stepDownExtra);
+            if (ok && opts?.bpFilterLayer != null) {
+                ok = Debug.checkUint(opts.bpFilterLayer);
+            }
+            if (ok && opts?.objFilterLayer != null) {
+                ok = Debug.checkUint(opts.objFilterLayer);
+            }
+        }
+
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_CHAR_WALK_STAIRS, this._index,
+            stepUp, BUFFER_WRITE_VEC32, false,
+            stepForward, BUFFER_WRITE_VEC32, false,
+            stepForwardTest, BUFFER_WRITE_VEC32, false,
+            stepDownExtra, BUFFER_WRITE_VEC32, false,
+            opts?.bpFilterLayer, BUFFER_WRITE_UINT32,
+            opts?.objFilterLayer, BUFFER_WRITE_UINT32
+        );
+
+        this._writeCallback(callback);
+    }
+
     _writeCallback(callback) {
         if (callback) {
             const system = this.system;
             const callbackIndex = system.getCallbackIndex(callback);
-            system.addCommandArgs(callbackIndex, BUFFER_WRITE_UINT32, false);
+            system.addCommandArgs(callbackIndex, BUFFER_WRITE_UINT16, false);
         }
     }
 }

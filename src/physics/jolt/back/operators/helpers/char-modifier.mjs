@@ -4,7 +4,11 @@ import {
     CMD_CHAR_SET_HIT_RED_ANGLE, CMD_CHAR_PAIR_BODY, CMD_CHAR_SET_LIN_VEL, CMD_CHAR_SET_MASS,
     CMD_CHAR_SET_MAX_STR, CMD_CHAR_SET_NUM_HITS, CMD_CHAR_SET_POS_ROT, CMD_CHAR_SET_REC_SPD,
     CMD_CHAR_SET_SHAPE, CMD_REPORT_SET_SHAPE, COMPONENT_SYSTEM_CHAR, CMD_CHAR_SET_SHAPE_OFFSET,
-    CMD_CHAR_SET_USER_DATA, CMD_CHAR_SET_UP
+    CMD_CHAR_SET_USER_DATA, CMD_CHAR_SET_UP,
+    BUFFER_WRITE_BOOL,
+    BUFFER_READ_UINT16,
+    CMD_CHAR_WALK_STAIRS,
+    BUFFER_WRITE_UINT16
 } from '../../../constants.mjs';
 
 class CharModifier {
@@ -54,6 +58,9 @@ class CharModifier {
 
             case CMD_CHAR_SET_UP:
                 return this._setUp(cb);
+            
+            case CMD_CHAR_WALK_STAIRS:
+                return this._walkStairs(cb);
         }
 
         if ($_DEBUG) {
@@ -157,7 +164,6 @@ class CharModifier {
         const backend = this._modifier.backend;
         const tracker = this._tracker;
         const pcid = cb.read(BUFFER_READ_UINT32);
-        const useCallback = cb.read(BUFFER_READ_BOOL);
         const shapeIndex = cb.flag ? cb.read(BUFFER_READ_UINT32) : null;
 
         const char = tracker.getBodyByPCID(pcid);
@@ -181,10 +187,7 @@ class CharModifier {
             shape = char.originalShape;
         }
 
-        let cbIndex;
-        if (useCallback) {
-            cbIndex = cb.read(BUFFER_READ_UINT32);
-        }
+        const cbIndex = cb.read(BUFFER_READ_UINT16);
 
         try {
             const ok = char.SetShape(shape,
@@ -195,13 +198,11 @@ class CharModifier {
                                      backend.shapeFilter,
                                      backend.joltInterface.GetTempAllocator());
 
-            if (ok && useCallback) {
-                const cb = backend.outBuffer;
-
-                cb.writeOperator(COMPONENT_SYSTEM_CHAR);
-                cb.writeCommand(CMD_REPORT_SET_SHAPE);
-                cb.write(cbIndex, BUFFER_WRITE_UINT32, false);
-            }
+            const outBuffer = backend.outBuffer;
+            outBuffer.writeOperator(COMPONENT_SYSTEM_CHAR);
+            outBuffer.writeCommand(CMD_REPORT_SET_SHAPE);
+            outBuffer.write(cbIndex, BUFFER_WRITE_UINT16, false);
+            outBuffer.write(ok, BUFFER_WRITE_BOOL, false);
         } catch (e) {
             if ($_DEBUG) {
                 Debug.error(e);
@@ -311,6 +312,59 @@ class CharModifier {
         try {
             jv.FromBuffer(cb);
             char.SetUp(jv);
+        } catch (e) {
+            if ($_DEBUG) {
+                Debug.error(e);
+            }
+            return false;
+        }
+
+        return true;
+    }
+
+    _walkStairs(cb) {
+        const char = this._tracker.getBodyByPCID(cb.read(BUFFER_READ_UINT32));
+        const modifier = this._modifier;
+        const backend = modifier.backend;
+        const Jolt = backend.Jolt;
+        const joltInterface = backend.joltInterface;
+        const jv1 = modifier.joltVec3_1;
+        const jv2 = modifier.joltVec3_2;
+        const jv3 = modifier.joltVec3_3;
+        const jv4 = modifier.joltVec3_4;
+
+        const inDeltaTime = cb.read(BUFFER_READ_FLOAT32);
+        const inStepUp = jv1.FromBuffer(cb);
+        const inStepForward = jv2.FromBuffer(cb);
+        const inStepForwardTest = jv3.FromBuffer(cb);
+        const inStepDownExtra = jv4.FromBuffer(cb);
+        
+        const customBPFilter = cb.flag;
+        const bpFilter = customBPFilter ? new Jolt.DefaultBroadPhaseLayerFilter(joltInterface.GetObjectVsBroadPhaseLayerFilter(), cb.read(BUFFER_READ_UINT32)) : backend.bpFilter;
+        
+        const customObjFilter = cb.flag;
+        const objFilter = customObjFilter ? new Jolt.DefaultObjectLayerFilter(joltInterface.GetObjectLayerPairFilter(), cb.read(BUFFER_READ_UINT32)) : backend.objFilter;
+        
+        const cbIndex = cb.read(BUFFER_READ_UINT16);
+        const allocator = joltInterface.GetTempAllocator();
+
+        try {
+            const success = char.WalkStairs(inDeltaTime,
+                                            inStepUp,
+                                            inStepForward,
+                                            inStepForwardTest,
+                                            inStepDownExtra,
+                                            bpFilter,
+                                            objFilter,
+                                            backend.bodyFilter,
+                                            backend.shapeFilter,
+                                            allocator);
+
+            const outBuffer = backend.outBuffer;
+            outBuffer.writeOperator(COMPONENT_SYSTEM_CHAR);
+            outBuffer.writeCommand(CMD_CHAR_WALK_STAIRS);
+            outBuffer.write(cbIndex, BUFFER_WRITE_UINT16, false);
+            outBuffer.write(success, BUFFER_WRITE_BOOL, false);
         } catch (e) {
             if ($_DEBUG) {
                 Debug.error(e);

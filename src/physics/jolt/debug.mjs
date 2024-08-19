@@ -78,6 +78,10 @@ class Debug {
         return ok;
     }
 
+    static checkFunc(func) {
+        return Debug.assert(typeof func === 'function', 'Invalid function.', func);
+    }
+
     static checkBool(bool) {
         return Debug.assert((bool === true || bool === false), 'Invalid boolean.', bool);
     }
