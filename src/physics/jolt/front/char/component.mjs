@@ -9,17 +9,19 @@ import {
     CMD_DESTROY_BODY, CMD_CHAR_PAIR_BODY, CMD_USE_MOTION_STATE, GROUND_STATE_NOT_SUPPORTED,
     OPERATOR_CLEANER, OPERATOR_MODIFIER, SHAPE_CAPSULE, CMD_CHAR_SET_REC_SPD,
     CMD_CHAR_SET_NUM_HITS, CMD_CHAR_SET_HIT_RED_ANGLE, CMD_CHAR_SET_SHAPE_OFFSET,
-    CMD_CHAR_SET_USER_DATA, CMD_CHAR_SET_UP,
-    OPERATOR_QUERIER,
-    CMD_CHAR_CAN_WALK_STAIRS,
-    BUFFER_WRITE_UINT16,
-    CMD_CHAR_WALK_STAIRS
+    CMD_CHAR_SET_USER_DATA, CMD_CHAR_SET_UP, BUFFER_WRITE_UINT16
 } from '../../constants.mjs';
 
 /**
- * @import {CanWalkStairsCallback, CharSetShapeCallback} from "../../interfaces/query-results.mjs"
- * @import {FilterSettings} from "../../interfaces/settings.mjs"
+ * @import {CharSetShapeCallback} from "../../interfaces/query-results.mjs"
  */
+
+// [Value] attribute Vec3 mStickToFloorStepDown;
+// [Value] attribute Vec3 mWalkStairsStepUp;
+// attribute float mWalkStairsMinStepForward;
+// attribute float mWalkStairsStepForwardTest;
+// attribute float mWalkStairsCosAngleForwardContact;
+// [Value] attribute Vec3 mWalkStairsStepDownExtra;
 
 /**
  * Char Component. Describes the properties of a Jolt Virtual Character.
@@ -27,48 +29,14 @@ import {
  * @group Components
  * @category Char Component
  */
-class CharComponent extends ShapeComponent {
-    _shape = SHAPE_CAPSULE;
-
-    _up = Vec3.UP;
-
-    _useMotionState = true;
-
-    _linearVelocity = new Vec3();
-
-    _supportingVolume = new Plane(Vec3.UP, -1);
-
-    _maxSlopeAngle = 45 * math.DEG_TO_RAD;
-
-    _mass = 70;
-
-    _maxStrength = 100;
-
-    _shapeOffset = Vec3.ZERO;
-
+class CharComponent extends ShapeComponent {    
     _backFaceMode = BFM_COLLIDE_BACK_FACES;
-
-    _predictiveContactDistance = 0.1;
-
-    _maxCollisionIterations = 5;
-
-    _maxConstraintIterations = 15;
-
-    _minTimeRemaining = 1.0e-4;
-
-    _collisionTolerance = 1.0e-3;
 
     _characterPadding = 0.02;
 
-    _maxNumHits = 256;
+    _collisionTolerance = 1.0e-3;
 
     _hitReductionCosMaxAngle = 0.999;
-
-    _penetrationRecoverySpeed = 1;
-
-    _isSupported = false;
-
-    _isSlopeTooSteep = false;
 
     _groundEntity = null;
 
@@ -76,12 +44,58 @@ class CharComponent extends ShapeComponent {
 
     _groundVelocity = new Vec3();
 
-    _state = GROUND_STATE_NOT_SUPPORTED;
+    _isSlopeTooSteep = false;
 
-    _userData = null;
+    _isSupported = false;
+
+    _linearVelocity = new Vec3();
+
+    _mass = 70;
+
+    _maxCollisionIterations = 5;
+
+    _maxConstraintIterations = 15;
+
+    _maxNumHits = 256;
+
+    _maxSlopeAngle = 45 * math.DEG_TO_RAD;
+
+    _maxStrength = 100;
+
+    _minTimeRemaining = 1.0e-4;
 
     _pairedEntity = null;
 
+    _penetrationRecoverySpeed = 1;
+
+    _predictiveContactDistance = 0.1;
+
+    _shape = SHAPE_CAPSULE;
+
+    _shapeOffset = Vec3.ZERO;
+
+    _state = GROUND_STATE_NOT_SUPPORTED;
+
+    _stickToFloorStepDown = new Vec3(0, -0.5, 0);
+
+    _supportingVolume = new Plane(Vec3.UP, -1);
+
+    _up = Vec3.UP;
+
+    _useMotionState = true;
+
+    _userData = null;
+
+    _walkStairsCosAngleForwardContact = 0.25881904510252074;
+
+    _walkStairsMinStepForward = 0.02;
+
+    _walkStairsStepForwardTest = 0.15;
+
+    _walkStairsStepDownExtra = Vec3.ZERO;
+
+    _walkStairsStepUp = new Vec3(0, 0.4, 0);
+    
     /**
      * When colliding with back faces, the character will not be able to move through back facing
      * triangles. Use this if you have triangles that need to collide on both sides. Following
@@ -151,28 +165,6 @@ class CharComponent extends ShapeComponent {
      */
     get groundVelocity() {
         return this._groundVelocity;
-    }
-
-    /**
-     * Ground state. Following constants available:
-     * ```
-     * GROUND_STATE_ON_GROUND
-     * ```
-     * ```
-     * GROUND_STATE_ON_STEEP_GROUND
-     * ```
-     * ```
-     * GROUND_STATE_NOT_SUPPORTED
-     * ```
-     * ```
-     * GROUND_STATE_IN_AIR
-     * ```
-     *
-     * @returns {number} Number, representing the ground state.
-     * @defaultValue GROUND_STATE_NOT_SUPPORTED
-     */
-    get state() {
-        return this._state;
     }
 
     /**
@@ -527,6 +519,28 @@ class CharComponent extends ShapeComponent {
     }
 
     /**
+     * Ground state. Following constants available:
+     * ```
+     * GROUND_STATE_ON_GROUND
+     * ```
+     * ```
+     * GROUND_STATE_ON_STEEP_GROUND
+     * ```
+     * ```
+     * GROUND_STATE_NOT_SUPPORTED
+     * ```
+     * ```
+     * GROUND_STATE_IN_AIR
+     * ```
+     *
+     * @returns {number} Number, representing the ground state.
+     * @defaultValue GROUND_STATE_NOT_SUPPORTED
+     */
+    get state() {
+        return this._state;
+    }
+
+    /**
      * A plane, defined in local space relative to the character. Every contact behind this plane
      * can support the character, every contact in front of this plane is treated as only colliding
      * with the player.
@@ -643,32 +657,6 @@ class CharComponent extends ShapeComponent {
      */
     get useMotionState() {
         return this._useMotionState;
-    }
-
-    /**
-     * This function will return true if the character has moved into a slope that is too steep
-     * (e.g. a vertical wall). You would call WalkStairs to attempt to step up stairs.
-     * 
-     * @param {Vec3} linVel - The linear velocity that the player desired. This is used to
-     * determine if we're pushing into a step.
-     * @param {CanWalkStairsCallback} callback - A callback function that will return `true` or
-     * `false`, if a char can walk up the stairs.
-     */
-    canWalkStairs(linVel, callback) {
-        if ($_DEBUG) {
-            let ok = Debug.checkVec(linVel);
-            ok = ok && Debug.checkFunc(callback);
-            if (!ok) {
-                return;
-            }
-        }
-
-        this.system.addCommand(
-            OPERATOR_QUERIER, CMD_CHAR_CAN_WALK_STAIRS, this._index,
-            linVel, BUFFER_WRITE_VEC32, false
-        );
-
-        this._writeCallback(callback);
     }
 
     /**
@@ -835,54 +823,6 @@ class CharComponent extends ShapeComponent {
         system.setIndexFree(componentIndex);
 
         system.addCommand(OPERATOR_CLEANER, CMD_DESTROY_BODY, componentIndex);
-    }
-
-    /**
-     * When stair walking is needed, you can call the WalkStairs function to cast up, forward and
-     * down again to try to find a valid position.
-     * 
-     * @param {number} dt - Time step to simulate.
-     * @param {Vec3} stepUp - The direction and distance to step up (this corresponds to the max
-     * step height).
-     * @param {Vec3} stepForward - The direction and distance to step forward after the step up.
-     * @param {Vec3} stepForwardTest - When running at a high frequency, inStepForward can be very
-     * small and it's likely that you hit the side of the stairs on the way down. This could
-     * produce a normal that violates the max slope angle. If this happens, we test again using
-     * this distance from the up position to see if we find a valid slope.
-     * @param {Vec3} stepDownExtra - An additional translation that is added when stepping down at
-     * the end. Allows you to step further down than up. Set to zero if you don't want this. Should
-     * be in the opposite direction of up.
-     * @param {CanWalkStairsCallback} callback - Callback function that accepts a boolean, telling
-     * if the walk was successful.
-     * @param {FilterSettings} opts - Filtering settings, affecting which bodies character can
-     * collide with.
-     */
-    walkStairs(dt, stepUp, stepForward, stepForwardTest, stepDownExtra, callback, opts) {
-        if ($_DEBUG) {
-            let ok = Debug.checkFloat(dt);
-            ok = ok && Debug.checkVec(stepUp);
-            ok = ok && Debug.checkVec(stepForward);
-            ok = ok && Debug.checkVec(stepForwardTest);
-            ok = ok && Debug.checkVec(stepDownExtra);
-            if (ok && opts?.bpFilterLayer != null) {
-                ok = Debug.checkUint(opts.bpFilterLayer);
-            }
-            if (ok && opts?.objFilterLayer != null) {
-                ok = Debug.checkUint(opts.objFilterLayer);
-            }
-        }
-
-        this.system.addCommand(
-            OPERATOR_MODIFIER, CMD_CHAR_WALK_STAIRS, this._index,
-            stepUp, BUFFER_WRITE_VEC32, false,
-            stepForward, BUFFER_WRITE_VEC32, false,
-            stepForwardTest, BUFFER_WRITE_VEC32, false,
-            stepDownExtra, BUFFER_WRITE_VEC32, false,
-            opts?.bpFilterLayer, BUFFER_WRITE_UINT32,
-            opts?.objFilterLayer, BUFFER_WRITE_UINT32
-        );
-
-        this._writeCallback(callback);
     }
 
     _writeCallback(callback) {

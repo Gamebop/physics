@@ -112,10 +112,6 @@ class Querier {
                 ok = this._collideShapeIdx(cb);
                 break;
 
-            case CMD_CHAR_CAN_WALK_STAIRS:
-                ok = this._charCanWalkStairs(cb);
-                break;
-
             default:
                 if ($_DEBUG) {
                     Debug.error(`Invalid querier command: ${command}`);
@@ -172,35 +168,6 @@ class Querier {
 
         params.length = 0;
         params = undefined;
-    }
-
-    _charCanWalkStairs(cb) {
-        const backend = this._backend;
-        const buffer = backend.outBuffer;
-        const index = cb.read(BUFFER_READ_UINT32);
-        const char = backend.tracker.getBodyByPCID(index);
-        const jv = this._tempVectors[1];
-        if (!char) {
-            cb.skip(FLOAT32_SIZE, 3);
-            return;
-        }
-        
-        buffer.writeOperator(COMPONENT_SYSTEM_CHAR);
-        buffer.writeCommand(CMD_CHAR_CAN_WALK_STAIRS);
-
-        try {
-            jv.FromBuffer(cb);
-            const queryIndex = cb.read(BUFFER_READ_UINT16);
-            buffer.write(queryIndex, BUFFER_WRITE_UINT16, false);
-            buffer.write(char.CanWalkStairs(jv), BUFFER_WRITE_BOOL, false);
-        } catch (e) {
-            if ($_DEBUG) {
-                Debug.error(e);
-            }
-            return false;
-        }
-
-        return true;
     }
 
     _castRay(cb) {

@@ -57,10 +57,7 @@ class CharModifier {
                 return this._setUserData(cb);
 
             case CMD_CHAR_SET_UP:
-                return this._setUp(cb);
-            
-            case CMD_CHAR_WALK_STAIRS:
-                return this._walkStairs(cb);
+                return this._setUp(cb);            
         }
 
         if ($_DEBUG) {
@@ -312,59 +309,6 @@ class CharModifier {
         try {
             jv.FromBuffer(cb);
             char.SetUp(jv);
-        } catch (e) {
-            if ($_DEBUG) {
-                Debug.error(e);
-            }
-            return false;
-        }
-
-        return true;
-    }
-
-    _walkStairs(cb) {
-        const char = this._tracker.getBodyByPCID(cb.read(BUFFER_READ_UINT32));
-        const modifier = this._modifier;
-        const backend = modifier.backend;
-        const Jolt = backend.Jolt;
-        const joltInterface = backend.joltInterface;
-        const jv1 = modifier.joltVec3_1;
-        const jv2 = modifier.joltVec3_2;
-        const jv3 = modifier.joltVec3_3;
-        const jv4 = modifier.joltVec3_4;
-
-        const inDeltaTime = cb.read(BUFFER_READ_FLOAT32);
-        const inStepUp = jv1.FromBuffer(cb);
-        const inStepForward = jv2.FromBuffer(cb);
-        const inStepForwardTest = jv3.FromBuffer(cb);
-        const inStepDownExtra = jv4.FromBuffer(cb);
-        
-        const customBPFilter = cb.flag;
-        const bpFilter = customBPFilter ? new Jolt.DefaultBroadPhaseLayerFilter(joltInterface.GetObjectVsBroadPhaseLayerFilter(), cb.read(BUFFER_READ_UINT32)) : backend.bpFilter;
-        
-        const customObjFilter = cb.flag;
-        const objFilter = customObjFilter ? new Jolt.DefaultObjectLayerFilter(joltInterface.GetObjectLayerPairFilter(), cb.read(BUFFER_READ_UINT32)) : backend.objFilter;
-        
-        const cbIndex = cb.read(BUFFER_READ_UINT16);
-        const allocator = joltInterface.GetTempAllocator();
-
-        try {
-            const success = char.WalkStairs(inDeltaTime,
-                                            inStepUp,
-                                            inStepForward,
-                                            inStepForwardTest,
-                                            inStepDownExtra,
-                                            bpFilter,
-                                            objFilter,
-                                            backend.bodyFilter,
-                                            backend.shapeFilter,
-                                            allocator);
-
-            const outBuffer = backend.outBuffer;
-            outBuffer.writeOperator(COMPONENT_SYSTEM_CHAR);
-            outBuffer.writeCommand(CMD_CHAR_WALK_STAIRS);
-            outBuffer.write(cbIndex, BUFFER_WRITE_UINT16, false);
-            outBuffer.write(success, BUFFER_WRITE_BOOL, false);
         } catch (e) {
             if ($_DEBUG) {
                 Debug.error(e);
