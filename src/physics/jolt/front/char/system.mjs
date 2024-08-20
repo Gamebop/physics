@@ -4,7 +4,7 @@ import { CharComponent } from './component.mjs';
 import { ResponseHandler } from '../response-handler.mjs';
 import { ShapeComponentSystem } from '../shape/system.mjs';
 import {
-    BUFFER_READ_UINT32, CMD_CHAR_CAN_WALK_STAIRS, CMD_CHAR_WALK_STAIRS, CMD_CREATE_CHAR, CMD_REPORT_CONTACTS, CMD_REPORT_SET_SHAPE,
+    BUFFER_READ_UINT32, CMD_CREATE_CHAR, CMD_REPORT_CONTACTS, CMD_REPORT_SET_SHAPE,
     CMD_REPORT_TRANSFORMS, OPERATOR_CREATOR
 } from '../../constants.mjs';
 
@@ -32,7 +32,15 @@ const schema = [
     'groundNormal',
     'groundVelocity',
     'state',
-    'pairedEntity'
+    'pairedEntity',
+    'bpFilterLayer',
+    'objFilterLayer',
+    'stickToFloorStepDown',
+    'walkStairsCosAngleForwardContact',
+    'walkStairsMinStepForward',
+    'walkStairsStepForwardTest',
+    'walkStairsStepDownExtra',
+    'walkStairsStepUp'
 ];
 
 /**

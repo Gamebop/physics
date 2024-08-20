@@ -105,9 +105,19 @@ class Cleaner {
 
         if (body.isCharacter) {
             if (body.bodyFilter) {
+                // body filter for paired body
                 Jolt.destroy(body.bodyFilter);
             }
 
+            if (body.bpFilter) {
+                Jolt.destroy(body.bpFilter);
+            }
+
+            if (body.objFilter) {
+                Jolt.destroy(body.objFilter);
+            }
+
+            Jolt.destroy(body.updateSettings);
             Jolt.destroy(body);
         } else {
             const id = body.GetID();

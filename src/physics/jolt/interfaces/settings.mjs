@@ -3,7 +3,7 @@
  * @group Managers
  * @category Utilities
  */
-class QuerySettings extends FilterSettings {
+class QuerySettings {
     /**
      * If `true`, the ray will ignore sensors.
      *

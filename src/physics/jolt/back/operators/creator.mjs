@@ -1,11 +1,11 @@
 import { Debug } from '../../debug.mjs';
 import { MotionState } from '../motion-state.mjs';
 import {
-    BFM_IGNORE_BACK_FACES, BUFFER_READ_BOOL, BUFFER_READ_FLOAT32,
+    BFM_IGNORE_BACK_FACES, BP_LAYER_MOVING, BUFFER_READ_BOOL, BUFFER_READ_FLOAT32,
     BUFFER_READ_UINT16, BUFFER_READ_UINT32, BUFFER_READ_UINT8, CMD_CREATE_BODY,
     CMD_CREATE_CHAR, CMD_CREATE_CONSTRAINT, CMD_CREATE_GROUPS, CMD_CREATE_SHAPE,
     CMD_CREATE_SOFT_BODY, CMD_CREATE_VEHICLE, MOTION_QUALITY_DISCRETE, MOTION_TYPE_DYNAMIC,
-    MOTION_TYPE_KINEMATIC, OMP_CALCULATE_MASS_AND_INERTIA, OMP_MASS_AND_INERTIA_PROVIDED,
+    MOTION_TYPE_KINEMATIC, OBJ_LAYER_MOVING, OMP_CALCULATE_MASS_AND_INERTIA, OMP_MASS_AND_INERTIA_PROVIDED,
     SHAPE_BOX, SHAPE_CAPSULE, SHAPE_CONVEX_HULL, SHAPE_CYLINDER, SHAPE_HEIGHTFIELD, SHAPE_MESH,
     SHAPE_SPHERE, SHAPE_STATIC_COMPOUND
 } from '../../constants.mjs';
@@ -630,6 +630,7 @@ class Creator {
         const Jolt = backend.Jolt;
         const listener = backend.listener;
         const config = backend.config;
+        const joltInterface = backend.joltInterface;
         const charEvents = config.charContactEventsEnabled;
         const jv = this._joltVec3;
         const jq = this._joltQuat;
@@ -691,6 +692,27 @@ class Creator {
         }
 
         const character = new Jolt.CharacterVirtual(settings, jv, jq, backend.physicsSystem);
+        const updateSettings = new Jolt.ExtendedUpdateSettings();
+
+        updateSettings.mStickToFloorStepDown.FromBuffer(cb);
+        updateSettings.mWalkStairsStepUp.FromBuffer(cb);
+        updateSettings.mWalkStairsMinStepForward = cb.read(BUFFER_READ_FLOAT32);
+        updateSettings.mWalkStairsStepForwardTest = cb.read(BUFFER_READ_FLOAT32);
+        updateSettings.mWalkStairsCosAngleForwardContact = cb.read(BUFFER_READ_FLOAT32);
+        updateSettings.mWalkStairsStepDownExtra.FromBuffer(cb);
+
+        const bpLayer = cb.read(BUFFER_READ_UINT16);
+        const objLayer = cb.read(BUFFER_READ_UINT16);
+
+        character.bpFilter = bpLayer !== BP_LAYER_MOVING ?
+            new Jolt.DefaultBroadPhaseLayerFilter(joltInterface.GetObjectVsBroadPhaseLayerFilter(),
+            bpLayer) : null;
+
+        character.objFilter = objLayer !== OBJ_LAYER_MOVING ?
+            new Jolt.DefaultObjectLayerFilter(joltInterface.GetObjectLayerPairFilter(), objLayer) :
+            null;
+
+        character.updateSettings = updateSettings;
 
         if ($_DEBUG) {
             character.debugDrawDepth = cb.read(BUFFER_READ_BOOL);
