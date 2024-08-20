@@ -704,13 +704,11 @@ class Creator {
         const bpLayer = cb.read(BUFFER_READ_UINT16);
         const objLayer = cb.read(BUFFER_READ_UINT16);
 
-        character.bpFilter = bpLayer !== BP_LAYER_MOVING ?
-            new Jolt.DefaultBroadPhaseLayerFilter(joltInterface.GetObjectVsBroadPhaseLayerFilter(),
-            bpLayer) : null;
+        character.bpFilter = bpLayer !== BP_LAYER_MOVING ? new Jolt.DefaultBroadPhaseLayerFilter(
+            joltInterface.GetObjectVsBroadPhaseLayerFilter(), bpLayer) : null;
 
-        character.objFilter = objLayer !== OBJ_LAYER_MOVING ?
-            new Jolt.DefaultObjectLayerFilter(joltInterface.GetObjectLayerPairFilter(), objLayer) :
-            null;
+        character.objFilter = objLayer !== OBJ_LAYER_MOVING ? new Jolt.DefaultObjectLayerFilter(
+            joltInterface.GetObjectLayerPairFilter(), objLayer) : null;
 
         character.updateSettings = updateSettings;
 

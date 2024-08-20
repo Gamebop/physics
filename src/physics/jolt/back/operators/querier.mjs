@@ -272,7 +272,6 @@ class Querier {
         const Jolt = backend.Jolt;
         const joltInterface = backend.joltInterface;
 
-        
         buffer.writeOperator(COMPONENT_SYSTEM_MANAGER);
         buffer.writeCommand(CMD_CAST_SHAPE);
 

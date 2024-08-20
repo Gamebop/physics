@@ -1,5 +1,4 @@
 import { Debug } from '../../debug.mjs';
-import { IndexedCache } from '../../../indexed-cache.mjs';
 import { CharComponent } from './component.mjs';
 import { ResponseHandler } from '../response-handler.mjs';
 import { ShapeComponentSystem } from '../shape/system.mjs';
@@ -83,8 +82,6 @@ class CharComponentSystem extends ShapeComponentSystem {
                 break;
 
             case CMD_REPORT_SET_SHAPE:
-            case CMD_CHAR_CAN_WALK_STAIRS:
-            case CMD_CHAR_WALK_STAIRS:
                 ResponseHandler.handleCharCallback(cb, this._manager.queryMap);
                 break;
         }

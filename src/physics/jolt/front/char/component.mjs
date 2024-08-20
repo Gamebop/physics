@@ -25,7 +25,7 @@ import {
  * @group Components
  * @category Char Component
  */
-class CharComponent extends ShapeComponent {    
+class CharComponent extends ShapeComponent {
     _backFaceMode = BFM_COLLIDE_BACK_FACES;
 
     _bpFilterLayer = BP_LAYER_MOVING;
@@ -95,7 +95,7 @@ class CharComponent extends ShapeComponent {
     _walkStairsStepForwardTest = 0.15;
 
     _walkStairsStepUp = new Vec3(0, 0.4, 0);
-    
+
     /**
      * When colliding with back faces, the character will not be able to move through back facing
      * triangles. Use this if you have triangles that need to collide on both sides. Following
@@ -115,7 +115,7 @@ class CharComponent extends ShapeComponent {
     }
 
     /**
-     * @param {number} - Broadphase Filter Layer number.
+     * @param {number} layerNum - Broadphase Filter Layer number.
      */
     set bpFilterLayer(layerNum) {
         if (this._bpFilterLayer === layerNum) {
@@ -425,7 +425,7 @@ class CharComponent extends ShapeComponent {
     }
 
     /**
-     * @param {number} - Object Filter Layer number.
+     * @param {number} layerNum - Object Filter Layer number.
      */
     set objFilterLayer(layerNum) {
         if (this._objFilterLayer === layerNum) {
@@ -605,7 +605,7 @@ class CharComponent extends ShapeComponent {
     }
 
     /**
-     * @param {Vec3} - Direction and distance for stepping down.
+     * @param {Vec3} vec - Direction and distance for stepping down.
      */
     set stickToFloorStepDown(vec) {
         if (this._stickToFloorStepDown.equals(vec)) {
@@ -756,7 +756,7 @@ class CharComponent extends ShapeComponent {
     }
 
     /**
-     * @param {number} - Radians.
+     * @param {number} angle - Radians.
      */
     set walkStairsCosAngleForwardContact(angle) {
         if (this._walkStairsCosAngleForwardContact === angle) {
@@ -790,7 +790,7 @@ class CharComponent extends ShapeComponent {
     }
 
     /**
-     * @param {number} - Minimum distance.
+     * @param {number} dist - Minimum distance.
      */
     set walkStairsMinStepForward(dist) {
         if (this._walkStairsMinStepForward === dist) {
@@ -822,7 +822,7 @@ class CharComponent extends ShapeComponent {
     }
 
     /**
-     * @param {Vec3} - Extra translation.
+     * @param {Vec3} vec - Extra translation.
      */
     set walkStairsStepDownExtra(vec) {
         if (this._walkStairsStepDownExtra.equals(vec)) {
@@ -853,7 +853,7 @@ class CharComponent extends ShapeComponent {
      * further down than up. Set to zero vector if you don't want this. Should be in the opposite
      * direction of up.
      *
-     * @type {Vec3}
+     * @returns {Vec3} - Extra translation vector.
      * @defaultValue Vec3(0, 0, 0)
      */
     get walkStairsStepDownExtra() {
@@ -861,7 +861,7 @@ class CharComponent extends ShapeComponent {
     }
 
     /**
-     * @param {number} - Test distance.
+     * @param {number} dist - Test distance.
      */
     set walkStairsStepForwardTest(dist) {
         if (this._walkStairsStepForwardTest === dist) {
@@ -896,7 +896,7 @@ class CharComponent extends ShapeComponent {
     }
 
     /**
-     * @param {Vec3} - Direction and distance of the step.
+     * @param {Vec3} vec - Direction and distance of the step.
      */
     set walkStairsStepUp(vec) {
         if (this._walkStairsStepUp.equals(vec)) {
@@ -920,7 +920,7 @@ class CharComponent extends ShapeComponent {
     /**
      * The direction and distance to step up (this corresponds to the max step height).
      *
-     * @param {Vec3}
+     * @returns {Vec3} - Vector, representing step direction and distance.
      * @defaultValue Vec3(0, 0.4, 0) (m)
      */
     get walkStairsStepUp() {
@@ -958,7 +958,7 @@ class CharComponent extends ShapeComponent {
 
     /**
      * Allows to change the shape of the character collider.
-     * 
+     *
      * @param {number} shapeIndex - The shape index to switch to. It can be created by
      * {@link JoltManager.createShape | createShape}. Use negative number to reset to original
      * shape.
@@ -1011,7 +1011,7 @@ class CharComponent extends ShapeComponent {
         const entity = this.entity;
         const pos = entity.getPosition();
         const rot = entity.getRotation();
-        
+
         // Loss of precision for pos/rot (64 -> 32)
         cb.write(pos, BUFFER_WRITE_VEC32, false);
         cb.write(rot, BUFFER_WRITE_VEC32, false);

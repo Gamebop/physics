@@ -1,5 +1,4 @@
 import { Vec3 } from 'playcanvas';
-import { Debug } from '../debug.mjs';
 import { ShapeComponentSystem } from './shape/system.mjs';
 import {
     BUFFER_READ_BOOL, BUFFER_READ_FLOAT32, BUFFER_READ_UINT16, BUFFER_READ_UINT32,
