@@ -1,10 +1,10 @@
-import { Debug } from '../../debug.mjs';
 import {
-    BFM_IGNORE_BACK_FACES,
-    BUFFER_READ_BOOL, BUFFER_READ_FLOAT32, BUFFER_READ_UINT32, BUFFER_READ_UINT8, BUFFER_WRITE_BOOL,
-    BUFFER_WRITE_FLOAT32, BUFFER_WRITE_JOLTVEC32, BUFFER_WRITE_UINT16, BUFFER_WRITE_UINT32, CMD_CAST_RAY,
-    CMD_CAST_SHAPE, CMD_COLLIDE_POINT, CMD_COLLIDE_SHAPE_IDX, COMPONENT_SYSTEM_MANAGER
+    BFM_IGNORE_BACK_FACES, BUFFER_READ_BOOL, BUFFER_READ_FLOAT32, BUFFER_READ_UINT16, BUFFER_READ_UINT32,
+    BUFFER_READ_UINT8, BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_JOLTVEC32,
+    BUFFER_WRITE_UINT16, BUFFER_WRITE_UINT32, CMD_CAST_RAY, CMD_CAST_SHAPE, CMD_COLLIDE_POINT,
+    CMD_COLLIDE_SHAPE_IDX, COMPONENT_SYSTEM_MANAGER
 } from '../../constants.mjs';
+import { Debug } from '../../debug.mjs';
 
 function writeRayHit(cb, system, tracker, cast, calculateNormal, hit, Jolt) {
     const body = system.GetBodyLockInterfaceNoLock().TryGetBody(hit.mBodyID);
@@ -183,7 +183,7 @@ class Querier {
         buffer.writeOperator(COMPONENT_SYSTEM_MANAGER);
         buffer.writeCommand(CMD_CAST_RAY);
 
-        const queryIndex = cb.read(BUFFER_READ_UINT32);
+        const queryIndex = cb.read(BUFFER_READ_UINT16);
         buffer.write(queryIndex, BUFFER_WRITE_UINT16, false);
 
         try {
@@ -272,10 +272,10 @@ class Querier {
         const Jolt = backend.Jolt;
         const joltInterface = backend.joltInterface;
 
-        const queryIndex = cb.read(BUFFER_READ_UINT32);
-
         buffer.writeOperator(COMPONENT_SYSTEM_MANAGER);
         buffer.writeCommand(CMD_CAST_SHAPE);
+
+        const queryIndex = cb.read(BUFFER_READ_UINT16);
         buffer.write(queryIndex, BUFFER_WRITE_UINT16, false);
 
         try {
@@ -389,7 +389,7 @@ class Querier {
         buffer.writeOperator(COMPONENT_SYSTEM_MANAGER);
         buffer.writeCommand(CMD_COLLIDE_POINT);
 
-        const queryIndex = cb.read(BUFFER_READ_UINT32);
+        const queryIndex = cb.read(BUFFER_READ_UINT16);
         buffer.write(queryIndex, BUFFER_WRITE_UINT16, false);
 
         if (!collidePointResult) {
@@ -471,7 +471,7 @@ class Querier {
         buffer.writeOperator(COMPONENT_SYSTEM_MANAGER);
         buffer.writeCommand(CMD_COLLIDE_SHAPE_IDX);
 
-        const queryIndex = cb.read(BUFFER_READ_UINT32);
+        const queryIndex = cb.read(BUFFER_READ_UINT16);
         buffer.write(queryIndex, BUFFER_WRITE_UINT16, false);
 
         const firstOnly = cb.flag ? cb.read(BUFFER_READ_BOOL) : true;

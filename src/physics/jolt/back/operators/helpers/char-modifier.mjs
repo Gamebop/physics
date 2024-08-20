@@ -1,10 +1,13 @@
 import { Debug } from '../../../debug.mjs';
 import {
-    BUFFER_READ_BOOL, BUFFER_READ_FLOAT32, BUFFER_READ_UINT32, BUFFER_WRITE_UINT32,
-    CMD_CHAR_SET_HIT_RED_ANGLE, CMD_CHAR_PAIR_BODY, CMD_CHAR_SET_LIN_VEL, CMD_CHAR_SET_MASS,
-    CMD_CHAR_SET_MAX_STR, CMD_CHAR_SET_NUM_HITS, CMD_CHAR_SET_POS_ROT, CMD_CHAR_SET_REC_SPD,
-    CMD_CHAR_SET_SHAPE, CMD_REPORT_SET_SHAPE, COMPONENT_SYSTEM_CHAR, CMD_CHAR_SET_SHAPE_OFFSET,
-    CMD_CHAR_SET_USER_DATA, CMD_CHAR_SET_UP
+    BUFFER_READ_BOOL, BUFFER_READ_FLOAT32, BUFFER_READ_UINT32, CMD_CHAR_SET_HIT_RED_ANGLE,
+    CMD_CHAR_PAIR_BODY, CMD_CHAR_SET_LIN_VEL, CMD_CHAR_SET_MASS, CMD_CHAR_SET_MAX_STR,
+    CMD_CHAR_SET_NUM_HITS, CMD_CHAR_SET_POS_ROT, CMD_CHAR_SET_REC_SPD, CMD_CHAR_SET_SHAPE,
+    CMD_REPORT_SET_SHAPE, COMPONENT_SYSTEM_CHAR, CMD_CHAR_SET_SHAPE_OFFSET, CMD_CHAR_SET_USER_DATA,
+    CMD_CHAR_SET_UP, BUFFER_WRITE_BOOL, BUFFER_READ_UINT16, BUFFER_WRITE_UINT16,
+    CMD_CHAR_SET_BP_FILTER_LAYER, BP_LAYER_MOVING, OBJ_LAYER_MOVING, CMD_CHAR_SET_OBJ_FILTER_LAYER,
+    CMD_CHAR_SET_COS_ANGLE, CMD_CHAR_SET_MIN_DIST, CMD_CHAR_SET_TEST_DIST, CMD_CHAR_SET_EXTRA_DOWN,
+    CMD_CHAR_SET_STEP_UP, CMD_CHAR_SET_STICK_DOWN
 } from '../../../constants.mjs';
 
 class CharModifier {
@@ -54,6 +57,30 @@ class CharModifier {
 
             case CMD_CHAR_SET_UP:
                 return this._setUp(cb);
+
+            case CMD_CHAR_SET_BP_FILTER_LAYER:
+                return this._setBPFilterLayer(cb);
+
+            case CMD_CHAR_SET_OBJ_FILTER_LAYER:
+                return this._setObjFilterLayer(cb);
+
+            case CMD_CHAR_SET_COS_ANGLE:
+                return this._setCosAngle(cb);
+
+            case CMD_CHAR_SET_MIN_DIST:
+                return this._setMinDist(cb);
+
+            case CMD_CHAR_SET_TEST_DIST:
+                return this._setTestDist(cb);
+
+            case CMD_CHAR_SET_EXTRA_DOWN:
+                return this._setExtraDown(cb);
+
+            case CMD_CHAR_SET_STEP_UP:
+                return this._setStepUp(cb);
+
+            case CMD_CHAR_SET_STICK_DOWN:
+                return this._setStickDown(cb);
         }
 
         if ($_DEBUG) {
@@ -157,7 +184,6 @@ class CharModifier {
         const backend = this._modifier.backend;
         const tracker = this._tracker;
         const pcid = cb.read(BUFFER_READ_UINT32);
-        const useCallback = cb.read(BUFFER_READ_BOOL);
         const shapeIndex = cb.flag ? cb.read(BUFFER_READ_UINT32) : null;
 
         const char = tracker.getBodyByPCID(pcid);
@@ -181,10 +207,7 @@ class CharModifier {
             shape = char.originalShape;
         }
 
-        let cbIndex;
-        if (useCallback) {
-            cbIndex = cb.read(BUFFER_READ_UINT32);
-        }
+        const cbIndex = cb.read(BUFFER_READ_UINT16);
 
         try {
             const ok = char.SetShape(shape,
@@ -195,13 +218,11 @@ class CharModifier {
                                      backend.shapeFilter,
                                      backend.joltInterface.GetTempAllocator());
 
-            if (ok && useCallback) {
-                const cb = backend.outBuffer;
-
-                cb.writeOperator(COMPONENT_SYSTEM_CHAR);
-                cb.writeCommand(CMD_REPORT_SET_SHAPE);
-                cb.write(cbIndex, BUFFER_WRITE_UINT32, false);
-            }
+            const outBuffer = backend.outBuffer;
+            outBuffer.writeOperator(COMPONENT_SYSTEM_CHAR);
+            outBuffer.writeCommand(CMD_REPORT_SET_SHAPE);
+            outBuffer.write(cbIndex, BUFFER_WRITE_UINT16, false);
+            outBuffer.write(ok, BUFFER_WRITE_BOOL, false);
         } catch (e) {
             if ($_DEBUG) {
                 Debug.error(e);
@@ -311,6 +332,115 @@ class CharModifier {
         try {
             jv.FromBuffer(cb);
             char.SetUp(jv);
+        } catch (e) {
+            if ($_DEBUG) {
+                Debug.error(e);
+            }
+            return false;
+        }
+
+        return true;
+    }
+
+    _setBPFilterLayer(cb) {
+        const char = this._tracker.getBodyByPCID(cb.read(BUFFER_READ_UINT32));
+        const backend = this._modifier.backend;
+
+        try {
+            if (char.bpFilter) {
+                Jolt.destroy(char.bpFilter);
+            }
+
+            const layer = cb.read(BUFFER_READ_UINT16);
+            char.bpFilter = layer !== BP_LAYER_MOVING ?
+                new backend.Jolt.DefaultBroadPhaseLayerFilter(
+                    backend.joltInterface.GetObjectVsBroadPhaseLayerFilter(), layer) : null;
+        } catch (e) {
+            if ($_DEBUG) {
+                Debug.error(e);
+            }
+            return false;
+        }
+
+        return true;
+    }
+
+    _setObjFilterLayer(cb) {
+        const char = this._tracker.getBodyByPCID(cb.read(BUFFER_READ_UINT32));
+        const backend = this._modifier.backend;
+
+        try {
+            if (char.objFilter) {
+                Jolt.destroy(char.objFilter);
+            }
+
+            const layer = cb.read(BUFFER_READ_UINT16);
+            char.objFilter = layer !== OBJ_LAYER_MOVING ?
+                new backend.Jolt.DefaultObjectLayerFilter(
+                    backend.joltInterface.GetObjectLayerPairFilter(), layer) : null;
+        } catch (e) {
+            if ($_DEBUG) {
+                Debug.error(e);
+            }
+            return false;
+        }
+
+        return true;
+    }
+
+    _setCosAngle(cb) {
+        const char = this._tracker.getBodyByPCID(cb.read(BUFFER_READ_UINT32));
+        char.updateSettings.mWalkStairsCosAngleForwardContact = cb.read(BUFFER_READ_FLOAT32);
+        return true;
+    }
+
+    _setMinDist(cb) {
+        const char = this._tracker.getBodyByPCID(cb.read(BUFFER_READ_UINT32));
+        char.updateSettings.mWalkStairsMinStepForward = cb.read(BUFFER_READ_FLOAT32);
+        return true;
+    }
+
+    _setTestDist(cb) {
+        const char = this._tracker.getBodyByPCID(cb.read(BUFFER_READ_UINT32));
+        char.updateSettings.mWalkStairsStepForwardTest = cb.read(BUFFER_READ_FLOAT32);
+        return true;
+    }
+
+    _setExtraDown(cb) {
+        const char = this._tracker.getBodyByPCID(cb.read(BUFFER_READ_UINT32));
+
+        try {
+            char.updateSettings.mWalkStairsStepDownExtra.FromBuffer(cb);
+        } catch (e) {
+            if ($_DEBUG) {
+                Debug.error(e);
+            }
+            return false;
+        }
+
+        return true;
+    }
+
+    _setStepUp(cb) {
+        const char = this._tracker.getBodyByPCID(cb.read(BUFFER_READ_UINT32));
+
+        try {
+            char.updateSettings.mWalkStairsStepUp.FromBuffer(cb);
+        } catch (e) {
+            if ($_DEBUG) {
+                Debug.error(e);
+            }
+            return false;
+        }
+
+        return true;
+    }
+
+    _setStickDown(cb) {
+        const char = this._tracker.getBodyByPCID(cb.read(BUFFER_READ_UINT32));
+
+        try {
+            char.updateSettings.mStickToFloorStepDown.FromBuffer(cb);
         } catch (e) {
             if ($_DEBUG) {
                 Debug.error(e);

@@ -131,6 +131,8 @@ class JoltManager extends PhysicsManager {
         systems.set(COMPONENT_SYSTEM_CONSTRAINT, constraintCS);
         systems.set(COMPONENT_SYSTEM_MANAGER, this);
 
+        // TODO
+        // clear caches on destroy
         this._queryMap = new IndexedCache();
         this._shapeMap = new IndexedCache();
         this._gravity = new Vec3(0, -9.81, 0);
@@ -429,7 +431,7 @@ class JoltManager extends PhysicsManager {
 
         cb.writeOperator(OPERATOR_QUERIER);
         cb.writeCommand(CMD_CAST_RAY);
-        cb.write(callbackIndex, BUFFER_WRITE_UINT32, false);
+        cb.write(callbackIndex, BUFFER_WRITE_UINT16, false);
         cb.write(origin, BUFFER_WRITE_VEC32, false);
         cb.write(dir, BUFFER_WRITE_VEC32, false);
         cb.write(opts?.firstOnly, BUFFER_WRITE_BOOL);
@@ -490,7 +492,7 @@ class JoltManager extends PhysicsManager {
 
         cb.writeOperator(OPERATOR_QUERIER);
         cb.writeCommand(CMD_CAST_SHAPE);
-        cb.write(queryIndex, BUFFER_WRITE_UINT32, false);
+        cb.write(queryIndex, BUFFER_WRITE_UINT16, false);
         cb.write(pos, BUFFER_WRITE_VEC32, false);
         cb.write(rot, BUFFER_WRITE_VEC32, false);
         cb.write(dir, BUFFER_WRITE_VEC32, false);
@@ -553,7 +555,7 @@ class JoltManager extends PhysicsManager {
 
         cb.writeOperator(OPERATOR_QUERIER);
         cb.writeCommand(CMD_COLLIDE_POINT);
-        cb.write(queryIndex, BUFFER_WRITE_UINT32, false);
+        cb.write(queryIndex, BUFFER_WRITE_UINT16, false);
         cb.write(opts?.ignoreSensors, BUFFER_WRITE_BOOL);
         cb.write(opts?.bpFilterLayer, BUFFER_WRITE_UINT32);
         cb.write(opts?.objFilterLayer, BUFFER_WRITE_UINT32);
@@ -624,7 +626,7 @@ class JoltManager extends PhysicsManager {
 
         cb.writeOperator(OPERATOR_QUERIER);
         cb.writeCommand(CMD_COLLIDE_SHAPE_IDX);
-        cb.write(queryIndex, BUFFER_WRITE_UINT32, false);
+        cb.write(queryIndex, BUFFER_WRITE_UINT16, false);
         cb.write(opts?.firstOnly, BUFFER_WRITE_BOOL);
         cb.write(opts?.ignoreSensors, BUFFER_WRITE_BOOL);
         cb.write(shapeIndex, BUFFER_WRITE_UINT32, false);

@@ -1,5 +1,4 @@
 import { Vec3 } from 'playcanvas';
-import { Debug } from '../debug.mjs';
 import { ShapeComponentSystem } from './shape/system.mjs';
 import {
     BUFFER_READ_BOOL, BUFFER_READ_FLOAT32, BUFFER_READ_UINT16, BUFFER_READ_UINT32,
@@ -328,17 +327,13 @@ class ResponseHandler {
         callback?.(result);
     }
 
-    static handleCharSetShape(cb, queryMap) {
-        const cbIndex = cb.read(BUFFER_READ_UINT32);
+    static handleCharCallback(cb, queryMap) {
+        const cbIndex = cb.read(BUFFER_READ_UINT16);
         const callback = queryMap.get(cbIndex);
-
-        if ($_DEBUG && !callback) {
-            Debug.warn(`Unable to locate callback with index: ${cbIndex}`);
-            return;
-        }
+        const bool = cb.read(BUFFER_READ_BOOL);
 
         queryMap.free(cbIndex);
-        callback();
+        callback?.(bool);
     }
 }
 

@@ -204,6 +204,14 @@ export const CMD_CHAR_SET_HIT_RED_ANGLE = 408;
 export const CMD_CHAR_SET_SHAPE_OFFSET = 409;
 export const CMD_CHAR_SET_USER_DATA = 410;
 export const CMD_CHAR_SET_UP = 411;
+export const CMD_CHAR_SET_BP_FILTER_LAYER = 422;
+export const CMD_CHAR_SET_OBJ_FILTER_LAYER = 423;
+export const CMD_CHAR_SET_COS_ANGLE = 424;
+export const CMD_CHAR_SET_MIN_DIST = 425;
+export const CMD_CHAR_SET_TEST_DIST = 426;
+export const CMD_CHAR_SET_EXTRA_DOWN = 427;
+export const CMD_CHAR_SET_STEP_UP = 428;
+export const CMD_CHAR_SET_STICK_DOWN = 429;
 
 // Constraints 500-599
 

@@ -1,5 +1,4 @@
 import { Debug } from '../../debug.mjs';
-import { IndexedCache } from '../../../indexed-cache.mjs';
 import { CharComponent } from './component.mjs';
 import { ResponseHandler } from '../response-handler.mjs';
 import { ShapeComponentSystem } from '../shape/system.mjs';
@@ -32,7 +31,15 @@ const schema = [
     'groundNormal',
     'groundVelocity',
     'state',
-    'pairedEntity'
+    'pairedEntity',
+    'bpFilterLayer',
+    'objFilterLayer',
+    'stickToFloorStepDown',
+    'walkStairsCosAngleForwardContact',
+    'walkStairsMinStepForward',
+    'walkStairsStepForwardTest',
+    'walkStairsStepDownExtra',
+    'walkStairsStepUp'
 ];
 
 /**
@@ -46,7 +53,6 @@ class CharComponentSystem extends ShapeComponentSystem {
         super(app, manager);
 
         this._schema = [...this._schema, ...schema];
-        this._queryMap = new IndexedCache();
 
         this._exposeConstants();
     }
@@ -76,7 +82,7 @@ class CharComponentSystem extends ShapeComponentSystem {
                 break;
 
             case CMD_REPORT_SET_SHAPE:
-                ResponseHandler.handleCharSetShape(cb, this._manager.queryMap);
+                ResponseHandler.handleCharCallback(cb, this._manager.queryMap);
                 break;
         }
     }

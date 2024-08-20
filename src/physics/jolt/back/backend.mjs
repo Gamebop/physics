@@ -361,11 +361,6 @@ class JoltBackend {
 
         this._dispatcher = null;
 
-        if (this._charUpdateSettings) {
-            Jolt.destroy(this._charUpdateSettings);
-            this._charUpdateSettings = null;
-        }
-
         if (this._joltInterface) {
             Jolt.destroy(this._joltInterface);
             this._joltInterface = null;
@@ -497,34 +492,26 @@ class JoltBackend {
         const characters = this._tracker.character;
         if (characters.size === 0) return true;
 
-        const movingBPFilter = this._bpFilter;
-        const movingLayerFilter = this._objFilter;
+        const defaultMovingBPLayerFilter = this._bpFilter;
+        const defaultMovingObjLayerFilter = this._objFilter;
         const bodyFilter = this._bodyFilter;
         const shapeFilter = this._shapeFilter;
-        let updateSettings = this._charUpdateSettings;
 
         try {
-            if (!updateSettings) {
-                updateSettings = this._charUpdateSettings = new Jolt.ExtendedUpdateSettings();
-            }
             const allocator = joltInterface.GetTempAllocator();
 
-            // TODO
-            // make it customizable, like the raycast
-            // const objectVsBroadPhaseLayerFilter = joltInterface.GetObjectVsBroadPhaseLayerFilter();
-            // const objectLayerPairFilter = joltInterface.GetObjectLayerPairFilter();
-            // const movingBPFilter = new Jolt.DefaultBroadPhaseLayerFilter(objectVsBroadPhaseLayerFilter, BP_LAYER_MOVING);
-            // const movingLayerFilter = new Jolt.DefaultObjectLayerFilter(objectLayerPairFilter, 2);
-
             characters.forEach((char) => {
+                // body filter for paired body
+                // TODO
+                // switch to new Jolt's inner body, instead of paired body
                 const bFilter = char.bodyFilter || bodyFilter;
 
                 char.ExtendedUpdate(
                     fixedStep,
                     char.GetUp(),
-                    updateSettings,
-                    movingBPFilter,
-                    movingLayerFilter,
+                    char.updateSettings,
+                    char.bpFilter ? char.bpFilter : defaultMovingBPLayerFilter,
+                    char.objFilter ? char.objFilter : defaultMovingObjLayerFilter,
                     bFilter,
                     shapeFilter,
                     allocator
@@ -540,9 +527,6 @@ class JoltBackend {
                     bodyInterface.MoveKinematic(pairedBody.GetID(), pos, Jolt.Quat.prototype.sIdentity(), fixedStep);
                 }
             });
-
-            // Jolt.destroy(movingBPFilter);
-            // Jolt.destroy(movingLayerFilter);
         } catch (e) {
             if ($_DEBUG) {
                 Debug.error(e);

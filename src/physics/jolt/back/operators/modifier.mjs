@@ -28,6 +28,7 @@ class Modifier {
         this._joltVec3_1 = new Jolt.Vec3();
         this._joltVec3_2 = new Jolt.Vec3();
         this._joltVec3_3 = new Jolt.Vec3();
+        this._joltVec3_4 = new Jolt.Vec3();
         this._joltQuat_1 = new Jolt.Quat();
 
         this._constraintModifier = new ConstraintModifier(this);
@@ -42,6 +43,14 @@ class Modifier {
 
     get joltVec3_2() {
         return this._joltVec3_2;
+    }
+
+    get joltVec3_3() {
+        return this._joltVec3_3;
+    }
+
+    get joltVec3_4() {
+        return this._joltVec3_4;
     }
 
     get joltQuat() {
@@ -241,6 +250,7 @@ class Modifier {
         Jolt.destroy(this._joltVec3_1);
         Jolt.destroy(this._joltVec3_2);
         Jolt.destroy(this._joltVec3_3);
+        Jolt.destroy(this._joltVec3_4);
         Jolt.destroy(this._joltQuat_1);
 
         this._joltVec3_1 = null;
