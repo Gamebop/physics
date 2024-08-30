@@ -6,8 +6,8 @@ class MotionState {
     constructor(body) {
         this._body = body;
 
-        this._updatePosition(body);
-        this._updateRotation(body);
+        this.updatePosition();
+        this.updateRotation();
     }
 
     compute(alpha, stepped) {
@@ -105,7 +105,8 @@ class MotionState {
         return this._rotation;
     }
 
-    _updatePosition(body) {
+    updatePosition() {
+        const body = this._body;
         const bodyPos = body.GetPosition();
         const p = { x: bodyPos.GetX(), y: bodyPos.GetY(), z: bodyPos.GetZ() };
 
@@ -114,7 +115,8 @@ class MotionState {
         this._oldPos = { x: p.x, y: p.y, z: p.z };
     }
 
-    _updateRotation(body) {
+    updateRotation() {
+        const body = this._body;
         const bodyRot = body.GetRotation();
         const r = { x: bodyRot.GetX(), y: bodyRot.GetY(), z: bodyRot.GetZ(), w: bodyRot.GetW() };
 

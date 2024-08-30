@@ -429,6 +429,12 @@ class Modifier {
             } else {
                 backend.bodyInterface.SetPositionAndRotation(body.GetID(), jv, jq, Jolt.EActivation_Activate);
             }
+
+            const ms = body.motionState;
+            if (ms) {
+                ms.updatePosition();
+                ms.updateRotation();
+            }
         } catch (e) {
             if ($_DEBUG) {
                 Debug.error(e);
