@@ -223,7 +223,7 @@ class Creator {
                 break;
 
             case CMD_CREATE_CHAR:
-                ok = this._createCharacter(cb);
+                ok = this._createCharacter(cb, meshBuffers);
                 break;
 
             case CMD_CREATE_SHAPE:
@@ -625,7 +625,7 @@ class Creator {
         return true;
     }
 
-    _createCharacter(cb) {
+    _createCharacter(cb, meshBuffers) {
         const backend = this._backend;
         const Jolt = backend.Jolt;
         const listener = backend.listener;
@@ -636,7 +636,7 @@ class Creator {
         const jq = this._joltQuat;
         const settings = new Jolt.CharacterVirtualSettings();
 
-        const shapeSettings = Creator.createShapeSettings(cb, null, Jolt, jv, jq);
+        const shapeSettings = Creator.createShapeSettings(cb, meshBuffers, Jolt, jv, jq);
         if (!shapeSettings) {
             return false;
         }
