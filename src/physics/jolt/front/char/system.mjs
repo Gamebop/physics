@@ -116,20 +116,39 @@ class CharComponentSystem extends ShapeComponentSystem {
      * @param {function} callbacks.OnContactValidate - Checks if a character can collide with
      * specified body. Return true if the contact is valid.
      * ```javascript
-     * OnAdjustBodyVelocity: function (inCharacter, inBodyID2, inSubShapeID2) {}
+     * OnContactValidate: function (inCharacter, inBodyID2, inSubShapeID2) {}
+     * ```
+     * @param {function} callbacks.OnCharacterContactValidate - Same as `OnContactValidate`, but
+     * when colliding with another Character Virtual.
+     * ```javascript
+     * OnCharacterContactValidate: function (inCharacter, inBodyID2, inSubShapeID2,
+     * inContactPosition, inContactNormal, ioSettings) {}
      * ```
      * @param {function} callbacks.OnContactAdded - Called whenever the character collides with a
      * body.
      * ```javascript
-     * OnAdjustBodyVelocity: function (inCharacter, inBodyID2, inSubShapeID2, inContactPosition,
+     * OnContactAdded: function (inCharacter, inBodyID2, inSubShapeID2, inContactPosition,
      * inContactNormal, ioSettings) {}
+     * ```
+     * @param {function} callbacks.OnCharacterContactAdded - Same as `OnContactAdded` but when
+     * colliding with a Character Virtual.
+     * ```javascript
+     * OnCharacterContactAdded: function (inCharacter, inOtherCharacter, inSubShapeID2,
+     * inContactPosition, inContactNormal, ioSettings) {}
      * ```
      * @param {function} callbacks.OnContactSolve - Called whenever a contact is being used by the
      * solver.
      * ```javascript
-     * OnAdjustBodyVelocity: function (inCharacter, inBodyID2, inSubShapeID2, inContactPosition,
+     * OnContactSolve: function (inCharacter, inBodyID2, inSubShapeID2, inContactPosition,
      * inContactNormal, inContactVelocity, inContactMaterial, inCharacterVelocity,
      * ioNewCharacterVelocity) {}
+     * ```
+     * @param {function} callbacks.OnCharacterContactSolve - Same as `OnContactSolve` but when
+     * colliding with a CharacterVirtual.
+     * ```javascript
+     * OnCharacterContactSolve: function (inCharacter, inOtherCharacter, inSubShapeID2,
+     * inContactPosition, inContactNormal, inContactVelocity, inContactMaterial,
+     * inCharacterVelocity, ioNewCharacterVelocity) {}
      * ```
      */
     overrideContacts(callbacks = {}) {
