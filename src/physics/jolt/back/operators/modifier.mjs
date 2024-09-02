@@ -552,6 +552,12 @@ class Modifier {
         try {
             bodyInterface.SetMotionType(body.GetID(), jType, Jolt.EActivation_Activate);
             tracker.update(body, index);
+
+            // TODO move to tracker
+            if ($_DEBUG && body.debugDrawData) {
+                tracker.debug.add(body);
+            }
+
         } catch (e) {
             if ($_DEBUG) {
                 Debug.error(e);
