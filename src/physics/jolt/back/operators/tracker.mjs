@@ -74,6 +74,10 @@ class Tracker {
             }
         }
 
+        if ($_DEBUG && body.debugDraw) {
+            this._debug.add(body);
+        }
+
         this._idxMap.set(Jolt.getPointer(body), index);
         this._bodyMap.set(index, body);
     }
