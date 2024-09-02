@@ -490,7 +490,7 @@ class Creator {
 
         if ($_DEBUG) {
             body.debugDrawDepth = cb.read(BUFFER_READ_BOOL);
-            this._addDebugDraw(cb.read(BUFFER_READ_BOOL), body);
+            body.debugDraw = cb.read(BUFFER_READ_BOOL) && !backend.config.useWebWorker;
         }
 
         // Destroy shape settings after body is created:
@@ -584,7 +584,7 @@ class Creator {
 
         if ($_DEBUG) {
             body.debugDrawDepth = cb.read(BUFFER_READ_BOOL);
-            this._addDebugDraw(cb.read(BUFFER_READ_BOOL), body);
+            body.debugDraw = cb.read(BUFFER_READ_BOOL) && !backend.config.useWebWorker;
         }
 
         // Destroy shape settings after body is created:
@@ -714,7 +714,7 @@ class Creator {
 
         if ($_DEBUG) {
             character.debugDrawDepth = cb.read(BUFFER_READ_BOOL);
-            this._addDebugDraw(cb.read(BUFFER_READ_BOOL), character);
+            character.debugDraw = cb.read(BUFFER_READ_BOOL) && !config.useWebWorker;
         }
 
         if (backend.config.useMotionStates && useMotionState) {
@@ -734,26 +734,6 @@ class Creator {
         backend.tracker.add(character, index);
 
         return true;
-    }
-
-    // TODO move to tracker
-    _addDebugDraw(requested, body) {
-        const backend = this._backend;
-        const debugBodies = backend.tracker.debug;
-        const isWorker = backend.config.useWebWorker;
-
-        if (requested && isWorker) {
-            Debug.warn('Debug draw was requested, but it is not supported, when running in ' +
-                       'WebWorker. Disable WebWorker (useWebWorker option) when you need to ' +
-                       'debug draw.');
-            debugBodies.delete(body);
-        } else {
-            if (requested) {
-                debugBodies.add(body);
-            } else {
-                debugBodies.delete(body);
-            }
-        }
     }
 
     static createSoftBodyShapeSettings(cb, meshBuffers, Jolt) {
