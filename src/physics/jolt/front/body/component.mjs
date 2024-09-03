@@ -15,7 +15,8 @@ import {
     CMD_SET_KIN_COL_NON_DYN, CMD_SET_APPLY_GYRO_FORCE, CMD_SET_INTERNAL_EDGE,
     CMD_RESET_SLEEP_TIMER, CMD_SET_LIN_VEL_CLAMPED, CMD_SET_ANG_VEL_CLAMPED, CMD_RESET_MOTION,
     CMD_SET_MAX_ANG_VEL, CMD_SET_MAX_LIN_VEL, CMD_CLAMP_ANG_VEL, CMD_CLAMP_LIN_VEL,
-    CMD_SET_VEL_STEPS, CMD_SET_POS_STEPS
+    CMD_SET_VEL_STEPS, CMD_SET_POS_STEPS, CMD_ADD_ANGULAR_IMPULSE,
+    CMD_ADD_TORQUE
 } from '../../constants.mjs';
 
 const vec3 = new Vec3();
@@ -1060,7 +1061,7 @@ class BodyComponent extends ShapeComponent {
      */
     addAngularImpulse(impulse) {
         this.system.addCommand(
-            OPERATOR_MODIFIER, CMD_ADD_IMPULSE, this._index,
+            OPERATOR_MODIFIER, CMD_ADD_ANGULAR_IMPULSE, this._index,
             impulse, BUFFER_WRITE_VEC32, false
         );
     }
@@ -1073,7 +1074,7 @@ class BodyComponent extends ShapeComponent {
      */
     addTorque(torque) {
         this.system.addCommand(
-            OPERATOR_MODIFIER, CMD_ADD_FORCE, this._index,
+            OPERATOR_MODIFIER, CMD_ADD_TORQUE, this._index,
             torque, BUFFER_WRITE_VEC32, false
         );
     }
