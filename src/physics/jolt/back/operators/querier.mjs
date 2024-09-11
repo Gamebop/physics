@@ -494,9 +494,9 @@ class Querier {
             let collector = firstOnly ? this._collectorCollideShapeFirst : this._collectorCollideShapeAll;
             if (!collector) {
                 if (firstOnly) {
-                    this._collectorCollideShapeFirst = new Jolt.CollideShapeClosestHitCollisionCollector();
+                    collector = this._collectorCollideShapeFirst = new Jolt.CollideShapeClosestHitCollisionCollector();
                 } else {
-                    this._collectorCollideShapeAll = new Jolt.CollideShapeAllHitCollisionCollector();
+                    collector = this._collectorCollideShapeAll = new Jolt.CollideShapeAllHitCollisionCollector();
                 }
             }
 
