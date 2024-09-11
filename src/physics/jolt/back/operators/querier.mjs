@@ -493,8 +493,11 @@ class Querier {
         try {
             let collector = firstOnly ? this._collectorCollideShapeFirst : this._collectorCollideShapeAll;
             if (!collector) {
-                collector = this._collectorPoint = firstOnly ?
-                    new Jolt.CollideShapeClosestHitCollisionCollector() : new Jolt.CollideShapeAllHitCollisionCollector();
+                if (firstOnly) {
+                    this._collectorCollideShapeFirst = new Jolt.CollideShapeClosestHitCollisionCollector();
+                } else {
+                    this._collectorCollideShapeAll = new Jolt.CollideShapeAllHitCollisionCollector();
+                }
             }
 
             const shapeIndex = cb.read(BUFFER_READ_UINT32);
