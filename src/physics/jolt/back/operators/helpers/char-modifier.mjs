@@ -192,6 +192,9 @@ class CharModifier {
             if (!ok) {
                 return false;
             }
+
+            // invalidate current debug draw, so we draw a new shape instead
+            char.debugDrawData = null;
         }
 
         let shape;
