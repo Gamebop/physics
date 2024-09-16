@@ -6,7 +6,7 @@ import {
     BUFFER_READ_UINT32, BUFFER_READ_UINT8, CMD_ADD_ANGULAR_IMPULSE, CMD_ADD_FORCE, CMD_ADD_IMPULSE,
     CMD_ADD_SHAPE,
     CMD_ADD_TORQUE, CMD_APPLY_BUOYANCY_IMPULSE, CMD_CHANGE_GRAVITY, CMD_CLAMP_ANG_VEL,
-    CMD_CLAMP_LIN_VEL, CMD_MOVE_BODY, CMD_MOVE_KINEMATIC, CMD_RESET_MOTION, CMD_RESET_SLEEP_TIMER,
+    CMD_CLAMP_LIN_VEL, CMD_MOVE_BODY, CMD_MOVE_KINEMATIC, CMD_REMOVE_SHAPE, CMD_RESET_MOTION, CMD_RESET_SLEEP_TIMER,
     CMD_SET_ALLOW_SLEEPING, CMD_SET_ANG_FACTOR, CMD_SET_ANG_VEL, CMD_SET_ANG_VEL_CLAMPED,
     CMD_SET_APPLY_GYRO_FORCE, CMD_SET_AUTO_UPDATE_ISOMETRY, CMD_SET_COL_GROUP, CMD_SET_DEBUG_DRAW,
     CMD_SET_DEBUG_DRAW_DEPTH, CMD_SET_DOF, CMD_SET_FRICTION, CMD_SET_GRAVITY_FACTOR,
@@ -159,6 +159,10 @@ class Modifier {
 
             case CMD_ADD_SHAPE:
                 ok = this._addShape(cb);
+                break;
+
+            case CMD_REMOVE_SHAPE:
+                ok = this._removeShape(cb);
                 break;
 
             case CMD_SET_DEBUG_DRAW:
@@ -351,6 +355,7 @@ class Modifier {
 
     _addShape(cb) {
         const backend = this._backend;
+        const bodyInterface = backend.bodyInterface;
         const Jolt = backend.Jolt;
         const body = this._getBody(cb);
         const jv = this._joltVec3_1;
@@ -381,14 +386,61 @@ class Modifier {
                 }
             }
 
+            const com = bodyShape.GetCenterOfMass();
             const compoundShape = Jolt.castObject(bodyShape, Jolt.MutableCompoundShape);
             compoundShape.AddShape(jv, jq, shape, userData);
-
             compoundShape.AdjustCenterOfMass();
+            backend.bodyInterface.NotifyShapeChanged(body.GetID(), com, true, Jolt.EActivation_Activate);
 
             // If there is debug draw context, we need to reset it to view a new shape
             Cleaner.cleanDebugDrawData(body, Jolt);
 
+        } catch (e) {
+            if ($_DEBUG) {
+                Debug.error(e);
+            }
+            return false;
+        }
+
+        return true;
+    }
+
+    _removeShape(cb) {
+        const backend = this._backend;
+        const bodyInterface = backend.bodyInterface;
+        const Jolt = backend.Jolt;
+        const body = this._getBody(cb);
+
+        const childIndex = cb.read(BUFFER_READ_UINT32);
+
+        try {
+            const bodyShape = body.GetShape();
+            const compoundShape = Jolt.castObject(bodyShape, Jolt.MutableCompoundShape);
+
+            if ($_DEBUG) {
+                const isValid = bodyShape.GetType() === Jolt.EShapeType_Compound &&
+                    bodyShape.GetSubType() === Jolt.EShapeSubType_MutableCompound;
+                if (!isValid) {
+                    Debug.warn('Current shape does not support adding child shapes.');
+                    return false;
+                }
+            }
+            
+            const childShapesCount = compoundShape.GetNumSubShapes();
+            if (childIndex > childShapesCount - 1) {
+                if ($_DEBUG) {
+                    Debug.warn('Trying to remove invalid child shape. Index exceeds number of child shapes.');
+                }
+                return true;
+            }
+
+            const shape = compoundShape.GetSubShape(childIndex);
+            const com = bodyShape.GetCenterOfMass();
+            compoundShape.RemoveShape(childIndex);
+            compoundShape.AdjustCenterOfMass();
+            backend.bodyInterface.NotifyShapeChanged(body.GetID(), com, true, Jolt.EActivation_Activate);
+            
+            Cleaner.cleanDebugDrawData(body, Jolt);
         } catch (e) {
             if ($_DEBUG) {
                 Debug.error(e);

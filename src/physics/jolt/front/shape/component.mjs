@@ -3,7 +3,7 @@ import { Debug } from '../../debug.mjs';
 import { Component } from '../component.mjs';
 import {
     BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT32, BUFFER_WRITE_UINT8,
-    BUFFER_WRITE_VEC32, CMD_ADD_SHAPE, CMD_SET_DEBUG_DRAW, CMD_SET_DEBUG_DRAW_DEPTH, CMD_SET_SHAPE, FLOAT32_SIZE,
+    BUFFER_WRITE_VEC32, CMD_ADD_SHAPE, CMD_REMOVE_SHAPE, CMD_SET_DEBUG_DRAW, CMD_SET_DEBUG_DRAW_DEPTH, CMD_SET_SHAPE, FLOAT32_SIZE,
     OPERATOR_MODIFIER, SHAPE_BOX, SHAPE_CAPSULE, SHAPE_CONVEX_HULL, SHAPE_CYLINDER,
     SHAPE_HEIGHTFIELD, SHAPE_MESH, SHAPE_MUTABLE_COMPOUND, SHAPE_SPHERE, SHAPE_STATIC_COMPOUND
 } from '../../constants.mjs';
@@ -507,8 +507,34 @@ class ShapeComponent extends Component {
         );
     }
 
+    /**
+     * Allows to remove a child shape from a mutable compound shape. The children are indexed in
+     * order they were added. If you remove a child, then the next child takes its place.
+     *
+     * For example, if you remove child under index `0`, then all children shift there indices, so
+     * that the child with index `1`, becomes a child with index `0`, etc.
+     *
+     * @param {number} childIndex - The index of a child shape to remove.
+     */
     removeShape(childIndex) {
+        if (this.shape !== SHAPE_MUTABLE_COMPOUND) {
+            if ($_DEBUG) {
+                Debug.warn('Current shape type does not support removing a child shape from it.');
+            }
+            return;
+        }
 
+        if ($_DEBUG) {
+            const ok = Debug.checkUint(childIndex);
+            if (!ok) {
+                return;
+            }
+        }
+
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_REMOVE_SHAPE, this._index,
+            childIndex, BUFFER_WRITE_UINT32, false,
+        );
     }
 
     getMeshes(callback) {
