@@ -4,6 +4,7 @@ import { ConstraintModifier } from './helpers/constraint-modifier.mjs';
 import {
     BUFFER_READ_BOOL, BUFFER_READ_FLOAT32, BUFFER_READ_INT32, BUFFER_READ_UINT16,
     BUFFER_READ_UINT32, BUFFER_READ_UINT8, CMD_ADD_ANGULAR_IMPULSE, CMD_ADD_FORCE, CMD_ADD_IMPULSE,
+    CMD_ADD_SHAPE,
     CMD_ADD_TORQUE, CMD_APPLY_BUOYANCY_IMPULSE, CMD_CHANGE_GRAVITY, CMD_CLAMP_ANG_VEL,
     CMD_CLAMP_LIN_VEL, CMD_MOVE_BODY, CMD_MOVE_KINEMATIC, CMD_RESET_MOTION, CMD_RESET_SLEEP_TIMER,
     CMD_SET_ALLOW_SLEEPING, CMD_SET_ANG_FACTOR, CMD_SET_ANG_VEL, CMD_SET_ANG_VEL_CLAMPED,
@@ -136,10 +137,6 @@ class Modifier {
                 ok = this._useMotionState(cb);
                 break;
 
-            // case CMD_SET_DRIVER_INPUT:
-            //     ok = this._setDriverInput(cb);
-            //     break;
-
             case CMD_SET_GRAVITY_FACTOR:
                 ok = this._setGravityFactor(cb);
                 break;
@@ -158,6 +155,10 @@ class Modifier {
 
             case CMD_SET_SHAPE:
                 ok = this._setShape(cb, meshBuffers);
+                break;
+
+            case CMD_ADD_SHAPE:
+                ok = this._addShape(cb);
                 break;
 
             case CMD_SET_DEBUG_DRAW:
@@ -334,6 +335,56 @@ class Modifier {
                                            false /* inUpdateMassProperties */,
                                            Jolt.EActivation_Activate);
             currentShape.Release();
+
+            // If there is debug draw context, we need to reset it to view a new shape
+            Cleaner.cleanDebugDrawData(body, Jolt);
+
+        } catch (e) {
+            if ($_DEBUG) {
+                Debug.error(e);
+            }
+            return false;
+        }
+
+        return true;
+    }
+
+    _addShape(cb) {
+        const backend = this._backend;
+        const Jolt = backend.Jolt;
+        const body = this._getBody(cb);
+        const jv = this._joltVec3_1;
+        const jq = this._joltQuat_1;
+
+        try {
+            const shapeIndex = cb.read(BUFFER_READ_UINT32);
+            const shape = backend.tracker.shapeMap.get(shapeIndex);
+            if ($_DEBUG) {
+                const ok = Debug.assert(!!shape, `Unable to locate shape: ${shapeIndex}`);
+                if (!ok) {
+                    return false;
+                }
+            }
+
+            jv.FromBuffer(cb);
+            jq.FromBuffer(cb);
+
+            const userData = cb.read(BUFFER_READ_UINT32);
+            const bodyShape = body.GetShape();
+
+            if ($_DEBUG) {
+                const isValid = bodyShape.GetType() === Jolt.EShapeType_Compound &&
+                    bodyShape.GetSubType() === Jolt.EShapeSubType_MutableCompound;
+                if (!isValid) {
+                    Debug.warn('Current shape does not support adding child shapes.');
+                    return false;
+                }
+            }
+
+            const compoundShape = Jolt.castObject(bodyShape, Jolt.MutableCompoundShape);
+            compoundShape.AddShape(jv, jq, shape, userData);
+
+            compoundShape.AdjustCenterOfMass();
 
             // If there is debug draw context, we need to reset it to view a new shape
             Cleaner.cleanDebugDrawData(body, Jolt);

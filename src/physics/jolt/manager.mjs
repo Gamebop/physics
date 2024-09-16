@@ -87,7 +87,7 @@ function debugDraw(app, data, config) {
  * @category Jolt
  */
 class JoltManager extends PhysicsManager {
-    defaultHalfExtent = new Vec3(0.5, 0.5, 0.5);
+    static defaultHalfExtent = new Vec3(0.5, 0.5, 0.5);
 
     constructor(app, opts, resolve) {
         const config = {

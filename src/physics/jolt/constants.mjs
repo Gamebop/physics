@@ -89,6 +89,7 @@ export const SHAPE_MESH = 4;
 export const SHAPE_CONVEX_HULL = 5;
 export const SHAPE_HEIGHTFIELD = 6;
 export const SHAPE_STATIC_COMPOUND = 7;
+export const SHAPE_MUTABLE_COMPOUND = 8;
 
 export const CONTACT_TYPE_ADDED = 0;
 export const CONTACT_TYPE_PERSISTED = 1;
@@ -189,6 +190,7 @@ export const CMD_SET_POS_STEPS = 58;
 export const CMD_SET_SHAPE = 59;
 export const CMD_SET_DEBUG_DRAW = 60;
 export const CMD_SET_DEBUG_DRAW_DEPTH = 61;
+export const CMD_ADD_SHAPE = 62;
 
 
 // Char Virtual 400-499

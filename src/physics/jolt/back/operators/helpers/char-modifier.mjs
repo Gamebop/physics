@@ -9,6 +9,7 @@ import {
     CMD_CHAR_SET_COS_ANGLE, CMD_CHAR_SET_MIN_DIST, CMD_CHAR_SET_TEST_DIST, CMD_CHAR_SET_EXTRA_DOWN,
     CMD_CHAR_SET_STEP_UP, CMD_CHAR_SET_STICK_DOWN
 } from '../../../constants.mjs';
+import { Cleaner } from '../cleaner.mjs';
 
 class CharModifier {
     _modifier = null;
@@ -18,6 +19,7 @@ class CharModifier {
     constructor(modifier) {
         this._modifier = modifier;
         this._tracker = modifier.backend.tracker;
+        this._cleaner = modifier.backend.cleaner;
     }
 
     modify(command, cb) {
@@ -194,7 +196,7 @@ class CharModifier {
             }
 
             // invalidate current debug draw, so we draw a new shape instead
-            char.debugDrawData = null;
+            Cleaner.cleanDebugDrawData(char, backend.Jolt);
         }
 
         let shape;

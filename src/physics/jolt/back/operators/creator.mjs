@@ -7,6 +7,7 @@ import {
     CMD_CREATE_SOFT_BODY, CMD_CREATE_VEHICLE, MOTION_QUALITY_DISCRETE, MOTION_TYPE_DYNAMIC,
     MOTION_TYPE_KINEMATIC, OBJ_LAYER_MOVING, OMP_CALCULATE_MASS_AND_INERTIA, OMP_MASS_AND_INERTIA_PROVIDED,
     SHAPE_BOX, SHAPE_CAPSULE, SHAPE_CONVEX_HULL, SHAPE_CYLINDER, SHAPE_HEIGHTFIELD, SHAPE_MESH,
+    SHAPE_MUTABLE_COMPOUND,
     SHAPE_SPHERE, SHAPE_STATIC_COMPOUND
 } from '../../constants.mjs';
 import { ConstraintCreator } from './helpers/constraint-creator.mjs';
@@ -106,7 +107,8 @@ class Creator {
                 break;
 
             case SHAPE_STATIC_COMPOUND:
-                settings = createStaticCompoundShapeSettings(cb, meshBuffers, Jolt, jv, jq);
+            case SHAPE_MUTABLE_COMPOUND:
+                settings = createCompoundShapeSettings(cb, meshBuffers, Jolt, jv, jq);
                 break;
 
             case SHAPE_HEIGHTFIELD:
@@ -124,8 +126,11 @@ class Creator {
             return null;
         }
 
-        if (shapeType === SHAPE_STATIC_COMPOUND) {
-            const compoundSettings = new Jolt.StaticCompoundShapeSettings();
+        const isStaticCompound = shapeType === SHAPE_STATIC_COMPOUND;
+        const isMutableCompound = shapeType === SHAPE_MUTABLE_COMPOUND;
+        if (isStaticCompound || isMutableCompound) {
+            const compoundSettings = isStaticCompound ?
+                new Jolt.StaticCompoundShapeSettings() : new Jolt.MutableCompoundShapeSettings();
 
             for (let i = 0, end = settings.length; i < end; i += 3) {
                 const childSettings = settings[i];
@@ -966,7 +971,7 @@ function createMeshShapeSettings(cb, Jolt, meshBuffers, shapeType, jv) {
     return settings;
 }
 
-function createStaticCompoundShapeSettings(cb, meshBuffers, Jolt, jv, jq) {
+function createCompoundShapeSettings(cb, meshBuffers, Jolt, jv, jq) {
     const childrenCount = cb.read(BUFFER_READ_UINT32);
     const children = [];
 
