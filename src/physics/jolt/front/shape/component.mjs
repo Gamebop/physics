@@ -534,7 +534,7 @@ class ShapeComponent extends Component {
 
         this.system.addCommand(
             OPERATOR_MODIFIER, CMD_REMOVE_SHAPE, this._index,
-            childIndex, BUFFER_WRITE_UINT32, false,
+            childIndex, BUFFER_WRITE_UINT32, false
         );
     }
 

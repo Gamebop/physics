@@ -359,7 +359,6 @@ class Modifier {
 
     _addShape(cb) {
         const backend = this._backend;
-        const bodyInterface = backend.bodyInterface;
         const Jolt = backend.Jolt;
         const body = this._getBody(cb);
         const jv = this._joltVec3_1;
@@ -411,7 +410,6 @@ class Modifier {
 
     _removeShape(cb) {
         const backend = this._backend;
-        const bodyInterface = backend.bodyInterface;
         const Jolt = backend.Jolt;
         const body = this._getBody(cb);
 
@@ -429,7 +427,7 @@ class Modifier {
                     return false;
                 }
             }
-            
+
             const childShapesCount = compoundShape.GetNumSubShapes();
             if (childIndex > childShapesCount - 1) {
                 if ($_DEBUG) {
@@ -448,7 +446,7 @@ class Modifier {
             if (shape.needsRelease) {
                 shape.Release();
             }
-            
+
             Cleaner.cleanDebugDrawData(body, Jolt);
         } catch (e) {
             if ($_DEBUG) {
@@ -462,7 +460,6 @@ class Modifier {
 
     _modifyShape(cb) {
         const backend = this._backend;
-        const bodyInterface = backend.bodyInterface;
         const Jolt = backend.Jolt;
         const body = this._getBody(cb);
         const jv = this._joltVec3_1;
@@ -470,12 +467,12 @@ class Modifier {
 
         try {
             const childIndex = cb.read(BUFFER_READ_UINT32);
-            
+
             jv.FromBuffer(cb);
             jq.FromBuffer(cb);
 
             const bodyShape = body.GetShape();
-            
+
             if ($_DEBUG) {
                 const isValid = bodyShape.GetType() === Jolt.EShapeType_Compound &&
                 bodyShape.GetSubType() === Jolt.EShapeSubType_MutableCompound;
@@ -484,7 +481,7 @@ class Modifier {
                     return false;
                 }
             }
-            
+
             let shape;
             if (cb.flag) {
                 const shapeIndex = cb.read(BUFFER_READ_UINT32);
