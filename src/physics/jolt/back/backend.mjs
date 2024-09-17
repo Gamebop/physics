@@ -62,6 +62,7 @@ class JoltBackend {
             contactRemovedEventsEnabled: true,
             contactPoints: true,
             contactPointsAveraged: true,
+            bitFiltering: null,
             broadPhaseLayers: [BP_LAYER_NON_MOVING, BP_LAYER_MOVING],
             // object layer vs object layer
             objectLayerPairs: [

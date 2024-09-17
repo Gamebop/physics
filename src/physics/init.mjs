@@ -48,6 +48,63 @@ class JoltInitSettings {
     baumgarte;
 
     /**
+     * Enables objects filtering using group and mask bits, similar to Bullet, Rapier, etc. If
+     * provided, it will disable default filtering. Uses group bits and mask bits to find collision
+     * pairs. Two layers can collide if `object1.group` and `object2.mask` is non-zero and
+     * `object2.group` and `object1.mask` is non-zero.
+     *
+     * Default Jolt build uses 16 bits for group filtering. In case you need more groups, you can
+     * compile it with additional flag to enable 32 bits. Refer to official Jolt documentation for
+     * building details.
+     *
+     * Group - an object group the object belongs to.
+     * Mask - object groups the object can collide with.
+     *
+     * To enable the bits filtering, you should provide an array of numbers, where elements are
+     * read in pairs:
+     * - Each pair forms a new broadphase layer.
+     * - First element of the pair are the groups to be included in that layer.
+     * - Second element of the pair are the groups to be excluded from that layer.
+     *
+     * @example
+     * ```js
+     * // Layer that objects can be in, determines which other objects it can collide with
+     * // Typically you at least want to have 1 layer for moving bodies and 1 layer for static bodies, but you can have more
+     * // layers if you want.
+     * const GROUP_STATIC = 1;
+     * const GROUP_FLOOR1 = 2;
+     * const GROUP_FLOOR2 = 4;
+     * const GROUP_FLOOR3 = 8;
+     * const GROUP_ALL = GROUP_STATIC | GROUP_FLOOR1 | GROUP_FLOOR2 | GROUP_FLOOR3;
+     *
+     * // init physics
+     * await init(app, {
+     *     fixedStep: 1 / 30,
+     *     // ... other options,
+     *     bitFiltering: [
+     *         GROUP_STATIC, 0,
+     *         GROUP_FLOOR1 | GROUP_FLOOR2 | GROUP_FLOOR3, 0
+     *     ]
+     * });
+     *
+     * // create floor that collides with everything
+     * floorEntity.addComponent('body', {
+     *     group: GROUP_STATIC,
+     *     mask: GROUP_ALL
+     * });
+     *
+     * // create a dynamic body that collides with a floor GROUP_FLOOR2
+     * dynamicEntity.addComponent('body', {
+     *     group: GROUP_FLOOR2,
+     *     mask: GROUP_ALL
+     * });
+     * ```
+     * @type {Array<number> | null}
+     * @defaultValue null
+     */
+    bitFiltering;
+
+    /**
      * Maximum relative delta orientation for body pairs to be able to reuse collision results from
      * last update, stored as
      * ```

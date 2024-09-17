@@ -13,7 +13,7 @@ import {
     CMD_SET_INTERNAL_EDGE, CMD_SET_IS_SENSOR, CMD_SET_KIN_COL_NON_DYN, CMD_SET_LIN_VEL,
     CMD_SET_LIN_VEL_CLAMPED, CMD_SET_MAX_ANG_VEL, CMD_SET_MAX_LIN_VEL, CMD_SET_MOTION_QUALITY,
     CMD_SET_MOTION_TYPE, CMD_SET_OBJ_LAYER, CMD_SET_POS_STEPS, CMD_SET_RESTITUTION, CMD_SET_SHAPE,
-    CMD_SET_VEL_STEPS, CMD_TOGGLE_GROUP_PAIR, CMD_USE_MOTION_STATE, MOTION_QUALITY_DISCRETE,
+    CMD_SET_VEL_STEPS, CMD_TOGGLE_GROUP_PAIR, CMD_UPDATE_BIT_FILTER, CMD_USE_MOTION_STATE, MOTION_QUALITY_DISCRETE,
     MOTION_TYPE_DYNAMIC, MOTION_TYPE_KINEMATIC
 } from '../../constants.mjs';
 import { Creator } from './creator.mjs';
@@ -247,6 +247,10 @@ class Modifier {
 
             case CMD_SET_POS_STEPS:
                 ok = this._setPosSteps(cb);
+                break;
+
+            case CMD_UPDATE_BIT_FILTER:
+                ok = this._updateGroupMask(cb);
                 break;
         }
 
@@ -1092,6 +1096,26 @@ class Modifier {
 
         try {
             body.GetMotionProperties().SetNumPositionStepsOverride(cb.read(BUFFER_READ_UINT32));
+        } catch (e) {
+            if ($_DEBUG) {
+                Debug.error(e);
+            }
+            return false;
+        }
+
+        return true;
+    }
+
+    _updateGroupMask(cb) {
+        const backend = this._backend;
+        const body = this._getBody(cb);
+
+        const group = cb.read(BUFFER_READ_UINT32);
+        const mask = cb.read(BUFFER_READ_UINT32);
+
+        try {
+            const objectLayer = backend.Jolt.ObjectLayerPairFilterMask.prototype.sGetObjectLayer(group, mask);
+            backend.bodyInterface.SetObjectLayer(body.GetID(), objectLayer);
         } catch (e) {
             if ($_DEBUG) {
                 Debug.error(e);

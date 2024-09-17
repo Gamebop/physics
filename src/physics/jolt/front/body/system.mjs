@@ -27,6 +27,8 @@ const schema = [
     'motionType',
     'objectLayer',
     'collisionGroup',
+    'group',
+    'mask',
     'subGroup',
     'allowedDOFs',
     'allowDynamicOrKinematic',
