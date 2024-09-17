@@ -365,6 +365,9 @@ class Creator {
         const shape = shapeResult.Get();
         shape.AddRef();
 
+        // mark it for release, e.g. when removing a child from compound shape
+        shape.needsRelease = true;
+
         this._backend.tracker.shapeMap.set(num, shape);
 
         return true;

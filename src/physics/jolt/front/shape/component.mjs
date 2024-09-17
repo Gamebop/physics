@@ -3,7 +3,7 @@ import { Debug } from '../../debug.mjs';
 import { Component } from '../component.mjs';
 import {
     BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT32, BUFFER_WRITE_UINT8,
-    BUFFER_WRITE_VEC32, CMD_ADD_SHAPE, CMD_REMOVE_SHAPE, CMD_SET_DEBUG_DRAW, CMD_SET_DEBUG_DRAW_DEPTH, CMD_SET_SHAPE, FLOAT32_SIZE,
+    BUFFER_WRITE_VEC32, CMD_ADD_SHAPE, CMD_MODIFY_SHAPE, CMD_REMOVE_SHAPE, CMD_SET_DEBUG_DRAW, CMD_SET_DEBUG_DRAW_DEPTH, CMD_SET_SHAPE, FLOAT32_SIZE,
     OPERATOR_MODIFIER, SHAPE_BOX, SHAPE_CAPSULE, SHAPE_CONVEX_HULL, SHAPE_CYLINDER,
     SHAPE_HEIGHTFIELD, SHAPE_MESH, SHAPE_MUTABLE_COMPOUND, SHAPE_SPHERE, SHAPE_STATIC_COMPOUND
 } from '../../constants.mjs';
@@ -509,7 +509,8 @@ class ShapeComponent extends Component {
 
     /**
      * Allows to remove a child shape from a mutable compound shape. The children are indexed in
-     * order they were added. If you remove a child, then the next child takes its place.
+     * order they were added. Indices are zero based and have no gaps. If you remove a child, then
+     * the next child takes its index.
      *
      * For example, if you remove child under index `0`, then all children shift there indices, so
      * that the child with index `1`, becomes a child with index `0`, etc.
@@ -534,6 +535,43 @@ class ShapeComponent extends Component {
         this.system.addCommand(
             OPERATOR_MODIFIER, CMD_REMOVE_SHAPE, this._index,
             childIndex, BUFFER_WRITE_UINT32, false,
+        );
+    }
+
+    /**
+     * Allows to modify a child shape of a mutable compound shape.
+     *
+     * @param {number} childIndex - The child shape index. Children indices are zero based and have
+     * no gaps.
+     * @param {Vec3} [localPos] - Local position of the shape.
+     * @param {Quat} [localRot] - Local rotation of the shape.
+     * @param {number} [shapeIndex] - The index of a shape to add. It can be created by
+     * {@link JoltManager.createShape | createShape}.
+     */
+    modifyShape(childIndex, localPos = Vec3.ZERO, localRot = Quat.IDENTITY, shapeIndex = -1) {
+        if (this.shape !== SHAPE_MUTABLE_COMPOUND) {
+            if ($_DEBUG) {
+                Debug.warn('Current shape type does not support modifying child shapes.');
+            }
+            return;
+        }
+
+        if ($_DEBUG) {
+            let ok = Debug.checkUint(childIndex);
+            ok = ok && Debug.checkVec(localPos);
+            ok = ok && Debug.checkQuat(localRot);
+            ok = ok && Debug.checkUint(shapeIndex);
+            if (!ok) {
+                return;
+            }
+        }
+
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_MODIFY_SHAPE, this._index,
+            childIndex, BUFFER_WRITE_UINT32, false,
+            localPos, BUFFER_WRITE_VEC32, false,
+            localRot, BUFFER_WRITE_VEC32, false,
+            shapeIndex < 0 ? null : shapeIndex, BUFFER_WRITE_UINT32
         );
     }
 

@@ -192,6 +192,7 @@ export const CMD_SET_DEBUG_DRAW = 60;
 export const CMD_SET_DEBUG_DRAW_DEPTH = 61;
 export const CMD_ADD_SHAPE = 62;
 export const CMD_REMOVE_SHAPE = 63;
+export const CMD_MODIFY_SHAPE = 64;
 
 
 // Char Virtual 400-499
