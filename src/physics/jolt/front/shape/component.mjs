@@ -3,9 +3,9 @@ import { Debug } from '../../debug.mjs';
 import { Component } from '../component.mjs';
 import {
     BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT32, BUFFER_WRITE_UINT8,
-    BUFFER_WRITE_VEC32, CMD_SET_DEBUG_DRAW, CMD_SET_DEBUG_DRAW_DEPTH, CMD_SET_SHAPE, FLOAT32_SIZE,
+    BUFFER_WRITE_VEC32, CMD_ADD_SHAPE, CMD_MODIFY_SHAPE, CMD_REMOVE_SHAPE, CMD_SET_DEBUG_DRAW, CMD_SET_DEBUG_DRAW_DEPTH, CMD_SET_SHAPE, FLOAT32_SIZE,
     OPERATOR_MODIFIER, SHAPE_BOX, SHAPE_CAPSULE, SHAPE_CONVEX_HULL, SHAPE_CYLINDER,
-    SHAPE_HEIGHTFIELD, SHAPE_MESH, SHAPE_SPHERE, SHAPE_STATIC_COMPOUND
+    SHAPE_HEIGHTFIELD, SHAPE_MESH, SHAPE_MUTABLE_COMPOUND, SHAPE_SPHERE, SHAPE_STATIC_COMPOUND
 } from '../../constants.mjs';
 
 const defaultHalfExtent = new Vec3(0.5, 0.5, 0.5);
@@ -471,6 +471,110 @@ class ShapeComponent extends Component {
         return this._useEntityScale;
     }
 
+    /**
+     * Allows to add a shape to a mutable compound shape.
+     *
+     * @param {number} shapeIndex - The index of a shape to add. It can be created by
+     * {@link JoltManager.createShape | createShape}.
+     * @param {Vec3} [localPos] - Local position of the shape.
+     * @param {Quat} [localRot] - Local rotation of the shape.
+     * @param {number} [userData] - User defined unsigned integer.
+     */
+    addShape(shapeIndex, localPos = Vec3.ZERO, localRot = Quat.IDENTITY, userData = 0) {
+        if (this.shape !== SHAPE_MUTABLE_COMPOUND) {
+            if ($_DEBUG) {
+                Debug.warn('Current shape type does not support adding child shapes to it.');
+            }
+            return;
+        }
+
+        if ($_DEBUG) {
+            let ok = Debug.checkUint(shapeIndex);
+            ok = ok && Debug.checkVec(localPos);
+            ok = ok && Debug.checkQuat(localRot);
+            ok = ok && Debug.checkUint(userData);
+            if (!ok) {
+                return;
+            }
+        }
+
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_ADD_SHAPE, this._index,
+            shapeIndex, BUFFER_WRITE_UINT32, false,
+            localPos, BUFFER_WRITE_VEC32, false,
+            localRot, BUFFER_WRITE_VEC32, false,
+            userData, BUFFER_WRITE_UINT32, false
+        );
+    }
+
+    /**
+     * Allows to remove a child shape from a mutable compound shape. The children are indexed in
+     * order they were added. Indices are zero based and have no gaps. If you remove a child, then
+     * the next child takes its index.
+     *
+     * For example, if you remove child under index `0`, then all children shift there indices, so
+     * that the child with index `1`, becomes a child with index `0`, etc.
+     *
+     * @param {number} childIndex - The index of a child shape to remove.
+     */
+    removeShape(childIndex) {
+        if (this.shape !== SHAPE_MUTABLE_COMPOUND) {
+            if ($_DEBUG) {
+                Debug.warn('Current shape type does not support removing a child shape from it.');
+            }
+            return;
+        }
+
+        if ($_DEBUG) {
+            const ok = Debug.checkUint(childIndex);
+            if (!ok) {
+                return;
+            }
+        }
+
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_REMOVE_SHAPE, this._index,
+            childIndex, BUFFER_WRITE_UINT32, false
+        );
+    }
+
+    /**
+     * Allows to modify a child shape of a mutable compound shape.
+     *
+     * @param {number} childIndex - The child shape index. Children indices are zero based and have
+     * no gaps.
+     * @param {Vec3} [localPos] - Local position of the shape.
+     * @param {Quat} [localRot] - Local rotation of the shape.
+     * @param {number} [shapeIndex] - The index of a shape to add. It can be created by
+     * {@link JoltManager.createShape | createShape}.
+     */
+    modifyShape(childIndex, localPos = Vec3.ZERO, localRot = Quat.IDENTITY, shapeIndex = -1) {
+        if (this.shape !== SHAPE_MUTABLE_COMPOUND) {
+            if ($_DEBUG) {
+                Debug.warn('Current shape type does not support modifying child shapes.');
+            }
+            return;
+        }
+
+        if ($_DEBUG) {
+            let ok = Debug.checkUint(childIndex);
+            ok = ok && Debug.checkVec(localPos);
+            ok = ok && Debug.checkQuat(localRot);
+            ok = ok && Debug.checkUint(shapeIndex);
+            if (!ok) {
+                return;
+            }
+        }
+
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_MODIFY_SHAPE, this._index,
+            childIndex, BUFFER_WRITE_UINT32, false,
+            localPos, BUFFER_WRITE_VEC32, false,
+            localRot, BUFFER_WRITE_VEC32, false,
+            shapeIndex < 0 ? null : shapeIndex, BUFFER_WRITE_UINT32
+        );
+    }
+
     getMeshes(callback) {
         const id = this._renderAsset instanceof Asset ? this._renderAsset.id : this._renderAsset;
         const assets = this.system.app.assets;
@@ -557,6 +661,7 @@ class ShapeComponent extends Component {
                 break;
 
             case SHAPE_STATIC_COMPOUND:
+            case SHAPE_MUTABLE_COMPOUND:
                 ok = addCompoundChildren(cb, props.entity);
                 break;
 
