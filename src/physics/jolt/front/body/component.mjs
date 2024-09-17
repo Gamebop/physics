@@ -51,15 +51,15 @@ class BodyComponent extends ShapeComponent {
 
     _group = 0;
 
-    _mask = 0;
-
     _inertiaMultiplier = 1;
-
+    
     _isSensor = false;
-
+    
     _linearDamping = 0;
-
+    
     _linearVelocity = new Vec3();
+
+    _mask = 0;
 
     _maxAngularVelocity = 47.12388980384689;
 
@@ -429,6 +429,8 @@ class BodyComponent extends ShapeComponent {
     /**
      * Updates the filtering group bit. Value is ignored, if {@link JoltInitSettings.bitFiltering}
      * is not set.
+     *
+     * @param {number} group - Unsigned integer.
      */
     set group(group) {
         if (this._group === group) {
@@ -565,6 +567,8 @@ class BodyComponent extends ShapeComponent {
     /**
      * Updates the filtering mask bit. Value is ignored, if {@link JoltInitSettings.bitFiltering}
      * is not set.
+     *
+     * @param {number} mask - Unsigned integer.
      */
     set mask(mask) {
         if (this._mask === mask) {

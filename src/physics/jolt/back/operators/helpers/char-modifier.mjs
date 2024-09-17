@@ -7,7 +7,8 @@ import {
     CMD_CHAR_SET_UP, BUFFER_WRITE_BOOL, BUFFER_READ_UINT16, BUFFER_WRITE_UINT16,
     CMD_CHAR_SET_BP_FILTER_LAYER, BP_LAYER_MOVING, OBJ_LAYER_MOVING, CMD_CHAR_SET_OBJ_FILTER_LAYER,
     CMD_CHAR_SET_COS_ANGLE, CMD_CHAR_SET_MIN_DIST, CMD_CHAR_SET_TEST_DIST, CMD_CHAR_SET_EXTRA_DOWN,
-    CMD_CHAR_SET_STEP_UP, CMD_CHAR_SET_STICK_DOWN
+    CMD_CHAR_SET_STEP_UP, CMD_CHAR_SET_STICK_DOWN,
+    CMD_CHAR_UPDATE_BIT_FILTER
 } from '../../../constants.mjs';
 import { Cleaner } from '../cleaner.mjs';
 
@@ -65,6 +66,9 @@ class CharModifier {
 
             case CMD_CHAR_SET_OBJ_FILTER_LAYER:
                 return this._setObjFilterLayer(cb);
+            
+            case CMD_CHAR_UPDATE_BIT_FILTER:
+                return this._updateBitFilter(cb);
 
             case CMD_CHAR_SET_COS_ANGLE:
                 return this._setCosAngle(cb);
@@ -383,6 +387,36 @@ class CharModifier {
             char.objFilter = layer !== OBJ_LAYER_MOVING ?
                 new backend.Jolt.DefaultObjectLayerFilter(
                     backend.joltInterface.GetObjectLayerPairFilter(), layer) : null;
+        } catch (e) {
+            if ($_DEBUG) {
+                Debug.error(e);
+            }
+            return false;
+        }
+
+        return true;
+    }
+
+    _setObjFilterLayer(cb) {
+        const char = this._tracker.getBodyByPCID(cb.read(BUFFER_READ_UINT32));
+        const backend = this._modifier.backend;
+        const Jolt = backend.Jolt;
+
+        const group = cb.read(BUFFER_READ_UINT32);
+        const mask = cb.read(BUFFER_READ_UINT32);
+
+        if (!backend.config.bitFiltering) {
+            return;
+        }
+
+        try {
+            if (char.objFilter) {
+                Jolt.destroy(char.objFilter);
+            }
+
+            const objectLayer = Jolt.ObjectLayerPairFilterMask.prototype.sGetObjectLayer(group, mask);
+            char.objFilter = new Jolt.DefaultObjectLayerFilter(
+                    backend.joltInterface.GetObjectLayerPairFilter(), objectLayer);
         } catch (e) {
             if ($_DEBUG) {
                 Debug.error(e);

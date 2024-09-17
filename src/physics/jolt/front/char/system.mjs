@@ -34,6 +34,8 @@ const schema = [
     'pairedEntity',
     'bpFilterLayer',
     'objFilterLayer',
+    'group',
+    'mask',
     'stickToFloorStepDown',
     'walkStairsCosAngleForwardContact',
     'walkStairsMinStepForward',
