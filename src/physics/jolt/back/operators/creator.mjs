@@ -749,26 +749,14 @@ class Creator {
         character.bpFilter = bpLayer !== BP_LAYER_MOVING ? new Jolt.DefaultBroadPhaseLayerFilter(
             joltInterface.GetObjectVsBroadPhaseLayerFilter(), bpLayer) : null;
 
-        
-
-        // TODO
-
         const bitFiltering = config.bitFiltering;
         if (!!bitFiltering) {
-            // const count = bitFiltering.length;
-            // const bpInterface = new Jolt.BroadPhaseLayerInterfaceMask(count * 0.5);
-
-            // for (let i = 0; i < count; i += 2) {
-            //     bpInterface.ConfigureLayer(new Jolt.BroadPhaseLayer(i * 0.5), bitFiltering[i], bitFiltering[i + 1]);
-            // }
-
-            // settings.mObjectLayerPairFilter = new Jolt.ObjectLayerPairFilterMask();
-            // settings.mBroadPhaseLayerInterface = bpInterface;
-            // settings.mObjectVsBroadPhaseLayerFilter = new Jolt.ObjectVsBroadPhaseLayerFilterMask(bpInterface);
-
+            const objectVsBroadPhaseLayerFilter = joltInterface.GetObjectVsBroadPhaseLayerFilter();
+            const objectLayerPairFilter = joltInterface.GetObjectLayerPairFilter();
             const objectLayer = backend.Jolt.ObjectLayerPairFilterMask.prototype.sGetObjectLayer(group, mask);
-            character.objFilter = new Jolt.DefaultObjectLayerFilter(new Jolt.ObjectLayerPairFilterMask(),
-                                                                    objectLayer);
+            
+            character.bpFilter = new Jolt.DefaultBroadPhaseLayerFilter(objectVsBroadPhaseLayerFilter, objectLayer);
+            character.objFilter = new Jolt.DefaultObjectLayerFilter(objectLayerPairFilter, objectLayer);
         } else {
             character.objFilter = objLayer !== OBJ_LAYER_MOVING ? new Jolt.DefaultObjectLayerFilter(
                 joltInterface.GetObjectLayerPairFilter(), objLayer) : null;

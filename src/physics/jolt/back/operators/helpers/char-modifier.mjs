@@ -397,7 +397,7 @@ class CharModifier {
         return true;
     }
 
-    _setObjFilterLayer(cb) {
+    _updateBitFilter(cb) {
         const char = this._tracker.getBodyByPCID(cb.read(BUFFER_READ_UINT32));
         const backend = this._modifier.backend;
         const Jolt = backend.Jolt;
@@ -414,9 +414,9 @@ class CharModifier {
                 Jolt.destroy(char.objFilter);
             }
 
+            const objectLayerPairFilter = backend.joltInterface.GetObjectLayerPairFilter();
             const objectLayer = Jolt.ObjectLayerPairFilterMask.prototype.sGetObjectLayer(group, mask);
-            char.objFilter = new Jolt.DefaultObjectLayerFilter(
-                    backend.joltInterface.GetObjectLayerPairFilter(), objectLayer);
+            char.objFilter = new Jolt.DefaultObjectLayerFilter(objectLayerPairFilter, objectLayer);
         } catch (e) {
             if ($_DEBUG) {
                 Debug.error(e);
