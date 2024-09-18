@@ -392,6 +392,9 @@ class ShapeComponent extends Component {
      * ```
      * SHAPE_STATIC_COMPOUND
      * ```
+     * ```
+     * SHAPE_MUTABLE_COMPOUND
+     * ```
      *
      * @param {number} shapeNum - Shape type number.
      */
