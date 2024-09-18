@@ -81,7 +81,7 @@ class JoltInitSettings {
      * await init(app, {
      *     fixedStep: 1 / 30,
      *     // ... other options,
-     *     
+     *
      *     // Each pair in array is a broadphase layer: [included groups, excluded groups]
      *     bitFiltering: [
      *         GROUP_STATIC, 0,

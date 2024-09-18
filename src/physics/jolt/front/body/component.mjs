@@ -52,11 +52,11 @@ class BodyComponent extends ShapeComponent {
     _group = 0;
 
     _inertiaMultiplier = 1;
-    
+
     _isSensor = false;
-    
+
     _linearDamping = 0;
-    
+
     _linearVelocity = new Vec3();
 
     _mask = 0;

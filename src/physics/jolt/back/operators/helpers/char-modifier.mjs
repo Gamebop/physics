@@ -66,7 +66,7 @@ class CharModifier {
 
             case CMD_CHAR_SET_OBJ_FILTER_LAYER:
                 return this._setObjFilterLayer(cb);
-            
+
             case CMD_CHAR_UPDATE_BIT_FILTER:
                 return this._updateBitFilter(cb);
 

@@ -754,7 +754,7 @@ class Creator {
             const objectVsBroadPhaseLayerFilter = joltInterface.GetObjectVsBroadPhaseLayerFilter();
             const objectLayerPairFilter = joltInterface.GetObjectLayerPairFilter();
             const objectLayer = backend.Jolt.ObjectLayerPairFilterMask.prototype.sGetObjectLayer(group, mask);
-            
+
             character.bpFilter = new Jolt.DefaultBroadPhaseLayerFilter(objectVsBroadPhaseLayerFilter, objectLayer);
             character.objFilter = new Jolt.DefaultObjectLayerFilter(objectLayerPairFilter, objectLayer);
         } else {
