@@ -255,46 +255,62 @@ class Creator {
         const Jolt = backend.Jolt;
 
         this._joltVec3 = new Jolt.Vec3();
-        this._joltVec3_2 = new Jolt.Vec3();
         this._joltQuat = new Jolt.Quat();
 
-        const bpMap = new Map();
-        const pairs = config.objectLayerPairs;
-        const pairsCount = pairs.length * 0.5;
-        const objectFilter = new Jolt.ObjectLayerPairFilterTable(pairsCount);
-        for (let i = 0; i < pairsCount * 2; i += 2) {
-            objectFilter.EnableCollision(pairs[i], pairs[i + 1]);
-        }
-
-        const bpLayers = config.broadPhaseLayers;
-        const bpLayerCount = bpLayers.length;
-        const bpInterface = new Jolt.BroadPhaseLayerInterfaceTable(pairsCount, bpLayerCount);
-        for (let i = 0; i < bpLayerCount; i++) {
-            const id = bpLayers[i];
-            const bpLayer = new Jolt.BroadPhaseLayer(id);
-            bpMap.set(id, bpLayer);
-        }
-
-        // Map object layers to broadphase layers
-        let objLayerCount = 0;
-        const objLayers = config.mapObjectToBroadPhaseLayer;
-        for (let i = 0; i < objLayers.length; i += 2) {
-            objLayerCount++;
-            bpInterface.MapObjectToBroadPhaseLayer(objLayers[i], bpMap.get(objLayers[i + 1]));
-        }
-        // Broadphase layers have been copied to the bpInterface, so we can destroy those
-        bpMap.forEach((bpLayer) => {
-            Jolt.destroy(bpLayer);
-        });
-        bpMap.clear();
-
         const settings = new Jolt.JoltSettings();
-        settings.mObjectLayerPairFilter = objectFilter;
-        settings.mBroadPhaseLayerInterface = bpInterface;
-        settings.mObjectVsBroadPhaseLayerFilter = new Jolt.ObjectVsBroadPhaseLayerFilterTable(settings.mBroadPhaseLayerInterface,
-                                                                                              bpLayerCount,
-                                                                                              settings.mObjectLayerPairFilter,
-                                                                                              objLayerCount);
+        const bitFiltering = config.bitFiltering;
+
+        if (bitFiltering) {
+            const count = bitFiltering.length;
+            const bpInterface = new Jolt.BroadPhaseLayerInterfaceMask(count * 0.5);
+
+            for (let i = 0; i < count; i += 2) {
+                bpInterface.ConfigureLayer(new Jolt.BroadPhaseLayer(i * 0.5), bitFiltering[i], bitFiltering[i + 1]);
+            }
+
+            settings.mObjectLayerPairFilter = new Jolt.ObjectLayerPairFilterMask();
+            settings.mBroadPhaseLayerInterface = bpInterface;
+            settings.mObjectVsBroadPhaseLayerFilter = new Jolt.ObjectVsBroadPhaseLayerFilterMask(bpInterface);
+        } else {
+            const bpMap = new Map();
+            const pairs = config.objectLayerPairs;
+            const pairsCount = pairs.length * 0.5;
+            const objectFilter = new Jolt.ObjectLayerPairFilterTable(pairsCount);
+            for (let i = 0; i < pairsCount * 2; i += 2) {
+                objectFilter.EnableCollision(pairs[i], pairs[i + 1]);
+            }
+
+            const bpLayers = config.broadPhaseLayers;
+            const bpLayerCount = bpLayers.length;
+            const bpInterface = new Jolt.BroadPhaseLayerInterfaceTable(pairsCount, bpLayerCount);
+            for (let i = 0; i < bpLayerCount; i++) {
+                const id = bpLayers[i];
+                const bpLayer = new Jolt.BroadPhaseLayer(id);
+                bpMap.set(id, bpLayer);
+            }
+
+            // Map object layers to broadphase layers
+            let objLayerCount = 0;
+            const objLayers = config.mapObjectToBroadPhaseLayer;
+            for (let i = 0; i < objLayers.length; i += 2) {
+                objLayerCount++;
+                bpInterface.MapObjectToBroadPhaseLayer(objLayers[i], bpMap.get(objLayers[i + 1]));
+            }
+            // Broadphase layers have been copied to the bpInterface, so we can destroy those
+            bpMap.forEach((bpLayer) => {
+                Jolt.destroy(bpLayer);
+            });
+            bpMap.clear();
+
+            settings.mObjectLayerPairFilter = objectFilter;
+            settings.mBroadPhaseLayerInterface = bpInterface;
+            settings.mObjectVsBroadPhaseLayerFilter =
+                new Jolt.ObjectVsBroadPhaseLayerFilterTable(settings.mBroadPhaseLayerInterface,
+                                                            bpLayerCount,
+                                                            settings.mObjectLayerPairFilter,
+                                                            objLayerCount);
+        }
+
         const joltInterface = new Jolt.JoltInterface(settings);
         Jolt.destroy(settings);
 
@@ -342,8 +358,12 @@ class Creator {
     }
 
     destroy() {
-        Jolt.destroy(this._joltVec3);
-        Jolt.destroy(this._joltQuat);
+        if (this._joltVec3) {
+            Jolt.destroy(this._joltVec3);
+        }
+        if (this._joltQuat) {
+            Jolt.destroy(this._joltQuat);
+        }
     }
 
     // TODO
@@ -378,6 +398,7 @@ class Creator {
         const jv = this._joltVec3;
         const jq = this._joltQuat;
         const Jolt = backend.Jolt;
+        const config = backend.config;
 
         // ------------ SHAPE PROPS ----------------
 
@@ -415,8 +436,16 @@ class Creator {
         // use motion state
         const useMotionState = cb.read(BUFFER_READ_BOOL);
 
+        // bit filtering
+        const group = cb.read(BUFFER_READ_UINT32);
+        const mask = cb.read(BUFFER_READ_UINT32);
+
         // object layer
-        const objectLayer = cb.read(BUFFER_READ_UINT32);
+        let objectLayer = cb.read(BUFFER_READ_UINT32);
+        if (!!config.bitFiltering) {
+            objectLayer = Jolt.ObjectLayerPairFilterMask.prototype.sGetObjectLayer(group, mask);
+        }
+
         const bodyCreationSettings = new Jolt.BodyCreationSettings(shape, jv, jq, jmt, objectLayer);
 
         bodyCreationSettings.mLinearVelocity = jv.FromBuffer(cb);
@@ -441,18 +470,20 @@ class Creator {
 
         // collision group
         const hasCollisionGroup = cb.read(BUFFER_READ_BOOL);
-        const group = hasCollisionGroup ? cb.read(BUFFER_READ_UINT32) : null;
+        const colGroup = hasCollisionGroup ? cb.read(BUFFER_READ_UINT32) : null;
 
         // collision sub group
         const hasSubGroup = cb.read(BUFFER_READ_BOOL);
         const subGroup = hasSubGroup ? cb.read(BUFFER_READ_UINT32) : null;
 
-        if (group !== null && subGroup !== null) {
-            const table = backend.groupFilterTables[group];
+        if (!config.bitFiltering && colGroup !== null && subGroup !== null) {
+            const table = backend.groupFilterTables[colGroup];
 
             if ($_DEBUG) {
-                let ok = Debug.assert(!!table, `Trying to set a filter group that does not exist: ${group}`);
-                ok = ok && Debug.assert((subGroup <= table?.maxIndex), `Trying to set sub group that is over the filter group table size: ${subGroup}`);
+                let ok = Debug.assert(!!table, `Trying to set a filter group that does not exist:` +
+                    `${colGroup}`);
+                ok = ok && Debug.assert((subGroup <= table?.maxIndex), `Trying to set sub group` +
+                    ` that is over the filter group table size: ${subGroup}`);
                 if (!ok) {
                     return false;
                 }
@@ -460,7 +491,7 @@ class Creator {
 
             const mCollisionGroup = bodyCreationSettings.mCollisionGroup;
             mCollisionGroup.SetGroupFilter(table);
-            mCollisionGroup.SetGroupID(group);
+            mCollisionGroup.SetGroupID(colGroup);
             mCollisionGroup.SetSubGroupID(subGroup);
         }
 
@@ -498,7 +529,7 @@ class Creator {
 
         if ($_DEBUG) {
             body.debugDrawDepth = cb.read(BUFFER_READ_BOOL);
-            body.debugDraw = cb.read(BUFFER_READ_BOOL) && !backend.config.useWebWorker;
+            body.debugDraw = cb.read(BUFFER_READ_BOOL) && !config.useWebWorker;
         }
 
         // Destroy shape settings after body is created:
@@ -712,11 +743,24 @@ class Creator {
         const bpLayer = cb.read(BUFFER_READ_UINT16);
         const objLayer = cb.read(BUFFER_READ_UINT16);
 
+        const group = cb.read(BUFFER_READ_UINT32);
+        const mask = cb.read(BUFFER_READ_UINT32);
+
         character.bpFilter = bpLayer !== BP_LAYER_MOVING ? new Jolt.DefaultBroadPhaseLayerFilter(
             joltInterface.GetObjectVsBroadPhaseLayerFilter(), bpLayer) : null;
 
-        character.objFilter = objLayer !== OBJ_LAYER_MOVING ? new Jolt.DefaultObjectLayerFilter(
-            joltInterface.GetObjectLayerPairFilter(), objLayer) : null;
+        const bitFiltering = config.bitFiltering;
+        if (!!bitFiltering) {
+            const objectVsBroadPhaseLayerFilter = joltInterface.GetObjectVsBroadPhaseLayerFilter();
+            const objectLayerPairFilter = joltInterface.GetObjectLayerPairFilter();
+            const objectLayer = backend.Jolt.ObjectLayerPairFilterMask.prototype.sGetObjectLayer(group, mask);
+
+            character.bpFilter = new Jolt.DefaultBroadPhaseLayerFilter(objectVsBroadPhaseLayerFilter, objectLayer);
+            character.objFilter = new Jolt.DefaultObjectLayerFilter(objectLayerPairFilter, objectLayer);
+        } else {
+            character.objFilter = objLayer !== OBJ_LAYER_MOVING ? new Jolt.DefaultObjectLayerFilter(
+                joltInterface.GetObjectLayerPairFilter(), objLayer) : null;
+        }
 
         character.updateSettings = updateSettings;
 
@@ -725,7 +769,7 @@ class Creator {
             character.debugDraw = cb.read(BUFFER_READ_BOOL) && !config.useWebWorker;
         }
 
-        if (backend.config.useMotionStates && useMotionState) {
+        if (config.useMotionStates && useMotionState) {
             character.motionState = new MotionState(character);
         }
 

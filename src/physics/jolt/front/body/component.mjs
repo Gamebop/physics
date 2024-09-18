@@ -16,7 +16,8 @@ import {
     CMD_RESET_SLEEP_TIMER, CMD_SET_LIN_VEL_CLAMPED, CMD_SET_ANG_VEL_CLAMPED, CMD_RESET_MOTION,
     CMD_SET_MAX_ANG_VEL, CMD_SET_MAX_LIN_VEL, CMD_CLAMP_ANG_VEL, CMD_CLAMP_LIN_VEL,
     CMD_SET_VEL_STEPS, CMD_SET_POS_STEPS, CMD_ADD_ANGULAR_IMPULSE,
-    CMD_ADD_TORQUE
+    CMD_ADD_TORQUE,
+    CMD_UPDATE_BIT_FILTER
 } from '../../constants.mjs';
 
 const vec3 = new Vec3();
@@ -48,6 +49,8 @@ class BodyComponent extends ShapeComponent {
 
     _gravityFactor = 1;
 
+    _group = 0;
+
     _inertiaMultiplier = 1;
 
     _isSensor = false;
@@ -55,6 +58,8 @@ class BodyComponent extends ShapeComponent {
     _linearDamping = 0;
 
     _linearVelocity = new Vec3();
+
+    _mask = 0;
 
     _maxAngularVelocity = 47.12388980384689;
 
@@ -422,6 +427,46 @@ class BodyComponent extends ShapeComponent {
     }
 
     /**
+     * Updates the filtering group bit. Value is ignored, if {@link JoltInitSettings.bitFiltering}
+     * is not set.
+     *
+     * @param {number} group - Unsigned integer.
+     */
+    set group(group) {
+        if (this._group === group) {
+            return;
+        }
+
+        if ($_DEBUG) {
+            const ok = Debug.checkUint(group);
+            if (!ok) {
+                return;
+            }
+        }
+
+        this._group = group;
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_UPDATE_BIT_FILTER, this._index,
+            group, BUFFER_WRITE_UINT32, false,
+            this._mask, BUFFER_WRITE_UINT32, false
+        );
+    }
+
+    /**
+     * Collision group bit of an object layer.
+     *
+     * Two layers can collide if `object1.group` and `object2.mask` is non-zero and `object2.group`
+     * and `object1.mask` is non-zero. The behavior is similar to that of filtering in e.g. Bullet,
+     * Rapier.
+     *
+     * @returns {number} Unsigned integer.
+     * @defaultValue 0
+     */
+    get group() {
+        return this._group;
+    }
+
+    /**
      * When calculating the inertia the calculated inertia will be multiplied by this value. This
      * factor is ignored when {@link overrideMassProperties} is set to
      * `OMP_MASS_AND_INERTIA_PROVIDED` - you are expected to calculate inertia yourself in that
@@ -517,6 +562,46 @@ class BodyComponent extends ShapeComponent {
      */
     get linearVelocity() {
         return this._linearVelocity;
+    }
+
+    /**
+     * Updates the filtering mask bit. Value is ignored, if {@link JoltInitSettings.bitFiltering}
+     * is not set.
+     *
+     * @param {number} mask - Unsigned integer.
+     */
+    set mask(mask) {
+        if (this._mask === mask) {
+            return;
+        }
+
+        if ($_DEBUG) {
+            const ok = Debug.checkUint(mask);
+            if (!ok) {
+                return;
+            }
+        }
+
+        this._mask = mask;
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_UPDATE_BIT_FILTER, this._index,
+            this._group, BUFFER_WRITE_UINT32, false,
+            mask, BUFFER_WRITE_UINT32, false
+        );
+    }
+
+    /**
+     * Collision mask bit of an object layer.
+     *
+     * Two layers can collide if `object1.group` and `object2.mask` is non-zero and `object2.group`
+     * and `object1.mask` is non-zero. The behavior is similar to that of filtering in e.g. Bullet,
+     * Rapier.
+     *
+     * @returns {number} Unsigned integer.
+     * @defaultValue 0
+     */
+    get mask() {
+        return this._mask;
     }
 
     /**
@@ -655,8 +740,10 @@ class BodyComponent extends ShapeComponent {
     }
 
     /**
-     * Changes the object layer that this body belongs to. Allows cheap filtering. Following
-     * default aliases available:
+     * Changes the object layer that this body belongs to. Allows cheap filtering. Not used, if
+     * {@link JoltInitSettings.bitFiltering} is provided during system initialization.
+     *
+     * You can use the following pre-made ones:
      * ```
      * OBJ_LAYER_NON_MOVING
      * ```
@@ -1397,6 +1484,8 @@ class BodyComponent extends ShapeComponent {
 
         cb.write(this._motionType, BUFFER_WRITE_UINT8, false);
         cb.write(this._useMotionState, BUFFER_WRITE_BOOL, false);
+        cb.write(this._group, BUFFER_WRITE_UINT32, false);
+        cb.write(this._mask, BUFFER_WRITE_UINT32, false);
         cb.write(this._objectLayer, BUFFER_WRITE_UINT32, false);
         cb.write(this._linearVelocity, BUFFER_WRITE_VEC32, false);
         cb.write(this._angularVelocity, BUFFER_WRITE_VEC32, false);

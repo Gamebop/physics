@@ -108,7 +108,8 @@ class JoltManager extends PhysicsManager {
         };
 
         // Make sure requested features are supported
-        config.useSharedArrayBuffer = config.useSharedArrayBuffer && typeof SharedArrayBuffer !== 'undefined';
+        config.useSharedArrayBuffer = config.useSharedArrayBuffer &&
+            typeof SharedArrayBuffer !== 'undefined';
         config.useWebWorker = config.useWebWorker && typeof Worker !== 'undefined';
         config.useSAB = config.useWebWorker && config.useSharedArrayBuffer;
 

@@ -12,7 +12,8 @@ import {
     CMD_CHAR_SET_USER_DATA, CMD_CHAR_SET_UP, BUFFER_WRITE_UINT16, BP_LAYER_MOVING,
     OBJ_LAYER_MOVING, CMD_CHAR_SET_BP_FILTER_LAYER, CMD_CHAR_SET_OBJ_FILTER_LAYER,
     CMD_CHAR_SET_COS_ANGLE, CMD_CHAR_SET_MIN_DIST, CMD_CHAR_SET_TEST_DIST,
-    CMD_CHAR_SET_EXTRA_DOWN, CMD_CHAR_SET_STEP_UP, CMD_CHAR_SET_STICK_DOWN
+    CMD_CHAR_SET_EXTRA_DOWN, CMD_CHAR_SET_STEP_UP, CMD_CHAR_SET_STICK_DOWN,
+    CMD_CHAR_UPDATE_BIT_FILTER
 } from '../../constants.mjs';
 
 /**
@@ -42,6 +43,8 @@ class CharComponent extends ShapeComponent {
 
     _groundVelocity = new Vec3();
 
+    _group = 0;
+
     _isSlopeTooSteep = false;
 
     _isSupported = false;
@@ -49,6 +52,8 @@ class CharComponent extends ShapeComponent {
     _linearVelocity = new Vec3();
 
     _mass = 70;
+
+    _mask = 0;
 
     _maxCollisionIterations = 5;
 
@@ -200,6 +205,46 @@ class CharComponent extends ShapeComponent {
     }
 
     /**
+     * Updates the filtering group bit. Value is ignored, if {@link JoltInitSettings.bitFiltering}
+     * is not set.
+     *
+     * @param {number} group - Unsigned integer.
+     */
+    set group(group) {
+        if (this._group === group) {
+            return;
+        }
+
+        if ($_DEBUG) {
+            const ok = Debug.checkUint(group);
+            if (!ok) {
+                return;
+            }
+        }
+
+        this._group = group;
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_CHAR_UPDATE_BIT_FILTER, this._index,
+            group, BUFFER_WRITE_UINT32, false,
+            this._mask, BUFFER_WRITE_UINT32, false
+        );
+    }
+
+    /**
+     * Collision group bit of an object layer.
+     *
+     * Two layers can collide if `object1.group` and `object2.mask` is non-zero and `object2.group`
+     * and `object1.mask` is non-zero. The behavior is similar to that of filtering in e.g. Bullet,
+     * Rapier.
+     *
+     * @returns {number} Unsigned integer.
+     * @defaultValue 0
+     */
+    get group() {
+        return this._group;
+    }
+
+    /**
      * @param {number} angle - Max angle.
      */
     set hitReductionCosMaxAngle(angle) {
@@ -283,6 +328,46 @@ class CharComponent extends ShapeComponent {
      */
     get linearVelocity() {
         return this._linearVelocity;
+    }
+
+    /**
+     * Updates the filtering mask bit. Value is ignored, if {@link JoltInitSettings.bitFiltering}
+     * is not set.
+     *
+     * @param {number} mask - Unsigned integer.
+     */
+    set mask(mask) {
+        if (this._mask === mask) {
+            return;
+        }
+
+        if ($_DEBUG) {
+            const ok = Debug.checkUint(mask);
+            if (!ok) {
+                return;
+            }
+        }
+
+        this._mask = mask;
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_CHAR_UPDATE_BIT_FILTER, this._index,
+            this._group, BUFFER_WRITE_UINT32, false,
+            mask, BUFFER_WRITE_UINT32, false
+        );
+    }
+
+    /**
+     * Collision mask bit of an object layer.
+     *
+     * Two layers can collide if `object1.group` and `object2.mask` is non-zero and `object2.group`
+     * and `object1.mask` is non-zero. The behavior is similar to that of filtering in e.g. Bullet,
+     * Rapier.
+     *
+     * @returns {number} Unsigned integer.
+     * @defaultValue 0
+     */
+    get mask() {
+        return this._mask;
     }
 
     /**
@@ -1024,6 +1109,8 @@ class CharComponent extends ShapeComponent {
         cb.write(this._walkStairsStepDownExtra, BUFFER_WRITE_VEC32, false);
         cb.write(this._bpFilterLayer, BUFFER_WRITE_UINT16, false);
         cb.write(this._objFilterLayer, BUFFER_WRITE_UINT16, false);
+        cb.write(this._group, BUFFER_WRITE_UINT32, false);
+        cb.write(this._mask, BUFFER_WRITE_UINT32, false);
 
         if ($_DEBUG) {
             cb.write(this._debugDrawDepth, BUFFER_WRITE_BOOL, false);

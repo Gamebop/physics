@@ -193,6 +193,7 @@ export const CMD_SET_DEBUG_DRAW_DEPTH = 61;
 export const CMD_ADD_SHAPE = 62;
 export const CMD_REMOVE_SHAPE = 63;
 export const CMD_MODIFY_SHAPE = 64;
+export const CMD_UPDATE_BIT_FILTER = 65;
 
 
 // Char Virtual 400-499
@@ -208,14 +209,15 @@ export const CMD_CHAR_SET_HIT_RED_ANGLE = 408;
 export const CMD_CHAR_SET_SHAPE_OFFSET = 409;
 export const CMD_CHAR_SET_USER_DATA = 410;
 export const CMD_CHAR_SET_UP = 411;
-export const CMD_CHAR_SET_BP_FILTER_LAYER = 422;
-export const CMD_CHAR_SET_OBJ_FILTER_LAYER = 423;
-export const CMD_CHAR_SET_COS_ANGLE = 424;
-export const CMD_CHAR_SET_MIN_DIST = 425;
-export const CMD_CHAR_SET_TEST_DIST = 426;
-export const CMD_CHAR_SET_EXTRA_DOWN = 427;
-export const CMD_CHAR_SET_STEP_UP = 428;
-export const CMD_CHAR_SET_STICK_DOWN = 429;
+export const CMD_CHAR_SET_BP_FILTER_LAYER = 412;
+export const CMD_CHAR_SET_OBJ_FILTER_LAYER = 413;
+export const CMD_CHAR_SET_COS_ANGLE = 414;
+export const CMD_CHAR_SET_MIN_DIST = 415;
+export const CMD_CHAR_SET_TEST_DIST = 416;
+export const CMD_CHAR_SET_EXTRA_DOWN = 417;
+export const CMD_CHAR_SET_STEP_UP = 418;
+export const CMD_CHAR_SET_STICK_DOWN = 419;
+export const CMD_CHAR_UPDATE_BIT_FILTER = 420;
 
 // Constraints 500-599
 
