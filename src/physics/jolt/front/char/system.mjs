@@ -156,16 +156,32 @@ class CharComponentSystem extends ShapeComponentSystem {
     overrideContacts(callbacks = {}) {
         if ($_DEBUG) {
             if (!!callbacks.OnAdjustBodyVelocity) {
-                Debug.assert(typeof callbacks.OnAdjustBodyVelocity === 'function', 'OnAdjustBodyVelocity must be a function', callbacks);
+                Debug.assert(typeof callbacks.OnAdjustBodyVelocity === 'function',
+                             'OnAdjustBodyVelocity must be a function', callbacks);
             }
             if (!!callbacks.OnContactValidate) {
-                Debug.assert(typeof callbacks.OnContactValidate === 'function', 'OnContactValidate must be a function', callbacks);
+                Debug.assert(typeof callbacks.OnContactValidate === 'function',
+                             'OnContactValidate must be a function', callbacks);
+            }
+            if (!!callbacks.OnCharacterContactValidate) {
+                Debug.assert(typeof callbacks.OnCharacterContactValidate === 'function',
+                             'OnCharacterContactValidate must be a function', callbacks);
             }
             if (!!callbacks.OnContactAdded) {
-                Debug.assert(typeof callbacks.OnContactAdded === 'function', 'OnContactAdded must be a function', callbacks);
+                Debug.assert(typeof callbacks.OnContactAdded === 'function',
+                             'OnContactAdded must be a function', callbacks);
+            }
+            if (!!callbacks.OnCharacterContactAdded) {
+                Debug.assert(typeof callbacks.OnCharacterContactAdded === 'function',
+                             'OnCharacterContactAdded must be a function', callbacks);
             }
             if (!!callbacks.OnContactSolve) {
-                Debug.assert(typeof callbacks.OnContactSolve === 'function', 'OnContactSolve must be a function', callbacks);
+                Debug.assert(typeof callbacks.OnContactSolve === 'function',
+                             'OnContactSolve must be a function', callbacks);
+            }
+            if (!!callbacks.OnCharacterContactSolve) {
+                Debug.assert(typeof callbacks.OnCharacterContactSolve === 'function',
+                             'OnCharacterContactSolve must be a function', callbacks);
             }
         }
 
@@ -176,11 +192,20 @@ class CharComponentSystem extends ShapeComponentSystem {
         if (callbacks.OnContactValidate) {
             overrides.OnContactValidate = new String(callbacks.OnContactValidate);
         }
+        if (callbacks.OnCharacterContactValidate) {
+            overrides.OnCharacterContactValidate = new String(callbacks.OnCharacterContactValidate);
+        }
         if (callbacks.OnContactAdded) {
             overrides.OnContactAdded = new String(callbacks.OnContactAdded);
         }
+        if (callbacks.OnCharacterContactAdded) {
+            overrides.OnCharacterContactAdded = new String(callbacks.OnCharacterContactAdded);
+        }
         if (callbacks.OnContactSolve) {
             overrides.OnContactSolve = new String(callbacks.OnContactSolve);
+        }
+        if (callbacks.OnCharacterContactSolve) {
+            overrides.OnCharacterContactSolve = new String(callbacks.OnCharacterContactSolve);
         }
 
         const msg = Object.create(null);

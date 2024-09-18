@@ -166,75 +166,83 @@ class Listener {
             return true;
         };
 
+        listener.OnCharacterContactValidate = (character, otherCharacter, subShapeID2) => {
+            return true;
+        };
+
         listener.OnContactAdded = () => {};
 
-        listener.OnContactSolve = this.onCharContactSolve.bind(this);
+        listener.OnCharacterContactAdded = (character, otherCharacter, subShapeID2, contactPosition, contactNormal, settings) => {
+        };
+
+        listener.OnContactSolve = (character, bodyID2, subShapeID2, cp, cn, cv, contactMaterial, characterVelocity, nv) => {
+            const backend = this._backend;
+            const Jolt = backend.Jolt;
+            const tracker = backend.tracker;
+
+            character = Jolt.wrapPointer(character, Jolt.CharacterVirtual);
+
+            const index = tracker.getPCID(Jolt.getPointer(character));
+
+            // Ignore contact, if the character was created by user via Jolt API directly.
+            if (index == null) {
+                return;
+            }
+
+            const data = this._charContactsData;
+            cp = Jolt.wrapPointer(cp, Jolt.Vec3);
+            cn = Jolt.wrapPointer(cn, Jolt.Vec3);
+            cv = Jolt.wrapPointer(cv, Jolt.Vec3);
+            nv = Jolt.wrapPointer(nv, Jolt.Vec3);
+
+            const bodyLockInterface = backend.physicsSystem.GetBodyLockInterface();
+
+            let body2 = bodyLockInterface.TryGetBody(bodyID2);
+            if (Jolt.getPointer(body2) === 0) {
+                body2 = null;
+            }
+
+            let contacts = data.get(index);
+            if (!contacts) {
+                contacts = [0];
+                data.set(index, contacts);
+            }
+
+            contacts[0] = ++contacts[0];
+
+            contacts.push(!!body2);
+            if (body2) {
+                const index2 = tracker.getPCID(Jolt.getPointer(body2));
+                contacts.push(index2);
+            } else {
+                contacts.push(null);
+            }
+
+            // contact position
+            contacts.push(cp.GetX());
+            contacts.push(cp.GetY());
+            contacts.push(cp.GetZ());
+
+            // contact normal
+            contacts.push(cn.GetX());
+            contacts.push(cn.GetY());
+            contacts.push(cn.GetZ());
+
+            // contact velocity
+            contacts.push(cv.GetX());
+            contacts.push(cv.GetY());
+            contacts.push(cv.GetZ());
+
+            // new character velocity
+            contacts.push(nv.GetX());
+            contacts.push(nv.GetY());
+            contacts.push(nv.GetZ());
+        };
+
+        listener.OnCharacterContactSolve = (character, otherCharacter, subShapeID2, contactPosition, contactNormal, contactVelocity, contactMaterial, characterVelocity, newCharacterVelocity) => {
+        };
 
         this._charListener = listener;
-    }
-
-    onCharContactSolve(character, bodyID2, subShapeID2, cp, cn, cv, contactMaterial, characterVelocity, nv) {
-        const backend = this._backend;
-        const Jolt = backend.Jolt;
-        const tracker = backend.tracker;
-
-        character = Jolt.wrapPointer(character, Jolt.CharacterVirtual);
-
-        const index = tracker.getPCID(Jolt.getPointer(character));
-
-        // Ignore contact, if the character was created by user via Jolt API directly.
-        if (index == null) {
-            return;
-        }
-
-        const data = this._charContactsData;
-        cp = Jolt.wrapPointer(cp, Jolt.Vec3);
-        cn = Jolt.wrapPointer(cn, Jolt.Vec3);
-        cv = Jolt.wrapPointer(cv, Jolt.Vec3);
-        nv = Jolt.wrapPointer(nv, Jolt.Vec3);
-
-        const bodyLockInterface = backend.physicsSystem.GetBodyLockInterface();
-
-        let body2 = bodyLockInterface.TryGetBody(bodyID2);
-        if (Jolt.getPointer(body2) === 0) {
-            body2 = null;
-        }
-
-        let contacts = data.get(index);
-        if (!contacts) {
-            contacts = [0];
-            data.set(index, contacts);
-        }
-
-        contacts[0] = ++contacts[0];
-
-        contacts.push(!!body2);
-        if (body2) {
-            const index2 = tracker.getPCID(Jolt.getPointer(body2));
-            contacts.push(index2);
-        } else {
-            contacts.push(null);
-        }
-
-        // contact position
-        contacts.push(cp.GetX());
-        contacts.push(cp.GetY());
-        contacts.push(cp.GetZ());
-
-        // contact normal
-        contacts.push(cn.GetX());
-        contacts.push(cn.GetY());
-        contacts.push(cn.GetZ());
-
-        // contact velocity
-        contacts.push(cv.GetX());
-        contacts.push(cv.GetY());
-        contacts.push(cv.GetZ());
-
-        // new character velocity
-        contacts.push(nv.GetX());
-        contacts.push(nv.GetY());
-        contacts.push(nv.GetZ());
     }
 
     initVehicleEvents(constraint) {
