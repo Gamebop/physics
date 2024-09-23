@@ -159,6 +159,11 @@ class CharModifier {
                 jq.FromBuffer(cb);
                 char.SetRotation(jq);
             }
+            const ms = char.motionState;
+            if (ms) {
+                ms.updatePosition();
+                ms.updateRotation();
+            }
         } catch (e) {
             if ($_DEBUG) {
                 Debug.error(e);
