@@ -149,7 +149,7 @@ class CharModifier {
     _setPosRot(cb) {
         const m = this._modifier;
         const jv = m.joltVec3_1;
-        const jq = m.joltQuat_1;
+        const jq = m.joltQuat;
         const char = this._tracker.getBodyByPCID(cb.read(BUFFER_READ_UINT32));
 
         try {
