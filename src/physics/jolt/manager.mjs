@@ -156,8 +156,9 @@ class JoltManager extends PhysicsManager {
             const glueAsset = app.assets.find('jolt-physics.wasm.js');
 
             if (wasmAsset && glueAsset) {
-                msg.glueUrl = glueAsset.getFileUrl();
-                msg.wasmUrl = wasmAsset.getFileUrl();
+                const href = window.location.href;
+                msg.glueUrl = new URL(glueAsset.getFileUrl(), `${href}${'js'}`).href;
+                msg.wasmUrl = new URL(wasmAsset.getFileUrl(), `${href}${'wasm'}`).href;
             }
         }
 
