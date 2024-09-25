@@ -273,12 +273,12 @@ class Modifier {
     }
 
     _changeGravity(cb) {
-        const jv = this._joltVec3;
+        const jv = this._joltVec3_1;
 
         jv.FromBuffer(cb);
 
         try {
-            this._backend.system.SetGravity(jv);
+            this._backend.physicsSystem.SetGravity(jv);
         } catch (e) {
             if ($_DEBUG) {
                 Debug.error(e);
