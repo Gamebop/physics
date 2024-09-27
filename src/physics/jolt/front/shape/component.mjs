@@ -629,12 +629,10 @@ class ShapeComponent extends Component {
         const scale = props.scale || props.entity.getLocalScale();
         let useEntityScale = props.useEntityScale;
 
-        if (useEntityScale && scale.x === 1 && scale.y === 1 && scale.z === 1 &&
-            shape !== SHAPE_MESH && shape !== SHAPE_CONVEX_HULL) {
+        if (useEntityScale && scale.x === 1 && scale.y === 1 && scale.z === 1) {
             useEntityScale = false;
         }
 
-        useEntityScale = useEntityScale || (shape === SHAPE_MESH || shape === SHAPE_CONVEX_HULL);
         cb.write(useEntityScale, BUFFER_WRITE_BOOL, false);
         if (useEntityScale) {
             // Potential precision loss 64 -> 32
