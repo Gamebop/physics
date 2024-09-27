@@ -1461,6 +1461,14 @@ class BodyComponent extends ShapeComponent {
     }
 
     writeComponentData(cb) {
+        if (this._motionType !== MOTION_TYPE_STATIC && this._allowedDOFs === 0) {
+            if ($_DEBUG) {
+                Debug.warn('Body cannot have all degrees of freedom locked (allowedDOFs === 0)' +
+                    ' and have non-static motion type.');
+            }
+            return;
+        }
+
         const ok = ShapeComponent.writeShapeData(cb, this);
         if ($_DEBUG && !ok) {
             Debug.warn('Error creating a shape.');
