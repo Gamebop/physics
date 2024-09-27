@@ -633,7 +633,6 @@ class ShapeComponent extends Component {
             useEntityScale = false;
         }
 
-        useEntityScale = useEntityScale || (shape === SHAPE_MESH || shape === SHAPE_CONVEX_HULL);
         cb.write(useEntityScale, BUFFER_WRITE_BOOL, false);
         if (useEntityScale) {
             // Potential precision loss 64 -> 32
