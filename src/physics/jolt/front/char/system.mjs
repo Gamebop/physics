@@ -4,7 +4,8 @@ import { ResponseHandler } from '../response-handler.mjs';
 import { ShapeComponentSystem } from '../shape/system.mjs';
 import {
     BUFFER_READ_UINT32, CMD_CREATE_CHAR, CMD_REPORT_CONTACTS, CMD_REPORT_SET_SHAPE,
-    CMD_REPORT_TRANSFORMS, OPERATOR_CREATOR
+    CMD_REPORT_TRANSFORMS, OPERATOR_CREATOR,
+    UINT8_SIZE
 } from '../../constants.mjs';
 
 const schema = [
@@ -95,7 +96,10 @@ class CharComponentSystem extends ShapeComponentSystem {
         cb.writeOperator(OPERATOR_CREATOR);
         cb.writeCommand(CMD_CREATE_CHAR);
 
-        component.writeComponentData(cb);
+        const ok = component.writeComponentData(cb);
+        if (!ok) {
+            cb.decrement(UINT8_SIZE);
+        }
     }
 
     /**

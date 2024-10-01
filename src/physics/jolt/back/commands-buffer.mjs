@@ -437,6 +437,11 @@ class CommandsBuffer {
         this._buffer = null;
     }
 
+    decrement(size) {
+        this._view.setUint16(0, --this._commandsCount);
+        this._bytesOffset -= size;
+    }
+
     _increment() {
         this._view.setUint16(0, ++this._commandsCount);
     }

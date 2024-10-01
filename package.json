@@ -1,7 +1,7 @@
 {
     "name": "@gamebop/physics",
     "description": "Physics components for PlayCanvas engine",
-    "version": "0.3.3",
+    "version": "0.3.4",
     "main": "dist/physics.min.mjs",
     "author": "Gamebop",
     "license": "MIT",
@@ -52,7 +52,7 @@
         "dist/*"
     ],
     "peerDependencies": {
-        "jolt-physics": "^0.25.0",
+        "jolt-physics": "^0.26.0",
         "playcanvas": "^1.71.3"
     },
     "devDependencies": {

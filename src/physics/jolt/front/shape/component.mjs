@@ -5,7 +5,10 @@ import {
     BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT32, BUFFER_WRITE_UINT8,
     BUFFER_WRITE_VEC32, CMD_ADD_SHAPE, CMD_MODIFY_SHAPE, CMD_REMOVE_SHAPE, CMD_SET_DEBUG_DRAW, CMD_SET_DEBUG_DRAW_DEPTH, CMD_SET_SHAPE, FLOAT32_SIZE,
     OPERATOR_MODIFIER, SHAPE_BOX, SHAPE_CAPSULE, SHAPE_CONVEX_HULL, SHAPE_CYLINDER,
-    SHAPE_HEIGHTFIELD, SHAPE_MESH, SHAPE_MUTABLE_COMPOUND, SHAPE_SPHERE, SHAPE_STATIC_COMPOUND
+    SHAPE_EMPTY,
+    SHAPE_HEIGHTFIELD, SHAPE_MESH, SHAPE_MUTABLE_COMPOUND, SHAPE_PLANE, SHAPE_SPHERE, SHAPE_STATIC_COMPOUND,
+    SHAPE_TAPERED_CAPSULE,
+    SHAPE_TAPERED_CYLINDER
 } from '../../constants.mjs';
 
 const defaultHalfExtent = new Vec3(0.5, 0.5, 0.5);
@@ -18,6 +21,8 @@ const defaultHalfExtent = new Vec3(0.5, 0.5, 0.5);
  * @category Shape Component
  */
 class ShapeComponent extends Component {
+    _bottomRadius = 0.5;
+
     _convexRadius = 0.05;
 
     _debugDraw = false;
@@ -52,6 +57,12 @@ class ShapeComponent extends Component {
 
     _mesh = null;
 
+    _normal = Vec3.UP;
+
+    _planeConstant = 0;
+
+    _planeHalfExtent = 0.5;
+
     _radius = 0.5;
 
     _renderAsset = null;
@@ -61,6 +72,8 @@ class ShapeComponent extends Component {
     _shapePosition = Vec3.ZERO;
 
     _shapeRotation = Quat.IDENTITY;
+
+    _topRadius = 0.5;
 
     _useEntityScale = true;
 
@@ -680,6 +693,29 @@ class ShapeComponent extends Component {
                 cb.write(props.hfBitsPerSample, BUFFER_WRITE_UINT8, false);
                 cb.write(props.hfActiveEdgeCosThresholdAngle, BUFFER_WRITE_FLOAT32, false);
                 cb.addBuffer(props.hfSamples.buffer);
+                break;
+
+            case SHAPE_PLANE:
+                cb.write(props.normal, BUFFER_WRITE_VEC32, false);
+                cb.write(props.planeConstant, BUFFER_WRITE_FLOAT32, false);
+                cb.write(props.planeHalfExtent, BUFFER_WRITE_FLOAT32, false);
+                break;
+
+            case SHAPE_EMPTY:
+                // no props
+                break;
+
+            case SHAPE_TAPERED_CAPSULE:
+                cb.write(props.halfHeight, BUFFER_WRITE_FLOAT32, false);
+                cb.write(props.topRadius, BUFFER_WRITE_FLOAT32, false);
+                cb.write(props.bottomRadius, BUFFER_WRITE_FLOAT32, false);
+                break;
+
+            case SHAPE_TAPERED_CYLINDER:
+                cb.write(props.halfHeight, BUFFER_WRITE_FLOAT32, false);
+                cb.write(props.topRadius, BUFFER_WRITE_FLOAT32, false);
+                cb.write(props.bottomRadius, BUFFER_WRITE_FLOAT32, false);
+                cb.write(props.convexRadius, BUFFER_WRITE_FLOAT32, false);
                 break;
 
             default:

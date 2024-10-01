@@ -5,10 +5,13 @@ import {
     BUFFER_READ_UINT16, BUFFER_READ_UINT32, BUFFER_READ_UINT8, CMD_CREATE_BODY,
     CMD_CREATE_CHAR, CMD_CREATE_CONSTRAINT, CMD_CREATE_GROUPS, CMD_CREATE_SHAPE,
     CMD_CREATE_SOFT_BODY, CMD_CREATE_VEHICLE, MOTION_QUALITY_DISCRETE, MOTION_TYPE_DYNAMIC,
-    MOTION_TYPE_KINEMATIC, OBJ_LAYER_MOVING, OMP_CALCULATE_MASS_AND_INERTIA, OMP_MASS_AND_INERTIA_PROVIDED,
-    SHAPE_BOX, SHAPE_CAPSULE, SHAPE_CONVEX_HULL, SHAPE_CYLINDER, SHAPE_HEIGHTFIELD, SHAPE_MESH,
-    SHAPE_MUTABLE_COMPOUND,
-    SHAPE_SPHERE, SHAPE_STATIC_COMPOUND
+    MOTION_TYPE_KINEMATIC, OBJ_LAYER_MOVING, OMP_CALCULATE_MASS_AND_INERTIA,
+    OMP_MASS_AND_INERTIA_PROVIDED, SHAPE_BOX, SHAPE_CAPSULE, SHAPE_CONVEX_HULL, SHAPE_CYLINDER,
+    SHAPE_EMPTY,
+    SHAPE_HEIGHTFIELD, SHAPE_MESH, SHAPE_MUTABLE_COMPOUND, SHAPE_PLANE, SHAPE_SPHERE,
+    SHAPE_STATIC_COMPOUND,
+    SHAPE_TAPERED_CAPSULE,
+    SHAPE_TAPERED_CYLINDER
 } from '../../constants.mjs';
 import { ConstraintCreator } from './helpers/constraint-creator.mjs';
 
@@ -115,6 +118,22 @@ class Creator {
                 settings = createHeightFieldSettings(cb, Jolt, meshBuffers, jv);
                 break;
 
+            case SHAPE_PLANE:
+                settings = createPlaneSettings(cb, Jolt, jv);
+                break;
+
+            case SHAPE_EMPTY:
+                settings = new Jolt.EmptyShapeSettings();
+                break;
+
+            case SHAPE_TAPERED_CAPSULE:
+                settings = createTaperedCapsuleSettings(cb, Jolt);
+                break;
+
+            case SHAPE_TAPERED_CYLINDER:
+                settings = createTaperedCylinderSettings(cb, Jolt);
+                break;
+
             default:
                 if ($_DEBUG) {
                     Debug.warn('Invalid shape type', shapeType);
@@ -154,7 +173,11 @@ class Creator {
                 if (!ok)
                     return null;
             }
-            settings.mDensity = density;
+
+            // not all shapes have density, e.g. a plane
+            if (settings.mDensity != null) {
+                settings.mDensity = density;
+            }
 
             // When creating a compound shape, we should prefer setting the position/rotation
             // directly on adding a shape - compoundSettings.AddShape(vec, quat, childSettings).
@@ -1080,6 +1103,30 @@ function createHeightFieldSettings(cb, Jolt, meshBuffers, jv) {
     }
 
     return settings;
+}
+
+function createPlaneSettings(cb, Jolt, jv) {
+    jv.FromBuffer(cb);
+
+    const plane = new Jolt.Plane(jv /* normal */, cb.read(BUFFER_READ_FLOAT32) /* constant */);
+    const settings = new Jolt.PlaneShapeSettings(plane,
+                                                 new Jolt.PhysicsMaterial(),
+                                                 cb.read(BUFFER_READ_FLOAT32) /* half extent */);
+
+    return settings;
+}
+
+function createTaperedCapsuleSettings(cb, Jolt) {
+    return new Jolt.TaperedCapsuleShapeSettings(cb.read(BUFFER_READ_FLOAT32) /* half height */,
+                                                cb.read(BUFFER_READ_FLOAT32) /* top radius */,
+                                                cb.read(BUFFER_READ_FLOAT32) /* bottom radius */);
+}
+
+function createTaperedCylinderSettings(cb, Jolt) {
+    return new Jolt.TaperedCylinderShapeSettings(cb.read(BUFFER_READ_FLOAT32) /* half height */,
+                                                 cb.read(BUFFER_READ_FLOAT32) /* top radius */,
+                                                 cb.read(BUFFER_READ_FLOAT32) /* bottom radius */,
+                                                 cb.read(BUFFER_READ_FLOAT32) /* convex radius */);
 }
 
 export { Creator };

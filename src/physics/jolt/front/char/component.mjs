@@ -1116,6 +1116,8 @@ class CharComponent extends ShapeComponent {
             cb.write(this._debugDrawDepth, BUFFER_WRITE_BOOL, false);
             cb.write(this._debugDraw, BUFFER_WRITE_BOOL, false);
         }
+
+        return true;
     }
 
     updateTransforms(cb, map) {

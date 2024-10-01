@@ -1,9 +1,10 @@
-import { nodeResolve } from '@rollup/plugin-node-resolve';
 import strip from '@rollup/plugin-strip';
-import jscc from 'rollup-plugin-jscc';
 import terser from '@rollup/plugin-terser';
+import jscc from 'rollup-plugin-jscc';
 import json from '@rollup/plugin-json';
+
 import { readFileSync } from 'fs';
+import { nodeResolve } from '@rollup/plugin-node-resolve';
 
 const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8'));
 const joltPkg = JSON.parse(readFileSync(new URL('./node_modules/jolt-physics/package.json', import.meta.url), 'utf8'));

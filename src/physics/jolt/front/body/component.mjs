@@ -17,7 +17,9 @@ import {
     CMD_SET_MAX_ANG_VEL, CMD_SET_MAX_LIN_VEL, CMD_CLAMP_ANG_VEL, CMD_CLAMP_LIN_VEL,
     CMD_SET_VEL_STEPS, CMD_SET_POS_STEPS, CMD_ADD_ANGULAR_IMPULSE,
     CMD_ADD_TORQUE,
-    CMD_UPDATE_BIT_FILTER
+    CMD_UPDATE_BIT_FILTER,
+    SHAPE_PLANE,
+    OMP_CALCULATE_INERTIA
 } from '../../constants.mjs';
 
 const vec3 = new Vec3();
@@ -1461,18 +1463,37 @@ class BodyComponent extends ShapeComponent {
     }
 
     writeComponentData(cb) {
-        if (this._motionType !== MOTION_TYPE_STATIC && this._allowedDOFs === 0) {
+        const motionType = this._motionType;
+    
+        if (motionType !== MOTION_TYPE_STATIC && this._allowedDOFs === 0) {
             if ($_DEBUG) {
                 Debug.warn('Body cannot have all degrees of freedom locked (allowedDOFs === 0)' +
-                    ' and have non-static motion type.');
+                    ' and have a non-static motion type.');
             }
-            return;
+            return false;
+        }
+
+        const massProps = this._overrideMassProperties;
+        if (this.shape === SHAPE_HEIGHTFIELD || this.shape === SHAPE_MESH ||
+            this.shape === SHAPE_PLANE) {
+            if (massProps === OMP_CALCULATE_MASS_AND_INERTIA &&
+                motionType !== MOTION_TYPE_STATIC) {
+                if ($_DEBUG) {
+                    Debug.error('Selected body shape does not support automatic mass calculation. ' +
+                        'You should set "overrideMassProperties" property to OMP_CALCULATE_INERTIA ' +
+                        'or OMP_MASS_AND_INERTIA_PROVIDED and set mass via "mass" property yourself.');
+                }
+                return false;
+            }
+            if (this._motionQuality !== MOTION_QUALITY_DISCRETE) {
+                Debug.warn('Selected body shape cannot have a linear cast motion quality.');
+            }
         }
 
         const ok = ShapeComponent.writeShapeData(cb, this);
         if ($_DEBUG && !ok) {
             Debug.warn('Error creating a shape.');
-            return;
+            return false;
         }
 
         cb.write(this._index, BUFFER_WRITE_UINT32, false);
@@ -1523,9 +1544,8 @@ class BodyComponent extends ShapeComponent {
             cb.write(this._subGroup, BUFFER_WRITE_UINT32, false);
         }
 
-        const massProps = this._overrideMassProperties;
+        
         cb.write(massProps, BUFFER_WRITE_UINT8, false);
-
         if (massProps !== OMP_CALCULATE_MASS_AND_INERTIA) {
             cb.write(this._overrideMass, BUFFER_WRITE_FLOAT32, false);
 
@@ -1543,6 +1563,8 @@ class BodyComponent extends ShapeComponent {
             cb.write(this._debugDrawDepth, BUFFER_WRITE_BOOL, false);
             cb.write(this._debugDraw, BUFFER_WRITE_BOOL, false);
         }
+
+        return true;
     }
 
     onEnable() {
