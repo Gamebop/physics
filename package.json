@@ -46,7 +46,10 @@
             "$_DEBUG": "readonly",
             "$_VERSION": "readonly",
             "$_JOLT_VERSION": "readonly"
-        }
+        },
+        "ignores": [
+            "test/**/*"
+        ]
     },
     "files": [
         "dist/*"
@@ -62,7 +65,7 @@
         "@rollup/plugin-strip": "^3.0.4",
         "@rollup/plugin-terser": "^0.4.4",
         "chai": "^5.1.1",
-        "eslint": "^8.57.0",
+        "eslint": "^9.11.1",
         "mocha": "^10.4.0",
         "publint": "^0.2.7",
         "rimraf": "^5.0.5",

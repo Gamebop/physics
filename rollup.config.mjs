@@ -1,9 +1,8 @@
-import strip from '@rollup/plugin-strip';
 import terser from '@rollup/plugin-terser';
 import jscc from 'rollup-plugin-jscc';
 import json from '@rollup/plugin-json';
-
 import { readFileSync } from 'fs';
+import strip from '@rollup/plugin-strip';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 
 const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8'));
