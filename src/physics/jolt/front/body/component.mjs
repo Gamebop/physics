@@ -15,9 +15,8 @@ import {
     CMD_SET_KIN_COL_NON_DYN, CMD_SET_APPLY_GYRO_FORCE, CMD_SET_INTERNAL_EDGE,
     CMD_RESET_SLEEP_TIMER, CMD_SET_LIN_VEL_CLAMPED, CMD_SET_ANG_VEL_CLAMPED, CMD_RESET_MOTION,
     CMD_SET_MAX_ANG_VEL, CMD_SET_MAX_LIN_VEL, CMD_CLAMP_ANG_VEL, CMD_CLAMP_LIN_VEL,
-    CMD_SET_VEL_STEPS, CMD_SET_POS_STEPS, CMD_ADD_ANGULAR_IMPULSE,
-    CMD_ADD_TORQUE,
-    CMD_UPDATE_BIT_FILTER
+    CMD_SET_VEL_STEPS, CMD_SET_POS_STEPS, CMD_ADD_ANGULAR_IMPULSE, CMD_ADD_TORQUE,
+    CMD_UPDATE_BIT_FILTER, SHAPE_PLANE
 } from '../../constants.mjs';
 
 const vec3 = new Vec3();
@@ -145,7 +144,7 @@ class BodyComponent extends ShapeComponent {
         }
 
         if ($_DEBUG) {
-            const ok = Debug.checkInt(degree, `Invalid degree of freedom: ${degree}`);
+            const ok = Debug.checkInt(degree);
             if (!ok) {
                 return;
             }
@@ -182,7 +181,7 @@ class BodyComponent extends ShapeComponent {
         }
 
         if ($_DEBUG) {
-            const ok = Debug.checkBool(bool, `Invalid allow sleeping bool: ${bool}`);
+            const ok = Debug.checkBool(bool);
             if (!ok) {
                 return;
             }
@@ -220,7 +219,7 @@ class BodyComponent extends ShapeComponent {
         }
 
         if ($_DEBUG) {
-            const ok = Debug.checkFloat(factor, `Invalid angular factor float: ${factor}`);
+            const ok = Debug.checkFloat(factor);
             if (!ok) {
                 return;
             }
@@ -248,8 +247,10 @@ class BodyComponent extends ShapeComponent {
      */
     set angularVelocity(velocity) {
         if ($_DEBUG) {
-            const ok = Debug.checkVec(velocity, `Invalid angular velocity vector`);
-            if (!ok) return;
+            const ok = Debug.checkVec(velocity);
+            if (!ok) {
+                return;
+            }
         }
 
         if (this._angularVelocity.equals(velocity)) {
@@ -305,8 +306,10 @@ class BodyComponent extends ShapeComponent {
      */
     set autoUpdateIsometry(bool) {
         if ($_DEBUG) {
-            const ok = Debug.checkBool(bool, `Invalid manual isometry update state boolean`);
-            if (!ok) return;
+            const ok = Debug.checkBool(bool);
+            if (!ok) {
+                return;
+            }
         }
 
         if (this._autoUpdateIsometry === bool) {
@@ -369,7 +372,7 @@ class BodyComponent extends ShapeComponent {
         }
 
         if ($_DEBUG) {
-            const ok = Debug.checkFloat(friction, `Invalid friction scalar: ${friction}`);
+            const ok = Debug.checkFloat(friction);
             if (!ok) {
                 return;
             }
@@ -403,7 +406,7 @@ class BodyComponent extends ShapeComponent {
         }
 
         if ($_DEBUG) {
-            const ok = Debug.checkFloat(factor, `Invalid gravity factor: ${factor}`);
+            const ok = Debug.checkFloat(factor);
             if (!ok) {
                 return;
             }
@@ -493,7 +496,7 @@ class BodyComponent extends ShapeComponent {
         }
 
         if ($_DEBUG) {
-            const ok = Debug.checkBool(bool, `Invalid isSensor bool: ${bool}`);
+            const ok = Debug.checkBool(bool);
             if (!ok) {
                 return;
             }
@@ -539,8 +542,10 @@ class BodyComponent extends ShapeComponent {
      */
     set linearVelocity(velocity) {
         if ($_DEBUG) {
-            const ok = Debug.checkVec(velocity, `Invalid linear velocity vector`);
-            if (!ok) return;
+            const ok = Debug.checkVec(velocity);
+            if (!ok) {
+                return;
+            }
         }
 
         if (this._linearVelocity.equals(velocity)) {
@@ -612,7 +617,7 @@ class BodyComponent extends ShapeComponent {
      */
     set maxAngularVelocity(velocity) {
         if ($_DEBUG) {
-            const ok = Debug.checkFloat(velocity, `Invalid angular velocity scalar`);
+            const ok = Debug.checkFloat(velocity);
             if (!ok) return;
         }
 
@@ -640,7 +645,7 @@ class BodyComponent extends ShapeComponent {
      */
     set maxLinearVelocity(velocity) {
         if ($_DEBUG) {
-            const ok = Debug.checkFloat(velocity, `Invalid linear velocity scalar`);
+            const ok = Debug.checkFloat(velocity);
             if (!ok) return;
         }
 
@@ -680,7 +685,10 @@ class BodyComponent extends ShapeComponent {
         }
 
         if ($_DEBUG) {
-            Debug.checkUint(quality, `Invalid motion quality: ${quality}`);
+            const ok = Debug.checkUint(quality);
+            if (!ok) {
+                return;
+            }
         }
 
         this._motionQuality = quality;
@@ -709,7 +717,10 @@ class BodyComponent extends ShapeComponent {
         }
 
         if ($_DEBUG) {
-            Debug.checkUint(type, `Invalid motion type: ${type}`);
+            const ok = Debug.checkUint(type);
+            if (!ok) {
+                return;
+            }
         }
 
         this._motionType = type;
@@ -762,7 +773,7 @@ class BodyComponent extends ShapeComponent {
         }
 
         if ($_DEBUG) {
-            const ok = Debug.checkInt(layerNumber, `Invalid layer number: ${layerNumber}`);
+            const ok = Debug.checkInt(layerNumber);
             if (!ok) {
                 return;
             }
@@ -883,7 +894,7 @@ class BodyComponent extends ShapeComponent {
         }
 
         if ($_DEBUG) {
-            const ok = Debug.checkFloat(factor, `Invalid restitution factor: ${factor}`);
+            const ok = Debug.checkFloat(factor);
             if (!ok) {
                 return;
             }
@@ -929,9 +940,10 @@ class BodyComponent extends ShapeComponent {
         }
 
         if ($_DEBUG) {
-            const ok = Debug.checkBool(bool, `Invalid bool value for useMotionState property: ${bool}`);
-            if (!ok)
+            const ok = Debug.checkBool(bool);
+            if (!ok) {
                 return;
+            }
         }
 
         this._useMotionState = bool;
@@ -973,8 +985,8 @@ class BodyComponent extends ShapeComponent {
      */
     addForce(force, offset = Vec3.ZERO, isOffsetLocal = false) {
         if ($_DEBUG) {
-            let ok = Debug.checkVec(force, `Invalid add force vector`);
-            ok = ok && Debug.checkVec(offset, `Invalid add force offset`);
+            let ok = Debug.checkVec(force);
+            ok = ok && Debug.checkVec(offset);
             if (!ok) {
                 return;
             }
@@ -1006,12 +1018,12 @@ class BodyComponent extends ShapeComponent {
      */
     addForceScalars(forceX, forceY, forceZ, offsetX = 0, offsetY = 0, offsetZ = 0, isOffsetLocal = false) {
         if ($_DEBUG) {
-            let ok = Debug.checkFloat(forceX, `Invalid add impulse X component: ${forceX}`);
-            ok = ok && Debug.checkFloat(forceY, `Invalid add impulse Y component: ${forceY}`);
-            ok = ok && Debug.checkFloat(forceZ, `Invalid add impulse Z component: ${forceZ}`);
-            ok = ok && Debug.checkFloat(offsetX, `Invalid add impulse offset X component: ${offsetX}`);
-            ok = ok && Debug.checkFloat(offsetY, `Invalid add impulse offset Y component: ${offsetY}`);
-            ok = ok && Debug.checkFloat(offsetZ, `Invalid add impulse offset Z component: ${offsetZ}`);
+            let ok = Debug.checkFloat(forceX);
+            ok = ok && Debug.checkFloat(forceY);
+            ok = ok && Debug.checkFloat(forceZ);
+            ok = ok && Debug.checkFloat(offsetX);
+            ok = ok && Debug.checkFloat(offsetY);
+            ok = ok && Debug.checkFloat(offsetZ);
             if (!ok) {
                 return;
             }
@@ -1041,8 +1053,8 @@ class BodyComponent extends ShapeComponent {
      */
     addImpulse(impulse, offset = Vec3.ZERO, isOffsetLocal = false) {
         if ($_DEBUG) {
-            let ok = Debug.checkVec(impulse, `Invalid add impulse vector:`);
-            ok = ok && Debug.checkVec(offset, `Invalid add impulse offset:`);
+            let ok = Debug.checkVec(impulse);
+            ok = ok && Debug.checkVec(offset);
             if (!ok) {
                 return;
             }
@@ -1074,12 +1086,12 @@ class BodyComponent extends ShapeComponent {
      */
     addImpulseScalars(impulseX, impulseY, impulseZ, offsetX = 0, offsetY = 0, offsetZ = 0, isOffsetLocal = false) {
         if ($_DEBUG) {
-            let ok = Debug.checkFloat(impulseX, `Invalid add impulse X component: ${impulseX}`);
-            ok = ok && Debug.checkFloat(impulseY, `Invalid add impulse Y component: ${impulseY}`);
-            ok = ok && Debug.checkFloat(impulseZ, `Invalid add impulse Z component: ${impulseZ}`);
-            ok = ok && Debug.checkFloat(offsetX, `Invalid add impulse offset X component: ${offsetX}`);
-            ok = ok && Debug.checkFloat(offsetY, `Invalid add impulse offset Y component: ${offsetY}`);
-            ok = ok && Debug.checkFloat(offsetZ, `Invalid add impulse offset Z component: ${offsetZ}`);
+            let ok = Debug.checkFloat(impulseX);
+            ok = ok && Debug.checkFloat(impulseY);
+            ok = ok && Debug.checkFloat(impulseZ);
+            ok = ok && Debug.checkFloat(offsetX);
+            ok = ok && Debug.checkFloat(offsetY);
+            ok = ok && Debug.checkFloat(offsetZ);
             if (!ok) {
                 return;
             }
@@ -1119,12 +1131,12 @@ class BodyComponent extends ShapeComponent {
     applyBuoyancyImpulse(waterSurfacePosition, surfaceNormal, buoyancy, linearDrag, angularDrag, fluidVelocity) {
         if ($_DEBUG) {
             let ok = true;
-            ok = ok && Debug.checkVec(waterSurfacePosition, `Invalid water surface position vector`);
-            ok = ok && Debug.checkVec(surfaceNormal, `Invalid surface normal`);
-            ok = ok && Debug.checkFloat(buoyancy, `Invalid buoyancy scalar: ${buoyancy}`);
-            ok = ok && Debug.checkFloat(linearDrag, `Invalid linear drag scalar: ${linearDrag}`);
-            ok = ok && Debug.checkFloat(angularDrag, `Invalid angular drag scalar: ${angularDrag}`);
-            ok = ok && Debug.checkVec(fluidVelocity, `Invalid fluid velocity vector`);
+            ok = ok && Debug.checkVec(waterSurfacePosition);
+            ok = ok && Debug.checkVec(surfaceNormal);
+            ok = ok && Debug.checkFloat(buoyancy);
+            ok = ok && Debug.checkFloat(linearDrag);
+            ok = ok && Debug.checkFloat(angularDrag);
+            ok = ok && Debug.checkVec(fluidVelocity);
             if (!ok) {
                 return;
             }
@@ -1209,8 +1221,10 @@ class BodyComponent extends ShapeComponent {
      */
     setAngularVelocityClamped(velocity) {
         if ($_DEBUG) {
-            const ok = Debug.checkVec(velocity, `Invalid angular velocity vector`);
-            if (!ok) return;
+            const ok = Debug.checkVec(velocity);
+            if (!ok) {
+                return;
+            }
         }
 
         this.system.addCommand(
@@ -1228,7 +1242,7 @@ class BodyComponent extends ShapeComponent {
      */
     setApplyGyroscopicForce(bool) {
         if ($_DEBUG) {
-            const ok = Debug.checkBool(bool, `Invalid boolean: ${bool}`);
+            const ok = Debug.checkBool(bool);
             if (!ok) {
                 return;
             }
@@ -1254,7 +1268,7 @@ class BodyComponent extends ShapeComponent {
      */
     setCollideKinematicVsNonDynamic(bool) {
         if ($_DEBUG) {
-            const ok = Debug.checkBool(bool, `Invalid boolean: ${bool}`);
+            const ok = Debug.checkBool(bool);
             if (!ok) {
                 return;
             }
@@ -1279,8 +1293,8 @@ class BodyComponent extends ShapeComponent {
         }
 
         if ($_DEBUG) {
-            let ok = Debug.checkInt(collisionGroup, `Invalid collision group int: ${collisionGroup}`);
-            ok = ok && Debug.checkInt(subGroup, `Invalid sub group int: ${subGroup}`);
+            let ok = Debug.checkInt(collisionGroup);
+            ok = ok && Debug.checkInt(subGroup);
             if (!ok) {
                 return;
             }
@@ -1304,7 +1318,7 @@ class BodyComponent extends ShapeComponent {
      */
     setEnhancedInternalEdgeRemoval(bool) {
         if ($_DEBUG) {
-            const ok = Debug.checkBool(bool, `Invalid boolean: ${bool}`);
+            const ok = Debug.checkBool(bool);
             if (!ok) {
                 return;
             }
@@ -1324,8 +1338,10 @@ class BodyComponent extends ShapeComponent {
      */
     setLinearVelocityClamped(velocity) {
         if ($_DEBUG) {
-            const ok = Debug.checkVec(velocity, `Invalid linear velocity vector`);
-            if (!ok) return;
+            const ok = Debug.checkVec(velocity);
+            if (!ok) {
+                return;
+            }
         }
 
         this.system.addCommand(
@@ -1343,8 +1359,10 @@ class BodyComponent extends ShapeComponent {
      */
     setNumPositionStepsOverride(count) {
         if ($_DEBUG) {
-            const ok = Debug.checkUint(count, `Invalid steps count: ${count}`);
-            if (!ok) return;
+            const ok = Debug.checkUint(count);
+            if (!ok) {
+                return;
+            }
         }
 
         this.system.addCommand(
@@ -1362,8 +1380,10 @@ class BodyComponent extends ShapeComponent {
      */
     setNumVelocityStepsOverride(count) {
         if ($_DEBUG) {
-            const ok = Debug.checkUint(count, `Invalid steps count: ${count}`);
-            if (!ok) return;
+            const ok = Debug.checkUint(count);
+            if (!ok) {
+                return;
+            }
         }
 
         this.system.addCommand(
@@ -1396,8 +1416,8 @@ class BodyComponent extends ShapeComponent {
      */
     teleport(position, rotation = Quat.IDENTITY) {
         if ($_DEBUG) {
-            let ok = Debug.checkVec(position, `Invalid position vector`, position);
-            ok = ok && Debug.checkQuat(rotation, `Invalid rotation quat`, rotation);
+            let ok = Debug.checkVec(position);
+            ok = ok && Debug.checkQuat(rotation);
             if (!ok) {
                 return;
             }
@@ -1423,13 +1443,13 @@ class BodyComponent extends ShapeComponent {
      */
     teleportScalars(px, py, pz, rx = 0, ry = 0, rz = 0, rw = 1) {
         if ($_DEBUG) {
-            let ok = Debug.checkFloat(px, `Invalid position X component`, px);
-            ok = ok && Debug.checkFloat(py, `Invalid position Y component`, py);
-            ok = ok && Debug.checkFloat(pz, `Invalid position Z component`, pz);
-            ok = ok && Debug.checkFloat(rx, `Invalid rotation X component`, rx);
-            ok = ok && Debug.checkFloat(ry, `Invalid rotation Y component`, ry);
-            ok = ok && Debug.checkFloat(rz, `Invalid rotation Z component`, rz);
-            ok = ok && Debug.checkFloat(rw, `Invalid rotation W component`, rw);
+            let ok = Debug.checkFloat(px);
+            ok = ok && Debug.checkFloat(py);
+            ok = ok && Debug.checkFloat(pz);
+            ok = ok && Debug.checkFloat(rx);
+            ok = ok && Debug.checkFloat(ry);
+            ok = ok && Debug.checkFloat(rz);
+            ok = ok && Debug.checkFloat(rw);
             if (!ok) {
                 return;
             }
@@ -1461,18 +1481,37 @@ class BodyComponent extends ShapeComponent {
     }
 
     writeComponentData(cb) {
-        if (this._motionType !== MOTION_TYPE_STATIC && this._allowedDOFs === 0) {
+        const motionType = this._motionType;
+
+        if (motionType !== MOTION_TYPE_STATIC && this._allowedDOFs === 0) {
             if ($_DEBUG) {
                 Debug.warn('Body cannot have all degrees of freedom locked (allowedDOFs === 0)' +
-                    ' and have non-static motion type.');
+                    ' and have a non-static motion type.');
             }
-            return;
+            return false;
+        }
+
+        const massProps = this._overrideMassProperties;
+        if (this.shape === SHAPE_HEIGHTFIELD || this.shape === SHAPE_MESH ||
+            this.shape === SHAPE_PLANE) {
+            if (massProps === OMP_CALCULATE_MASS_AND_INERTIA &&
+                motionType !== MOTION_TYPE_STATIC) {
+                if ($_DEBUG) {
+                    Debug.error('Selected body shape does not support automatic mass calculation. ' +
+                        'You should set "overrideMassProperties" property to OMP_CALCULATE_INERTIA ' +
+                        'or OMP_MASS_AND_INERTIA_PROVIDED and set mass via "mass" property yourself.');
+                }
+                return false;
+            }
+            if (this._motionQuality !== MOTION_QUALITY_DISCRETE) {
+                Debug.warn('Selected body shape cannot have a linear cast motion quality.');
+            }
         }
 
         const ok = ShapeComponent.writeShapeData(cb, this);
         if ($_DEBUG && !ok) {
             Debug.warn('Error creating a shape.');
-            return;
+            return false;
         }
 
         cb.write(this._index, BUFFER_WRITE_UINT32, false);
@@ -1523,9 +1562,7 @@ class BodyComponent extends ShapeComponent {
             cb.write(this._subGroup, BUFFER_WRITE_UINT32, false);
         }
 
-        const massProps = this._overrideMassProperties;
         cb.write(massProps, BUFFER_WRITE_UINT8, false);
-
         if (massProps !== OMP_CALCULATE_MASS_AND_INERTIA) {
             cb.write(this._overrideMass, BUFFER_WRITE_FLOAT32, false);
 
@@ -1543,6 +1580,8 @@ class BodyComponent extends ShapeComponent {
             cb.write(this._debugDrawDepth, BUFFER_WRITE_BOOL, false);
             cb.write(this._debugDraw, BUFFER_WRITE_BOOL, false);
         }
+
+        return true;
     }
 
     onEnable() {

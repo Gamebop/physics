@@ -592,8 +592,9 @@ function init(app, opts = {}) {
 
         if (app[propertyName]) {
             if ($_DEBUG) {
-                Debug.warn(`Unable to initialize Physics Manager. Application has an existing property name that conflicts. ` +
-                    `Tried to use "app.${propertyName}". Use { propertyName: string } in init options to use a custom property name. Aborting.`);
+                Debug.warn('Unable to initialize Physics Manager. Application has an existing ' +
+                    `property name that conflicts. Tried to use "app.${propertyName}". Use ` +
+                    '{ propertyName: string } in init options to use a custom property name. Aborting.');
             }
             reject(new Error('Selected property name is not available.'));
             return;

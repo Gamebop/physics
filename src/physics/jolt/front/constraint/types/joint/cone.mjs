@@ -37,7 +37,7 @@ class ConeConstraint extends JointConstraint {
      */
     set halfConeAngle(angle) {
         if ($_DEBUG) {
-            const ok = Debug.checkFloat(angle, `Invalid half cone angle scalar: ${angle}`);
+            const ok = Debug.checkFloat(angle);
             if (!ok) {
                 return;
             }

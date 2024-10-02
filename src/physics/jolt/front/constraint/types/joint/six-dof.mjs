@@ -153,8 +153,8 @@ class SixDOFConstraint extends JointConstraint {
      */
     setTranslationLimits(min, max) {
         if ($_DEBUG) {
-            let ok = Debug.checkVec(min, 'Invalid min vector for constraint limits', min);
-            ok = ok && Debug.checkVec(max, 'Invalid max vector for constraint limits', min);
+            let ok = Debug.checkVec(min);
+            ok = ok && Debug.checkVec(max);
             if (!ok) {
                 return;
             }
@@ -175,8 +175,8 @@ class SixDOFConstraint extends JointConstraint {
      */
     setRotationLimits(min, max) {
         if ($_DEBUG) {
-            let ok = Debug.checkVec(min, 'Invalid min vector for constraint limits', min);
-            ok = ok && Debug.checkVec(max, 'Invalid max vector for constraint limits', min);
+            let ok = Debug.checkVec(min);
+            ok = ok && Debug.checkVec(max);
             if (!ok) {
                 return;
             }
@@ -206,7 +206,7 @@ class SixDOFConstraint extends JointConstraint {
      */
     setLimitsSpringSettings(axis, settings) {
         if ($_DEBUG) {
-            let ok = Debug.checkUint(axis, `Invalid axis uint scalar: ${axis}`);
+            let ok = Debug.checkUint(axis);
             ok = ok && Debug.checkSpringSettings(settings);
             if (!ok) {
                 return;
@@ -240,8 +240,8 @@ class SixDOFConstraint extends JointConstraint {
      */
     setMaxFriction(axis, friction) {
         if ($_DEBUG) {
-            let ok = Debug.checkUint(axis, `Invalid axis uint scalar: ${axis}`);
-            ok = ok && Debug.checkFloat(friction, `Invalid max friction scalar value: ${friction}`);
+            let ok = Debug.checkUint(axis);
+            ok = ok && Debug.checkFloat(friction);
             if (!ok) {
                 return;
             }
@@ -276,8 +276,8 @@ class SixDOFConstraint extends JointConstraint {
      */
     setMotorState(axis, state) {
         if ($_DEBUG) {
-            let ok = Debug.checkUint(axis, `Invalid axis uint scalar: ${axis}`);
-            ok = ok && Debug.checkUint(state, `Invalid motor state scalar for constraint:`, state);
+            let ok = Debug.checkUint(axis);
+            ok = ok && Debug.checkUint(state);
             if (!ok) {
                 return;
             }
@@ -297,7 +297,7 @@ class SixDOFConstraint extends JointConstraint {
      */
     setTargetVelocityCS(velocity) {
         if ($_DEBUG) {
-            const ok = Debug.checkVec(velocity, 'Invalid velocity vector:', velocity);
+            const ok = Debug.checkVec(velocity);
             if (!ok) {
                 return;
             }
@@ -316,7 +316,7 @@ class SixDOFConstraint extends JointConstraint {
      */
     setTargetAngularVelocityCS(velocity) {
         if ($_DEBUG) {
-            const ok = Debug.checkVec(velocity, 'Invalid velocity vector:', velocity);
+            const ok = Debug.checkVec(velocity);
             if (!ok) {
                 return;
             }
@@ -335,7 +335,7 @@ class SixDOFConstraint extends JointConstraint {
      */
     setTargetPositionCS(position) {
         if ($_DEBUG) {
-            const ok = Debug.checkVec(position, 'Invalid position vector:', position);
+            const ok = Debug.checkVec(position);
             if (!ok) {
                 return;
             }
@@ -354,7 +354,7 @@ class SixDOFConstraint extends JointConstraint {
      */
     setTargetOrientationCS(rotation) {
         if ($_DEBUG) {
-            const ok = Debug.checkQuat(rotation, 'Invalid rotation quaternion:', rotation);
+            const ok = Debug.checkQuat(rotation);
             if (!ok) {
                 return;
             }
@@ -374,7 +374,7 @@ class SixDOFConstraint extends JointConstraint {
      */
     setTargetOrientationBS(rotation) {
         if ($_DEBUG) {
-            const ok = Debug.checkQuat(rotation, 'Invalid rotation quaternion:', rotation);
+            const ok = Debug.checkQuat(rotation);
             if (!ok) {
                 return;
             }

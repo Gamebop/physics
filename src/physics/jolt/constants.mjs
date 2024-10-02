@@ -90,6 +90,10 @@ export const SHAPE_CONVEX_HULL = 5;
 export const SHAPE_HEIGHTFIELD = 6;
 export const SHAPE_STATIC_COMPOUND = 7;
 export const SHAPE_MUTABLE_COMPOUND = 8;
+export const SHAPE_PLANE = 9;
+export const SHAPE_EMPTY = 10;
+export const SHAPE_TAPERED_CAPSULE = 11;
+export const SHAPE_TAPERED_CYLINDER = 12;
 
 export const CONTACT_TYPE_ADDED = 0;
 export const CONTACT_TYPE_PERSISTED = 1;

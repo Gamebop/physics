@@ -123,7 +123,7 @@ class SliderConstraint extends JointConstraint {
      */
     set maxFrictionForce(force) {
         if ($_DEBUG) {
-            const ok = Debug.checkFloat(force, `Invalid max friction force scalar value: ${force}`);
+            const ok = Debug.checkFloat(force);
             if (!ok) {
                 return;
             }
@@ -236,7 +236,7 @@ class SliderConstraint extends JointConstraint {
      */
     setMotorState(state) {
         if ($_DEBUG) {
-            const ok = Debug.checkUint(state, `Invalid motor state scalar for constraint:`, state);
+            const ok = Debug.checkUint(state);
             if (!ok) {
                 return;
             }
@@ -256,7 +256,7 @@ class SliderConstraint extends JointConstraint {
      */
     setTargetVelocity(velocity) {
         if ($_DEBUG) {
-            const ok = Debug.checkFloat(velocity, `Invalid target velocity scalar for constraint:`, velocity);
+            const ok = Debug.checkFloat(velocity);
             if (!ok) {
                 return;
             }
@@ -276,7 +276,7 @@ class SliderConstraint extends JointConstraint {
      */
     setTargetPosition(angle) {
         if ($_DEBUG) {
-            const ok = Debug.checkFloat(angle, `Invalid target position scalar for constraint:`, angle);
+            const ok = Debug.checkFloat(angle);
             if (!ok) {
                 return;
             }
@@ -296,8 +296,8 @@ class SliderConstraint extends JointConstraint {
      */
     setLimits(min, max) {
         if ($_DEBUG) {
-            let ok = Debug.checkFloat(min, `Invalid min limit for constraint: ${min}`);
-            ok = ok && Debug.checkFloat(max, `Invalid max limit for constraint: ${max}`);
+            let ok = Debug.checkFloat(min);
+            ok = ok && Debug.checkFloat(max);
             ok = ok && Debug.assert(min <= max, `Invalid min/max range: [${min} : ${max}]`);
             if (!ok) {
                 return;

@@ -236,7 +236,7 @@ class HingeConstraint extends JointConstraint {
      */
     setMotorState(state) {
         if ($_DEBUG) {
-            const ok = Debug.checkUint(state, `Invalid motor state for constraint:`, state);
+            const ok = Debug.checkUint(state);
             if (!ok) {
                 return;
             }
@@ -256,7 +256,7 @@ class HingeConstraint extends JointConstraint {
      */
     setTargetAngularVelocity(velocity) {
         if ($_DEBUG) {
-            const ok = Debug.checkFloat(velocity, `Invalid target velocity for constraint:`, velocity);
+            const ok = Debug.checkFloat(velocity);
             if (!ok) {
                 return;
             }
@@ -276,7 +276,7 @@ class HingeConstraint extends JointConstraint {
      */
     setTargetAngle(angle) {
         if ($_DEBUG) {
-            const ok = Debug.checkFloat(angle, `Invalid target radians for constraint:`, angle);
+            const ok = Debug.checkFloat(angle);
             if (!ok) {
                 return;
             }
@@ -296,9 +296,9 @@ class HingeConstraint extends JointConstraint {
      */
     setLimits(min, max) {
         if ($_DEBUG) {
-            let ok = Debug.checkFloat(min, `Invalid min scalar limit for constraint: ${min}`);
-            ok = ok && Debug.checkFloat(max, `Invalid max scalar limit for constraint: ${max}`);
-            ok = ok && Debug.assert(min <= max, `Invalid min/max range: [${min} : ${max}]`);
+            let ok = Debug.checkFloat(min);
+            ok = ok && Debug.checkFloat(max);
+            ok = ok && Debug.assert(min <= max);
             if (!ok) {
                 return;
             }

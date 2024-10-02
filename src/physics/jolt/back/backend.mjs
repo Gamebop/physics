@@ -611,8 +611,9 @@ class JoltBackend {
         const characters = tracker.character;
         const count = characters.size;
 
-        if (count === 0)
+        if (count === 0) {
             return true;
+        }
 
         const useMotionStates = this._config.useMotionStates;
 

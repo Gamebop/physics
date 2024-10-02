@@ -71,7 +71,7 @@ class SwingTwistConstraint extends JointConstraint {
      */
     set maxFrictionTorque(torque) {
         if ($_DEBUG) {
-            const ok = Debug.checkFloat(torque, `Invalid max friction torque scalar: ${torque}`);
+            const ok = Debug.checkFloat(torque);
             if (!ok) {
                 return;
             }
@@ -113,7 +113,7 @@ class SwingTwistConstraint extends JointConstraint {
      */
     set normalHalfConeAngle(angle) {
         if ($_DEBUG) {
-            const ok = Debug.checkFloat(angle, `Invalid half cone angle scalar: ${angle}`);
+            const ok = Debug.checkFloat(angle);
             if (!ok) {
                 return;
             }
@@ -146,7 +146,7 @@ class SwingTwistConstraint extends JointConstraint {
      */
     set planeHalfConeAngle(angle) {
         if ($_DEBUG) {
-            const ok = Debug.checkFloat(angle, `Invalid plane half cone angle scalar: ${angle}`);
+            const ok = Debug.checkFloat(angle);
             if (!ok) {
                 return;
             }
@@ -195,7 +195,7 @@ class SwingTwistConstraint extends JointConstraint {
      */
     set twistMaxAngle(angle) {
         if ($_DEBUG) {
-            const ok = Debug.checkFloat(angle, `Invalid twist max angle scalar: ${angle}`);
+            const ok = Debug.checkFloat(angle);
             if (!ok) {
                 return;
             }
@@ -227,7 +227,7 @@ class SwingTwistConstraint extends JointConstraint {
      */
     set twistMinAngle(angle) {
         if ($_DEBUG) {
-            const ok = Debug.checkFloat(angle, `Invalid twist min angle scalar: ${angle}`);
+            const ok = Debug.checkFloat(angle);
             if (!ok) {
                 return;
             }
@@ -316,7 +316,7 @@ class SwingTwistConstraint extends JointConstraint {
      */
     setSwingMotorState(state) {
         if ($_DEBUG) {
-            const ok = Debug.checkUint(state, `Invalid motor state scalar: ${state}`);
+            const ok = Debug.checkUint(state);
             if (!ok) {
                 return;
             }
@@ -334,7 +334,7 @@ class SwingTwistConstraint extends JointConstraint {
      */
     setTwistMotorState(state) {
         if ($_DEBUG) {
-            const ok = Debug.checkUint(state, `Invalid motor state scalar: ${state}`);
+            const ok = Debug.checkUint(state);
             if (!ok) {
                 return;
             }

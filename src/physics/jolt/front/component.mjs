@@ -18,7 +18,7 @@ class Component extends EventHandler {
         this._entity = entity;
 
         this.on('set', function (name, oldValue, newValue) {
-            this.fire('set_' + name, name, oldValue, newValue);
+            this.fire(`set_${name}`, name, oldValue, newValue);
         });
 
         this.on('set_enabled', this.onSetEnabled, this);
