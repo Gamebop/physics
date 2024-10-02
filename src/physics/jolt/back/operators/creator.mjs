@@ -1112,6 +1112,8 @@ function createPlaneSettings(cb, Jolt, jv) {
     const settings = new Jolt.PlaneShapeSettings(plane, new Jolt.PhysicsMaterial(),
         cb.read(BUFFER_READ_FLOAT32) /* half extent */);
 
+    Jolt.destroy(plane);
+
     return settings;
 }
 
