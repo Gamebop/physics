@@ -382,13 +382,25 @@ class ShapeComponent extends Component {
     /**
      * Changes the shape type. Following constants available:
      * ```
+     * SHAPE_EMPTY
+     * ```
+     * ```
+     * SHAPE_PLANE
+     * ```
+     * ```
      * SHAPE_BOX
      * ```
      * ```
      * SHAPE_CAPSULE
      * ```
      * ```
+     * SHAPE_TAPERED_CAPSULE
+     * ```
+     * ```
      * SHAPE_CYLINDER
+     * ```
+     * ```
+     * SHAPE_TAPERED_CYLINDER
      * ```
      * ```
      * SHAPE_SPHERE
