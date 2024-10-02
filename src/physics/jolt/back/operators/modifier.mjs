@@ -324,11 +324,8 @@ class Modifier {
         const body = this._getBody(cb);
 
         try {
-            const shapeSettings = Creator.createShapeSettings(cb,
-                                                              meshBuffers,
-                                                              Jolt,
-                                                              this._joltVec3_1,
-                                                              this._joltQuat_1);
+            const shapeSettings = Creator.createShapeSettings(cb, meshBuffers, Jolt,
+                this._joltVec3_1, this._joltQuat_1);
             if (!shapeSettings) {
                 return false;
             }
@@ -342,10 +339,8 @@ class Modifier {
             const shape = shapeResult.Get();
             const currentShape = body.GetShape();
 
-            backend.bodyInterface.SetShape(body.GetID(),
-                                           shape,
-                                           false /* inUpdateMassProperties */,
-                                           Jolt.EActivation_Activate);
+            backend.bodyInterface.SetShape(body.GetID(), shape, false /* inUpdateMassProperties */,
+                Jolt.EActivation_Activate);
             currentShape.Release();
 
             // If there is debug draw context, we need to reset it to view a new shape
@@ -889,9 +884,10 @@ class Modifier {
         const table = this._backend.groupFilterTables[group];
 
         if ($_DEBUG) {
-            let ok = Debug.assert(!!table, `Trying to set a filter group that does not exist: ${group}`);
+            let ok = Debug.assert(!!table,
+                `Trying to set a filter group that does not exist: ${group}`);
             ok = ok && Debug.assert((subGroup <= table.maxIndex),
-                                    `Trying to set sub group that is over the filter group table size: ${subGroup}`);
+                `Trying to set sub group that is over the filter group table size: ${subGroup}`);
             if (!ok) {
                 return false;
             }

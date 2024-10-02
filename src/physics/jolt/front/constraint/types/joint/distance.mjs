@@ -120,8 +120,8 @@ class DistanceConstraint extends JointConstraint {
      */
     setDistance(min, max) {
         if ($_DEBUG) {
-            let ok = Debug.checkFloat(min, `Invalid min distance for constraint: ${min}`);
-            ok = ok && Debug.checkFloat(max, `Invalid max distance for constraint: ${max}`);
+            let ok = Debug.checkFloat(min);
+            ok = ok && Debug.checkFloat(max);
             ok = ok && Debug.assert(min <= max, `Invalid min/max range: [${min} : ${max}]`);
             if (!ok) {
                 return;

@@ -308,7 +308,10 @@ class CharComponent extends ShapeComponent {
         }
 
         if ($_DEBUG) {
-            Debug.checkVec(vel);
+            const ok = Debug.checkVec(vel);
+            if (!ok) {
+                return;
+            }
         }
 
         // backend response will write to this._linearVelocity
@@ -549,8 +552,9 @@ class CharComponent extends ShapeComponent {
     set pairedEntity(entity) {
         if ($_DEBUG) {
             const ok = Debug.assert(!!entity.body);
-            if (!ok)
+            if (!ok) {
                 return;
+            }
         }
 
         this._pairedEntity = entity;
@@ -783,8 +787,9 @@ class CharComponent extends ShapeComponent {
 
         if ($_DEBUG) {
             const ok = Debug.checkBool(bool);
-            if (!ok)
+            if (!ok) {
                 return;
+            }
         }
 
         this._useMotionState = bool;

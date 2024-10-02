@@ -390,20 +390,30 @@ class VehicleConstraint extends Constraint {
         return this._wheels;
     }
 
+    /**
+     * Sets driver steering input for the vehicle.
+     *
+     * @param {number} input0 - Forward input in [-1:1] range.
+     * @param {number} input1 - Right input for wheeled and moto vehicles in [-1:1] range. Left
+     * ratio for tracked vehicle in [-1:1] range.
+     * @param {number} input2 - Brake input for wheeled and moto vehicles in [0:1] range. Right
+     * ratio for tracked vehicle in [-1:1] range.
+     * @param {number} input3 - Hand brake for wheeled and moto vehicles in [0:1] range. Brake
+     * input for tracked vehicle in [0:1] range.
+     */
     setDriverInput(input0, input1, input2, input3) {
         if ($_DEBUG) {
-            let ok = Debug.checkRange(input0, -1, 1, `Invalid driver input for forward (input0). Expected a number in [-1:1] range. Received: ${input0}`);
+            let ok = Debug.checkRange(input0, -1, 1);
+            ok = ok && Debug.checkRange(input1, -1, 1);
             if (this._type === CONSTRAINT_TYPE_VEHICLE_WHEEL || this._type === CONSTRAINT_TYPE_VEHICLE_MOTO) {
-                ok = ok && Debug.checkRange(input1, -1, 1, `Invalid driver input for right (input1). Expected a number in [-1:1] range. Received: ${input1}`);
-                ok = ok && Debug.checkRange(input2, 0, 1, `Invalid driver input for brake (input2). Expected a number in [0:1] range. Received: ${input2}`);
-                ok = ok && Debug.checkRange(input3, 0, 1, `Invalid driver input for hand brake (input3). Expected a number in [0:1] range. Received: ${input3}`);
+                ok = ok && Debug.checkRange(input2, 0, 1);
             } else {
-                ok = ok && Debug.checkRange(input1, -1, 1, `Invalid driver input for left ratio (input1). Expected a number in [-1:1] range. Received: ${input1}`);
-                ok = ok && Debug.checkRange(input2, -1, 1, `Invalid driver input for right ratio (input2). Expected a number in [-1:1] range. Received: ${input2}`);
-                ok = ok && Debug.checkRange(input3, 0, 1, `Invalid driver input for brake (input3). Expected a number in [0:1] range. Received: ${input3}`);
+                ok = ok && Debug.checkRange(input2, -1, 1);
             }
-            if (!ok)
+            ok = ok && Debug.checkRange(input3, 0, 1);
+            if (!ok) {
                 return;
+            }
         }
 
         this.system.addCommand(
@@ -417,9 +427,9 @@ class VehicleConstraint extends Constraint {
 
     write(cb) {
         if ($_DEBUG) {
-            let ok = Debug.checkVec(this._up, `Invalid up vector`, this._up);
-            ok = ok && Debug.checkVec(this._forward, `Invalid forward vector`, this._forward);
-            ok = ok && Debug.checkFloat(this._maxPitchRollAngle, `Invalid angle scalar`, this._maxPitchRollAngle);
+            let ok = Debug.checkVec(this._up);
+            ok = ok && Debug.checkVec(this._forward);
+            ok = ok && Debug.checkFloat(this._maxPitchRollAngle);
             // TODO
 
             if (!ok) {

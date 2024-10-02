@@ -85,8 +85,8 @@ class JointConstraint extends Constraint {
             ok = ok && Debug.assert(!!this._entity1.body, 'Invalid entity1', this._entity1);
             ok = ok && Debug.assert(this._entity2 instanceof Entity, 'Invalid entity2', this._entity2);
             ok = ok && Debug.assert(!!this._entity2.body, 'Invalid entity2', this._entity2);
-            ok = ok && Debug.checkVec(this._point1, 'Invalid point1 vector.', this._point1);
-            ok = ok && Debug.checkVec(this._point2, 'Invalid point2 vector.', this._point2);
+            ok = ok && Debug.checkVec(this._point1);
+            ok = ok && Debug.checkVec(this._point2);
             if (!ok) {
                 return;
             }

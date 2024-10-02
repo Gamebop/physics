@@ -224,13 +224,9 @@ class CharModifier {
         const cbIndex = cb.read(BUFFER_READ_UINT16);
 
         try {
-            const ok = char.SetShape(shape,
-                                     backend.config.penetrationSlop * 1.5,
-                                     backend.bpFilter,
-                                     backend.objFilter,
-                                     backend.bodyFilter,
-                                     backend.shapeFilter,
-                                     backend.joltInterface.GetTempAllocator());
+            const ok = char.SetShape(shape, backend.config.penetrationSlop * 1.5, backend.bpFilter,
+                backend.objFilter, backend.bodyFilter, backend.shapeFilter,
+                backend.joltInterface.GetTempAllocator());
 
             const outBuffer = backend.outBuffer;
             outBuffer.writeOperator(COMPONENT_SYSTEM_CHAR);

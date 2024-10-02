@@ -161,31 +161,31 @@ class CharComponentSystem extends ShapeComponentSystem {
         if ($_DEBUG) {
             if (!!callbacks.OnAdjustBodyVelocity) {
                 Debug.assert(typeof callbacks.OnAdjustBodyVelocity === 'function',
-                             'OnAdjustBodyVelocity must be a function', callbacks);
+                    'OnAdjustBodyVelocity must be a function', callbacks);
             }
             if (!!callbacks.OnContactValidate) {
                 Debug.assert(typeof callbacks.OnContactValidate === 'function',
-                             'OnContactValidate must be a function', callbacks);
+                    'OnContactValidate must be a function', callbacks);
             }
             if (!!callbacks.OnCharacterContactValidate) {
                 Debug.assert(typeof callbacks.OnCharacterContactValidate === 'function',
-                             'OnCharacterContactValidate must be a function', callbacks);
+                    'OnCharacterContactValidate must be a function', callbacks);
             }
             if (!!callbacks.OnContactAdded) {
                 Debug.assert(typeof callbacks.OnContactAdded === 'function',
-                             'OnContactAdded must be a function', callbacks);
+                    'OnContactAdded must be a function', callbacks);
             }
             if (!!callbacks.OnCharacterContactAdded) {
                 Debug.assert(typeof callbacks.OnCharacterContactAdded === 'function',
-                             'OnCharacterContactAdded must be a function', callbacks);
+                    'OnCharacterContactAdded must be a function', callbacks);
             }
             if (!!callbacks.OnContactSolve) {
                 Debug.assert(typeof callbacks.OnContactSolve === 'function',
-                             'OnContactSolve must be a function', callbacks);
+                    'OnContactSolve must be a function', callbacks);
             }
             if (!!callbacks.OnCharacterContactSolve) {
                 Debug.assert(typeof callbacks.OnCharacterContactSolve === 'function',
-                             'OnCharacterContactSolve must be a function', callbacks);
+                    'OnCharacterContactSolve must be a function', callbacks);
             }
         }
 

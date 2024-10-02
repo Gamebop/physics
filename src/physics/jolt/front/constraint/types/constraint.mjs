@@ -7,7 +7,7 @@ import { Curve, Vec3 } from 'playcanvas';
 
 function applyOptions(instance, opts) {
     for (const [key, val] of Object.entries(opts)) {
-        const prop = '_' + key;
+        const prop = `_${key}`;
         if (instance[prop] === undefined) continue;
         if (val instanceof Vec3 || val instanceof Curve) {
             instance[prop] = val.clone();
@@ -191,12 +191,8 @@ class Constraint {
 
     write(cb) {
         if ($_DEBUG) {
-            let ok = Debug.checkUint(this._numVelocityStepsOverride,
-                                     'Invalid number of velocity steps',
-                                     this._numVelocityStepsOverride);
-            ok = ok && Debug.checkUint(this._numPositionStepsOverride,
-                                       'Invalid number of velocity steps',
-                                       this._numPositionStepsOverride);
+            let ok = Debug.checkUint(this._numVelocityStepsOverride);
+            ok = ok && Debug.checkUint(this._numPositionStepsOverride);
             if (!ok) {
                 return;
             }
@@ -216,8 +212,8 @@ class Constraint {
      */
     setEnabled(enabled, activate = true) {
         if ($_DEBUG) {
-            let ok = Debug.checkBool(enabled, `Invalid constraint enable bool: ${enabled}`);
-            ok = ok && Debug.checkBool(activate, `Invalid activate bool: ${activate}`);
+            let ok = Debug.checkBool(enabled);
+            ok = ok && Debug.checkBool(activate);
             if (!ok) {
                 return;
             }

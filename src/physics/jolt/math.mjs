@@ -19,9 +19,9 @@ function extendJoltMath(Jolt) {
 
             const test = isPositive ? Debug.checkFloatPositive : Debug.checkFloat;
 
-            let ok = test(x, `invalid vector X component: ${x}`);
-            ok = ok && test(y, `invalid vector Y component: ${y}`);
-            ok = ok && test(z, `invalid vector Z component: ${z}`);
+            let ok = test(x);
+            ok = ok && test(y);
+            ok = ok && test(z);
             if (!ok) return this;
 
             this.Set(x, y, z);
@@ -52,10 +52,10 @@ function extendJoltMath(Jolt) {
             const z = buffer.read(BUFFER_READ_FLOAT32);
             const w = buffer.read(BUFFER_READ_FLOAT32);
 
-            let ok = Debug.checkFloat(x, `invalid quaternion X component: ${x}`);
-            ok = ok && Debug.checkFloat(y, `invalid quaternion Y component: ${y}`);
-            ok = ok && Debug.checkFloat(z, `invalid quaternion Z component: ${z}`);
-            ok = ok && Debug.checkFloat(w, `invalid quaternion W component: ${w}`);
+            let ok = Debug.checkFloat(x);
+            ok = ok && Debug.checkFloat(y);
+            ok = ok && Debug.checkFloat(z);
+            ok = ok && Debug.checkFloat(w);
             if (!ok) return this;
 
             this.Set(x, y, z, w);

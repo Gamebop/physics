@@ -195,7 +195,7 @@ class CommandsBuffer {
         }
         const value = this._view.getFloat32(this._bytesOffset);
         if ($_DEBUG) {
-            Debug.checkFloat(value, `Got invalid value from buffer: ${value}`);
+            Debug.checkFloat(value);
         }
         this._bytesOffset += FLOAT32_SIZE;
         return value;
@@ -203,7 +203,7 @@ class CommandsBuffer {
 
     writeFloat32(value, offset) {
         if ($_DEBUG) {
-            const ok = Debug.checkFloat(value, `Trying to write invalid value to buffer: ${value}`);
+            const ok = Debug.checkFloat(value);
             if (!ok) {
                 return false;
             }
@@ -243,8 +243,8 @@ class CommandsBuffer {
 
     writeUint8(value, offset) {
         if ($_DEBUG) {
-            let ok = Debug.checkUint(value, `Trying to write invalid value to buffer: ${value}`);
-            ok = ok && Debug.assert(value <= 255, `Value is larger than int8: ${value}`);
+            let ok = Debug.checkUint(value);
+            ok = ok && Debug.assert(value <= 255);
             if (!ok) {
                 return false;
             }
@@ -276,7 +276,7 @@ class CommandsBuffer {
         }
         const value = this._view.getUint16(this._bytesOffset);
         if ($_DEBUG) {
-            Debug.checkUint(value, `Got invalid value from buffer: ${value}`);
+            Debug.checkUint(value);
         }
         this._bytesOffset += UINT16_SIZE;
         return value;
@@ -284,8 +284,8 @@ class CommandsBuffer {
 
     writeUint16(value, offset) {
         if ($_DEBUG) {
-            let ok = Debug.checkUint(value, `Trying to write invalid value to buffer: ${value}`);
-            ok = ok && Debug.assert(value <= 65535, `Value is larger than int16: ${value}`);
+            let ok = Debug.checkUint(value);
+            ok = ok && Debug.assert(value <= 65535);
             if (!ok) {
                 return false;
             }
@@ -317,7 +317,7 @@ class CommandsBuffer {
         }
         const value = this._view.getUint32(this._bytesOffset);
         if ($_DEBUG) {
-            Debug.checkUint(value, `Got invalid value from buffer: ${value}`);
+            Debug.checkUint(value);
         }
         this._bytesOffset += UINT32_SIZE;
         return value;
@@ -325,8 +325,8 @@ class CommandsBuffer {
 
     writeUint32(value, offset) {
         if ($_DEBUG) {
-            let ok = Debug.checkUint(value, `Trying to write invalid value to buffer: ${value}`);
-            ok = ok && Debug.assert(value <= 4294967295, `Value is larger than int32: ${value}`);
+            let ok = Debug.checkUint(value);
+            ok = ok && Debug.assert(value <= 4294967295);
             if (!ok) {
                 return false;
             }
@@ -358,7 +358,7 @@ class CommandsBuffer {
         }
         const value = this._view.getInt32(this._bytesOffset);
         if ($_DEBUG) {
-            Debug.checkInt(value, `Got invalid value from buffer: ${value}`);
+            Debug.checkInt(value);
         }
         this._bytesOffset += INT32_SIZE;
         return value;
@@ -366,7 +366,7 @@ class CommandsBuffer {
 
     writeInt32(value, offset) {
         if ($_DEBUG) {
-            const ok = Debug.checkInt(value, `Trying to write invalid value to buffer: ${value}`);
+            const ok = Debug.checkInt(value);
             if (!ok) {
                 return false;
             }
@@ -404,7 +404,8 @@ class CommandsBuffer {
 
     writePlane(plane) {
         if ($_DEBUG) {
-            const ok = Debug.assert(!!plane && plane instanceof Plane, `Trying to write invalid Plane instance to buffer`, plane);
+            const ok = Debug.assert(!!plane && plane instanceof Plane,
+                'Trying to write invalid Plane instance to buffer', plane);
             if (!ok) {
                 return false;
             }

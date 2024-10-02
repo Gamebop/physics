@@ -184,9 +184,10 @@ class JoltManager extends PhysicsManager {
      */
     set gravity(gravity) {
         if ($_DEBUG) {
-            const ok = Debug.checkVec(gravity, `Invalid gravity vector`, gravity);
-            if (!ok)
+            const ok = Debug.checkVec(gravity);
+            if (!ok) {
                 return;
+            }
         }
 
         if (!this._gravity.equals(gravity)) {
@@ -357,9 +358,10 @@ class JoltManager extends PhysicsManager {
      */
     destroyShape(index) {
         if ($_DEBUG) {
-            const ok = Debug.checkUint(index, `Invalid shape number: ${index}`);
-            if (!ok)
+            const ok = Debug.checkUint(index);
+            if (!ok) {
                 return;
+            }
         }
 
         const cb = this._outBuffer;
@@ -396,29 +398,29 @@ class JoltManager extends PhysicsManager {
      */
     castRay(origin, dir, callback, opts) {
         if ($_DEBUG) {
-            let ok = Debug.checkVec(origin, `Invalid origin vector`);
-            ok = ok && Debug.checkVec(dir, `Invalid direction vector`);
-            ok = ok && Debug.assert(callback, 'castRay requires a callback function castRay(origin, dir, callback, opts)');
+            let ok = Debug.checkVec(origin);
+            ok = ok && Debug.checkVec(dir);
+            ok = ok && Debug.assert(callback);
             if (ok && opts?.firstOnly != null) {
-                ok = Debug.checkBool(opts.firstOnly, `Invalid first only boolean`);
+                ok = Debug.checkBool(opts.firstOnly);
             }
             if (ok && opts?.calculateNormal != null) {
-                ok = Debug.checkBool(opts.calculateNormal, `Invalid calculate normal boolean`);
+                ok = Debug.checkBool(opts.calculateNormal);
             }
             if (ok && opts?.ignoreBackFaces != null) {
-                ok = Debug.checkBool(opts.ignoreBackFaces, `Invalid ignore backfaces boolean`);
+                ok = Debug.checkBool(opts.ignoreBackFaces);
             }
             if (ok && opts?.treatConvexAsSolid != null) {
-                ok = Debug.checkBool(opts.treatConvexAsSolid, `Invalid treat convex as solid boolean`);
+                ok = Debug.checkBool(opts.treatConvexAsSolid);
             }
             if (ok && opts?.bpFilterLayer != null) {
-                ok = Debug.checkUint(opts.bpFilterLayer, `Invalid bpFilterLayer number`);
+                ok = Debug.checkUint(opts.bpFilterLayer);
             }
             if (ok && opts?.objFilterLayer != null) {
-                ok = Debug.checkUint(opts.objFilterLayer, `Invalid objFilterLayer number`);
+                ok = Debug.checkUint(opts.objFilterLayer);
             }
             if (ok && opts?.ignoreSensors != null) {
-                ok = Debug.checkBool(opts.ignoreSensors, `Invalid ignoreSensors boolean`);
+                ok = Debug.checkBool(opts.ignoreSensors);
             }
             if (!ok) {
                 return;
@@ -477,10 +479,10 @@ class JoltManager extends PhysicsManager {
      */
     castShape(shapeIndex, pos, rot, dir, callback, opts) {
         if ($_DEBUG) {
-            let ok = Debug.checkInt(shapeIndex, `Invalid shape index`);
-            ok = ok && Debug.checkVec(pos, `Invalid cast shape position vector`);
-            ok = ok && Debug.checkVec(dir, `Invalid cast shape direction vector`);
-            ok = ok && Debug.checkQuat(rot, `Invalid cast shape rotation`);
+            let ok = Debug.checkInt(shapeIndex);
+            ok = ok && Debug.checkVec(pos);
+            ok = ok && Debug.checkVec(dir);
+            ok = ok && Debug.checkQuat(rot);
             if (!ok) {
                 return;
             }
@@ -540,12 +542,12 @@ class JoltManager extends PhysicsManager {
      */
     collidePoint(point, callback, opts) {
         if ($_DEBUG) {
-            let ok = Debug.checkVec(point, `Invalid point vector`);
+            let ok = Debug.checkVec(point);
             if (ok && opts?.bpFilterLayer != null) {
-                ok = Debug.checkUint(opts.bpFilterLayer, `Invalid broadphase filter layer`);
+                ok = Debug.checkUint(opts.bpFilterLayer);
             }
             if (ok && opts?.objFilterLayer != null) {
-                ok = Debug.checkUint(opts.objFilterLayer, `Invalid object filter layer`);
+                ok = Debug.checkUint(opts.objFilterLayer);
             }
             if (!ok) {
                 return;
@@ -597,26 +599,26 @@ class JoltManager extends PhysicsManager {
      */
     collideShape(shapeIndex, position, rotation, callback, opts) {
         if ($_DEBUG) {
-            let ok = Debug.checkInt(shapeIndex, `Invalid shape index`);
-            ok = ok && Debug.checkVec(position, `Invalid shape position vector`);
-            ok = ok && Debug.checkQuat(rotation, `Invalid rotation quaternion`);
+            let ok = Debug.checkInt(shapeIndex);
+            ok = ok && Debug.checkVec(position);
+            ok = ok && Debug.checkQuat(rotation);
             if (ok && opts?.scale) {
-                ok = Debug.checkVec(opts.scale, `Invalid shape scale`);
+                ok = Debug.checkVec(opts.scale);
             }
             if (ok && opts?.maxSeparationDistance != null) {
-                ok = Debug.checkFloat(opts.maxSeparationDistance, `Invalid max separation distance`);
+                ok = Debug.checkFloat(opts.maxSeparationDistance);
             }
             if (ok && opts?.backFaceMode != null) {
-                ok = Debug.checkUint(opts?.backFaceMode, `Invalid back face mode`);
+                ok = Debug.checkUint(opts?.backFaceMode);
             }
             if (ok && opts?.offset) {
-                ok = Debug.checkVec(opts.offset, `Invalid shape position linear offset vector`);
+                ok = Debug.checkVec(opts.offset);
             }
             if (ok && opts?.bpFilterLayer != null) {
-                ok = Debug.checkUint(opts.bpFilterLayer, `Invalid broadphase filter layer`);
+                ok = Debug.checkUint(opts.bpFilterLayer);
             }
             if (ok && opts?.objFilterLayer != null) {
-                ok = Debug.checkUint(opts.objFilterLayer, `Invalid object filter layer`);
+                ok = Debug.checkUint(opts.objFilterLayer);
             }
             if (!ok) {
                 return;
@@ -685,10 +687,10 @@ class JoltManager extends PhysicsManager {
      */
     toggleGroupPair(group, subGroup1, subGroup2, enable) {
         if ($_DEBUG) {
-            let ok = Debug.checkUint(group, `Invalid group 1: ${group}`);
-            ok = ok && Debug.checkUint(subGroup1, `Invalid group 1: ${subGroup1}`);
-            ok = ok && Debug.checkUint(subGroup2, `Invalid group 2: ${subGroup2}`);
-            ok = ok && Debug.checkBool(enable, `Invalid toggle flag: ${enable}`);
+            let ok = Debug.checkUint(group);
+            ok = ok && Debug.checkUint(subGroup1);
+            ok = ok && Debug.checkUint(subGroup2);
+            ok = ok && Debug.checkBool(enable);
             if (!ok) {
                 return;
             }

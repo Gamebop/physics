@@ -294,7 +294,7 @@ class ShapeComponent extends Component {
         }
 
         if ($_DEBUG) {
-            const ok = Debug.assert(mesh instanceof Mesh, `Invalid mesh`, mesh);
+            const ok = Debug.assert(mesh instanceof Mesh, 'Invalid mesh', mesh);
             if (!ok) {
                 return;
             }
@@ -341,7 +341,7 @@ class ShapeComponent extends Component {
         const shape = this._shape;
         if (shape !== SHAPE_MESH && shape !== SHAPE_CONVEX_HULL) {
             if ($_DEBUG) {
-                Debug.warn(`Body component's shape type does not support setting a render asset.`);
+                Debug.warn('Current shape type does not support setting a render asset.');
             }
             return;
         }
@@ -349,7 +349,7 @@ class ShapeComponent extends Component {
         if ($_DEBUG) {
             let ok = false;
             if (typeof asset === 'number') {
-                ok = Debug.checkUint(asset, `Invalid asset id number: ${asset}`);
+                ok = Debug.checkUint(asset);
             } else if (asset instanceof Asset) {
                 ok = true;
             }
@@ -417,7 +417,7 @@ class ShapeComponent extends Component {
         }
 
         if ($_DEBUG) {
-            const ok = Debug.checkUint(shapeNum, `Invalid shape number: ${shapeNum}`);
+            const ok = Debug.checkUint(shapeNum);
             if (!ok) {
                 return;
             }
@@ -624,7 +624,7 @@ class ShapeComponent extends Component {
         if (asset) {
             loadAndHandleAsset(asset);
         } else {
-            assets.once('add:' + id, loadAndHandleAsset);
+            assets.once(`add: ${id}`, loadAndHandleAsset);
         }
     }
 
