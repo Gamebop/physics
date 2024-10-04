@@ -1491,6 +1491,13 @@ class BodyComponent extends ShapeComponent {
             return false;
         }
 
+        if (this._index < 0) {
+            if ($_DEBUG) {
+                Debug.warn('Unable to create body component: entity is disabled or not in scene.');
+                return false;
+            }
+        }
+
         const massProps = this._overrideMassProperties;
         if (this.shape === SHAPE_HEIGHTFIELD || this.shape === SHAPE_MESH ||
             this.shape === SHAPE_PLANE) {
