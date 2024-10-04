@@ -4,17 +4,17 @@ import { ConstraintModifier } from './helpers/constraint-modifier.mjs';
 import {
     BUFFER_READ_BOOL, BUFFER_READ_FLOAT32, BUFFER_READ_INT32, BUFFER_READ_UINT16,
     BUFFER_READ_UINT32, BUFFER_READ_UINT8, CMD_ADD_ANGULAR_IMPULSE, CMD_ADD_FORCE, CMD_ADD_IMPULSE,
-    CMD_ADD_SHAPE,
     CMD_ADD_TORQUE, CMD_APPLY_BUOYANCY_IMPULSE, CMD_CHANGE_GRAVITY, CMD_CLAMP_ANG_VEL,
-    CMD_CLAMP_LIN_VEL, CMD_MODIFY_SHAPE, CMD_MOVE_BODY, CMD_MOVE_KINEMATIC, CMD_REMOVE_SHAPE, CMD_RESET_MOTION, CMD_RESET_SLEEP_TIMER,
+    CMD_CLAMP_LIN_VEL, CMD_MODIFY_SHAPE, CMD_MOVE_BODY, CMD_MOVE_KINEMATIC, CMD_REMOVE_SHAPE,
     CMD_SET_ALLOW_SLEEPING, CMD_SET_ANG_FACTOR, CMD_SET_ANG_VEL, CMD_SET_ANG_VEL_CLAMPED,
     CMD_SET_APPLY_GYRO_FORCE, CMD_SET_AUTO_UPDATE_ISOMETRY, CMD_SET_COL_GROUP, CMD_SET_DEBUG_DRAW,
     CMD_SET_DEBUG_DRAW_DEPTH, CMD_SET_DOF, CMD_SET_FRICTION, CMD_SET_GRAVITY_FACTOR,
     CMD_SET_INTERNAL_EDGE, CMD_SET_IS_SENSOR, CMD_SET_KIN_COL_NON_DYN, CMD_SET_LIN_VEL,
     CMD_SET_LIN_VEL_CLAMPED, CMD_SET_MAX_ANG_VEL, CMD_SET_MAX_LIN_VEL, CMD_SET_MOTION_QUALITY,
     CMD_SET_MOTION_TYPE, CMD_SET_OBJ_LAYER, CMD_SET_POS_STEPS, CMD_SET_RESTITUTION, CMD_SET_SHAPE,
-    CMD_SET_VEL_STEPS, CMD_TOGGLE_GROUP_PAIR, CMD_UPDATE_BIT_FILTER, CMD_USE_MOTION_STATE, MOTION_QUALITY_DISCRETE,
-    MOTION_TYPE_DYNAMIC, MOTION_TYPE_KINEMATIC
+    CMD_SET_VEL_STEPS, CMD_TOGGLE_GROUP_PAIR, CMD_UPDATE_BIT_FILTER, CMD_USE_MOTION_STATE,
+    MOTION_TYPE_DYNAMIC, MOTION_TYPE_KINEMATIC, CMD_ADD_SHAPE, UINT32_SIZE, UINT8_SIZE,
+    CMD_RESET_MOTION, CMD_RESET_SLEEP_TIMER, FLOAT32_SIZE, MOTION_QUALITY_DISCRETE
 } from '../../constants.mjs';
 import { Creator } from './creator.mjs';
 import { Cleaner } from './cleaner.mjs';
@@ -295,6 +295,8 @@ class Modifier {
 
         const body = this._getBody(cb);
 
+        // TODO skip if no body
+
         try {
             jv1.FromBuffer(cb);
             if (oneAttr) {
@@ -322,6 +324,8 @@ class Modifier {
         const backend = this._backend;
         const Jolt = backend.Jolt;
         const body = this._getBody(cb);
+
+        // TODO skip if no body
 
         try {
             const shapeSettings = Creator.createShapeSettings(cb, meshBuffers, Jolt,
@@ -360,6 +364,12 @@ class Modifier {
         const backend = this._backend;
         const Jolt = backend.Jolt;
         const body = this._getBody(cb);
+
+        if (!body) {
+            cb.skip(7 * FLOAT32_SIZE + 2 * UINT32_SIZE);
+            return true;
+        }
+
         const jv = this._joltVec3_1;
         const jq = this._joltQuat_1;
 
@@ -414,6 +424,10 @@ class Modifier {
 
         const childIndex = cb.read(BUFFER_READ_UINT32);
 
+        if (!body) {
+            return true;
+        }
+
         try {
             const bodyShape = body.GetShape();
             const compoundShape = Jolt.castObject(bodyShape, Jolt.MutableCompoundShape);
@@ -461,6 +475,12 @@ class Modifier {
         const backend = this._backend;
         const Jolt = backend.Jolt;
         const body = this._getBody(cb);
+
+        if (!body) {
+            cb.skip(7 * FLOAT32_SIZE + UINT8_SIZE + 2 * UINT32_SIZE);
+            return true;
+        }
+
         const jv = this._joltVec3_1;
         const jq = this._joltQuat_1;
 
@@ -474,7 +494,7 @@ class Modifier {
 
             if ($_DEBUG) {
                 const isValid = bodyShape.GetType() === Jolt.EShapeType_Compound &&
-                bodyShape.GetSubType() === Jolt.EShapeSubType_MutableCompound;
+                    bodyShape.GetSubType() === Jolt.EShapeSubType_MutableCompound;
                 if (!isValid) {
                     Debug.warn('Current shape does not support adding child shapes.');
                     return false;
@@ -526,7 +546,7 @@ class Modifier {
         const body = this._getBody(cb);
         const useMotionState = cb.read(BUFFER_READ_BOOL);
 
-        if (!this._backend.config.useMotionStates) {
+        if (!body || !this._backend.config.useMotionStates) {
             return true;
         }
 
@@ -553,6 +573,11 @@ class Modifier {
             const linearDrag = cb.read(BUFFER_READ_FLOAT32);
             const angularDrag = cb.read(BUFFER_READ_FLOAT32);
             const fluidVelocity = jv3.FromBuffer(cb);
+
+            if (!body) {
+                return true;
+            }
+
             const deltaTime = backend.config.fixedStep;
             const gravity = backend.physicsSystem.GetGravity();
 
@@ -569,6 +594,10 @@ class Modifier {
 
     _resetMotion(cb) {
         const body = this._getBody(cb);
+
+        if (!body) {
+            return true;
+        }
 
         try {
             body.ResetMotion();
@@ -592,6 +621,10 @@ class Modifier {
         try {
             jv.FromBuffer(cb);
             jq.FromBuffer(cb);
+
+            if (!body) {
+                return true;
+            }
 
             if ($_DEBUG) {
                 const type = body.GetMotionType();
@@ -625,12 +658,15 @@ class Modifier {
         const jv = this._joltVec3_1;
         const jq = this._joltQuat_1;
         const body = this._getBody(cb);
+        const dt = cb.read(BUFFER_READ_FLOAT32) || backend.config.fixedStep;
 
         try {
             jv.FromBuffer(cb);
             jq.FromBuffer(cb);
 
-            const dt = cb.read(BUFFER_READ_FLOAT32) || backend.config.fixedStep;
+            if (!body) {
+                return true;
+            }
 
             if ($_DEBUG) {
                 const type = body.GetMotionType();
@@ -651,28 +687,6 @@ class Modifier {
 
         return true;
     }
-
-    // _setDriverInput(cb) {
-    //     const backend = this._backend;
-    //     const tracker = backend.tracker;
-    //     const index = cb.read(BUFFER_READ_UINT32);
-    //     const body = backend.tracker.getBodyByPCID(index);
-    //     const data = tracker.constraintMap.get(index);
-    //     if (!data || !body) {
-    //         return true;
-    //     }
-
-    //     data.constraint.controller.SetDriverInput(
-    //         cb.read(BUFFER_READ_FLOAT32),
-    //         cb.read(BUFFER_READ_FLOAT32),
-    //         cb.read(BUFFER_READ_FLOAT32),
-    //         cb.read(BUFFER_READ_FLOAT32)
-    //     );
-
-    //     backend.bodyInterface.ActivateBody(body.GetID());
-
-    //     return true;
-    // }
 
     _toggleGroupPair(cb) {
         const backend = this._backend;
@@ -716,6 +730,12 @@ class Modifier {
         const body = backend.tracker.getBodyByPCID(index);
         const type = cb.read(BUFFER_READ_UINT8);
 
+        // TODO
+        // skip bytes instead of reading
+        if (!body) {
+            return true;
+        }
+
         let jType = Jolt.EMotionType_Static;
         if (type === MOTION_TYPE_DYNAMIC) {
             jType = Jolt.EMotionType_Dynamic;
@@ -737,9 +757,14 @@ class Modifier {
     }
 
     _setObjectLayer(cb) {
-        const backend = this._backend;
         const body = this._getBody(cb);
         const layer = cb.read(BUFFER_READ_UINT32);
+
+        if (!body) {
+            return true;
+        }
+
+        const backend = this._backend;
 
         try {
             backend.bodyInterface.SetObjectLayer(body.GetID(), layer);
@@ -754,11 +779,17 @@ class Modifier {
     }
 
     _setGravityFactor(cb) {
-        const backend = this._backend;
         const body = this._getBody(cb);
+        const factor = cb.read(BUFFER_READ_FLOAT32);
+
+        if (!body) {
+            return true;
+        }
+
+        const backend = this._backend;
 
         try {
-            backend.bodyInterface.SetGravityFactor(body.GetID(), cb.read(BUFFER_READ_FLOAT32));
+            backend.bodyInterface.SetGravityFactor(body.GetID(), factor);
         } catch (e) {
             if ($_DEBUG) {
                 Debug.error(e);
@@ -771,11 +802,16 @@ class Modifier {
 
     _setDOF(cb) {
         const body = this._getBody(cb);
+        const allowedDOFs = cb.read(BUFFER_READ_UINT8);
+
+        if (!body) {
+            return true;
+        }
 
         try {
             const motionProperties = body.GetMotionProperties();
             const massProperties = body.GetBodyCreationSettings().GetMassProperties();
-            motionProperties.SetMassProperties(cb.read(BUFFER_READ_UINT8), massProperties);
+            motionProperties.SetMassProperties(allowedDOFs, massProperties);
         } catch (e) {
             if ($_DEBUG) {
                 Debug.error(e);
@@ -787,11 +823,15 @@ class Modifier {
     }
 
     _setMotionQuality(cb) {
-        const backend = this._backend;
-        const Jolt = backend.Jolt;
         const body = this._getBody(cb);
         const quality = cb.read(BUFFER_READ_UINT8);
 
+        if (!body) {
+            return true;
+        }
+
+        const backend = this._backend;
+        const Jolt = backend.Jolt;
         const jQuality = quality === MOTION_QUALITY_DISCRETE ?
             Jolt.EMotionQuality_Discrete : Jolt.EMotionQuality_LinearCast;
 
@@ -809,8 +849,13 @@ class Modifier {
 
     _setAutoUpdateIsometry(cb) {
         const body = this._getBody(cb);
+        const bool = cb.read(BUFFER_READ_BOOL);
 
-        body.autoUpdateIsometry = cb.read(BUFFER_READ_BOOL);
+        if (!body) {
+            return true;
+        }
+
+        body.autoUpdateIsometry = bool;
 
         return true;
     }
@@ -818,6 +863,11 @@ class Modifier {
     _setDebugDraw(cb) {
         const body = this._getBody(cb);
         const toDraw = cb.read(BUFFER_READ_BOOL);
+
+        if (!body) {
+            return true;
+        }
+
         const debugBodies = this._backend.tracker.debug;
 
         try {
@@ -839,17 +889,27 @@ class Modifier {
 
     _setDebugDrawDepth(cb) {
         const body = this._getBody(cb);
+        const bool = cb.read(BUFFER_READ_BOOL);
 
-        body.debugDrawDepth = cb.read(BUFFER_READ_BOOL);
+        if (!body) {
+            return true;
+        }
+
+        body.debugDrawDepth = bool;
 
         return true;
     }
 
     _setAllowSleeping(cb) {
         const body = this._getBody(cb);
+        const bool = cb.read(BUFFER_READ_BOOL);
+
+        if (!body) {
+            return true;
+        }
 
         try {
-            body.SetAllowSleeping(cb.read(BUFFER_READ_BOOL));
+            body.SetAllowSleeping(bool);
         } catch (e) {
             if ($_DEBUG) {
                 Debug.error(e);
@@ -862,9 +922,14 @@ class Modifier {
 
     _setAngularFactor(cb) {
         const body = this._getBody(cb);
+        const damping = cb.read(BUFFER_READ_FLOAT32);
+
+        if (!body) {
+            return true;
+        }
 
         try {
-            body.GetMotionProperties().SetAngularDamping(cb.read(BUFFER_READ_FLOAT32));
+            body.GetMotionProperties().SetAngularDamping(damping);
         } catch (e) {
             if ($_DEBUG) {
                 Debug.error(e);
@@ -877,10 +942,14 @@ class Modifier {
 
     _setCollisionGroup(cb) {
         const body = this._getBody(cb);
-        const cg = body.GetCollisionGroup();
-
         const group = cb.read(BUFFER_READ_INT32);
         const subGroup = cb.read(BUFFER_READ_INT32);
+
+        if (!body) {
+            return true;
+        }
+
+        const cg = body.GetCollisionGroup();
         const table = this._backend.groupFilterTables[group];
 
         if ($_DEBUG) {
@@ -909,9 +978,14 @@ class Modifier {
 
     _setFriction(cb) {
         const body = this._getBody(cb);
+        const friction = cb.read(BUFFER_READ_FLOAT32);
+
+        if (!body) {
+            return true;
+        }
 
         try {
-            body.SetFriction(cb.read(BUFFER_READ_FLOAT32));
+            body.SetFriction(friction);
         } catch (e) {
             if ($_DEBUG) {
                 Debug.error(e);
@@ -924,9 +998,14 @@ class Modifier {
 
     _setIsSensor(cb) {
         const body = this._getBody(cb);
+        const bool = cb.read(BUFFER_READ_BOOL);
+
+        if (!body) {
+            return true;
+        }
 
         try {
-            body.SetIsSensor(cb.read(BUFFER_READ_BOOL));
+            body.SetIsSensor(bool);
         } catch (e) {
             if ($_DEBUG) {
                 Debug.error(e);
@@ -939,9 +1018,14 @@ class Modifier {
 
     _setRestitution(cb) {
         const body = this._getBody(cb);
+        const restitution = cb.read(BUFFER_READ_FLOAT32);
+
+        if (!body) {
+            return true;
+        }
 
         try {
-            body.SetRestitution(cb.read(BUFFER_READ_FLOAT32));
+            body.SetRestitution(restitution);
         } catch (e) {
             if ($_DEBUG) {
                 Debug.error(e);
@@ -954,9 +1038,14 @@ class Modifier {
 
     _setKinematicCollideNonDynamic(cb) {
         const body = this._getBody(cb);
+        const bool = cb.read(BUFFER_READ_BOOL);
+
+        if (!body) {
+            return true;
+        }
 
         try {
-            body.SetCollideKinematicVsNonDynamic(cb.read(BUFFER_READ_BOOL));
+            body.SetCollideKinematicVsNonDynamic(bool);
         } catch (e) {
             if ($_DEBUG) {
                 Debug.error(e);
@@ -969,9 +1058,14 @@ class Modifier {
 
     _setApplyGyroForce(cb) {
         const body = this._getBody(cb);
+        const bool = cb.read(BUFFER_READ_BOOL);
+
+        if (!body) {
+            return true;
+        }
 
         try {
-            body.SetApplyGyroscopicForce(cb.read(BUFFER_READ_BOOL));
+            body.SetApplyGyroscopicForce(bool);
         } catch (e) {
             if ($_DEBUG) {
                 Debug.error(e);
@@ -984,9 +1078,14 @@ class Modifier {
 
     _setInternalEdge(cb) {
         const body = this._getBody(cb);
+        const bool = cb.read(BUFFER_READ_BOOL);
+
+        if (!body) {
+            return true;
+        }
 
         try {
-            body.SetEnhancedInternalEdgeRemoval(cb.read(BUFFER_READ_BOOL));
+            body.SetEnhancedInternalEdgeRemoval(bool);
         } catch (e) {
             if ($_DEBUG) {
                 Debug.error(e);
@@ -999,6 +1098,10 @@ class Modifier {
 
     _resetSleepTimer(cb) {
         const body = this._getBody(cb);
+
+        if (!body) {
+            return true;
+        }
 
         try {
             body.ResetSleepTimer();
@@ -1014,9 +1117,14 @@ class Modifier {
 
     _setMaxAngVel(cb) {
         const body = this._getBody(cb);
+        const vel = cb.read(BUFFER_READ_FLOAT32);
+
+        if (!body) {
+            return true;
+        }
 
         try {
-            body.GetMotionProperties().SetMaxAngularVelocity(cb.read(BUFFER_READ_FLOAT32));
+            body.GetMotionProperties().SetMaxAngularVelocity(vel);
         } catch (e) {
             if ($_DEBUG) {
                 Debug.error(e);
@@ -1029,9 +1137,14 @@ class Modifier {
 
     _setMaxLinVel(cb) {
         const body = this._getBody(cb);
+        const vel = cb.read(BUFFER_READ_FLOAT32);
+
+        if (!body) {
+            return true;
+        }
 
         try {
-            body.GetMotionProperties().SetMaxLinearVelocity(cb.read(BUFFER_READ_FLOAT32));
+            body.GetMotionProperties().SetMaxLinearVelocity(vel);
         } catch (e) {
             if ($_DEBUG) {
                 Debug.error(e);
@@ -1044,6 +1157,10 @@ class Modifier {
 
     _clampLinVel(cb) {
         const body = this._getBody(cb);
+
+        if (!body) {
+            return true;
+        }
 
         try {
             body.GetMotionProperties().ClampLinearVelocity();
@@ -1060,6 +1177,10 @@ class Modifier {
     _clampAngVel(cb) {
         const body = this._getBody(cb);
 
+        if (!body) {
+            return true;
+        }
+
         try {
             body.GetMotionProperties().ClampAngularVelocity();
         } catch (e) {
@@ -1074,9 +1195,14 @@ class Modifier {
 
     _setVelSteps(cb) {
         const body = this._getBody(cb);
+        const count = cb.read(BUFFER_READ_UINT32);
+
+        if (!body) {
+            return true;
+        }
 
         try {
-            body.GetMotionProperties().SetNumVelocityStepsOverride(cb.read(BUFFER_READ_UINT32));
+            body.GetMotionProperties().SetNumVelocityStepsOverride(count);
         } catch (e) {
             if ($_DEBUG) {
                 Debug.error(e);
@@ -1089,9 +1215,14 @@ class Modifier {
 
     _setPosSteps(cb) {
         const body = this._getBody(cb);
+        const count = cb.read(BUFFER_READ_UINT32);
+
+        if (!body) {
+            return true;
+        }
 
         try {
-            body.GetMotionProperties().SetNumPositionStepsOverride(cb.read(BUFFER_READ_UINT32));
+            body.GetMotionProperties().SetNumPositionStepsOverride(count);
         } catch (e) {
             if ($_DEBUG) {
                 Debug.error(e);
@@ -1108,6 +1239,10 @@ class Modifier {
 
         const group = cb.read(BUFFER_READ_UINT32);
         const mask = cb.read(BUFFER_READ_UINT32);
+
+        if (!body) {
+            return true;
+        }
 
         try {
             const objectLayer = backend.Jolt.ObjectLayerPairFilterMask.prototype.sGetObjectLayer(group, mask);

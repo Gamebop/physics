@@ -1079,6 +1079,13 @@ class CharComponent extends ShapeComponent {
             return false;
         }
 
+        if (this._index < 0) {
+            if ($_DEBUG) {
+                Debug.warn('Unable to create char component: entity is disabled or not in scene.');
+                return false;
+            }
+        }
+
         cb.write(this._index, BUFFER_WRITE_UINT32, false);
         cb.write(this._useMotionState, BUFFER_WRITE_BOOL, false);
         cb.write(this._up, BUFFER_WRITE_VEC32, false);
