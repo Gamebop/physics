@@ -16,7 +16,7 @@ import {
     CMD_RESET_SLEEP_TIMER, CMD_SET_LIN_VEL_CLAMPED, CMD_SET_ANG_VEL_CLAMPED, CMD_RESET_MOTION,
     CMD_SET_MAX_ANG_VEL, CMD_SET_MAX_LIN_VEL, CMD_CLAMP_ANG_VEL, CMD_CLAMP_LIN_VEL,
     CMD_SET_VEL_STEPS, CMD_SET_POS_STEPS, CMD_ADD_ANGULAR_IMPULSE, CMD_ADD_TORQUE,
-    CMD_UPDATE_BIT_FILTER, SHAPE_PLANE
+    CMD_UPDATE_BIT_FILTER, SHAPE_PLANE, OMP_CALCULATE_INERTIA
 } from '../../constants.mjs';
 
 const vec3 = new Vec3();
@@ -1498,20 +1498,28 @@ class BodyComponent extends ShapeComponent {
             }
         }
 
-        const massProps = this._overrideMassProperties;
+        let massProps = this._overrideMassProperties;
+        let overrideMass = this._overrideMass;
+        let motionQuality = this._motionQuality;
         if (this.shape === SHAPE_HEIGHTFIELD || this.shape === SHAPE_MESH ||
             this.shape === SHAPE_PLANE) {
             if (massProps === OMP_CALCULATE_MASS_AND_INERTIA &&
                 motionType !== MOTION_TYPE_STATIC) {
                 if ($_DEBUG) {
-                    Debug.error('Selected body shape does not support automatic mass calculation. ' +
+                    Debug.warn('Selected body shape does not support automatic mass calculation. ' +
                         'You should set "overrideMassProperties" property to OMP_CALCULATE_INERTIA ' +
-                        'or OMP_MASS_AND_INERTIA_PROVIDED and set mass via "mass" property yourself.');
+                        'or OMP_MASS_AND_INERTIA_PROVIDED and set mass via "overrideMass" property ' +
+                        'yourself. Forcing OMP_CALCULATE_INERTIA and setting mass to 1 kg.');
                 }
-                return false;
+                massProps = OMP_CALCULATE_INERTIA;
+                overrideMass = 1;
             }
             if (this._motionQuality !== MOTION_QUALITY_DISCRETE) {
-                Debug.warn('Selected body shape cannot have a linear cast motion quality.');
+                if ($_DEBUG) {
+                    Debug.warn('Selected body shape cannot have a linear cast motion quality. ' +
+                        'Forcing MOTION_QUALITY_DISCRETE.');
+                }
+                motionQuality = MOTION_QUALITY_DISCRETE;
             }
         }
 
@@ -1554,7 +1562,7 @@ class BodyComponent extends ShapeComponent {
         cb.write(this._allowedDOFs, BUFFER_WRITE_UINT8, false);
         cb.write(this._allowDynamicOrKinematic, BUFFER_WRITE_BOOL, false);
         cb.write(this._isSensor, BUFFER_WRITE_BOOL, false);
-        cb.write(this._motionQuality, BUFFER_WRITE_UINT8, false);
+        cb.write(motionQuality, BUFFER_WRITE_UINT8, false);
         cb.write(this._allowSleeping, BUFFER_WRITE_BOOL, false);
 
         const hasCollisionGroup = this._collisionGroup >= 0;
@@ -1571,7 +1579,7 @@ class BodyComponent extends ShapeComponent {
 
         cb.write(massProps, BUFFER_WRITE_UINT8, false);
         if (massProps !== OMP_CALCULATE_MASS_AND_INERTIA) {
-            cb.write(this._overrideMass, BUFFER_WRITE_FLOAT32, false);
+            cb.write(overrideMass, BUFFER_WRITE_FLOAT32, false);
 
             if (this._overrideMassProperties === OMP_MASS_AND_INERTIA_PROVIDED) {
                 // override inertia
