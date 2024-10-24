@@ -609,7 +609,7 @@ class ShapeComponent extends Component {
 
         const onAssetFullyReady = (asset) => {
             this._mesh = asset.resource.meshes[0];
-            callback();
+            callback?.();
         };
 
         const loadAndHandleAsset = (asset) => {

@@ -92,7 +92,7 @@ class JoltComponentSystem extends ComponentSystem {
             component[`_${key}`] = value;
         }
 
-        if (component.entity.enabled && !component.isCompoundChild) {
+        if (component.entity.enabled) {
             component.onEnable();
         }
     }
