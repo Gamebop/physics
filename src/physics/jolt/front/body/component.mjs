@@ -1613,10 +1613,10 @@ class BodyComponent extends ShapeComponent {
                     return;
                 }
             } else if (this._renderAsset && !this._mesh) {
-                this.getMeshes(() => {
+                this.getMeshes(isCompoundChild ? null : () => {
                     system.createBody(this);
                 });
-            } else {
+            } else if (!isCompoundChild) {
                 system.createBody(this);
             }
         } else if (!isCompoundChild) {
