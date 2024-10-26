@@ -9,9 +9,12 @@ import { Modifier } from './operators/modifier.mjs';
 import { Querier } from './operators/querier.mjs';
 import { Tracker } from './operators/tracker.mjs';
 import {
-    BP_LAYER_MOVING, BP_LAYER_NON_MOVING, BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_JOLTVEC32,
-    BUFFER_WRITE_UINT32, BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32, CMD_REPORT_TRANSFORMS, COMPONENT_SYSTEM_BODY,
-    COMPONENT_SYSTEM_CHAR, COMPONENT_SYSTEM_SOFT_BODY, GROUND_STATE_IN_AIR, GROUND_STATE_NOT_SUPPORTED, GROUND_STATE_ON_GROUND, GROUND_STATE_ON_STEEP_GROUND, OBJ_LAYER_MOVING, OBJ_LAYER_NON_MOVING, OPERATOR_CLEANER,
+    BP_LAYER_MOVING, BP_LAYER_NON_MOVING, BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32,
+    BUFFER_WRITE_JOLTVEC32, BUFFER_WRITE_UINT32, BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32,
+    CMD_REPORT_TRANSFORMS, COMPONENT_SYSTEM_BODY, COMPONENT_SYSTEM_CHAR,
+    COMPONENT_SYSTEM_SOFT_BODY, GROUND_STATE_IN_AIR, GROUND_STATE_NOT_SUPPORTED,
+    GROUND_STATE_ON_GROUND, GROUND_STATE_ON_STEEP_GROUND, ISOMETRY_FRONT_TO_BACK,
+    ISOMETRY_NONE, OBJ_LAYER_MOVING, OBJ_LAYER_NON_MOVING, OPERATOR_CLEANER,
     OPERATOR_CREATOR, OPERATOR_MODIFIER, OPERATOR_QUERIER
 } from '../constants.mjs';
 
@@ -768,10 +771,10 @@ class JoltBackend {
                 const bodyID = bodyList.at(i);
                 const body = system.GetBodyLockInterface().TryGetBody(bodyID);
 
-                if (!body.autoUpdateIsometry ||
-                        body.isCharPaired ||
-                        body.GetMotionType() !== Jolt.EMotionType_Dynamic ||
-                        Jolt.getPointer(body) === 0) {
+                if (Jolt.getPointer(body) === 0 ||
+                        body.isometryUpdate === ISOMETRY_FRONT_TO_BACK ||
+                        body.isometryUpdate === ISOMETRY_NONE ||
+                        body.isCharPaired) {
                     continue;
                 }
 
