@@ -6,17 +6,17 @@ import {
     BUFFER_WRITE_VEC32, CMD_ADD_FORCE, CMD_ADD_IMPULSE, CMD_APPLY_BUOYANCY_IMPULSE,
     CMD_DESTROY_BODY, CMD_MOVE_BODY, CMD_MOVE_KINEMATIC, CMD_SET_ANG_VEL, CMD_SET_DOF,
     CMD_SET_GRAVITY_FACTOR, CMD_SET_LIN_VEL, CMD_SET_MOTION_QUALITY, CMD_SET_MOTION_TYPE,
-    CMD_SET_OBJ_LAYER, CMD_USE_MOTION_STATE, MOTION_QUALITY_DISCRETE, MOTION_TYPE_DYNAMIC,
-    MOTION_TYPE_KINEMATIC, MOTION_TYPE_STATIC, OBJ_LAYER_NON_MOVING,
-    OMP_CALCULATE_MASS_AND_INERTIA, OMP_MASS_AND_INERTIA_PROVIDED, OPERATOR_CLEANER,
-    OPERATOR_MODIFIER, SHAPE_CONVEX_HULL, SHAPE_HEIGHTFIELD, SHAPE_MESH,
-    CMD_SET_AUTO_UPDATE_ISOMETRY, CMD_SET_ALLOW_SLEEPING, CMD_SET_ANG_FACTOR, BUFFER_WRITE_INT32,
-    CMD_SET_COL_GROUP, CMD_SET_FRICTION, CMD_SET_IS_SENSOR, CMD_SET_RESTITUTION,
-    CMD_SET_KIN_COL_NON_DYN, CMD_SET_APPLY_GYRO_FORCE, CMD_SET_INTERNAL_EDGE,
-    CMD_RESET_SLEEP_TIMER, CMD_SET_LIN_VEL_CLAMPED, CMD_SET_ANG_VEL_CLAMPED, CMD_RESET_MOTION,
-    CMD_SET_MAX_ANG_VEL, CMD_SET_MAX_LIN_VEL, CMD_CLAMP_ANG_VEL, CMD_CLAMP_LIN_VEL,
-    CMD_SET_VEL_STEPS, CMD_SET_POS_STEPS, CMD_ADD_ANGULAR_IMPULSE, CMD_ADD_TORQUE,
-    CMD_UPDATE_BIT_FILTER, SHAPE_PLANE, OMP_CALCULATE_INERTIA
+    CMD_SET_OBJ_LAYER, CMD_USE_MOTION_STATE, MOTION_QUALITY_DISCRETE, MOTION_TYPE_KINEMATIC,
+    MOTION_TYPE_STATIC, OBJ_LAYER_NON_MOVING, OMP_CALCULATE_MASS_AND_INERTIA,
+    OMP_MASS_AND_INERTIA_PROVIDED, OPERATOR_CLEANER, OPERATOR_MODIFIER, SHAPE_CONVEX_HULL,
+    SHAPE_HEIGHTFIELD, SHAPE_MESH, CMD_SET_AUTO_UPDATE_ISOMETRY, CMD_SET_ALLOW_SLEEPING,
+    CMD_SET_ANG_FACTOR, BUFFER_WRITE_INT32, CMD_SET_COL_GROUP, CMD_SET_FRICTION,
+    CMD_SET_IS_SENSOR, CMD_SET_RESTITUTION, CMD_SET_KIN_COL_NON_DYN, CMD_SET_APPLY_GYRO_FORCE,
+    CMD_SET_INTERNAL_EDGE, CMD_RESET_SLEEP_TIMER, CMD_SET_LIN_VEL_CLAMPED, CMD_SET_ANG_VEL_CLAMPED,
+    CMD_RESET_MOTION, CMD_SET_MAX_ANG_VEL, CMD_SET_MAX_LIN_VEL, CMD_CLAMP_ANG_VEL,
+    CMD_CLAMP_LIN_VEL, CMD_SET_VEL_STEPS, CMD_SET_POS_STEPS, CMD_ADD_ANGULAR_IMPULSE,
+    CMD_ADD_TORQUE, CMD_UPDATE_BIT_FILTER, SHAPE_PLANE, OMP_CALCULATE_INERTIA, ISOMETRY_DEFAULT,
+    ISOMETRY_FRONT_TO_BACK
 } from '../../constants.mjs';
 
 const vec3 = new Vec3();
@@ -40,8 +40,6 @@ class BodyComponent extends ShapeComponent {
 
     _angularDamping = 0;
 
-    _autoUpdateIsometry = true;
-
     _collisionGroup = -1;
 
     _friction = 0.2;
@@ -53,6 +51,8 @@ class BodyComponent extends ShapeComponent {
     _inertiaMultiplier = 1;
 
     _isSensor = false;
+
+    _isometryUpdate = ISOMETRY_DEFAULT;
 
     _linearDamping = 0;
 
@@ -275,26 +275,26 @@ class BodyComponent extends ShapeComponent {
     }
 
     /**
-     * Changes the isometry update method:
-     * - `true`: framework will synchronize entity position/rotation in visual world with a
-     * physical body in physics world automatically.
-     * - `false`: framework expects a user to do it manually.
+     * Changes the isometry update method between rendering frontend and physics backend. This only
+     * affects automatic updates of active bodies every frame. Static and sleeping bodies are not
+     * updated.
      *
-     * If `false` is set, then physics will no longer auto-update entity/body position/rotation.
-     * - Backend will not tell frontend where dynamic body is.
-     * - Frontend will not tell backend where kinematic body is.
-     * - This setting has no effect on a static body.
+     * For example, if you have many kinematic bodies that you rarely change position for, you
+     * would want to disable the isometry update so you don't burn CPU cycles every frame, and do it
+     * manually by setting the entity position and teleporting the body when needed only.
      *
-     * This is useful, for example, when you have many kinematic objects and you rarely change
-     * their isometry. In some cases this is also useful for dynamic bodies, e.g. when their
-     * gravity factor is set to zero, and you use {@link moveKinematic} to translate it manually.
+     * - `ISOMETRY_DEFAULT`: frontend will tell backend where a kinematic body is and backend will
+     * will tell frontend where a dynamic body is.
+     * - `ISOMETRY_FRONT_TO_BACK`: frontend will tell backend where the body is.
+     * - `ISOMETRY_BACK_TO_FRONT`: backend will tell frontend where the body is.
+     * - `ISOMETRY_NONE`: no automatic isometry update.
      *
      * @example
      * ```js
      * entity.addComponent('body', {
      *     motionType: MOTION_TYPE_KINEMATIC,
      *     objectLayer: OBJ_LAYER_MOVING,
-     *     autoUpdateIsometry: false
+     *     isometryUpdate: ISOMETRY_NONE
      * });
      *
      * // then on frame update, or when needed, move both - body and entity
@@ -303,23 +303,26 @@ class BodyComponent extends ShapeComponent {
      * // or any of the body movement methods, e.g.
      * // entity.body.moveKinematic(newPosition, Quat.IDENTITY, time);
      * ```
+     *
+     * @param {number} type - Integer, representing update type.
      */
-    set autoUpdateIsometry(bool) {
+    set isometryUpdate(type) {
         if ($_DEBUG) {
-            const ok = Debug.checkBool(bool);
+            const ok = Debug.checkUint(type);
             if (!ok) {
                 return;
             }
         }
 
-        if (this._autoUpdateIsometry === bool) {
+        if (this._isometryUpdate === type) {
             return;
         }
 
-        this._autoUpdateIsometry = bool;
+        this._isometryUpdate = type;
 
-        const type = this._motionType;
-        if (bool && type === MOTION_TYPE_DYNAMIC || type === MOTION_TYPE_KINEMATIC) {
+        const motionType = this._motionType;
+        if ((type === ISOMETRY_DEFAULT && motionType === MOTION_TYPE_KINEMATIC) ||
+            type === ISOMETRY_FRONT_TO_BACK) {
             this._isometryEvent = this.system.on('write-isometry', this.writeIsometry, this);
         } else {
             this._isometryEvent?.off();
@@ -328,19 +331,19 @@ class BodyComponent extends ShapeComponent {
 
         this.system.addCommand(
             OPERATOR_MODIFIER, CMD_SET_AUTO_UPDATE_ISOMETRY, this._index,
-            bool, BUFFER_WRITE_BOOL, false
+            type, BUFFER_WRITE_UINT8, false
         );
     }
 
     /**
-     * Returns a boolean, telling if the position and rotation of this body is updated
-     * automatically.
+     * Returns a type of transform update, telling if and how the position/rotation of this
+     * body is updated.
      *
-     * @returns {boolean} - Boolean, telling the isometry update state.
-     * @defaultValue false
+     * @returns {number} - Integer, representing update type.
+     * @defaultValue ISOMETRY_DEFAULT
      */
-    get autoUpdateIsometry() {
-        return this._autoUpdateIsometry;
+    get isometryUpdate() {
+        return this._isometryUpdate;
     }
 
     /**
@@ -1589,7 +1592,7 @@ class BodyComponent extends ShapeComponent {
             }
         }
 
-        cb.write(this._autoUpdateIsometry, BUFFER_WRITE_BOOL, false);
+        cb.write(this._isometryUpdate, BUFFER_WRITE_UINT8, false);
 
         if ($_DEBUG) {
             cb.write(this._debugDrawDepth, BUFFER_WRITE_BOOL, false);
@@ -1624,8 +1627,10 @@ class BodyComponent extends ShapeComponent {
         }
 
         if (!isCompoundChild) {
-            const motionType = this._motionType;
-            if (this._autoUpdateIsometry && motionType === MOTION_TYPE_KINEMATIC) {
+            const isometryUpdate = this._isometryUpdate;
+            if ((isometryUpdate === ISOMETRY_DEFAULT &&
+                this._motionType === MOTION_TYPE_KINEMATIC) ||
+                isometryUpdate === ISOMETRY_FRONT_TO_BACK) {
                 this._isometryEvent = this.system.on('write-isometry', this.writeIsometry, this);
             }
         }

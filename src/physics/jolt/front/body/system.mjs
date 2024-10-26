@@ -21,6 +21,7 @@ const schema = [
     'maxAngularVelocity',
     'gravityFactor',
     'inertiaMultiplier',
+    'isometryUpdate',
     'overrideMass',
     'overrideMassProperties',
     'overrideInertiaPosition',
@@ -35,8 +36,7 @@ const schema = [
     'allowDynamicOrKinematic',
     'isSensor',
     'motionQuality',
-    'allowSleeping',
-    'autoUpdateIsometry'
+    'allowSleeping'
 ];
 
 /**

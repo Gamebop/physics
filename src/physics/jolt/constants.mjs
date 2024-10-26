@@ -18,6 +18,11 @@ export const DOF_ROTATION_Y = 16;
 export const DOF_ROTATION_Z = 32;
 export const DOF_ALL = 63;
 
+export const ISOMETRY_DEFAULT = 0;
+export const ISOMETRY_FRONT_TO_BACK = 1;
+export const ISOMETRY_BACK_TO_FRONT = 2;
+export const ISOMETRY_NONE = 3;
+
 export const OMP_CALCULATE_MASS_AND_INERTIA = 0;
 export const OMP_CALCULATE_INERTIA = 1;
 export const OMP_MASS_AND_INERTIA_PROVIDED = 2;

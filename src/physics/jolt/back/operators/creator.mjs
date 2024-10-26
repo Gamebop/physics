@@ -548,7 +548,7 @@ class Creator {
         const body = bodyInterface.CreateBody(bodyCreationSettings);
         bodyInterface.AddBody(body.GetID(), Jolt.EActivation_Activate);
 
-        body.autoUpdateIsometry = cb.read(BUFFER_READ_BOOL);
+        body.isometryUpdate = cb.read(BUFFER_READ_UINT8);
 
         if ($_DEBUG) {
             body.debugDrawDepth = cb.read(BUFFER_READ_BOOL);

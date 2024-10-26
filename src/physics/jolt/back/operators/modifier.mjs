@@ -849,13 +849,13 @@ class Modifier {
 
     _setAutoUpdateIsometry(cb) {
         const body = this._getBody(cb);
-        const bool = cb.read(BUFFER_READ_BOOL);
+        const type = cb.read(BUFFER_READ_UINT8);
 
         if (!body) {
             return true;
         }
 
-        body.autoUpdateIsometry = bool;
+        body.isometryUpdate = type;
 
         return true;
     }
