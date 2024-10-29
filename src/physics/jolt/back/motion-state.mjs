@@ -1,7 +1,5 @@
 import { Debug } from '../debug.mjs';
 
-const v1 = { x: 0, y: 0, z: 0 };
-
 class MotionState {
     constructor(body) {
         this._body = body;
