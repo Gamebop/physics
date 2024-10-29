@@ -23,21 +23,9 @@ class MotionState {
                 cp.x = bp.GetX(); cp.y = bp.GetY(); cp.z = bp.GetZ();
             }
 
-            v1.x = cp.x * alpha;
-            v1.y = cp.y * alpha;
-            v1.z = cp.z * alpha;
-
-            position.x = v1.x;
-            position.y = v1.y;
-            position.z = v1.z;
-
-            v1.x = op.x * (1 - alpha);
-            v1.y = op.y * (1 - alpha);
-            v1.z = op.z * (1 - alpha);
-
-            position.x += v1.x;
-            position.y += v1.y;
-            position.z += v1.z;
+            position.x = cp.x * alpha + op.x * (1 - alpha);
+            position.y = cp.y * alpha + op.y * (1 - alpha);
+            position.z = cp.z * alpha + op.z * (1 - alpha);
 
             if (!body.isCharacter) {
                 const r = this._rotation;
