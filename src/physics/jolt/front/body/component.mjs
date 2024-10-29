@@ -16,7 +16,8 @@ import {
     CMD_RESET_MOTION, CMD_SET_MAX_ANG_VEL, CMD_SET_MAX_LIN_VEL, CMD_CLAMP_ANG_VEL,
     CMD_CLAMP_LIN_VEL, CMD_SET_VEL_STEPS, CMD_SET_POS_STEPS, CMD_ADD_ANGULAR_IMPULSE,
     CMD_ADD_TORQUE, CMD_UPDATE_BIT_FILTER, SHAPE_PLANE, OMP_CALCULATE_INERTIA, ISOMETRY_DEFAULT,
-    ISOMETRY_FRONT_TO_BACK
+    ISOMETRY_FRONT_TO_BACK,
+    MOTION_TYPE_DYNAMIC
 } from '../../constants.mjs';
 
 const vec3 = new Vec3();
@@ -320,9 +321,9 @@ class BodyComponent extends ShapeComponent {
 
         this._isometryUpdate = type;
 
-        const motionType = this._motionType;
-        if ((type === ISOMETRY_DEFAULT && motionType === MOTION_TYPE_KINEMATIC) ||
-            type === ISOMETRY_FRONT_TO_BACK) {
+        const mt = this._motionType;
+        if ((type === ISOMETRY_DEFAULT && mt === MOTION_TYPE_KINEMATIC) ||
+            (type === ISOMETRY_FRONT_TO_BACK && mt !== MOTION_TYPE_DYNAMIC)) {
             this._isometryEvent = this.system.on('write-isometry', this.writeIsometry, this);
         } else {
             this._isometryEvent?.off();
@@ -1627,10 +1628,10 @@ class BodyComponent extends ShapeComponent {
         }
 
         if (!isCompoundChild) {
-            const isometryUpdate = this._isometryUpdate;
-            if ((isometryUpdate === ISOMETRY_DEFAULT &&
-                this._motionType === MOTION_TYPE_KINEMATIC) ||
-                isometryUpdate === ISOMETRY_FRONT_TO_BACK) {
+            const iu = this._isometryUpdate;
+            const mt = this._motionType;
+            if ((iu === ISOMETRY_DEFAULT && mt === MOTION_TYPE_KINEMATIC) ||
+                (iu === ISOMETRY_FRONT_TO_BACK && mt !== MOTION_TYPE_DYNAMIC)) {
                 this._isometryEvent = this.system.on('write-isometry', this.writeIsometry, this);
             }
         }
