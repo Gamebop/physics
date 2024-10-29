@@ -322,6 +322,12 @@ class BodyComponent extends ShapeComponent {
         this._isometryUpdate = type;
 
         const mt = this._motionType;
+        if ($_DEBUG && type === ISOMETRY_FRONT_TO_BACK && mt === MOTION_TYPE_DYNAMIC) {
+            Debug.warn('Warning, trying to set isometry update front to back for a dynamic ' +
+                'body, which will not work. Either change the body to kinematic motion type '  +
+                'first, or set isometry update to default, none or back to front.');
+        }
+
         if ((type === ISOMETRY_DEFAULT && mt === MOTION_TYPE_KINEMATIC) ||
             (type === ISOMETRY_FRONT_TO_BACK && mt !== MOTION_TYPE_DYNAMIC)) {
             this._isometryEvent = this.system.on('write-isometry', this.writeIsometry, this);
