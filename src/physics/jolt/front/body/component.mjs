@@ -733,6 +733,11 @@ class BodyComponent extends ShapeComponent {
             }
         }
 
+        if (type === MOTION_TYPE_DYNAMIC) {
+            this._isometryEvent?.off();
+            this._isometryEvent = null;
+        }
+
         this._motionType = type;
         this.system.addCommand(
             OPERATOR_MODIFIER, CMD_SET_MOTION_TYPE, this._index,
