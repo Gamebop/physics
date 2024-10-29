@@ -452,15 +452,15 @@ class JoltBackend {
         const tracker = this._tracker;
         const system = this._physicsSystem;
         const characters = tracker.character;
-        const dynamicType = Jolt.EBodyType_RigidBody;
+        const rigidBody = Jolt.EBodyType_RigidBody;
 
         // active dynamic and active kinematic
-        const numActiveBodies = system.GetNumActiveBodies(dynamicType);
+        const numActiveBodies = system.GetNumActiveBodies(rigidBody);
         if (numActiveBodies > 0) {
             const bodyList = this._bodyList;
 
             bodyList.clear();
-            system.GetActiveBodies(dynamicType, bodyList);
+            system.GetActiveBodies(rigidBody, bodyList);
 
             for (let i = 0; i < numActiveBodies; i++) {
                 const bodyID = bodyList.at(i);
