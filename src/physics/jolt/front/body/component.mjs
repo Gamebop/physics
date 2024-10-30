@@ -733,9 +733,13 @@ class BodyComponent extends ShapeComponent {
             }
         }
 
+        const iu = this._isometryUpdate;
         if (type === MOTION_TYPE_DYNAMIC) {
             this._isometryEvent?.off();
             this._isometryEvent = null;
+        } else if (type === MOTION_TYPE_KINEMATIC && (iu === ISOMETRY_DEFAULT ||
+            iu === ISOMETRY_FRONT_TO_BACK)) {
+            this._isometryEvent = this.system.on('write-isometry', this.writeIsometry, this);
         }
 
         this._motionType = type;
@@ -1640,9 +1644,8 @@ class BodyComponent extends ShapeComponent {
 
         if (!isCompoundChild) {
             const iu = this._isometryUpdate;
-            const mt = this._motionType;
-            if ((iu === ISOMETRY_DEFAULT && mt === MOTION_TYPE_KINEMATIC) ||
-                (iu === ISOMETRY_FRONT_TO_BACK && mt !== MOTION_TYPE_DYNAMIC)) {
+            if (this._motionType === MOTION_TYPE_KINEMATIC && (iu === ISOMETRY_DEFAULT ||
+                iu === ISOMETRY_FRONT_TO_BACK)) {
                 this._isometryEvent = this.system.on('write-isometry', this.writeIsometry, this);
             }
         }
@@ -1655,9 +1658,6 @@ class BodyComponent extends ShapeComponent {
         const componentIndex = this._index;
 
         system.setIndexFree(componentIndex);
-
-        // TODO
-        // Add support for dynamic compounds
 
         if (this._isCompoundChild) return;
 
