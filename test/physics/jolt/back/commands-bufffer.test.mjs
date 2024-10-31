@@ -9,7 +9,7 @@ import {
 import { describe } from 'mocha';
 import { expect } from 'chai';
 import { Plane, Quat, Vec3 } from 'playcanvas';
-import Jolt from 'jolt-physics/wasm';
+import Jolt from 'jolt-physics/dist/jolt-physics.wasm.js';
 
 const EPSILON = 0.00001;
 
