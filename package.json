@@ -33,7 +33,7 @@
     "devDependencies": {
         "@babel/eslint-parser": "^7.25.1",
         "@eslint/js": "^9.13.0",
-        "@playcanvas/eslint-config": "^2.0.2",
+        "@playcanvas/eslint-config": "^2.0.6",
         "@rollup/plugin-json": "^6.1.0",
         "@rollup/plugin-node-resolve": "^15.2.3",
         "@rollup/plugin-strip": "^3.0.4",
