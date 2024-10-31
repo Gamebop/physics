@@ -27,18 +27,19 @@
         "dist/*"
     ],
     "peerDependencies": {
-        "jolt-physics": "^0.26.0",
-        "playcanvas": "^1.71.3"
+        "jolt-physics": "^0.28.0",
+        "playcanvas": "^2.2.1"
     },
     "devDependencies": {
         "@babel/eslint-parser": "^7.25.1",
+        "@eslint/js": "^9.13.0",
         "@playcanvas/eslint-config": "^2.0.2",
         "@rollup/plugin-json": "^6.1.0",
         "@rollup/plugin-node-resolve": "^15.2.3",
         "@rollup/plugin-strip": "^3.0.4",
         "@rollup/plugin-terser": "^0.4.4",
         "chai": "^5.1.1",
-        "eslint": "^9.11.1",
+        "eslint": "^9.13.0",
         "globals": "^15.10.0",
         "mocha": "^10.4.0",
         "publint": "^0.2.7",
