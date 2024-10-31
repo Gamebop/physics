@@ -27,6 +27,11 @@ export default [
             'import/order': 'off',
             'no-eval': 'off',
             'no-new-wrappers': 'off',
+            'import/extensions': [
+                'error',
+                'ignorePackages',
+                { 'js': 'never' }
+            ],
             'jsdoc/check-tag-names': [
                 'error',
                 {
