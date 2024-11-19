@@ -210,7 +210,7 @@ class CommandsBuffer {
         }
 
         if (offset == null) {
-            if (!this._canWrite(FLOAT32_SIZE)) {
+            if ($_DEBUG && !this._canWrite(FLOAT32_SIZE)) {
                 return false;
             }
             this._view.setFloat32(this._bytesOffset, value);
@@ -251,7 +251,7 @@ class CommandsBuffer {
         }
 
         if (offset == null) {
-            if (!this._canWrite(UINT8_SIZE)) {
+            if ($_DEBUG && !this._canWrite(UINT8_SIZE)) {
                 return false;
             }
             this._view.setUint8(this._bytesOffset, value);
@@ -292,7 +292,7 @@ class CommandsBuffer {
         }
 
         if (offset == null) {
-            if (!this._canWrite(UINT16_SIZE)) {
+            if ($_DEBUG && !this._canWrite(UINT16_SIZE)) {
                 return false;
             }
             this._view.setUint16(this._bytesOffset, value);
@@ -333,7 +333,7 @@ class CommandsBuffer {
         }
 
         if (offset == null) {
-            if (!this._canWrite(UINT32_SIZE)) {
+            if ($_DEBUG && !this._canWrite(UINT32_SIZE)) {
                 return false;
             }
             this._view.setUint32(this._bytesOffset, value);
@@ -372,7 +372,7 @@ class CommandsBuffer {
             }
         }
         if (offset == null) {
-            if (!this._canWrite(INT32_SIZE)) {
+            if ($_DEBUG && !this._canWrite(INT32_SIZE)) {
                 return false;
             }
             this._view.setInt32(this._bytesOffset, value);
@@ -452,12 +452,10 @@ class CommandsBuffer {
             if (this._allowGrowth) {
                 this._resize();
             } else {
-                if ($_DEBUG) {
-                    Debug.warnOnce('Commands Buffer: reached capacity limits. Not allowed to grow.' +
-                    ' Consider using "allowCommandsBufferResize" option or allocate a larger buffer' +
-                    ' using "commandsBufferSize". Current buffer' +
-                    ' size (bytes):', this._buffer.byteLength);
-                }
+                Debug.warnOnce('Commands Buffer: reached capacity limits. Not allowed to grow.' +
+                ' Consider using "allowCommandsBufferResize" option or allocate a larger buffer' +
+                ' using "commandsBufferSize". Current buffer' +
+                ' size (bytes):', this._buffer.byteLength);
                 return false;
             }
         }
