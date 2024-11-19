@@ -210,7 +210,7 @@ class CommandsBuffer {
         }
 
         if (offset == null) {
-            if ($_DEBUG && !this._canWrite(FLOAT32_SIZE)) {
+            if (!this._canWrite(FLOAT32_SIZE)) {
                 return false;
             }
             this._view.setFloat32(this._bytesOffset, value);
@@ -251,7 +251,7 @@ class CommandsBuffer {
         }
 
         if (offset == null) {
-            if ($_DEBUG && !this._canWrite(UINT8_SIZE)) {
+            if (!this._canWrite(UINT8_SIZE)) {
                 return false;
             }
             this._view.setUint8(this._bytesOffset, value);
@@ -292,7 +292,7 @@ class CommandsBuffer {
         }
 
         if (offset == null) {
-            if ($_DEBUG && !this._canWrite(UINT16_SIZE)) {
+            if (!this._canWrite(UINT16_SIZE)) {
                 return false;
             }
             this._view.setUint16(this._bytesOffset, value);
@@ -333,7 +333,7 @@ class CommandsBuffer {
         }
 
         if (offset == null) {
-            if ($_DEBUG && !this._canWrite(UINT32_SIZE)) {
+            if (!this._canWrite(UINT32_SIZE)) {
                 return false;
             }
             this._view.setUint32(this._bytesOffset, value);
@@ -372,7 +372,7 @@ class CommandsBuffer {
             }
         }
         if (offset == null) {
-            if ($_DEBUG && !this._canWrite(INT32_SIZE)) {
+            if (!this._canWrite(INT32_SIZE)) {
                 return false;
             }
             this._view.setInt32(this._bytesOffset, value);
