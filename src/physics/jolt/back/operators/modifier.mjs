@@ -658,11 +658,12 @@ class Modifier {
         const jv = this._joltVec3_1;
         const jq = this._joltQuat_1;
         const body = this._getBody(cb);
-        const dt = cb.read(BUFFER_READ_FLOAT32) || backend.config.fixedStep;
 
         try {
             jv.FromBuffer(cb);
             jq.FromBuffer(cb);
+
+            const dt = cb.read(BUFFER_READ_FLOAT32) || backend.config.fixedStep;
 
             if (!body) {
                 return true;
