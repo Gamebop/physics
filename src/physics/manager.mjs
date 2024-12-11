@@ -235,6 +235,7 @@ class PhysicsManager {
         const msg = Object.create(null);
         msg.type = 'destroy';
         this.sendUncompressed(msg);
+        this._stepMessage = null;
         this._backend = null;
 
         this._commandsBuffer.destroy();

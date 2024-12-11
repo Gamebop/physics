@@ -27,6 +27,15 @@ class QuerySettings {
      * @defaultValue OBJ_LAYER_MOVING (1)
      */
     objFilterLayer;
+
+    /**
+     * Whether to make a query and return the results immediately. Only supported when physics
+     * is running on main thread.
+     *
+     * @type {boolean}
+     * @defaultValue true
+     */
+    immediate;
 }
 
 /**

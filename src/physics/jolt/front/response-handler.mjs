@@ -1,7 +1,7 @@
 import { Vec3 } from 'playcanvas';
 import { ShapeComponentSystem } from './shape/system.mjs';
 import {
-    BUFFER_READ_BOOL, BUFFER_READ_FLOAT32, BUFFER_READ_UINT16, BUFFER_READ_UINT32,
+    BUFFER_READ_BOOL, BUFFER_READ_FLOAT32, BUFFER_READ_INT32, BUFFER_READ_UINT16, BUFFER_READ_UINT32,
     BUFFER_READ_UINT8, CONTACT_TYPE_ADDED, CONTACT_TYPE_PERSISTED, CONTACT_TYPE_REMOVED, FLOAT32_SIZE, UINT8_SIZE
 } from '../constants.mjs';
 import { fromBuffer } from '../math.mjs';
@@ -192,7 +192,7 @@ class ResponseHandler {
     }
 
     static handleCastQuery(cb, queryMap) {
-        const queryIndex = cb.read(BUFFER_READ_UINT16);
+        const queryIndex = cb.read(BUFFER_READ_INT32);
         const hitsCount = cb.read(BUFFER_READ_UINT16);
 
         let result = emptyResult;
@@ -237,9 +237,13 @@ class ResponseHandler {
             result.push(r);
         }
 
-        const callback = queryMap.get(queryIndex);
-        queryMap.free(queryIndex);
-        callback?.(result);
+        if (queryIndex >= 0) {
+            const callback = queryMap.get(queryIndex);
+            queryMap.free(queryIndex);
+            callback?.(result);
+        }
+
+        return result;
     }
 
     static handleCollidePointQuery(cb, queryMap) {

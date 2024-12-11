@@ -231,11 +231,16 @@ class JoltBackend {
         this._cleaner = new Cleaner(this);
         this._querier = new Querier(this);
         this._listener = new Listener(this);
-        this._outBuffer = new CommandsBuffer({ ...config, commandsBufferSize: 2000 });
         this._stepTime = 0;
         this._steps = 0;
         this._inBuffer = null;
         this._fatalError = false;
+        this._outBuffer = new CommandsBuffer({ ...config, commandsBufferSize: 2000 });
+        this._immediateBuffer = config.useWebWorker ? null : new CommandsBuffer({
+            useSharedArrayBuffer: false,
+            commandsBufferSize: 1000,
+            allowCommandsBufferResize: true
+        });
 
         if (config.contactEventsEnabled) {
             this._listener.initEvents(config);
@@ -246,11 +251,11 @@ class JoltBackend {
             this._perfIndex = null;
         }
 
-        this._responseMessage = {
-            buffer: null,
-            inBuffer: null,
-            origin: 'physics-worker'
-        };
+        const msg = Object.create(null);
+        msg.buffer = null;
+        msg.inBuffer = null;
+        msg.origin = 'physics-worker';
+        this._responseMessage = msg;
 
         this._dispatcher.respond({
             origin: 'physics-worker',
@@ -260,6 +265,23 @@ class JoltBackend {
         if ($_DEBUG) {
             console.log('Jolt Physics:', $_JOLT_VERSION);
         }
+    }
+
+    get immediateBuffer() {
+        return this._immediateBuffer;
+    }
+
+    immediateExecution(cb) {
+        // Reset outbound buffer, so we can start writing results into it.
+        const outBuffer = this._immediateBuffer;
+        outBuffer.init();
+        outBuffer.reset();
+
+        return this._immediateQuery(cb);
+    }
+
+    immediateResponse() {
+        return this._dispatcher.immediateResponse(this._immediateBuffer, null);
     }
 
     step(data) {
@@ -388,6 +410,9 @@ class JoltBackend {
 
         this._outBuffer?.destroy();
         this._outBuffer = null;
+
+        this._immediateBuffer?.destroy();
+        this._immediateBuffer = null;
 
         this.Jolt = null;
     }
@@ -543,49 +568,59 @@ class JoltBackend {
 
     _executeCommands(meshBuffers) {
         const cb = this._inBuffer;
-        const creator = this._creator;
-        const modifier = this._modifier;
-        const querier = this._querier;
-        const cleaner = this._cleaner;
         const count = cb.commandsCount;
 
-        let ok = true;
-
         for (let i = 0; i < count; i++) {
-            const operator = cb.readOperator();
+            const ok = this._executeCommand(cb, meshBuffers);
             if (!ok) {
                 return false;
-            }
-
-            switch (operator) {
-                case OPERATOR_CREATOR:
-                    ok = ok && creator.create(meshBuffers);
-                    break;
-
-                case OPERATOR_MODIFIER:
-                    ok = ok && modifier.modify(meshBuffers);
-                    break;
-
-                case OPERATOR_QUERIER:
-                    ok = ok && querier.query();
-                    break;
-
-                case OPERATOR_CLEANER:
-                    ok = ok && cleaner.clean();
-                    break;
-
-                default:
-                    if ($_DEBUG) {
-                        Debug.error(`Invalid operator: ${operator}`);
-                    }
-                    return false;
             }
         }
 
         // Reset the cursors, so we can start from the buffer beginning on the next step request
         cb.reset();
 
+        return true;
+    }
+
+    _executeCommand(cb, meshBuffers) {
+        let ok = true;
+
+        const operator = cb.readOperator();
+        switch (operator) {
+            case OPERATOR_CREATOR:
+                ok = ok && this._creator.create(meshBuffers);
+                break;
+
+            case OPERATOR_MODIFIER:
+                ok = ok && this._modifier.modify(meshBuffers);
+                break;
+
+            case OPERATOR_QUERIER:
+                ok = ok && this._querier.query(cb);
+                break;
+
+            case OPERATOR_CLEANER:
+                ok = ok && this._cleaner.clean();
+                break;
+
+            default:
+                if ($_DEBUG) {
+                    Debug.error(`Invalid operator: ${operator}`);
+                }
+                return false;
+        }
+
         return ok;
+    }
+
+    _immediateQuery(cb, meshBuffers) {
+        const operator = cb.readOperator();
+        if (operator === OPERATOR_QUERIER) {
+            return this._querier.immediateQuery(cb);
+        } else if ($_DEBUG) {
+            Debug.error(`Invalid operator: ${operator}`);
+        }
     }
 
     _writeIsometry(cb) {

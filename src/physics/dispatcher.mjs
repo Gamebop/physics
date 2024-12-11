@@ -49,6 +49,10 @@ class Dispatcher {
         }
     }
 
+    immediateExecution(buffer) {
+        return Dispatcher.backend?.immediateExecution(buffer);
+    }
+
     destroy() {
         this._destroying = true;
 
@@ -68,6 +72,14 @@ class Dispatcher {
                 self.postMessage(msg);
             }
         }
+    }
+
+    immediateResponse(buffer) {
+        if (!this._useMainThread) {
+            return;
+        }
+
+        return this._manager.processImmediateBuffer(buffer);
     }
 }
 

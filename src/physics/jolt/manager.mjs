@@ -10,16 +10,22 @@ import { SoftBodyComponentSystem } from './front/softbody/system.mjs';
 import { ShapeComponentSystem } from './front/shape/system.mjs';
 import { Quat, Vec3, Color, LAYERID_IMMEDIATE, KEY_Q, EVENT_KEYDOWN } from 'playcanvas';
 import {
-    BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT16, BUFFER_WRITE_UINT32,
+    BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_INT32, BUFFER_WRITE_UINT16, BUFFER_WRITE_UINT32,
     BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32, CMD_CAST_RAY, CMD_CAST_SHAPE, CMD_CHANGE_GRAVITY,
     CMD_COLLIDE_POINT, CMD_COLLIDE_SHAPE_IDX, CMD_CREATE_GROUPS, CMD_CREATE_SHAPE,
     CMD_DESTROY_SHAPE, CMD_TOGGLE_GROUP_PAIR, COMPONENT_SYSTEM_BODY, COMPONENT_SYSTEM_CHAR,
     COMPONENT_SYSTEM_CONSTRAINT, COMPONENT_SYSTEM_MANAGER, COMPONENT_SYSTEM_SOFT_BODY,
     MOTION_TYPE_DYNAMIC, MOTION_TYPE_KINEMATIC, MOTION_TYPE_STATIC, OPERATOR_CLEANER,
-    OPERATOR_CREATOR, OPERATOR_MODIFIER, OPERATOR_QUERIER
+    OPERATOR_CREATOR, OPERATOR_MODIFIER, OPERATOR_QUERIER,
+    UINT16_SIZE,
+    UINT8_SIZE
 } from './constants.mjs';
+import { CommandsBuffer } from './back/commands-buffer.mjs';
 
-/** @import { CastShapeCallback } from "./interfaces/query-results.mjs" */
+/**
+ * @import { CastShapeCallback } from "./interfaces/query-results.mjs"
+ * @import { CastShapeSettings } from "./interfaces/settings.mjs"
+ */
 
 function getColor(type, config) {
     switch (type) {
@@ -132,12 +138,18 @@ class JoltManager extends PhysicsManager {
         systems.set(COMPONENT_SYSTEM_CONSTRAINT, constraintCS);
         systems.set(COMPONENT_SYSTEM_MANAGER, this);
 
-        // TODO
-        // clear caches on destroy
         this._queryMap = new IndexedCache();
         this._shapeMap = new IndexedCache();
         this._gravity = new Vec3(0, -9.81, 0);
         this._resolve = resolve;
+        this._immediateBuffer = config.useWebWorker ? null : new CommandsBuffer({
+            useSharedArrayBuffer: false,
+            commandsBufferSize: 1000,
+            allowCommandsBufferResize: true
+        });
+        this._immediateMessage = {
+            type: 'immediate', buffer: this._immediateBuffer, origin: 'physics-manager'
+        };
 
         const msg = Object.create(null);
         msg.type = 'create-backend';
@@ -165,7 +177,7 @@ class JoltManager extends PhysicsManager {
         // toggle debug draw view
         if ($_DEBUG) {
             this._draw = true;
-            app.keyboard.on(EVENT_KEYDOWN, (e) => {
+            this._debugDrawToggleEvent = app.keyboard.on(EVENT_KEYDOWN, (e) => {
                 if (e.key === config.debugDrawKey) {
                     this._draw = !this._draw;
                 }
@@ -237,6 +249,21 @@ class JoltManager extends PhysicsManager {
         }
     }
 
+    processImmediateBuffer(buffer) {
+        const systems = this._systems;
+        const operator = buffer.readOperator();
+        if ($_DEBUG) {
+            const ok = Debug.assert(!!systems.get(operator), `Invalid component system: ${operator}`);
+            if (!ok) {
+                return;
+            }
+        }
+
+        buffer.reset();
+
+        return systems.get(operator).processCommands(buffer);
+    }
+
     processCommands(cb) {
         const command = cb.readCommand();
 
@@ -245,9 +272,11 @@ class JoltManager extends PhysicsManager {
             case CMD_CAST_SHAPE:
                 ResponseHandler.handleCastQuery(cb, this._queryMap);
                 break;
+
             case CMD_COLLIDE_POINT:
                 ResponseHandler.handleCollidePointQuery(cb, this._queryMap);
                 break;
+
             case CMD_COLLIDE_SHAPE_IDX:
                 ResponseHandler.handleCollideShapeQuery(cb, this._queryMap);
                 break;
@@ -435,7 +464,7 @@ class JoltManager extends PhysicsManager {
 
         cb.writeOperator(OPERATOR_QUERIER);
         cb.writeCommand(CMD_CAST_RAY);
-        cb.write(callbackIndex, BUFFER_WRITE_UINT16, false);
+        cb.write(callbackIndex, BUFFER_WRITE_INT32, false);
         cb.write(origin, BUFFER_WRITE_VEC32, false);
         cb.write(dir, BUFFER_WRITE_VEC32, false);
         cb.write(opts?.firstOnly, BUFFER_WRITE_BOOL);
@@ -475,28 +504,55 @@ class JoltManager extends PhysicsManager {
      * @param {Quat} rot - Shape rotation.
      * @param {Vec3} dir - Non-normalized ray direction. The magnitude is ray's distance.
      * @param {CastShapeCallback} callback - Your function that will accept the shapecast result.
+     * When running on main thread and using `CastShapeSettings.immediate` option, then callback is
+     * not necessary, as the results will be returned immediately. When running on web worker, then
+     * callback is required.
      * @param {CastShapeSettings} [opts] - Settings object to customize the query.
      */
     castShape(shapeIndex, pos, rot, dir, callback, opts) {
+        const useWebWorker = this._config.useWebWorker;
+
         if ($_DEBUG) {
             let ok = Debug.checkInt(shapeIndex);
             ok = ok && Debug.checkVec(pos);
-            ok = ok && Debug.checkVec(dir);
             ok = ok && Debug.checkQuat(rot);
+            ok = ok && Debug.checkVec(dir);
+
+            if (useWebWorker) {
+                if (opts.immediate) {
+                    Debug.warn('Requesting immediate query results, which is not supported when ' +
+                        'running physics in a web worker.');
+                }
+                if (!callback) {
+                    Debug.warn('Cast shape query callback is required when using a web worker.');
+                    ok = false;
+                }
+            } else if (!(opts.immediate ?? true) && !callback) {
+                Debug.warn('Cast shape query callback is required when not using immediate mode.');
+                ok = false;
+            }
+
             if (!ok) {
                 return;
             }
         }
 
-        const cb = this._outBuffer;
-        const queryIndex = this._queryMap.add(callback);
+        const useImmediate = !useWebWorker && (opts.immediate ?? true);
+        const cb = useImmediate ? this._immediateBuffer : this._outBuffer;
+        const queryIndex = callback ? this._queryMap.add(callback) : -1;
+
+        if (useImmediate) {
+            cb.init();
+            cb.reset();
+        }
 
         // TODO
         // get rid of flags
 
         cb.writeOperator(OPERATOR_QUERIER);
         cb.writeCommand(CMD_CAST_SHAPE);
-        cb.write(queryIndex, BUFFER_WRITE_UINT16, false);
+        cb.write(queryIndex, BUFFER_WRITE_INT32, false);
+        cb.write(useImmediate, BUFFER_WRITE_BOOL, false);
         cb.write(pos, BUFFER_WRITE_VEC32, false);
         cb.write(rot, BUFFER_WRITE_VEC32, false);
         cb.write(dir, BUFFER_WRITE_VEC32, false);
@@ -506,16 +562,25 @@ class JoltManager extends PhysicsManager {
         cb.write(opts?.backFaceModeConvex, BUFFER_WRITE_UINT8);
         cb.write(opts?.useShrunkenShapeAndConvexRadius, BUFFER_WRITE_BOOL);
         cb.write(opts?.returnDeepestPoint, BUFFER_WRITE_BOOL);
-        // TODO
-        // separate a cast into [single result / multiple results] commands
-        // so we don't allocate new array for a single result query
-        // after we get back from the backend
         cb.write(opts?.firstOnly, BUFFER_WRITE_BOOL);
         cb.write(opts?.calculateNormal, BUFFER_WRITE_BOOL);
         cb.write(opts?.ignoreSensors, BUFFER_WRITE_BOOL);
         cb.write(shapeIndex, BUFFER_WRITE_UINT32, false);
         cb.write(opts?.bpFilterLayer, BUFFER_WRITE_UINT32);
         cb.write(opts?.objFilterLayer, BUFFER_WRITE_UINT32);
+
+        if (useImmediate) {
+            // Reset immediate buffer, so backend can start reading it from the beginning.
+            cb.reset();
+
+            const resultsBuffer = this._dispatcher.immediateExecution(cb);
+            resultsBuffer.reset();
+
+            // skip reading operator and command
+            resultsBuffer.skip(1, UINT16_SIZE + UINT8_SIZE);
+
+            return ResponseHandler.handleCastQuery(resultsBuffer, this._queryMap);
+        }
     }
 
     /**
@@ -559,7 +624,7 @@ class JoltManager extends PhysicsManager {
 
         cb.writeOperator(OPERATOR_QUERIER);
         cb.writeCommand(CMD_COLLIDE_POINT);
-        cb.write(queryIndex, BUFFER_WRITE_UINT16, false);
+        cb.write(queryIndex, BUFFER_WRITE_INT32, false);
         cb.write(opts?.ignoreSensors, BUFFER_WRITE_BOOL);
         cb.write(opts?.bpFilterLayer, BUFFER_WRITE_UINT32);
         cb.write(opts?.objFilterLayer, BUFFER_WRITE_UINT32);
@@ -573,7 +638,8 @@ class JoltManager extends PhysicsManager {
      * ```js
      * import { SHAPE_BOX } from './physics.dbg.mjs';
      *
-     * // create a box with a half extent (1, 1, 1) meters
+     * // create a box with a half extent (1, 1, 1) meters (now we can use the same shape for
+     * // different casts, but simply modifying its scale during the cast)
      * const shapeIndex = app.physics.createShape(SHAPE_BOX, { halfExtent: Vec3.ONE });
      *
      * // get all entities that intersect a box with half extent (0.2, 0.5, 0.2) at world position
@@ -630,7 +696,7 @@ class JoltManager extends PhysicsManager {
 
         cb.writeOperator(OPERATOR_QUERIER);
         cb.writeCommand(CMD_COLLIDE_SHAPE_IDX);
-        cb.write(queryIndex, BUFFER_WRITE_UINT16, false);
+        cb.write(queryIndex, BUFFER_WRITE_INT32, false);
         cb.write(opts?.firstOnly, BUFFER_WRITE_BOOL);
         cb.write(opts?.ignoreSensors, BUFFER_WRITE_BOOL);
         cb.write(shapeIndex, BUFFER_WRITE_UINT32, false);
@@ -675,6 +741,19 @@ class JoltManager extends PhysicsManager {
             // sub groups count
             cb.write(groups[i], BUFFER_WRITE_UINT32, false);
         }
+    }
+
+    destroy() {
+        this._immediateBuffer?.destroy();
+        this._immediateBuffer = null;
+
+        this._queryMap.clear();
+        this._shapeMap.clear();
+
+        this._debugDrawToggleEvent?.off();
+        this._debugDrawToggleEvent = null;
+
+        super.destroy();
     }
 
     /**
