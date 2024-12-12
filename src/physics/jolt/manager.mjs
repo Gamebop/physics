@@ -24,7 +24,7 @@ import { CommandsBuffer } from './back/commands-buffer.mjs';
 
 /**
  * @import { CastShapeCallback } from "./interfaces/query-results.mjs"
- * @import { CastShapeSettings } from "./interfaces/settings.mjs"
+ * @import { CastShapeSettings, CollideShapeSettings } from "./interfaces/settings.mjs"
  */
 
 function getColor(type, config) {
@@ -570,10 +570,12 @@ class JoltManager extends PhysicsManager {
         cb.write(opts?.objFilterLayer, BUFFER_WRITE_UINT32);
 
         if (useImmediate) {
-            // Reset immediate buffer, so backend can start reading it from the beginning.
+            // Reset outbound buffer, so backend can start reading it from the beginning.
             cb.reset();
 
             const resultsBuffer = this._dispatcher.immediateExecution(cb);
+
+            // Reset the inbound buffer, so components can read it from the start.
             resultsBuffer.reset();
 
             // skip reading operator and command
@@ -661,9 +663,11 @@ class JoltManager extends PhysicsManager {
      * @param {Vec3} position - World position of the shape.
      * @param {Vec3} rotation - World rotation of the shape.
      * @param {function} callback - Callback function that will take the query results.
-     * @param {import('./interfaces/settings.mjs').CollideShapeSettings} opts - Query customization settings.
+     * @param {CollideShapeSettings} opts - Query customization settings.
      */
     collideShape(shapeIndex, position, rotation, callback, opts) {
+        const useWebWorker = this._config.useWebWorker;
+
         if ($_DEBUG) {
             let ok = Debug.checkInt(shapeIndex);
             ok = ok && Debug.checkVec(position);
@@ -686,17 +690,37 @@ class JoltManager extends PhysicsManager {
             if (ok && opts?.objFilterLayer != null) {
                 ok = Debug.checkUint(opts.objFilterLayer);
             }
+            if (useWebWorker) {
+                if (opts.immediate) {
+                    Debug.warn('Requesting immediate query results, which is not supported when ' +
+                        'running physics in a web worker.');
+                }
+                if (!callback) {
+                    Debug.warn('Cast shape query callback is required when using a web worker.');
+                    ok = false;
+                }
+            } else if (!(opts.immediate ?? true) && !callback) {
+                Debug.warn('Cast shape query callback is required when not using immediate mode.');
+                ok = false;
+            }
             if (!ok) {
                 return;
             }
         }
 
-        const cb = this._outBuffer;
-        const queryIndex = this._queryMap.add(callback);
+        const useImmediate = !useWebWorker && (opts.immediate ?? true);
+        const cb = useImmediate ? this._immediateBuffer : this._outBuffer;
+        const queryIndex = callback ? this._queryMap.add(callback) : -1;
+
+        if (useImmediate) {
+            cb.init();
+            cb.reset();
+        }
 
         cb.writeOperator(OPERATOR_QUERIER);
         cb.writeCommand(CMD_COLLIDE_SHAPE_IDX);
         cb.write(queryIndex, BUFFER_WRITE_INT32, false);
+        cb.write(useImmediate, BUFFER_WRITE_BOOL, false);
         cb.write(opts?.firstOnly, BUFFER_WRITE_BOOL);
         cb.write(opts?.ignoreSensors, BUFFER_WRITE_BOOL);
         cb.write(shapeIndex, BUFFER_WRITE_UINT32, false);
@@ -709,6 +733,21 @@ class JoltManager extends PhysicsManager {
         cb.write(opts?.offset, BUFFER_WRITE_VEC32);
         cb.write(opts?.bpFilterLayer, BUFFER_WRITE_UINT32);
         cb.write(opts?.objFilterLayer, BUFFER_WRITE_UINT32);
+
+        if (useImmediate) {
+            // Reset outbound buffer, so backend can start reading it from the beginning.
+            cb.reset();
+
+            const resultsBuffer = this._dispatcher.immediateExecution(cb);
+
+            // Reset the inbound buffer, so components can read it from the start.
+            resultsBuffer.reset();
+
+            // skip reading operator and command
+            resultsBuffer.skip(1, UINT16_SIZE + UINT8_SIZE);
+
+            return ResponseHandler.handleCollideShapeQuery(resultsBuffer, this._queryMap);
+        }
     }
 
     /**

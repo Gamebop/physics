@@ -247,7 +247,7 @@ class ResponseHandler {
     }
 
     static handleCollidePointQuery(cb, queryMap) {
-        const queryIndex = cb.read(BUFFER_READ_UINT16);
+        const queryIndex = cb.read(BUFFER_READ_INT32);
         const hitsCount = cb.read(BUFFER_READ_UINT16);
 
         let result = emptyResult;
@@ -266,13 +266,17 @@ class ResponseHandler {
             result.push(entity);
         }
 
-        const callback = queryMap.get(queryIndex);
-        queryMap.free(queryIndex);
-        callback?.(result);
+        if (queryIndex >= 0) {
+            const callback = queryMap.get(queryIndex);
+            queryMap.free(queryIndex);
+            callback?.(result);
+        }
+
+        return result;
     }
 
     static handleCollideShapeQuery(cb, queryMap) {
-        const queryIndex = cb.read(BUFFER_READ_UINT16);
+        const queryIndex = cb.read(BUFFER_READ_INT32);
         const firstOnly = cb.read(BUFFER_READ_BOOL);
         const hitsCount = cb.read(BUFFER_READ_UINT16);
 
@@ -326,9 +330,13 @@ class ResponseHandler {
             }
         }
 
-        const callback = queryMap.get(queryIndex);
-        queryMap.free(queryIndex);
-        callback?.(result);
+        if (queryIndex >= 0) {
+            const callback = queryMap.get(queryIndex);
+            queryMap.free(queryIndex);
+            callback?.(result);
+        }
+
+        return result;
     }
 
     static handleCharCallback(cb, queryMap) {

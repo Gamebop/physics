@@ -108,7 +108,7 @@ class Querier {
                 break;
 
             case CMD_COLLIDE_SHAPE_IDX:
-                ok = this._collideShapeIdx(cb);
+                ok = this._collideShapeIdx(cb, false);
                 break;
 
             default:
@@ -134,7 +134,7 @@ class Querier {
                 return this._collidePoint(cb);
 
             case CMD_COLLIDE_SHAPE_IDX:
-                return this._collideShapeIdx(cb);
+                return this._collideShapeIdx(cb, true);
 
             default:
                 if ($_DEBUG) {
@@ -489,13 +489,13 @@ class Querier {
         return true;
     }
 
-    _collideShapeIdx(cb) {
+    _collideShapeIdx(cb, immediate) {
         const backend = this._backend;
+        const buffer = immediate ? backend.immediateBuffer : backend.outBuffer;
         const jq = this._tempVectors[0];
         const jv1 = this._tempVectors[1];
         const jv2 = this._tempVectors[2];
         const jv3 = this._tempVectors[3];
-        const buffer = backend.outBuffer;
         const tracker = backend.tracker;
         const system = backend.physicsSystem;
         const Jolt = backend.Jolt;
@@ -506,6 +506,8 @@ class Querier {
 
         const queryIndex = cb.read(BUFFER_READ_INT32);
         buffer.write(queryIndex, BUFFER_WRITE_INT32, false);
+
+        const useImmediate = cb.read(BUFFER_READ_BOOL);
 
         const firstOnly = cb.flag ? cb.read(BUFFER_READ_BOOL) : true;
         buffer.write(firstOnly, BUFFER_WRITE_BOOL, false);
@@ -595,17 +597,21 @@ class Querier {
             collector.Reset();
 
             if (customBPFilter) {
-                Jolt.destroy(customBPFilter);
+                Jolt.destroy(bpFilter);
             }
 
             if (customObjFilter) {
-                Jolt.destroy(customObjFilter);
+                Jolt.destroy(objFilter);
             }
         } catch (e) {
             if ($_DEBUG) {
                 Debug.error(e);
             }
             return false;
+        }
+
+        if (useImmediate) {
+            return buffer;
         }
 
         return true;
