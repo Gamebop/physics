@@ -277,7 +277,7 @@ class JoltBackend {
         outBuffer.init();
         outBuffer.reset();
 
-        return this._immediateQuery(cb);
+        return this._immediateCommand(cb);
     }
 
     immediateResponse() {
@@ -614,12 +614,27 @@ class JoltBackend {
         return ok;
     }
 
-    _immediateQuery(cb, meshBuffers) {
+    _immediateCommand(cb, meshBuffers) {
         const operator = cb.readOperator();
-        if (operator === OPERATOR_QUERIER) {
-            return this._querier.immediateQuery(cb);
-        } else if ($_DEBUG) {
-            Debug.error(`Invalid operator: ${operator}`);
+
+        switch (operator) {
+            case OPERATOR_QUERIER:
+                return this._querier.immediateQuery(cb);
+
+            case OPERATOR_CREATOR:
+                return this._creator.immediateCreate(cb);
+
+            case OPERATOR_CLEANER:
+                return this._cleaner.immediateClean(cb);
+
+            case OPERATOR_MODIFIER:
+                return this._modifier.immediateModify(cb);
+            
+            default:
+                if ($_DEBUG) {
+                    Debug.error(`Invalid operator: ${operator}`);
+                }
+                break;
         }
     }
 

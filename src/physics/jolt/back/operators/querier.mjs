@@ -188,6 +188,8 @@ class Querier {
         this._commandsBuffer.destroy();
         this._commandsBuffer = null;
 
+        collidePointResult = null;
+
         params.length = 0;
         params = undefined;
     }
@@ -208,6 +210,8 @@ class Querier {
 
         const queryIndex = cb.read(BUFFER_READ_INT32);
         buffer.write(queryIndex, BUFFER_WRITE_INT32, false);
+
+        const useImmediate = cb.read(BUFFER_READ_BOOL);
 
         try {
             jv.FromBuffer(cb);
@@ -275,6 +279,10 @@ class Querier {
                 Debug.error(e);
             }
             return false;
+        }
+
+        if (useImmediate) {
+            return buffer;
         }
 
         return true;
@@ -425,6 +433,8 @@ class Querier {
         const queryIndex = cb.read(BUFFER_READ_INT32);
         buffer.write(queryIndex, BUFFER_WRITE_INT32, false);
 
+        const useImmediate = cb.read(BUFFER_READ_BOOL);
+
         if (!collidePointResult) {
             collidePointResult = [];
         }
@@ -484,6 +494,10 @@ class Querier {
         buffer.write(count, BUFFER_WRITE_UINT16, false);
         for (let i = 0; i < count; i++) {
             buffer.write(collidePointResult[i], BUFFER_WRITE_UINT32, false);
+        }
+
+        if (useImmediate) {
+            return buffer;
         }
 
         return true;

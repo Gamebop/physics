@@ -257,6 +257,16 @@ class Modifier {
         return ok;
     }
 
+    immediateModify(cb) {
+        const command = cb.readCommand();
+
+        if (command === CMD_TOGGLE_GROUP_PAIR) {
+            this._toggleGroupPair(cb);
+        } else if ($_DEBUG) {
+            Debug.warn('Command not recognized');
+        }
+    }
+
     destroy() {
         const Jolt = this._backend.Jolt;
 

@@ -10,7 +10,6 @@ const emptyResult = [];
 
 /**
  * @import {Entity} from 'playcanvas'
- * @import {Vec3} from 'playcanvas'
  */
 
 class ContactResult {
@@ -37,11 +36,41 @@ class CharContactResult {
 
 /**
  * @interface
- * @param {Entity} entity - Entity that query has detected.
- * @param {Vec3} point - A point in world space where the contact was detected.
- * @param {number} fraction - A normalized fraction of the ray length.
+ * @group Managers
+ * @category Utilities
  */
 class CastResult {
+    /**
+     * Entity that the cast has detected.
+     *
+     * @type {Entity}
+     */
+    entity;
+
+    /**
+     * Cast result world point.
+     *
+     * @type {Vec3}
+     */
+    point;
+
+    /**
+     * Contact fraction. This is a normalized length (0-1 range) along the cast's path from start
+     * to end where the contact has been detected.
+     *
+     * @type {number}
+     */
+    number;
+
+    /**
+     * Contact normal will be included only if the query options requested to calculate contact
+     * normal. Otherwise it will be `null` (default).
+     *
+     * @type {null | Vec3}
+     */
+    normal = null;
+
+    /** @hideconstructor */
     constructor(entity, point, fraction, normal) {
         this.entity = entity;
         this.point = point;

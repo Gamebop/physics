@@ -273,6 +273,26 @@ class Creator {
         return ok;
     }
 
+    immediateCreate(cb, meshBuffers) {
+        const command = cb.readCommand();
+
+        switch (command) {
+            case CMD_CREATE_SHAPE:
+                this._createShape(cb, meshBuffers);
+                break;
+
+            case CMD_CREATE_GROUPS:
+                this._createGroups(cb);
+                break;
+            
+            default:
+                if ($_DEBUG) {
+                    Debug.error(`Invalid command: ${command}`);
+                }
+                break;
+        }
+    }
+
     createPhysicsSystem() {
         const backend = this._backend;
         const config = backend.config;

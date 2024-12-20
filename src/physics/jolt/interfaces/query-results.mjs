@@ -7,7 +7,7 @@
  * @param {CastResult[]} results - An array with query results. An empty array if no
  * results.
  */
-function CastShapeCallback(results) {}
+function CastCallback(results) {}
 
 /**
  * @interface
@@ -17,4 +17,4 @@ function CastShapeCallback(results) {}
  */
 function CharSetShapeCallback(wasSet) {}
 
-export { CastShapeCallback, CharSetShapeCallback };
+export { CastCallback, CharSetShapeCallback };

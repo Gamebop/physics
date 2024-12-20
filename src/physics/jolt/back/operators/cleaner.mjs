@@ -42,6 +42,16 @@ class Cleaner {
         return ok;
     }
 
+    immediateClean(cb) {
+        const command = cb.readCommand();
+
+        if (command === CMD_DESTROY_SHAPE) {
+            this._destroyShape(cb);
+        } else if ($_DEBUG) {
+            Debug.warn('Command not recognized.');
+        }
+    }
+
     destroy() {
         this._backend = null;
     }
