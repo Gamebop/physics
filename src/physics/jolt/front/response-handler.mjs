@@ -92,6 +92,62 @@ class CastResult {
  * @category Utilities
  */
 class CollideShapeResult {
+    /**
+     * Entity that the cast has detected.
+     *
+     * @type {Entity}
+     */
+    entity;
+
+    /**
+     * Contact point on the surface of shape 1 (in world space or relative to base offset).
+     *
+     * @type {Vec3}
+     */
+    point1;
+
+    /**
+     * Contact point on the surface of shape 2 (in world space or relative to base offset). If the
+     * penetration depth is 0, this will be the same as `point1`.
+     *
+     * @type {Vec3}
+     */
+    point2;
+
+    /**
+     * Direction to move shape 2 out of collision along the shortest path (in world space).
+     *
+     * @type {Vec3}
+     */
+    axis;
+
+    /**
+     * Penetration depth (move shape 2 by this distance to resolve the collision). If
+     * {@link CollideShapeSettings.maxSeparationDistance} > 0, this number can be negative to
+     * indicate that the objects are separated by `-depth`. The contact points are the closest
+     * points in that case.
+     *
+     * @type {number}
+     */
+    depth;
+
+    /**
+     * Contact normal will be included only if the query options requested to calculate contact
+     * normal. Otherwise it will be `null` (default).
+     *
+     * @type {Vec3 | null}
+     */
+    normal = null;
+
+    /**
+     * @hideconstructor
+     * @param {Entity} entity - Entity that query detected.
+     * @param {Vec3} point1 - Contact point 1.
+     * @param {Vec3} point2 - Contact point 2.
+     * @param {Vec3} axis - Collision axis.
+     * @param {number} depth - Penetration depth.
+     * @param {Vec3} [normal] - Contact normal.
+     */
     constructor(entity, point1, point2, axis, depth, normal) {
         this.entity = entity;
         this.point1 = point1;
