@@ -60,17 +60,23 @@ class CastResult {
      *
      * @type {number}
      */
-    number;
+    fraction;
 
     /**
      * Contact normal will be included only if the query options requested to calculate contact
      * normal. Otherwise it will be `null` (default).
      *
-     * @type {null | Vec3}
+     * @type {Vec3 | null}
      */
     normal = null;
 
-    /** @hideconstructor */
+    /**
+     * @hideconstructor
+     * @param {Entity} entity - Entity that query detected.
+     * @param {Vec3} point - Contact point.
+     * @param {number} fraction - Contact fraction.
+     * @param {Vec3} [normal] - Contact normal.
+     */
     constructor(entity, point, fraction, normal) {
         this.entity = entity;
         this.point = point;

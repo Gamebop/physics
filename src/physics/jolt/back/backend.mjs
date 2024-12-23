@@ -629,7 +629,7 @@ class JoltBackend {
 
             case OPERATOR_MODIFIER:
                 return this._modifier.immediateModify(cb);
-            
+
             default:
                 if ($_DEBUG) {
                     Debug.error(`Invalid operator: ${operator}`);

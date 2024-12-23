@@ -217,6 +217,16 @@ class JoltManager extends PhysicsManager {
     }
 
     /**
+     * Gets the current gravity vector.
+     *
+     * @type {Vec3}
+     * @defaultValue Vec3(0, -9.81, 0)
+     */
+    get gravity() {
+        return this._gravity;
+    }
+
+    /**
      * @param {object} instance - Jolt backend instance.
      * @hidden
      */
@@ -247,16 +257,6 @@ class JoltManager extends PhysicsManager {
      */
     get backend() {
         return this._backend;
-    }
-
-    /**
-     * Gets the current gravity vector.
-     *
-     * @type {Vec3}
-     * @defaultValue Vec3(0, -9.81, 0)
-     */
-    get gravity() {
-        return this._gravity;
     }
 
     /**
@@ -443,7 +443,7 @@ class JoltManager extends PhysicsManager {
 
         const useImmediate = !this._config.useWebWorker && (opts?.immediate ?? true);
         const cb = useImmediate ? this._immediateBuffer : this._outBuffer;
-        
+
         if (useImmediate) {
             cb.init();
             cb.reset();
@@ -452,7 +452,7 @@ class JoltManager extends PhysicsManager {
         cb.writeOperator(OPERATOR_CLEANER);
         cb.writeCommand(CMD_DESTROY_SHAPE);
         cb.write(index, BUFFER_WRITE_UINT32, false);
-        
+
         this._shapeMap.free(index);
 
         if (useImmediate) {
@@ -530,7 +530,7 @@ class JoltManager extends PhysicsManager {
                 ok = false;
             }
             if (!ok) {
-                return;
+                return null;
             }
         }
 
@@ -635,7 +635,7 @@ class JoltManager extends PhysicsManager {
             }
 
             if (!ok) {
-                return;
+                return null;
             }
         }
 
@@ -735,7 +735,7 @@ class JoltManager extends PhysicsManager {
                 ok = false;
             }
             if (!ok) {
-                return;
+                return null;
             }
         }
 
@@ -843,7 +843,7 @@ class JoltManager extends PhysicsManager {
                 ok = false;
             }
             if (!ok) {
-                return;
+                return null;
             }
         }
 

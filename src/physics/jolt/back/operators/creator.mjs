@@ -280,7 +280,7 @@ class Creator {
             case CMD_CREATE_GROUPS:
                 this._createGroups(cb);
                 break;
-            
+
             default:
                 if ($_DEBUG) {
                     Debug.error(`Invalid command: ${command}`);
