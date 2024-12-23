@@ -1,5 +1,6 @@
 /**
- * @import {CastResult} from "../front/response-handler.mjs"
+ * @import { CastResult, CollideShapeResult } from "../front/response-handler.mjs"
+ * @import { Entity } from "playcanvas"
  */
 
 /**
@@ -7,7 +8,21 @@
  * @param {CastResult[]} results - An array with query results. An empty array if no
  * results.
  */
-function CastShapeCallback(results) {}
+function CastCallback(results) {}
+
+/**
+ * @interface
+ * @param {Entity[]} results - An array of entities that the point collided with. Array will be
+ * empty, if no entities collided.
+ */
+function CollidePointCallback(results) {}
+
+/**
+ * @interface
+ * @param {CollideShapeResult[]} results - An array with query results. An empty array if no
+ * results.
+ */
+function CollideShapeCallback(results) {}
 
 /**
  * @interface
@@ -17,4 +32,4 @@ function CastShapeCallback(results) {}
  */
 function CharSetShapeCallback(wasSet) {}
 
-export { CastShapeCallback, CharSetShapeCallback };
+export { CastCallback, CharSetShapeCallback, CollidePointCallback, CollideShapeCallback };

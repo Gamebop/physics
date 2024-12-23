@@ -33,37 +33,6 @@ class PhysicsManager {
     }
 
     /**
-     * @param {import('./jolt/back/backend.mjs').JoltBackend} instance - Jolt backend instance.
-     */
-    set backend(instance) {
-        this._backend = instance;
-    }
-
-    /**
-     * Gets the Jolt Backend instance. This is useful, when components are not sufficient and you
-     * wish to access Jolt's API directly.
-     *
-     * Note, this will be `null`, if the backend runs in a Web Worker.
-     *
-     * @example
-     * ```js
-     * const backend = app.physics.backend;
-     * const Jolt = backend.Jolt;
-     * const joltVec = new Jolt.Vec3(0, 0, 0);
-     *
-     * // common Jolt interfaces, which the backend has instantiated
-     * backend.physicsSystem;
-     * backend.bodyInterface;
-     * backend.joltInterface;
-     * ```
-     *
-     * @type {import('./jolt/back/backend.mjs').JoltBackend | null}
-     */
-    get backend() {
-        return this._backend;
-    }
-
-    /**
      * @type {Map<number, import('./jolt/front/body/system.mjs').BodyComponentSystem |
      * import('./jolt/front/char/system.mjs').CharComponentSystem |
      * import('./jolt/front/constraint/system.mjs').ConstraintComponentSystem |
@@ -235,6 +204,7 @@ class PhysicsManager {
         const msg = Object.create(null);
         msg.type = 'destroy';
         this.sendUncompressed(msg);
+        this._stepMessage = null;
         this._backend = null;
 
         this._commandsBuffer.destroy();

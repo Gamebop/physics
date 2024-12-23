@@ -3,10 +3,6 @@ import {
     BUFFER_READ_UINT32, CMD_DESTROY_BODY, CMD_DESTROY_CONSTRAINT, CMD_DESTROY_SHAPE
 } from '../../constants.mjs';
 
-/**
- * @group Private
- * @private
- */
 class Cleaner {
     static cleanDebugDrawData(body, Jolt) {
         if (body.debugDrawData) {
@@ -40,6 +36,16 @@ class Cleaner {
         }
 
         return ok;
+    }
+
+    immediateClean(cb) {
+        const command = cb.readCommand();
+
+        if (command === CMD_DESTROY_SHAPE) {
+            this._destroyShape(cb);
+        } else if ($_DEBUG) {
+            Debug.warn('Command not recognized.');
+        }
     }
 
     destroy() {

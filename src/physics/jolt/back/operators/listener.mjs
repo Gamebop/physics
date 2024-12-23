@@ -6,10 +6,6 @@ import {
 
 const eval2 = eval;
 
-/**
- * @group Private
- * @private
- */
 class Listener {
     constructor(backend) {
         this._listener = null;

@@ -1,7 +1,7 @@
 import { Vec3 } from 'playcanvas';
 import { ShapeComponentSystem } from './shape/system.mjs';
 import {
-    BUFFER_READ_BOOL, BUFFER_READ_FLOAT32, BUFFER_READ_UINT16, BUFFER_READ_UINT32,
+    BUFFER_READ_BOOL, BUFFER_READ_FLOAT32, BUFFER_READ_INT32, BUFFER_READ_UINT16, BUFFER_READ_UINT32,
     BUFFER_READ_UINT8, CONTACT_TYPE_ADDED, CONTACT_TYPE_PERSISTED, CONTACT_TYPE_REMOVED, FLOAT32_SIZE, UINT8_SIZE
 } from '../constants.mjs';
 import { fromBuffer } from '../math.mjs';
@@ -10,7 +10,6 @@ const emptyResult = [];
 
 /**
  * @import {Entity} from 'playcanvas'
- * @import {Vec3} from 'playcanvas'
  */
 
 class ContactResult {
@@ -37,11 +36,47 @@ class CharContactResult {
 
 /**
  * @interface
- * @param {Entity} entity - Entity that query has detected.
- * @param {Vec3} point - A point in world space where the contact was detected.
- * @param {number} fraction - A normalized fraction of the ray length.
+ * @group Managers
+ * @category Utilities
  */
 class CastResult {
+    /**
+     * Entity that the cast has detected.
+     *
+     * @type {Entity}
+     */
+    entity;
+
+    /**
+     * Cast result world point.
+     *
+     * @type {Vec3}
+     */
+    point;
+
+    /**
+     * Contact fraction. This is a normalized length (0-1 range) along the cast's path from start
+     * to end where the contact has been detected.
+     *
+     * @type {number}
+     */
+    fraction;
+
+    /**
+     * Contact normal will be included only if the query options requested to calculate contact
+     * normal. Otherwise it will be `null` (default).
+     *
+     * @type {Vec3 | null}
+     */
+    normal = null;
+
+    /**
+     * @hideconstructor
+     * @param {Entity} entity - Entity that query detected.
+     * @param {Vec3} point - Contact point.
+     * @param {number} fraction - Contact fraction.
+     * @param {Vec3} [normal] - Contact normal.
+     */
     constructor(entity, point, fraction, normal) {
         this.entity = entity;
         this.point = point;
@@ -51,7 +86,11 @@ class CastResult {
         }
     }
 }
-
+/**
+ * @interface
+ * @group Managers
+ * @category Utilities
+ */
 class CollideShapeResult {
     constructor(entity, point1, point2, axis, depth, normal) {
         this.entity = entity;
@@ -192,7 +231,7 @@ class ResponseHandler {
     }
 
     static handleCastQuery(cb, queryMap) {
-        const queryIndex = cb.read(BUFFER_READ_UINT16);
+        const queryIndex = cb.read(BUFFER_READ_INT32);
         const hitsCount = cb.read(BUFFER_READ_UINT16);
 
         let result = emptyResult;
@@ -237,13 +276,17 @@ class ResponseHandler {
             result.push(r);
         }
 
-        const callback = queryMap.get(queryIndex);
-        queryMap.free(queryIndex);
-        callback?.(result);
+        if (queryIndex >= 0) {
+            const callback = queryMap.get(queryIndex);
+            queryMap.free(queryIndex);
+            callback?.(result);
+        }
+
+        return result;
     }
 
     static handleCollidePointQuery(cb, queryMap) {
-        const queryIndex = cb.read(BUFFER_READ_UINT16);
+        const queryIndex = cb.read(BUFFER_READ_INT32);
         const hitsCount = cb.read(BUFFER_READ_UINT16);
 
         let result = emptyResult;
@@ -262,13 +305,17 @@ class ResponseHandler {
             result.push(entity);
         }
 
-        const callback = queryMap.get(queryIndex);
-        queryMap.free(queryIndex);
-        callback?.(result);
+        if (queryIndex >= 0) {
+            const callback = queryMap.get(queryIndex);
+            queryMap.free(queryIndex);
+            callback?.(result);
+        }
+
+        return result;
     }
 
     static handleCollideShapeQuery(cb, queryMap) {
-        const queryIndex = cb.read(BUFFER_READ_UINT16);
+        const queryIndex = cb.read(BUFFER_READ_INT32);
         const firstOnly = cb.read(BUFFER_READ_BOOL);
         const hitsCount = cb.read(BUFFER_READ_UINT16);
 
@@ -322,9 +369,13 @@ class ResponseHandler {
             }
         }
 
-        const callback = queryMap.get(queryIndex);
-        queryMap.free(queryIndex);
-        callback?.(result);
+        if (queryIndex >= 0) {
+            const callback = queryMap.get(queryIndex);
+            queryMap.free(queryIndex);
+            callback?.(result);
+        }
+
+        return result;
     }
 
     static handleCharCallback(cb, queryMap) {
@@ -337,4 +388,4 @@ class ResponseHandler {
     }
 }
 
-export { ResponseHandler, CastResult };
+export { ResponseHandler, CastResult, CollideShapeResult };

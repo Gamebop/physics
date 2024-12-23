@@ -3,7 +3,23 @@
  * @group Managers
  * @category Utilities
  */
-class QuerySettings {
+class ImmediateSettings {
+    /**
+     * Whether to make a query and return the results immediately. Only supported when physics
+     * is running on main thread.
+     *
+     * @type {boolean}
+     * @defaultValue true
+     */
+    immediate;
+}
+
+/**
+ * @interface
+ * @group Managers
+ * @category Utilities
+ */
+class QuerySettings extends ImmediateSettings {
     /**
      * If `true`, the ray will ignore sensors.
      *
@@ -202,14 +218,18 @@ class ShapeSettings {
     density;
 
     /**
-     * @see {@link ShapeComponent.shapePosition}
+     * A local position offset. Note, it will be added on top of any
+     * {@link ShapeComponent.shapePosition} you have on a component.
+     *
      * @type {Vec3}
      * @defaultValue Vec3(0, 0, 0)
      */
     shapePosition;
 
     /**
-     * @see {@link ShapeComponent.shapeRotation}
+     * A local rotation offset. Note, it will be added on top of any
+     * {@link ShapeComponent.shapeRotation} you have on a component.
+     *
      * @type {Quat}
      * @defaultValue Quat(0, 0, 0, 1)
      */
@@ -257,5 +277,5 @@ class ShapeSettings {
 
 export {
     QuerySettings, CastSettings, CastRaySettings, CastShapeSettings, CollideShapeSettings,
-    ShapeSettings
+    ShapeSettings, ImmediateSettings
 };

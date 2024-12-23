@@ -1,6 +1,6 @@
 import {
-    BFM_IGNORE_BACK_FACES, BUFFER_READ_BOOL, BUFFER_READ_FLOAT32, BUFFER_READ_UINT16, BUFFER_READ_UINT32,
-    BUFFER_READ_UINT8, BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_JOLTVEC32,
+    BFM_IGNORE_BACK_FACES, BUFFER_READ_BOOL, BUFFER_READ_FLOAT32, BUFFER_READ_INT32, BUFFER_READ_UINT32,
+    BUFFER_READ_UINT8, BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_INT32, BUFFER_WRITE_JOLTVEC32,
     BUFFER_WRITE_UINT16, BUFFER_WRITE_UINT32, CMD_CAST_RAY, CMD_CAST_SHAPE, CMD_COLLIDE_POINT,
     CMD_COLLIDE_SHAPE_IDX, COMPONENT_SYSTEM_MANAGER
 } from '../../constants.mjs';
@@ -53,10 +53,6 @@ function writeCollideShapeHit(cb, system, tracker, calculateNormal, hit, Jolt) {
 let collidePointResult;
 let params = [];
 
-/**
- * @group Private
- * @private
- */
 class Querier {
     constructor(backend) {
         this._backend = backend;
@@ -100,7 +96,7 @@ class Querier {
                 break;
 
             case CMD_CAST_SHAPE:
-                ok = this._castShape(cb);
+                ok = this._castShape(cb, false);
                 break;
 
             case CMD_COLLIDE_POINT:
@@ -108,7 +104,7 @@ class Querier {
                 break;
 
             case CMD_COLLIDE_SHAPE_IDX:
-                ok = this._collideShapeIdx(cb);
+                ok = this._collideShapeIdx(cb, false);
                 break;
 
             default:
@@ -119,6 +115,29 @@ class Querier {
         }
 
         return ok;
+    }
+
+    immediateQuery(cb) {
+        const command = cb.readCommand();
+        switch (command) {
+            case CMD_CAST_RAY:
+                return this._castRay(cb);
+
+            case CMD_CAST_SHAPE:
+                return this._castShape(cb, true);
+
+            case CMD_COLLIDE_POINT:
+                return this._collidePoint(cb);
+
+            case CMD_COLLIDE_SHAPE_IDX:
+                return this._collideShapeIdx(cb, true);
+
+            default:
+                if ($_DEBUG) {
+                    Debug.error(`Invalid querier command: ${command}`);
+                }
+                break;
+        }
     }
 
     destroy() {
@@ -165,6 +184,8 @@ class Querier {
         this._commandsBuffer.destroy();
         this._commandsBuffer = null;
 
+        collidePointResult = null;
+
         params.length = 0;
         params = undefined;
     }
@@ -183,8 +204,10 @@ class Querier {
         buffer.writeOperator(COMPONENT_SYSTEM_MANAGER);
         buffer.writeCommand(CMD_CAST_RAY);
 
-        const queryIndex = cb.read(BUFFER_READ_UINT16);
-        buffer.write(queryIndex, BUFFER_WRITE_UINT16, false);
+        const queryIndex = cb.read(BUFFER_READ_INT32);
+        buffer.write(queryIndex, BUFFER_WRITE_INT32, false);
+
+        const useImmediate = cb.read(BUFFER_READ_BOOL);
 
         try {
             jv.FromBuffer(cb);
@@ -254,18 +277,22 @@ class Querier {
             return false;
         }
 
+        if (useImmediate) {
+            return buffer;
+        }
+
         return true;
     }
 
-    _castShape(cb) {
-        const buffer = this._backend.outBuffer;
+    _castShape(cb, immediate) {
+        const backend = this._backend;
+        const buffer = immediate ? backend.immediateBuffer : backend.outBuffer;
         const tempVectors = this._tempVectors;
         const scale = tempVectors[1];
         const direction = tempVectors[2];
         const position = tempVectors[3];
         const offset = tempVectors[4];
         const rotation = tempVectors[0];
-        const backend = this._backend;
         const castSettings = this._shapeCastSettings;
         const tracker = backend.tracker;
         const system = backend.physicsSystem;
@@ -275,8 +302,10 @@ class Querier {
         buffer.writeOperator(COMPONENT_SYSTEM_MANAGER);
         buffer.writeCommand(CMD_CAST_SHAPE);
 
-        const queryIndex = cb.read(BUFFER_READ_UINT16);
-        buffer.write(queryIndex, BUFFER_WRITE_UINT16, false);
+        const queryIndex = cb.read(BUFFER_READ_INT32);
+        buffer.write(queryIndex, BUFFER_WRITE_INT32, false);
+
+        const useImmediate = cb.read(BUFFER_READ_BOOL);
 
         try {
             position.FromBuffer(cb);
@@ -359,6 +388,10 @@ class Querier {
 
             Jolt.destroy(shapeCast);
 
+            // TODO
+            // don't destroy custom filters, a game is usually creating those once and using forever
+            // we should store them in a map, which is cleared in the end of lifecycle
+
             if (customBPFilter) {
                 Jolt.destroy(bpFilter);
             }
@@ -372,6 +405,10 @@ class Querier {
                 Debug.error(e);
             }
             return false;
+        }
+
+        if (useImmediate) {
+            return buffer;
         }
 
         return true;
@@ -389,8 +426,10 @@ class Querier {
         buffer.writeOperator(COMPONENT_SYSTEM_MANAGER);
         buffer.writeCommand(CMD_COLLIDE_POINT);
 
-        const queryIndex = cb.read(BUFFER_READ_UINT16);
-        buffer.write(queryIndex, BUFFER_WRITE_UINT16, false);
+        const queryIndex = cb.read(BUFFER_READ_INT32);
+        buffer.write(queryIndex, BUFFER_WRITE_INT32, false);
+
+        const useImmediate = cb.read(BUFFER_READ_BOOL);
 
         if (!collidePointResult) {
             collidePointResult = [];
@@ -453,16 +492,20 @@ class Querier {
             buffer.write(collidePointResult[i], BUFFER_WRITE_UINT32, false);
         }
 
+        if (useImmediate) {
+            return buffer;
+        }
+
         return true;
     }
 
-    _collideShapeIdx(cb) {
+    _collideShapeIdx(cb, immediate) {
         const backend = this._backend;
+        const buffer = immediate ? backend.immediateBuffer : backend.outBuffer;
         const jq = this._tempVectors[0];
         const jv1 = this._tempVectors[1];
         const jv2 = this._tempVectors[2];
         const jv3 = this._tempVectors[3];
-        const buffer = backend.outBuffer;
         const tracker = backend.tracker;
         const system = backend.physicsSystem;
         const Jolt = backend.Jolt;
@@ -471,8 +514,10 @@ class Querier {
         buffer.writeOperator(COMPONENT_SYSTEM_MANAGER);
         buffer.writeCommand(CMD_COLLIDE_SHAPE_IDX);
 
-        const queryIndex = cb.read(BUFFER_READ_UINT16);
-        buffer.write(queryIndex, BUFFER_WRITE_UINT16, false);
+        const queryIndex = cb.read(BUFFER_READ_INT32);
+        buffer.write(queryIndex, BUFFER_WRITE_INT32, false);
+
+        const useImmediate = cb.read(BUFFER_READ_BOOL);
 
         const firstOnly = cb.flag ? cb.read(BUFFER_READ_BOOL) : true;
         buffer.write(firstOnly, BUFFER_WRITE_BOOL, false);
@@ -562,17 +607,21 @@ class Querier {
             collector.Reset();
 
             if (customBPFilter) {
-                Jolt.destroy(customBPFilter);
+                Jolt.destroy(bpFilter);
             }
 
             if (customObjFilter) {
-                Jolt.destroy(customObjFilter);
+                Jolt.destroy(objFilter);
             }
         } catch (e) {
             if ($_DEBUG) {
                 Debug.error(e);
             }
             return false;
+        }
+
+        if (useImmediate) {
+            return buffer;
         }
 
         return true;
