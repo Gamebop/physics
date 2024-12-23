@@ -21,8 +21,8 @@ import {
 /**
  * Jolt Backend.
  *
- * @group Private
- * @private
+ * @group Managers
+ * @category Jolt
  */
 class JoltBackend {
     constructor(messenger, data) {

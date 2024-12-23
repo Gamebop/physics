@@ -22,10 +22,12 @@ import {
 import { CommandsBuffer } from './back/commands-buffer.mjs';
 
 /**
- * @import { JoltBackend } from "./back/backend.mjs"
- * @import { CastCallback } from "./interfaces/query-results.mjs"
- * @import { CastShapeSettings, CollideShapeSettings, CastRaySettings } from "./interfaces/settings.mjs"
- * @import { CastResult } from "./front/response-handler.mjs"
+ * @import { CastCallback, CollidePointCallback, CollideShapeCallback }
+ * from "./interfaces/query-results.mjs"
+ * @import { CastShapeSettings, CollideShapeSettings, CastRaySettings, QuerySettings,
+ * ImmediateSettings, ShapeSettings } from "./interfaces/settings.mjs"
+ * @import { CastResult, CollideShapeResult } from "./front/response-handler.mjs"
+ * @import { Entity } from "playcanvas"
  */
 
 function getColor(type, config) {
@@ -215,7 +217,8 @@ class JoltManager extends PhysicsManager {
     }
 
     /**
-     * @param {JoltBackend} instance - Jolt backend instance.
+     * @param {object} instance - Jolt backend instance.
+     * @hidden
      */
     set backend(instance) {
         this._backend = instance;
@@ -225,7 +228,7 @@ class JoltManager extends PhysicsManager {
      * Gets the Jolt Backend instance. This is useful, when components are not sufficient and you
      * wish to access Jolt's API directly.
      *
-     * Note, this will be `null`, if the backend runs in a Web Worker. In this case you don't have
+     * Note, this will be `null`, if the backend runs in a web worker. In this case you don't have
      * access to the instance.
      *
      * @example
@@ -240,7 +243,7 @@ class JoltManager extends PhysicsManager {
      * backend.joltInterface;
      * ```
      *
-     * @type {JoltBackend | null}
+     * @type {object | null}
      */
     get backend() {
         return this._backend;
@@ -321,16 +324,16 @@ class JoltManager extends PhysicsManager {
      * such a callback function via this method.
      *
      * Your given callback will be called after all commands have been executed and right before
-     * we update virtual kinematic characters and step the physics world.
+     * we update virtual characters and step the physics world.
      *
-     * Note, this feature is disabled, when the backend runs in a Web Worker.
+     * Note, this feature is disabled, when the backend runs in a web worker.
      *
      * @param {function} func - Callback function to execute before stepping the physics world.
      */
     addUpdateCallback(func) {
         if (this._config.useWebWorker) {
             if ($_DEBUG) {
-                Debug.warn('Physics update callback is not supported when Web Worker is enabled.');
+                Debug.warn('Physics update callback is not supported when web worker is enabled.');
             }
             return;
         }
@@ -372,10 +375,10 @@ class JoltManager extends PhysicsManager {
      * });
      * ```
      *
-     * @param {number} type - Shape type number.
-     * @param {ShapeSettings} [opts] - Optional shape settings.
+     * @param {number} type - Shape type number ({@link ShapeComponent.shape}).
+     * @param {ShapeSettings} [opts] - Shape settings.
      * @see {@link ShapeComponent.shape} for available shape type options.
-     * @returns {number} Shape index.
+     * @returns {number} Shape index (uint).
      */
     createShape(type, opts = {}) {
         const options = {
@@ -428,6 +431,7 @@ class JoltManager extends PhysicsManager {
      * Destroys a shape that was previously created with {@link createShape}.
      *
      * @param {number} index - Shape index number.
+     * @param {ImmediateSettings} [opts] - Customization options.
      */
     destroyShape(index, opts = {}) {
         if ($_DEBUG) {
@@ -437,7 +441,7 @@ class JoltManager extends PhysicsManager {
             }
         }
 
-        const useImmediate = !this._config.useWebWorker && (opts.immediate ?? true);
+        const useImmediate = !this._config.useWebWorker && (opts?.immediate ?? true);
         const cb = useImmediate ? this._immediateBuffer : this._outBuffer;
         
         if (useImmediate) {
@@ -474,7 +478,7 @@ class JoltManager extends PhysicsManager {
      * const dir = new Vec3(0, -10, 0);
      * const results = app.physics.castRay(origin, dir, null, { firstOnly: false });
      * if (results.length > 0) {
-     *     // do something with results
+     *     // do something with the results
      * }
      * ```
      *
@@ -530,7 +534,7 @@ class JoltManager extends PhysicsManager {
             }
         }
 
-        const useImmediate = !this._config.useWebWorker && (opts.immediate ?? true);
+        const useImmediate = !this._config.useWebWorker && (opts?.immediate ?? true);
         const cb = useImmediate ? this._immediateBuffer : this._outBuffer;
         const callbackIndex = this._queryMap.add(callback);
 
@@ -594,31 +598,30 @@ class JoltManager extends PhysicsManager {
      *     ignoreSensors: true
      * });
      * if (results.length > 0) {
-     *     // do something with results
+     *     // do something with the results
      * }
      * ```
      *
      * @param {number} shapeIndex - Shape index number. Create one using {@link createShape}.
-     * @param {Vec3} pos - World point where the cast is originated from.
-     * @param {Quat} rot - Shape rotation.
+     * @param {Vec3} position - World point where the cast is originated from.
+     * @param {Quat} rotation - Shape rotation.
      * @param {Vec3} dir - Non-normalized ray direction. The magnitude is ray's distance.
-     * @param {CastShapeCallback} callback - Your function that will accept the shapecast result.
-     * When running on main thread and using `CastShapeSettings.immediate` option, then callback is
-     * not necessary, as the results will be returned immediately. When running on web worker, then
-     * callback is required.
+     * @param {CastCallback} callback - A callback function that will accept the raycast results.
      * @param {CastShapeSettings} [opts] - Settings object to customize the query.
+     * @returns {CastResult[] | null} - Returns an array of cast results (empty array if no
+     * result). Will return `null`, if not using {@link CastShapeSettings.immediate} mode.
      */
-    castShape(shapeIndex, pos, rot, dir, callback, opts) {
+    castShape(shapeIndex, position, rotation, dir, callback, opts) {
         const useWebWorker = this._config.useWebWorker;
 
         if ($_DEBUG) {
             let ok = Debug.checkInt(shapeIndex);
-            ok = ok && Debug.checkVec(pos);
-            ok = ok && Debug.checkQuat(rot);
+            ok = ok && Debug.checkVec(position);
+            ok = ok && Debug.checkQuat(rotation);
             ok = ok && Debug.checkVec(dir);
 
             if (useWebWorker) {
-                if (opts.immediate) {
+                if (opts?.immediate) {
                     Debug.warn('Requesting immediate query results, which is not supported when ' +
                         'running physics in a web worker.');
                 }
@@ -626,7 +629,7 @@ class JoltManager extends PhysicsManager {
                     Debug.warn('Cast shape query callback is required when using a web worker.');
                     ok = false;
                 }
-            } else if (!(opts.immediate ?? true) && !callback) {
+            } else if (!(opts?.immediate ?? true) && !callback) {
                 Debug.warn('Cast shape query callback is required when not using immediate mode.');
                 ok = false;
             }
@@ -636,7 +639,7 @@ class JoltManager extends PhysicsManager {
             }
         }
 
-        const useImmediate = !useWebWorker && (opts.immediate ?? true);
+        const useImmediate = !useWebWorker && (opts?.immediate ?? true);
         const cb = useImmediate ? this._immediateBuffer : this._outBuffer;
         const queryIndex = callback ? this._queryMap.add(callback) : -1;
 
@@ -652,8 +655,8 @@ class JoltManager extends PhysicsManager {
         cb.writeCommand(CMD_CAST_SHAPE);
         cb.write(queryIndex, BUFFER_WRITE_INT32, false);
         cb.write(useImmediate, BUFFER_WRITE_BOOL, false);
-        cb.write(pos, BUFFER_WRITE_VEC32, false);
-        cb.write(rot, BUFFER_WRITE_VEC32, false);
+        cb.write(position, BUFFER_WRITE_VEC32, false);
+        cb.write(rotation, BUFFER_WRITE_VEC32, false);
         cb.write(dir, BUFFER_WRITE_VEC32, false);
         cb.write(opts?.scale, BUFFER_WRITE_VEC32);
         cb.write(opts?.offset, BUFFER_WRITE_VEC32);
@@ -682,6 +685,8 @@ class JoltManager extends PhysicsManager {
 
             return ResponseHandler.handleCastQuery(resultsBuffer, this._queryMap);
         }
+
+        return null;
     }
 
     /**
@@ -692,20 +697,17 @@ class JoltManager extends PhysicsManager {
      * @example
      * ```js
      * // get all entities that overlap a world position (0, 5, 0)
-     * app.physics.collidePoint(new Vec3(0, 5, 0), onResults, { ignoreSensors: true });
-     *
-     * function onResults(results) {
-     *     if (results.length === 0) {
-     *         return;
-     *     }
-     *     // do something with results
+     * const results = app.physics.collidePoint(new Vec3(0, 5, 0), null, { ignoreSensors: true });
+     * if (results.length > 0) {
+     *     // do something with the results
      * }
      * ```
      *
      * @param {Vec3} point - World position to test.
-     * @param {function} callback - Function to take the query results.
-     * @param {import('./interfaces/settings.mjs').QuerySettings} opts - Query customization
-     * settings.
+     * @param {CollidePointCallback} callback - Function to take the query results.
+     * @param {QuerySettings} [opts] - Query customization settings.
+     * @returns {Entity[] | null} - An array of entities that the point collided with (empty array
+     * if no result). Will return `null`, if not using {@link QuerySettings.immediate} mode.
      */
     collidePoint(point, callback, opts) {
         const useWebWorker = this._config.useWebWorker;
@@ -719,7 +721,7 @@ class JoltManager extends PhysicsManager {
                 ok = Debug.checkUint(opts.objFilterLayer);
             }
             if (useWebWorker) {
-                if (opts.immediate) {
+                if (opts?.immediate) {
                     Debug.warn('Requesting immediate query results, which is not supported when ' +
                         'running physics in a web worker.');
                 }
@@ -727,7 +729,7 @@ class JoltManager extends PhysicsManager {
                     Debug.warn('Collide point query callback is required when using a web worker.');
                     ok = false;
                 }
-            } else if (!(opts.immediate ?? true) && !callback) {
+            } else if (!(opts?.immediate ?? true) && !callback) {
                 Debug.warn('Collide point query callback is required when not using immediate ' +
                     'mode.');
                 ok = false;
@@ -737,7 +739,7 @@ class JoltManager extends PhysicsManager {
             }
         }
 
-        const useImmediate = !useWebWorker && (opts.immediate ?? true);
+        const useImmediate = !useWebWorker && (opts?.immediate ?? true);
         const cb = useImmediate ? this._immediateBuffer : this._outBuffer;
         const queryIndex = this._queryMap.add(callback);
 
@@ -769,6 +771,8 @@ class JoltManager extends PhysicsManager {
 
             return ResponseHandler.handleCollidePointQuery(resultsBuffer, this._queryMap);
         }
+
+        return null;
     }
 
     /**
@@ -786,22 +790,19 @@ class JoltManager extends PhysicsManager {
      * // (0, 10, 0)
      * const scale = new Vec3(0.2, 0.5, 0.2);
      * const pos = new Vec3(0, 10, 0);
-     * app.physics.collideShape(shapeIndex, pos, Quat.IDENTITY, onResults, { scale });
-     *
-     * function onResults(results) {
-     *     if (results.length === 0) {
-     *         return;
-     *     }
+     * const results = app.physics.collideShape(shapeIndex, pos, Quat.IDENTITY, null, { scale });
+     * if (results.length > 0) {
      *     // do something with the results
      * }
-     *
      * ```
      *
      * @param {number} shapeIndex - Shape index created with {@link createShape}.
      * @param {Vec3} position - World position of the shape.
-     * @param {Vec3} rotation - World rotation of the shape.
-     * @param {function} callback - Callback function that will take the query results.
-     * @param {CollideShapeSettings} opts - Query customization settings.
+     * @param {Quat} rotation - World rotation of the shape.
+     * @param {CollideShapeCallback} callback - Callback function that will take the query results.
+     * @param {CollideShapeSettings} [opts] - Query customization settings.
+     * @returns {CollideShapeResult[] | null} - Returns an array of collision results (empty array
+     * if no result). Will return `null`, if not using {@link CollideShapeSettings.immediate} mode.
      */
     collideShape(shapeIndex, position, rotation, callback, opts) {
         const useWebWorker = this._config.useWebWorker;
@@ -829,7 +830,7 @@ class JoltManager extends PhysicsManager {
                 ok = Debug.checkUint(opts.objFilterLayer);
             }
             if (useWebWorker) {
-                if (opts.immediate) {
+                if (ok && opts?.immediate) {
                     Debug.warn('Requesting immediate query results, which is not supported when ' +
                         'running physics in a web worker.');
                 }
@@ -837,7 +838,7 @@ class JoltManager extends PhysicsManager {
                     Debug.warn('Cast shape query callback is required when using a web worker.');
                     ok = false;
                 }
-            } else if (!(opts.immediate ?? true) && !callback) {
+            } else if (!(opts?.immediate ?? true) && !callback) {
                 Debug.warn('Cast shape query callback is required when not using immediate mode.');
                 ok = false;
             }
@@ -846,7 +847,7 @@ class JoltManager extends PhysicsManager {
             }
         }
 
-        const useImmediate = !useWebWorker && (opts.immediate ?? true);
+        const useImmediate = !useWebWorker && (opts?.immediate ?? true);
         const cb = useImmediate ? this._immediateBuffer : this._outBuffer;
         const queryIndex = callback ? this._queryMap.add(callback) : -1;
 
@@ -886,6 +887,8 @@ class JoltManager extends PhysicsManager {
 
             return ResponseHandler.handleCollideShapeQuery(resultsBuffer, this._queryMap);
         }
+
+        return null;
     }
 
     /**
@@ -905,10 +908,11 @@ class JoltManager extends PhysicsManager {
      * [Collision Filtering](https://jrouwe.github.io/JoltPhysics/index.html#collision-filtering).
      *
      * @param {Array<number>} groups - Collision groups.
+     * @param {ImmediateSettings} [opts] - Customization options.
      */
-    createCollisionGroups(groups, opts = {}) {
+    createCollisionGroups(groups, opts) {
         const groupsCount = groups.length;
-        const useImmediate = !this._config.useWebWorker && (opts.immediate ?? true);
+        const useImmediate = !this._config.useWebWorker && (opts?.immediate ?? true);
         const cb = useImmediate ? this._immediateBuffer : this._outBuffer;
 
         if (useImmediate) {
@@ -953,8 +957,9 @@ class JoltManager extends PhysicsManager {
      * @param {number} subGroup1 - First subgroup number.
      * @param {number} subGroup2 - Second subgroup number.
      * @param {boolean} enable - `true` to enable, `false` to disable collision.
+     * @param {ImmediateSettings} [opts] - Query customization options.
      */
-    toggleGroupPair(group, subGroup1, subGroup2, enable, opts = {}) {
+    toggleGroupPair(group, subGroup1, subGroup2, enable, opts) {
         if ($_DEBUG) {
             let ok = Debug.checkUint(group);
             ok = ok && Debug.checkUint(subGroup1);
@@ -965,7 +970,7 @@ class JoltManager extends PhysicsManager {
             }
         }
 
-        const useImmediate = !this._config.useWebWorker && (opts.immediate ?? true);
+        const useImmediate = !this._config.useWebWorker && (opts?.immediate ?? true);
         const cb = useImmediate ? this._immediateBuffer : this._outBuffer;
 
         if (useImmediate) {

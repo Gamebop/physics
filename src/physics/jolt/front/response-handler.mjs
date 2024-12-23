@@ -80,7 +80,11 @@ class CastResult {
         }
     }
 }
-
+/**
+ * @interface
+ * @group Managers
+ * @category Utilities
+ */
 class CollideShapeResult {
     constructor(entity, point1, point2, axis, depth, normal) {
         this.entity = entity;
@@ -378,4 +382,4 @@ class ResponseHandler {
     }
 }
 
-export { ResponseHandler, CastResult };
+export { ResponseHandler, CastResult, CollideShapeResult };
