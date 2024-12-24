@@ -30,7 +30,7 @@ jobs:
         cache: 'npm'
 
     - name: Install dependencies
-      run: npm clean-install --progress=false --no-fund --no-optional
+      run: npm clean-install --progress=false --no-fund
 
     - name: Build Physics
       run: npm run build
