@@ -2,6 +2,7 @@ import { Debug } from '../../debug.mjs';
 import { MotionState } from '../motion-state.mjs';
 import {
     BFM_IGNORE_BACK_FACES, BP_LAYER_MOVING, BUFFER_READ_BOOL, BUFFER_READ_FLOAT32,
+    BUFFER_READ_INT32,
     BUFFER_READ_UINT16, BUFFER_READ_UINT32, BUFFER_READ_UINT8, CMD_CREATE_BODY,
     CMD_CREATE_CHAR, CMD_CREATE_CONSTRAINT, CMD_CREATE_GROUPS, CMD_CREATE_SHAPE,
     CMD_CREATE_SOFT_BODY, CMD_CREATE_VEHICLE, MOTION_QUALITY_DISCRETE, MOTION_TYPE_DYNAMIC,
@@ -560,8 +561,15 @@ class Creator {
             }
         }
 
+        const id = cb.read(BUFFER_READ_INT32);
         const bodyInterface = backend.bodyInterface;
-        const body = bodyInterface.CreateBody(bodyCreationSettings);
+
+        let body;
+        if (id < 0) {
+            body = bodyInterface.CreateBody(bodyCreationSettings);
+        } else {
+            body = bodyInterface.CreateBodyWithID(new Jolt.BodyID(id), bodyCreationSettings);
+        }
         bodyInterface.AddBody(body.GetID(), Jolt.EActivation_Activate);
 
         body.isometryUpdate = cb.read(BUFFER_READ_UINT8);
