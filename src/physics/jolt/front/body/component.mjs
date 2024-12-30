@@ -49,6 +49,8 @@ class BodyComponent extends ShapeComponent {
 
     _group = 0;
 
+    _id = -1;
+
     _inertiaMultiplier = 1;
 
     _isSensor = false;
@@ -1608,6 +1610,7 @@ class BodyComponent extends ShapeComponent {
             }
         }
 
+        cb.write(this._id, BUFFER_WRITE_INT32, false);
         cb.write(this._isometryUpdate, BUFFER_WRITE_UINT8, false);
 
         if ($_DEBUG) {

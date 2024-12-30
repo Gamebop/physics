@@ -36,7 +36,8 @@ const schema = [
     'allowDynamicOrKinematic',
     'isSensor',
     'motionQuality',
-    'allowSleeping'
+    'allowSleeping',
+    'id'
 ];
 
 /**

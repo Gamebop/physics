@@ -27,7 +27,7 @@
         "dist/*"
     ],
     "peerDependencies": {
-        "jolt-physics": "^0.28.0",
+        "jolt-physics": "^0.30.0",
         "playcanvas": "^2.2.1"
     },
     "devDependencies": {
