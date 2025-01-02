@@ -42,34 +42,26 @@ class Cleaner {
         const command = cb.readCommand();
 
         if (command === CMD_DESTROY_SHAPE) {
-            this._destroyShape(cb);
-        } else if ($_DEBUG) {
+            return this._destroyShape(cb);
+        }
+
+        if ($_DEBUG) {
             Debug.warn('Command not recognized.');
         }
+
+        return null;
     }
 
     destroy() {
         this._backend = null;
     }
 
-    _destroyBody(cb) {
-        const index = cb.read(BUFFER_READ_UINT32);
+    destroyBody(body) {
         const backend = this._backend;
         const Jolt = backend.Jolt;
         const tracker = backend.tracker;
         const bodyInterface = backend.bodyInterface;
         const physicsSystem = backend.physicsSystem;
-
-        const body = tracker.getBodyByPCID(index);
-
-        if (!body) {
-            // Body could have been destroyed already. For example:
-            // Disable parent, then manually disable child. The body
-            // would get destroyed when parent was disabled. The
-            // command for destroy would be issued again, when child is
-            // disabled.
-            return true;
-        }
 
         Cleaner.cleanDebugDrawData(body, Jolt);
 
@@ -132,6 +124,22 @@ class Cleaner {
         }
 
         return true;
+    }
+
+    _destroyBody(cb) {
+        const index = cb.read(BUFFER_READ_UINT32);
+        const body = this._backend.tracker.getBodyByPCID(index);
+
+        if (!body) {
+            // Body could have been destroyed already. For example:
+            // Disable parent, then manually disable child. The body
+            // would get destroyed when parent was disabled. The
+            // command for destroy would be issued again, when child is
+            // disabled.
+            return true;
+        }
+
+        return this.destroyBody(body);
     }
 
     _destroyConstraint(cb) {

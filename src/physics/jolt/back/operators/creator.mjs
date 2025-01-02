@@ -5,7 +5,7 @@ import {
     BUFFER_READ_INT32,
     BUFFER_READ_UINT16, BUFFER_READ_UINT32, BUFFER_READ_UINT8, CMD_CREATE_BODY,
     CMD_CREATE_CHAR, CMD_CREATE_CONSTRAINT, CMD_CREATE_GROUPS, CMD_CREATE_SHAPE,
-    CMD_CREATE_SOFT_BODY, CMD_CREATE_VEHICLE, MOTION_QUALITY_DISCRETE, MOTION_TYPE_DYNAMIC,
+    CMD_CREATE_SOFT_BODY, CMD_CREATE_VEHICLE, CMD_RESET_PHYSICS_SYSTEM, MOTION_QUALITY_DISCRETE, MOTION_TYPE_DYNAMIC,
     MOTION_TYPE_KINEMATIC, OBJ_LAYER_MOVING, OMP_CALCULATE_MASS_AND_INERTIA,
     OMP_MASS_AND_INERTIA_PROVIDED, SHAPE_BOX, SHAPE_CAPSULE, SHAPE_CONVEX_HULL, SHAPE_CYLINDER,
     SHAPE_EMPTY,
@@ -260,6 +260,10 @@ class Creator {
                 ok = this._createVehicle(cb);
                 break;
 
+            case CMD_RESET_PHYSICS_SYSTEM:
+                ok = this._resetPhysicsSystem(cb);
+                break;
+
             default:
                 if ($_DEBUG) {
                     Debug.error(`Invalid command: ${command}`);
@@ -403,6 +407,114 @@ class Creator {
         if (this._joltQuat) {
             Jolt.destroy(this._joltQuat);
         }
+    }
+
+    _resetPhysicsSystem(cb) {
+        const backend = this._backend;
+        const joltInterface = backend.joltInterface;
+        if (!joltInterface) {
+            return;
+        }
+
+        backend.tracker.clear();
+
+        const Jolt = backend.Jolt;
+        const config = backend.config;
+
+        Jolt.destroy(joltInterface);
+
+        if (backend.bpFilter) {
+            Jolt.destroy(backend.bpFilter);
+            backend.bpFilter = null;
+        }
+        if (backend.objFilter) {
+            Jolt.destroy(backend.objFilter);
+            backend.objFilter = null;
+        }
+
+        const settings = new Jolt.JoltSettings();
+
+        const bpMap = new Map();
+        const pairs = config.objectLayerPairs;
+        const pairsCount = pairs.length * 0.5;
+        const objectFilter = new Jolt.ObjectLayerPairFilterTable(pairsCount);
+        for (let i = 0; i < pairsCount * 2; i += 2) {
+            objectFilter.EnableCollision(pairs[i], pairs[i + 1]);
+        }
+
+        const bpLayers = config.broadPhaseLayers;
+        const bpLayerCount = bpLayers.length;
+        const bpInterface = new Jolt.BroadPhaseLayerInterfaceTable(pairsCount, bpLayerCount);
+        for (let i = 0; i < bpLayerCount; i++) {
+            const id = bpLayers[i];
+            const bpLayer = new Jolt.BroadPhaseLayer(id);
+            bpMap.set(id, bpLayer);
+        }
+
+        // Map object layers to broadphase layers
+        let objLayerCount = 0;
+        const objLayers = config.mapObjectToBroadPhaseLayer;
+        for (let i = 0; i < objLayers.length; i += 2) {
+            objLayerCount++;
+            bpInterface.MapObjectToBroadPhaseLayer(objLayers[i], bpMap.get(objLayers[i + 1]));
+        }
+        // Broadphase layers have been copied to the bpInterface, so we can destroy those
+        bpMap.forEach((bpLayer) => {
+            Jolt.destroy(bpLayer);
+        });
+        bpMap.clear();
+
+        settings.mObjectLayerPairFilter = objectFilter;
+        settings.mBroadPhaseLayerInterface = bpInterface;
+        settings.mObjectVsBroadPhaseLayerFilter = new Jolt.ObjectVsBroadPhaseLayerFilterTable(
+            settings.mBroadPhaseLayerInterface, bpLayerCount, settings.mObjectLayerPairFilter,
+            objLayerCount);
+
+        const newInterface = new Jolt.JoltInterface(settings);
+        const physicsSystem = newInterface.GetPhysicsSystem();
+
+        Jolt.destroy(settings);
+
+        const systemSettings = physicsSystem.GetPhysicsSettings();
+
+        systemSettings.mBaumgarte = config.baumgarte;
+        systemSettings.mBodyPairCacheCosMaxDeltaRotationDiv2 = config.bodyPairCacheCosMaxDeltaRotationDiv2;
+        systemSettings.mBodyPairCacheMaxDeltaPositionSq = config.bodyPairCacheMaxDeltaPositionSq;
+        systemSettings.mContactNormalCosMaxDeltaRotation = config.contactNormalCosMaxDeltaRotation;
+        systemSettings.mContactPointPreserveLambdaMaxDistSq = config.contactPointPreserveLambdaMaxDistSq;
+        systemSettings.mDeterministicSimulation = config.deterministicSimulation;
+        systemSettings.mLinearCastMaxPenetration = config.linearCastMaxPenetration;
+        systemSettings.mLinearCastThreshold = config.linearCastThreshold;
+        systemSettings.mManifoldToleranceSq = config.manifoldToleranceSq;
+        systemSettings.mMaxInFlightBodyPairs = config.maxInFlightBodyPairs;
+        systemSettings.mMaxPenetrationDistance = config.maxPenetrationDistance;
+        systemSettings.mMinVelocityForRestitution = config.minVelocityForRestitution;
+        systemSettings.mNumPositionSteps = config.numPositionSteps;
+        systemSettings.mNumVelocitySteps = config.numVelocitySteps;
+        systemSettings.mPenetrationSlop = config.penetrationSlop;
+        systemSettings.mPointVelocitySleepThreshold = config.pointVelocitySleepThreshold;
+        systemSettings.mSpeculativeContactDistance = config.speculativeContactDistance;
+        systemSettings.mStepListenerBatchesPerJob = config.stepListenerBatchesPerJob;
+        systemSettings.mStepListenersBatchSize = config.stepListenersBatchSize;
+        systemSettings.mTimeBeforeSleep = config.timeBeforeSleep;
+
+        systemSettings.mConstraintWarmStart = config.constraintWarmStart;
+        systemSettings.mUseBodyPairContactCache = config.useBodyPairContactCache;
+        systemSettings.mUseManifoldReduction = config.useManifoldReduction;
+        systemSettings.mUseLargeIslandSplitter = config.useLargeIslandSplitter;
+        systemSettings.mAllowSleeping = config.allowSleeping;
+        systemSettings.mCheckActiveEdges = config.checkActiveEdges;
+
+        physicsSystem.SetPhysicsSettings(systemSettings);
+
+
+        backend.joltInterface = newInterface;
+        backend.physicsSystem = physicsSystem;
+
+        backend.bpFilter = new Jolt.DefaultBroadPhaseLayerFilter(newInterface.GetObjectVsBroadPhaseLayerFilter(), 1);
+        backend.objFilter = new Jolt.DefaultObjectLayerFilter(newInterface.GetObjectLayerPairFilter(), 1);
+
+        return true;
     }
 
     // TODO
