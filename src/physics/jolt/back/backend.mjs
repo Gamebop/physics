@@ -172,6 +172,10 @@ class JoltBackend {
         return this._querier;
     }
 
+    get cleaner() {
+        return this._cleaner;
+    }
+
     set bpFilter(filter) {
         this._bpFilter = filter;
     }
@@ -225,7 +229,7 @@ class JoltBackend {
         extendJoltMath(Jolt);
 
         // Physics operators
-        this._tracker = new Tracker(Jolt);
+        this._tracker = new Tracker(Jolt, this);
         this._creator = new Creator(this);
         this._modifier = new Modifier(this);
         this._cleaner = new Cleaner(this);
@@ -431,11 +435,11 @@ class JoltBackend {
             dt = (performance.now() - this._lastStamp) * 0.001;
         }
 
+        time += dt;
+
         if (time > fixedStep * config.maxSkippedSteps) {
             time = fixedStep * config.maxSkippedSteps;
         }
-
-        time += dt;
 
         while (ok && time >= fixedStep) {
             try {

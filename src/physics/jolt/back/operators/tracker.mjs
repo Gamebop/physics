@@ -1,6 +1,7 @@
 class Tracker {
-    constructor(Jolt) {
+    constructor(Jolt, backend) {
         this._Jolt = Jolt;
+        this._backend = backend;
 
         // TODO
         // eval: get rid of _dynamic and _kinematic
@@ -111,27 +112,34 @@ class Tracker {
         this._idxMap.delete(jid);
     }
 
-    destroy() {
-        const Jolt = this._Jolt;
+    clear() {
+        const cleaner = this._backend.cleaner;
 
         this._dynamic.clear();
         this._kinematic.clear();
 
         this._character.forEach((char) => {
-            Jolt.destroy(char);
+            cleaner.destroyBody(char);
         });
         this._character.clear();
 
         this._bodyMap.forEach((body) => {
-            Jolt.destroy(body);
+            cleaner.destroyBody(body);
         });
         this._bodyMap.clear();
+
+        this._idxMap.clear();
 
         if ($_DEBUG) {
             this._debug.clear();
         }
+    }
+
+    destroy() {
+        this.clear();
 
         this._Jolt = null;
+        this._backend = null;
     }
 }
 
