@@ -676,13 +676,31 @@ class Creator {
         const id = cb.read(BUFFER_READ_INT32);
         const bodyInterface = backend.bodyInterface;
 
-        let body;
+        let ok = true;
+        let body, bodyID;
         if (id < 0) {
             body = bodyInterface.CreateBody(bodyCreationSettings);
+            bodyID = body.GetID();
         } else {
-            body = bodyInterface.CreateBodyWithID(new Jolt.BodyID(id), bodyCreationSettings);
+            bodyID = new Jolt.BodyID(id);
+
+            // skip the check for production build
+            if ($_DEBUG) {
+                const eb = backend.physicsSystem.GetBodyLockInterfaceNoLock().TryGetBody(bodyID);
+                ok = !eb?.IsInBroadPhase();
+
+                if (!ok) {
+                    Debug.warn('Trying to add a new body with a custom ID that already belongs ' +
+                        'to another existing body in the physics world. Skipping body creation.');
+                }
+            }
+
+            body = bodyInterface.CreateBodyWithID(bodyID, bodyCreationSettings);
         }
-        bodyInterface.AddBody(body.GetID(), Jolt.EActivation_Activate);
+
+        if (ok) {
+            bodyInterface.AddBody(bodyID, Jolt.EActivation_Activate);
+        }
 
         body.isometryUpdate = cb.read(BUFFER_READ_UINT8);
 
@@ -695,13 +713,15 @@ class Creator {
         Jolt.destroy(shapeSettings);
         Jolt.destroy(bodyCreationSettings);
 
-        if (backend.config.useMotionStates) {
-            if (useMotionState && (jmt === Jolt.EMotionType_Dynamic || jmt === Jolt.EMotionType_Kinematic)) {
+        if (ok) {
+            if (backend.config.useMotionStates &&
+                useMotionState &&
+                (jmt === Jolt.EMotionType_Dynamic || jmt === Jolt.EMotionType_Kinematic)) {
                 body.motionState = new MotionState(body);
             }
-        }
 
-        backend.tracker.add(body, index);
+            backend.tracker.add(body, index);
+        }
 
         return true;
     }
