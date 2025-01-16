@@ -2,15 +2,15 @@ import { Debug } from './jolt/debug.mjs';
 import { JoltManager } from './jolt/manager.mjs';
 
 /**
- * @import { Application, Color } from "playcanvas"
+ * @import { Application, Color } from 'playcanvas'
  */
 
 /**
  * An options object to configure Jolt Physics backend. All options are optional.
  *
  * @interface
- * @group Managers
- * @category Utilities
+ * @group Utilities
+ * @category Init
  */
 class JoltInitSettings {
     /**
@@ -571,8 +571,8 @@ class JoltInitSettings {
  *
  * @param {Application} app - PlayCanvas Application instance
  * @param {JoltInitSettings} opts - Jolt Physics initialization settings.
- * @group Managers
- * @category Utilities
+ * @group Utilities
+ * @category Init
  * @returns {Promise<import('./jolt/manager.mjs').JoltManager>} - A Promise to return a Jolt Manager
  */
 function init(app, opts = {}) {

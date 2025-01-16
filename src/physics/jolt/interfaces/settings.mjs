@@ -1,7 +1,7 @@
 /**
  * @interface
- * @group Managers
- * @category Utilities
+ * @group Utilities
+ * @category Query
  */
 class ImmediateSettings {
     /**
@@ -16,8 +16,8 @@ class ImmediateSettings {
 
 /**
  * @interface
- * @group Managers
- * @category Utilities
+ * @group Utilities
+ * @category Query
  */
 class QuerySettings extends ImmediateSettings {
     /**
@@ -47,8 +47,8 @@ class QuerySettings extends ImmediateSettings {
 
 /**
  * @interface
- * @group Managers
- * @category Utilities
+ * @group Utilities
+ * @category Query
  */
 class CastSettings extends QuerySettings {
     /**
@@ -71,8 +71,8 @@ class CastSettings extends QuerySettings {
 
 /**
  * @interface
- * @group Managers
- * @category Utilities
+ * @group Utilities
+ * @category Query
  */
 class CastRaySettings extends CastSettings {
     /**
@@ -95,8 +95,8 @@ class CastRaySettings extends CastSettings {
 
 /**
  * @interface
- * @group Managers
- * @category Utilities
+ * @group Utilities
+ * @category Query
  */
 class CastShapeSettings extends CastSettings {
     /**
@@ -163,8 +163,8 @@ class CastShapeSettings extends CastSettings {
 
 /**
  * @interface
- * @group Managers
- * @category Utilities
+ * @group Utilities
+ * @category Query
  */
 class CollideShapeSettings extends CastSettings {
     /**
@@ -206,8 +206,8 @@ class CollideShapeSettings extends CastSettings {
 
 /**
  * @interface
- * @group Managers
- * @category Utilities
+ * @group Utilities
+ * @category Other
  */
 class ShapeSettings {
     /**

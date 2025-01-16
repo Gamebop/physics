@@ -1,7 +1,7 @@
 import { EventHandler } from 'playcanvas';
 
 /**
- * @import { Entity } from "playcanvas"
+ * @import { Entity } from 'playcanvas'
  */
 
 class Component extends EventHandler {
