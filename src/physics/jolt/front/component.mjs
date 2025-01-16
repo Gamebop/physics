@@ -1,5 +1,9 @@
 import { EventHandler } from 'playcanvas';
 
+/**
+ * @import { Entity } from 'playcanvas'
+ */
+
 class Component extends EventHandler {
     static order = 0;
 
@@ -25,7 +29,7 @@ class Component extends EventHandler {
     }
 
     /**
-     * @type {import('playcanvas').Entity | null}
+     * @type {Entity | null}
      * @private
      */
     get entity() {

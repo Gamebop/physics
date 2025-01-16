@@ -1,4 +1,8 @@
 /**
+ * @import { Vec3, Entity, Curve } from 'playcanvas'
+ */
+
+/**
  * @interface
  * @group Utilities
  * @category Constraints
@@ -28,7 +32,7 @@ class ConstraintSettings {
      * First body position in constraint reference frame. Space is determined by {@link space}
      * property.
      *
-     * @type {import('playcanvas').Vec3}
+     * @type {Vec3}
      * @defaultValue Vec3(0, 0, 0)
      */
     point1;
@@ -37,7 +41,7 @@ class ConstraintSettings {
      * Second body position in constraint reference frame. Space is determined by {@link space}
      * property.
      *
-     * @type {import('playcanvas').Vec3}
+     * @type {Vec3}
      * @defaultValue Vec3(0, 0, 0)
      */
     point2;
@@ -235,25 +239,25 @@ class FixedConstraintSettings extends ConstraintSettings {
     _autoDetectPoint;
 
     /**
-     * @type {import('playcanvas').Vec3}
+     * @type {Vec3}
      * @defaultValue Vec3(1, 0, 0)
      */
     _axisX1;
 
     /**
-     * @type {import('playcanvas').Vec3}
+     * @type {Vec3}
      * @defaultValue Vec3(1, 0, 0)
      */
     _axisX2;
 
     /**
-     * @type {import('playcanvas').Vec3}
+     * @type {Vec3}
      * @defaultValue Vec3(0, 1, 0)
      */
     _axisY1;
 
     /**
-     * @type {import('playcanvas').Vec3}
+     * @type {Vec3}
      * @defaultValue Vec3(0, 1, 0)
      */
     _axisY2;
@@ -266,25 +270,25 @@ class FixedConstraintSettings extends ConstraintSettings {
  */
 class HingeConstraintSettings extends ConstraintSettings {
     /**
-     * @type {import('playcanvas').Vec3}
+     * @type {Vec3}
      * @defaultValue Vec3(0, 1, 0)
      */
     hingeAxis1;
 
     /**
-     * @type {import('playcanvas').Vec3}
+     * @type {Vec3}
      * @defaultValue Vec3(0, 1, 0)
      */
     hingeAxis2;
 
     /**
-     * @type {import('playcanvas').Vec3}
+     * @type {Vec3}
      * @defaultValue Vec3(1, 0, 0)
      */
     normalAxis1;
 
     /**
-     * @type {import('playcanvas').Vec3}
+     * @type {Vec3}
      * @defaultValue Vec3(1, 0, 0)
      */
     normalAxis2;
@@ -341,7 +345,7 @@ class PulleyConstraintSettings extends ConstraintSettings {
     /**
      * Fixed world point to which body 1 is connected (always in world space).
      *
-     * @type {import('playcanvas').Vec3}
+     * @type {Vec3}
      * @defaultValue Vec3(0, 0, 0)
      */
     fixedPoint1;
@@ -349,7 +353,7 @@ class PulleyConstraintSettings extends ConstraintSettings {
     /**
      * Fixed world point to which body 2 is connected (always in world space).
      *
-     * @type {import('playcanvas').Vec3}
+     * @type {Vec3}
      * @defaultValue Vec3(0, 0, 0)
      */
     fixedPoint2;
@@ -391,25 +395,25 @@ class PulleyConstraintSettings extends ConstraintSettings {
  */
 class SixDOFConstraintSettings extends ConstraintSettings {
     /**
-     * @type {import('playcanvas').Vec3}
+     * @type {Vec3}
      * @defaultValue Vec3(1, 0, 0)
      */
     axisX1;
 
     /**
-     * @type {import('playcanvas').Vec3}
+     * @type {Vec3}
      * @defaultValue Vec3(1, 0, 0)
      */
     axisX2;
 
     /**
-     * @type {import('playcanvas').Vec3}
+     * @type {Vec3}
      * @defaultValue Vec3(0, 1, 0)
      */
     axisY1;
 
     /**
-     * @type {import('playcanvas').Vec3}
+     * @type {Vec3}
      * @defaultValue Vec3(0, 1, 0)
      */
     axisY2;
@@ -549,25 +553,25 @@ class SixDOFConstraintSettings extends ConstraintSettings {
  */
 class SliderConstraintSettings extends ConstraintSettings {
     /**
-     * @type {import('playcanvas').Vec3}
+     * @type {Vec3}
      * @defaultValue Vec3(1, 0, 0)
      */
     sliderAxis1;
 
     /**
-     * @type {import('playcanvas').Vec3}
+     * @type {Vec3}
      * @defaultValue Vec3(1, 0, 0)
      */
     sliderAxis2;
 
     /**
-     * @type {import('playcanvas').Vec3}
+     * @type {Vec3}
      * @defaultValue Vec3(0, 1, 0)
      */
     normalAxis1;
 
     /**
-     * @type {import('playcanvas').Vec3}
+     * @type {Vec3}
      * @defaultValue Vec3(0, 1, 0)
      */
     normalAxis2;
@@ -620,25 +624,25 @@ class SliderConstraintSettings extends ConstraintSettings {
  */
 class SwingTwistConstraintSettings extends ConstraintSettings {
     /**
-     * @type {import('playcanvas').Vec3}
+     * @type {Vec3}
      * @defaultValue Vec3(1, 0, 0)
      */
     twistAxis1;
 
     /**
-     * @type {import('playcanvas').Vec3}
+     * @type {Vec3}
      * @defaultValue Vec3(1, 0, 0)
      */
     twistAxis2;
 
     /**
-     * @type {import('playcanvas').Vec3}
+     * @type {Vec3}
      * @defaultValue Vec3(0, 1, 0)
      */
     planeAxis1;
 
     /**
-     * @type {import('playcanvas').Vec3}
+     * @type {Vec3}
      * @defaultValue Vec3(0, 1, 0)
      */
     planeAxis2;
@@ -737,7 +741,7 @@ class WheelSettings {
      * PlayCanvas Entity that will be used as a visual wheel. Its position and rotation will be
      * updated automatically to match the physical wheel.
      *
-     * @type {import('playcanvas').Entity | null}
+     * @type {Entity | null}
      * @defaultValue null
      */
     entity;
@@ -745,7 +749,7 @@ class WheelSettings {
     /**
      * Attachment point of wheel suspension in local space of the body.
      *
-     * @type {import('playcanvas').Vec3}
+     * @type {Vec3}
      * @defaultValue Vec3(0, 0, 0)
      */
     position;
@@ -770,7 +774,7 @@ class WheelSettings {
      * Direction of the steering axis in local space of the body, should point up (e.g. for a bike
      * would be `-suspensionDirection`).
      *
-     * @type {import('playcanvas').Vec3}
+     * @type {Vec3}
      * @defaultValue Vec3(0, 1, 0)
      */
     steeringAxis;
@@ -778,7 +782,7 @@ class WheelSettings {
     /**
      * Direction of the suspension in local space of the body, should point down.
      *
-     * @type {import('playcanvas').Vec3}
+     * @type {Vec3}
      * @defaultValue Vec3(0, -1, 0)
      */
     suspensionDirection;
@@ -788,7 +792,7 @@ class WheelSettings {
      * default is the center of the wheel in its neutral pose. See
      * {@link enableSuspensionForcePoint}.
      *
-     * @type {import('playcanvas').Vec3}
+     * @type {Vec3}
      * @defaultValue Vec3(0, 0, 0)
      */
     suspensionForcePoint;
@@ -826,7 +830,7 @@ class WheelSettings {
      * `component.forward` but can be used to give the wheel toe, does not need to be perpendicular
      * to {@link wheelUp}).
      *
-     * @type {import('playcanvas').Vec3}
+     * @type {Vec3}
      * @defaultValue Vec3(0, 0, 1)
      */
     wheelForward;
@@ -835,7 +839,7 @@ class WheelSettings {
      * Up direction when the wheel is in the neutral steering position (usually `component.up` but
      * can be used to give the wheel camber or for a bike would be `-suspensionDirection`).
      *
-     * @type {import('playcanvas').Vec3}
+     * @type {Vec3}
      * @defaultValue Vec3(0, 1, 0)
      */
     wheelUp;
@@ -886,7 +890,7 @@ class WheelWVSettings extends WheelSettings {
      * is sliding sideways, e.g. on ice, then the angle is 90 degrees. Example curve keys could be:
      * `[[0, 1], [90, 0.3]]` - full friction at zero degrees, and `0.3` friction at `90`.
      *
-     * @type {import('playcanvas').Curve | null}
+     * @type {Curve | null}
      * @defaultValue Curve([0, 0, 3, 1.2, 20, 1]);
      */
     lateralFrictionCurve;
@@ -901,7 +905,7 @@ class WheelWVSettings extends WheelSettings {
      * full traction and is rolling perfectly in sync with the ground. At 1 the wheel is locked and
      * is sliding over the ground.
      *
-     * @type {import('playcanvas').Curve | null}
+     * @type {Curve | null}
      * @defaultValue Curve([0, 0, 0.06, 1.2, 0.2, 1])
      */
     longitudinalFrictionCurve;
@@ -962,19 +966,19 @@ class WheelTVSettings {
  */
 class VehicleConstraintSettings {
     /**
-     * @type {import('playcanvas').Entity | null}
+     * @type {Entity | null}
      * @defaultValue null
      */
     entity;
 
     /**
-     * @type {import('playcanvas').Vec3}
+     * @type {Vec3}
      * @defaultValue Vec3(0, 1, 0)
      */
     up;
 
     /**
-     * @type {import('playcanvas').Vec3}
+     * @type {Vec3}
      * @defaultValue Vec3(0, 0, 1)
      */
     forward;
@@ -1028,7 +1032,7 @@ class VehicleConstraintSettings {
     wheelAngularDamping;
 
     /**
-     * @type {import('playcanvas').Curve | null}
+     * @type {Curve | null}
      * @defaultValue Curve([0, 0.8])
      */
     normalizedTorque;
@@ -1106,7 +1110,7 @@ class VehicleConstraintSettings {
     castObjectLayer;
 
     /**
-     * @type {import('playcanvas').Vec3}
+     * @type {Vec3}
      * @defaultValue Vec3(0, 1, 0)
      */
     castUp;

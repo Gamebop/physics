@@ -2,11 +2,15 @@ import { Debug } from './jolt/debug.mjs';
 import { JoltManager } from './jolt/manager.mjs';
 
 /**
+ * @import { Application, Color } from 'playcanvas'
+ */
+
+/**
  * An options object to configure Jolt Physics backend. All options are optional.
  *
  * @interface
- * @group Managers
- * @category Utilities
+ * @group Utilities
+ * @category Init
  */
 class JoltInitSettings {
     /**
@@ -217,7 +221,7 @@ class JoltInitSettings {
     /**
      * Line color of the dynamic objects during a debug draw.
      *
-     * @type {import('playcanvas').Color}
+     * @type {Color}
      * @defaultValue Color.YELLOW
      */
     debugColorDynamic;
@@ -225,7 +229,7 @@ class JoltInitSettings {
     /**
      * Line color of the kinematic objects during a debug draw.
      *
-     * @type {import('playcanvas').Color}
+     * @type {Color}
      * @defaultValue Color.MAGENTA
      */
     debugColorKinematic;
@@ -233,7 +237,7 @@ class JoltInitSettings {
     /**
      * Line color of the static objects during a debug draw.
      *
-     * @type {import('playcanvas').Color}
+     * @type {Color}
      * @defaultValue Color.GRAY
      */
     debugColorStatic;
@@ -565,10 +569,10 @@ class JoltInitSettings {
  * }
  * ```
  *
- * @param {import('playcanvas').Application} app - PlayCanvas Application instance
+ * @param {Application} app - PlayCanvas Application instance
  * @param {JoltInitSettings} opts - Jolt Physics initialization settings.
- * @group Managers
- * @category Utilities
+ * @group Utilities
+ * @category Init
  * @returns {Promise<import('./jolt/manager.mjs').JoltManager>} - A Promise to return a Jolt Manager
  */
 function init(app, opts = {}) {

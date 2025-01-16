@@ -23,11 +23,11 @@ import { CommandsBuffer } from './back/commands-buffer.mjs';
 
 /**
  * @import { CastCallback, CollidePointCallback, CollideShapeCallback }
- * from "./interfaces/query-results.mjs"
+ * from './interfaces/query-results.mjs'
  * @import { CastShapeSettings, CollideShapeSettings, CastRaySettings, QuerySettings,
- * ImmediateSettings, ShapeSettings } from "./interfaces/settings.mjs"
- * @import { CastResult, CollideShapeResult } from "./front/response-handler.mjs"
- * @import { Entity } from "playcanvas"
+ * ImmediateSettings, ShapeSettings } from './interfaces/settings.mjs'
+ * @import { CastResult, CollideShapeResult } from './front/response-handler.mjs'
+ * @import { Entity } from 'playcanvas'
  */
 
 function getColor(type, config) {

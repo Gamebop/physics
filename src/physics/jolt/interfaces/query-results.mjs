@@ -1,6 +1,6 @@
 /**
- * @import { CastResult, CollideShapeResult } from "../front/response-handler.mjs"
- * @import { Entity } from "playcanvas"
+ * @import { CastResult, CollideShapeResult } from '../front/response-handler.mjs'
+ * @import { Entity } from 'playcanvas'
  */
 
 /**

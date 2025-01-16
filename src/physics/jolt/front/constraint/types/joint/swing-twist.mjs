@@ -11,6 +11,10 @@ import {
 import { JointConstraint } from './joint-constraint.mjs';
 
 /**
+ * @import { Quat } from 'playcanvas'
+ */
+
+/**
  * Swing-twist constraint.
  *
  * @group Utilities
@@ -264,7 +268,7 @@ class SwingTwistConstraint extends JointConstraint {
     /**
      * Set the target orientation in constraint space.
      *
-     * @param {import('playcanvas').Quat} rotation - Target orientation.
+     * @param {Quat} rotation - Target orientation.
      */
     setTargetOrientationCS(rotation) {
         this.system.addCommand(
@@ -276,7 +280,7 @@ class SwingTwistConstraint extends JointConstraint {
     /**
      * Set the target orientation in body space. Refer to Jolt documentation for details.
      *
-     * @param {import('playcanvas').Quat} rotation - Target orientation.
+     * @param {Quat} rotation - Target orientation.
      */
     setTargetOrientationBS(rotation) {
         this.system.addCommand(

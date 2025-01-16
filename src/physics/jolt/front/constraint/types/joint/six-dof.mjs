@@ -11,6 +11,10 @@ import {
 } from '../../../../constants.mjs';
 import { JointConstraint } from './joint-constraint.mjs';
 
+/**
+ * @import { Quat } from 'playcanvas'
+ */
+
 function copyArr(src, dst) {
     for (let i = 0; i < src.length; ++i) {
         dst[i] = src[i];
@@ -350,7 +354,7 @@ class SixDOFConstraint extends JointConstraint {
     /**
      * Sets the target orientation for the constraint (constraint space).
      *
-     * @param {import('playcanvas').Quat} rotation - Target orientation.
+     * @param {Quat} rotation - Target orientation.
      */
     setTargetOrientationCS(rotation) {
         if ($_DEBUG) {
@@ -370,7 +374,7 @@ class SixDOFConstraint extends JointConstraint {
      * Sets the target orientation for the constraint (body space). Refer to Jolt documentation
      * for details.
      *
-     * @param {import('playcanvas').Quat} rotation - Target orientation.
+     * @param {Quat} rotation - Target orientation.
      */
     setTargetOrientationBS(rotation) {
         if ($_DEBUG) {

@@ -20,6 +20,14 @@ import {
 } from '../../constants.mjs';
 
 /**
+ * @import { ConstraintSettings, ConeConstraintSettings, DistanceConstraintSettings,
+ * FixedConstraintSettings, HingeConstraintSettings, PulleyConstraintSettings,
+ * SixDOFConstraintSettings, SliderConstraintSettings, SwingTwistConstraintSettings
+ * } from './types/settings.mjs'
+ * @import { Entity } from 'playcanvas'
+ */
+
+/**
  * Constraint Component. Allows to add one or multiple constraints to an entity with a
  * {@link BodyComponent | Body Component}.
  *
@@ -70,17 +78,12 @@ class ConstraintComponent extends Component {
      * ```
      *
      * @param {number} type - Constant number, representing joint type.
-     * @param {import('playcanvas').Entity} otherEntity - The other entity that this entity will be
+     * @param {Entity} otherEntity - The other entity that this entity will be
      * connected to with this joint.
-     * @param {import('./types/settings.mjs').ConstraintSettings |
-     * import('./types/settings.mjs').ConeConstraintSettings |
-     * import('./types/settings.mjs').DistanceConstraintSettings |
-     * import('./types/settings.mjs').FixedConstraintSettings |
-     * import('./types/settings.mjs').HingeConstraintSettings |
-     * import('./types/settings.mjs').PulleyConstraintSettings |
-     * import('./types/settings.mjs').SixDOFConstraintSettings |
-     * import('./types/settings.mjs').SliderConstraintSettings |
-     * import('./types/settings.mjs').SwingTwistConstraintSettings } [opts] - Optional joint options object.
+     * @param {ConstraintSettings | ConeConstraintSettings | DistanceConstraintSettings |
+     * FixedConstraintSettings | HingeConstraintSettings | PulleyConstraintSettings |
+     * SixDOFConstraintSettings | SliderConstraintSettings | SwingTwistConstraintSettings} [opts]
+     * - Optional joint options object.
      * @returns {FixedConstraint | PointConstraint | DistanceConstraint | HingeConstraint |
      * SliderConstraint | ConeConstraint | SixDOFConstraint | SwingTwistConstraint |
      * PulleyConstraint | null} - A constraint interface. Returns `null`, if unable to create one.

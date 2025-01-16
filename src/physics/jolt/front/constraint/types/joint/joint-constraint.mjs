@@ -33,7 +33,7 @@ class JointConstraint extends Constraint {
      * First body position in constraint reference frame. Space is determined by {@link space}
      * property.
      *
-     * @type {import('playcanvas').Vec3}
+     * @type {Vec3}
      * @defaultValue Vec3(0, 0, 0)
      */
     get point1() {
@@ -44,7 +44,7 @@ class JointConstraint extends Constraint {
      * Second body position in constraint reference frame. Space is determined by {@link space}
      * property.
      *
-     * @type {import('playcanvas').Vec3}
+     * @type {Vec3}
      * @defaultValue Vec3(0, 0, 0)
      */
     get point2() {
@@ -54,7 +54,7 @@ class JointConstraint extends Constraint {
     /**
      * First entity this joint is connected to.
      *
-     * @returns {import('playcanvas').Entity} - First entity the joint is connected to.
+     * @returns {Entity} - First entity the joint is connected to.
      */
     get entity1() {
         return this._entity1;
@@ -63,7 +63,7 @@ class JointConstraint extends Constraint {
     /**
      * Second entity this joint is connected to.
      *
-     * @returns {import('playcanvas').Entity} - Second entity the joint is connected to.
+     * @returns {Entity} - Second entity the joint is connected to.
      */
     get entity2() {
         return this._entity2;

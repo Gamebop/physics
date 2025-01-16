@@ -10,6 +10,10 @@ import {
 } from '../../../../constants.mjs';
 
 /**
+ * @import { Entity } from 'playcanvas'
+ */
+
+/**
  * Base class for different types of vehicles.
  *
  * @group Utilities
@@ -195,7 +199,7 @@ class VehicleConstraint extends Constraint {
      * The PlayCanvas Entity that is used as a visual model for the vehicle body. Its position and
      * rotation will automatically be updated to match the physical body.
      *
-     * @returns {import('playcanvas').Entity | null} Entity or `null` if none is set.
+     * @returns {Entity | null} Entity or `null` if none is set.
      * @defaultValue null
      */
     get entity() {

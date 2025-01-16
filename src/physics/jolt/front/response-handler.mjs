@@ -9,7 +9,7 @@ import { fromBuffer } from '../math.mjs';
 const emptyResult = [];
 
 /**
- * @import {Entity} from 'playcanvas'
+ * @import { Entity } from 'playcanvas'
  */
 
 class ContactResult {
@@ -36,8 +36,8 @@ class CharContactResult {
 
 /**
  * @interface
- * @group Managers
- * @category Utilities
+ * @group Utilities
+ * @category Query
  */
 class CastResult {
     /**
@@ -88,8 +88,8 @@ class CastResult {
 }
 /**
  * @interface
- * @group Managers
- * @category Utilities
+ * @group Utilities
+ * @category Query
  */
 class CollideShapeResult {
     /**
