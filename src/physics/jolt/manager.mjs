@@ -484,12 +484,13 @@ class JoltManager extends PhysicsManager {
      *
      * @param {Vec3} origin - World point where the ray originates from.
      * @param {Vec3} dir - Non-normalized ray direction. The magnitude is ray's distance.
-     * @param {CastCallback} [callback] - A callback function that will accept the raycast results.
-     * @param {CastRaySettings} [opts] - Settings object to customize the query.
+     * @param {CastCallback | null} [callback] - A callback function that will accept the raycast
+     * results.
+     * @param {CastRaySettings | null} [opts] - Settings object to customize the query.
      * @returns {CastResult[] | null} - Returns an array of cast results (empty array if no
      * result). Will return `null`, if not using {@link CastRaySettings.immediate} mode.
      */
-    castRay(origin, dir, callback, opts) {
+    castRay(origin, dir, callback = null, opts = null) {
         const useWebWorker = this._config.useWebWorker;
 
         if ($_DEBUG) {
@@ -606,12 +607,13 @@ class JoltManager extends PhysicsManager {
      * @param {Vec3} position - World point where the cast is originated from.
      * @param {Quat} rotation - Shape rotation.
      * @param {Vec3} dir - Non-normalized ray direction. The magnitude is ray's distance.
-     * @param {CastCallback} callback - A callback function that will accept the raycast results.
-     * @param {CastShapeSettings} [opts] - Settings object to customize the query.
+     * @param {CastCallback | null} [callback] - A callback function that will accept the raycast
+     * results.
+     * @param {CastShapeSettings | null} [opts] - Settings object to customize the query.
      * @returns {CastResult[] | null} - Returns an array of cast results (empty array if no
      * result). Will return `null`, if not using {@link CastShapeSettings.immediate} mode.
      */
-    castShape(shapeIndex, position, rotation, dir, callback, opts) {
+    castShape(shapeIndex, position, rotation, dir, callback = null, opts = null) {
         const useWebWorker = this._config.useWebWorker;
 
         if ($_DEBUG) {
@@ -694,6 +696,11 @@ class JoltManager extends PhysicsManager {
      * they were solid. For a mesh shape, this test will only provide sensible information if the
      * mesh is a closed manifold.
      *
+     * Note, that a callback function is optional when running physics on main thread. When using
+     * a web worker, the method will not return any results directly, but will send them to your
+     * callback function instead once the frontend gets the worker's response. It also means that
+     * when using a web worker a callback function is no longer optional and is required.
+     *
      * @example
      * ```js
      * // get all entities that overlap a world position (0, 5, 0)
@@ -704,12 +711,12 @@ class JoltManager extends PhysicsManager {
      * ```
      *
      * @param {Vec3} point - World position to test.
-     * @param {CollidePointCallback} callback - Function to take the query results.
-     * @param {QuerySettings} [opts] - Query customization settings.
+     * @param {CollidePointCallback | null} [callback] - Function to take the query results.
+     * @param {QuerySettings | null} [opts] - Query customization settings.
      * @returns {Entity[] | null} - An array of entities that the point collided with (empty array
      * if no result). Will return `null`, if not using {@link QuerySettings.immediate} mode.
      */
-    collidePoint(point, callback, opts) {
+    collidePoint(point, callback = null, opts = null) {
         const useWebWorker = this._config.useWebWorker;
 
         if ($_DEBUG) {
@@ -778,6 +785,11 @@ class JoltManager extends PhysicsManager {
     /**
      * Gets all entities that collide with a given shape.
      *
+     * Note, that a callback function is optional when running physics on main thread. When using
+     * a web worker, the method will not return any results directly, but will send them to your
+     * callback function instead once the frontend gets the worker's response. It also means that
+     * when using a web worker a callback function is no longer optional and is required.
+     *
      * @example
      * ```js
      * import { SHAPE_BOX } from './physics.dbg.mjs';
@@ -798,13 +810,14 @@ class JoltManager extends PhysicsManager {
      *
      * @param {number} shapeIndex - Shape index created with {@link createShape}.
      * @param {Vec3} position - World position of the shape.
-     * @param {Quat} rotation - World rotation of the shape.
-     * @param {CollideShapeCallback} callback - Callback function that will take the query results.
-     * @param {CollideShapeSettings} [opts] - Query customization settings.
+     * @param {Quat} [rotation] - World rotation of the shape.
+     * @param {CollideShapeCallback | null} [callback] - Callback function that will take the
+     * query results.
+     * @param {CollideShapeSettings | null} [opts] - Query customization settings.
      * @returns {CollideShapeResult[] | null} - Returns an array of collision results (empty array
      * if no result). Will return `null`, if not using {@link CollideShapeSettings.immediate} mode.
      */
-    collideShape(shapeIndex, position, rotation, callback, opts) {
+    collideShape(shapeIndex, position, rotation = Quat.IDENTITY, callback = null, opts = null) {
         const useWebWorker = this._config.useWebWorker;
 
         if ($_DEBUG) {
