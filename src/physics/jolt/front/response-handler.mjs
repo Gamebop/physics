@@ -9,7 +9,7 @@ import { fromBuffer } from '../math.mjs';
 const emptyResult = [];
 
 /**
- * @import {Entity} from 'playcanvas'
+ * @import { Entity } from 'playcanvas'
  */
 
 class ContactResult {

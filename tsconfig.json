@@ -49,10 +49,24 @@
             "TypeAlias",
             "Reference"
         ],
+        "plugin": [
+            "typedoc-plugin-mdn-links"
+        ],
         "githubPages": false,
         "name": "Physics Components",
         "out": "docs",
-        "readme": "none"
+        "readme": "none",
+        "externalSymbolLinkMappings": {
+            "playcanvas": {
+                "Vec3": "https://api.playcanvas.com/classes/Engine.Vec3.html",
+                "Quat": "https://api.playcanvas.com/classes/Engine.Quat.html",
+                "Color": "https://api.playcanvas.com/classes/Engine.Color.html",
+                "Application": "https://api.playcanvas.com/classes/Engine.Application.html",
+                "Entity": "https://api.playcanvas.com/classes/Engine.Entity.html",
+                "Curve": "https://api.playcanvas.com/classes/Engine.Curve.html",
+                
+            },
+        },
     },
     "include": [ "src/**/*.mjs" ]
 }

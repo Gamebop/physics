@@ -36,7 +36,7 @@ class PulleyConstraint extends JointConstraint {
     /**
      * Fixed world point to which body 1 is connected (always in world space).
      *
-     * @returns {import('playcanvas').Vec3} - World position of a point.
+     * @returns {Vec3} - World position of a point.
      * @defaultValue Vec3(0, 0, 0)
      */
     get fixedPoint1() {
@@ -46,7 +46,7 @@ class PulleyConstraint extends JointConstraint {
     /**
      * Fixed world point to which body 2 is connected (always in world space).
      *
-     * @returns {import('playcanvas').Vec3} - World position of a point.
+     * @returns {Vec3} - World position of a point.
      * @defaultValue Vec3(0, 0, 0)
      */
     get fixedPoint2() {

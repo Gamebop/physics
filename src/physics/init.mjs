@@ -2,6 +2,10 @@ import { Debug } from './jolt/debug.mjs';
 import { JoltManager } from './jolt/manager.mjs';
 
 /**
+ * @import { Application, Color } from "playcanvas"
+ */
+
+/**
  * An options object to configure Jolt Physics backend. All options are optional.
  *
  * @interface
@@ -217,7 +221,7 @@ class JoltInitSettings {
     /**
      * Line color of the dynamic objects during a debug draw.
      *
-     * @type {import('playcanvas').Color}
+     * @type {Color}
      * @defaultValue Color.YELLOW
      */
     debugColorDynamic;
@@ -225,7 +229,7 @@ class JoltInitSettings {
     /**
      * Line color of the kinematic objects during a debug draw.
      *
-     * @type {import('playcanvas').Color}
+     * @type {Color}
      * @defaultValue Color.MAGENTA
      */
     debugColorKinematic;
@@ -233,7 +237,7 @@ class JoltInitSettings {
     /**
      * Line color of the static objects during a debug draw.
      *
-     * @type {import('playcanvas').Color}
+     * @type {Color}
      * @defaultValue Color.GRAY
      */
     debugColorStatic;
@@ -565,7 +569,7 @@ class JoltInitSettings {
  * }
  * ```
  *
- * @param {import('playcanvas').Application} app - PlayCanvas Application instance
+ * @param {Application} app - PlayCanvas Application instance
  * @param {JoltInitSettings} opts - Jolt Physics initialization settings.
  * @group Managers
  * @category Utilities

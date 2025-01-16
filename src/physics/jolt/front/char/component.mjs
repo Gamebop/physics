@@ -17,7 +17,8 @@ import {
 } from '../../constants.mjs';
 
 /**
- * @import {CharSetShapeCallback} from "../../interfaces/query-results.mjs"
+ * @import { CharSetShapeCallback } from '../../interfaces/query-results.mjs'
+ * @import { Entity } from 'playcanvas'
  */
 
 /**
@@ -175,7 +176,7 @@ class CharComponent extends ShapeComponent {
     /**
      * Read-only. If the character is supported, this will tell the ground entity.
      *
-     * @returns {import('playcanvas').Entity | null} Entity, representing the ground.
+     * @returns {Entity | null} Entity, representing the ground.
      * @defaultValue null
      */
     get groundEntity() {
@@ -547,7 +548,7 @@ class CharComponent extends ShapeComponent {
     /**
      * Pairs an Entity with a body component to a character.
      *
-     * @param {import('playcanvas').Entity} entity - An entity to pair with the character.
+     * @param {Entity} entity - An entity to pair with the character.
      */
     set pairedEntity(entity) {
         if ($_DEBUG) {
@@ -570,7 +571,7 @@ class CharComponent extends ShapeComponent {
      * virtual character doesn't exist in the physics world. Pairing an entity gives it a physical
      * world presence (allow raycasts and collisions detection vs character).
      *
-     * @returns {import('playcanvas').Entity | null} A paired entity.
+     * @returns {Entity | null} A paired entity.
      * @defaultValue null
      */
     get pairedEntity() {

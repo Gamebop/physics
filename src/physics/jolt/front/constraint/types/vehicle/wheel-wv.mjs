@@ -1,6 +1,10 @@
 import { WHEEL_WHEELED } from '../../../../constants.mjs';
 
 /**
+ * @import { Entity } from 'playcanvas'
+ */
+
+/**
  * A wheeled vehicle wheel.
  *
  * @group Utilities
@@ -81,7 +85,7 @@ class WheelWV {
      * PlayCanvas Entity that will be used as a visual wheel. Its position and rotation will be
      * updated automatically to match the physical wheel.
      *
-     * @type {import('playcanvas').Entity | null}
+     * @type {Entity | null}
      * @defaultValue null
      */
     get entity() {
