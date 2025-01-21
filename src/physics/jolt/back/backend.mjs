@@ -99,6 +99,7 @@ class JoltBackend {
         this._shapeFilter = null;
         this._bodyList = null;
         this._updateCallback = null;
+        this._idleCallback = null;
         this._groupFilterTables = [];
 
         this._lastStamp = 0;
@@ -224,6 +225,18 @@ class JoltBackend {
         return this._updateCallback;
     }
 
+    set idleCallback(func) {
+        this._idleCallback = func;
+    }
+
+    get idleCallback() {
+        return this.idleCallback;
+    }
+
+    get immediateBuffer() {
+        return this._immediateBuffer;
+    }
+
     onLibLoad(Jolt, config) {
         // Util
         extendJoltMath(Jolt);
@@ -269,10 +282,6 @@ class JoltBackend {
         if ($_DEBUG) {
             console.log('Jolt Physics:', $_JOLT_VERSION);
         }
-    }
-
-    get immediateBuffer() {
-        return this._immediateBuffer;
     }
 
     immediateExecution(cb) {
@@ -417,6 +426,9 @@ class JoltBackend {
 
         this._immediateBuffer?.destroy();
         this._immediateBuffer = null;
+
+        this._updateCallback = null;
+        this._idleCallback = null;
 
         this.Jolt = null;
     }
@@ -657,6 +669,10 @@ class JoltBackend {
 
         if (activeSoftBodiesCount > 0) {
             ok = ok && this._writeSoftBodiesVertices(activeSoftBodiesCount, system, cb);
+        }
+
+        if (!activeRigidBodiesCount && !activeSoftBodiesCount && this._idleCallback) {
+            this._idleCallback();
         }
 
         return ok;
