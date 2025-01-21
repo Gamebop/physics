@@ -328,7 +328,7 @@ class JoltManager extends PhysicsManager {
      * auto-updated in physics world every frame, preventing it from falling asleep. If you need
      * this callback while using a kinematic body, then set its isometry update to
      * `ISOMETRY_BACK_TO_FRONT` and control its transforms via component's move methods, e.g.
-     * `{@link BodyComponent.teleport}`, {@link BodyComponent.linearVelocity} etc. That will stop
+     * {@link BodyComponent.teleport}, {@link BodyComponent.linearVelocity} etc. That will stop
      * the frontend from sending isometry updates every frame and will rely on you setting its
      * transforms when needed.
      *
