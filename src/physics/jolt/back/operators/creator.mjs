@@ -676,7 +676,6 @@ class Creator {
         const id = cb.read(BUFFER_READ_INT32);
         const bodyInterface = backend.bodyInterface;
 
-        let ok = true;
         let body, bodyID;
         if (id < 0) {
             body = bodyInterface.CreateBody(bodyCreationSettings);
@@ -687,9 +686,7 @@ class Creator {
             // skip the check for production build
             if ($_DEBUG) {
                 const eb = backend.physicsSystem.GetBodyLockInterfaceNoLock().TryGetBody(bodyID);
-                ok = !eb?.IsInBroadPhase();
-
-                if (!ok) {
+                if (eb?.IsInBroadPhase()) {
                     Debug.warn('Trying to add a new body with a custom ID that already belongs ' +
                         'to another existing body in the physics world. Skipping body creation.');
                 }
@@ -698,10 +695,7 @@ class Creator {
             body = bodyInterface.CreateBodyWithID(bodyID, bodyCreationSettings);
         }
 
-        if (ok) {
-            bodyInterface.AddBody(bodyID, Jolt.EActivation_Activate);
-        }
-
+        bodyInterface.AddBody(bodyID, Jolt.EActivation_Activate);
         body.isometryUpdate = cb.read(BUFFER_READ_UINT8);
 
         if ($_DEBUG) {
@@ -713,15 +707,13 @@ class Creator {
         Jolt.destroy(shapeSettings);
         Jolt.destroy(bodyCreationSettings);
 
-        if (ok) {
-            if (backend.config.useMotionStates &&
-                useMotionState &&
-                (jmt === Jolt.EMotionType_Dynamic || jmt === Jolt.EMotionType_Kinematic)) {
-                body.motionState = new MotionState(body);
-            }
-
-            backend.tracker.add(body, index);
+        if (backend.config.useMotionStates &&
+            useMotionState &&
+            (jmt === Jolt.EMotionType_Dynamic || jmt === Jolt.EMotionType_Kinematic)) {
+            body.motionState = new MotionState(body);
         }
+
+        backend.tracker.add(body, index);
 
         return true;
     }
