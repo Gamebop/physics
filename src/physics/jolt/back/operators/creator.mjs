@@ -687,9 +687,7 @@ class Creator {
             // skip the check for production build
             if ($_DEBUG) {
                 const eb = backend.physicsSystem.GetBodyLockInterfaceNoLock().TryGetBody(bodyID);
-                ok = !eb?.IsInBroadPhase();
-
-                if (!ok) {
+                if (eb?.IsInBroadPhase()) {
                     Debug.warn('Trying to add a new body with a custom ID that already belongs ' +
                         'to another existing body in the physics world. Skipping body creation.');
                 }
