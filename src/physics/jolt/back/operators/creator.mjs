@@ -676,7 +676,6 @@ class Creator {
         const id = cb.read(BUFFER_READ_INT32);
         const bodyInterface = backend.bodyInterface;
 
-        let ok = true;
         let body, bodyID;
         if (id < 0) {
             body = bodyInterface.CreateBody(bodyCreationSettings);
@@ -696,10 +695,7 @@ class Creator {
             body = bodyInterface.CreateBodyWithID(bodyID, bodyCreationSettings);
         }
 
-        if (ok) {
-            bodyInterface.AddBody(bodyID, Jolt.EActivation_Activate);
-        }
-
+        bodyInterface.AddBody(bodyID, Jolt.EActivation_Activate);
         body.isometryUpdate = cb.read(BUFFER_READ_UINT8);
 
         if ($_DEBUG) {
@@ -711,15 +707,13 @@ class Creator {
         Jolt.destroy(shapeSettings);
         Jolt.destroy(bodyCreationSettings);
 
-        if (ok) {
-            if (backend.config.useMotionStates &&
-                useMotionState &&
-                (jmt === Jolt.EMotionType_Dynamic || jmt === Jolt.EMotionType_Kinematic)) {
-                body.motionState = new MotionState(body);
-            }
-
-            backend.tracker.add(body, index);
+        if (backend.config.useMotionStates &&
+            useMotionState &&
+            (jmt === Jolt.EMotionType_Dynamic || jmt === Jolt.EMotionType_Kinematic)) {
+            body.motionState = new MotionState(body);
         }
+
+        backend.tracker.add(body, index);
 
         return true;
     }
