@@ -1009,6 +1009,13 @@ class JoltManager extends PhysicsManager {
         super.destroy();
     }
 
+    /**
+     * Destroys an existing physics system in Jolt backend and creates a new one. You may want
+     * to use this for a deterministic start.
+     *
+     * Note, that you should destroy all existing entities with physics components before
+     * calling a reset.
+     */
     reset() {
         const cb = this._outBuffer;
 
