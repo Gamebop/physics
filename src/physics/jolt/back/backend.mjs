@@ -30,7 +30,7 @@ class JoltBackend {
             // Physics Settings
             // https://jrouwe.github.io/JoltPhysics/struct_physics_settings.html
             baumgarte: 0.2,
-            maxSkippedSteps: 1,
+            maxSkippedSteps: 3,
             bodyPairCacheCosMaxDeltaRotationDiv2: 0.9998476951563912,
             bodyPairCacheMaxDeltaPositionSq: Math.sqrt(0.001),
             contactNormalCosMaxDeltaRotation: 0.9961946980917455,
