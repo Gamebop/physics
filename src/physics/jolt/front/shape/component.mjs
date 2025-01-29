@@ -175,6 +175,26 @@ class ShapeComponent extends Component {
     }
 
     /**
+     * Half extent for a `SHAPE_BOX`.
+     *
+     * @returns {Vec3} Vec3 with half extent of a box collision shape.
+     * @defaultValue Vec3(0.5, 0.5, 0.5) (m per axis)
+     */
+    get halfExtent() {
+        return this._halfExtent;
+    }
+
+    /**
+     * Half-height of radius based shapes, e.g. `SHAPE_CAPSULE`.
+     *
+     * @returns {number} Number, representing half of the total height of the collision shape.
+     * @defaultValue 0.5 (m)
+     */
+    get halfHeight() {
+        return this._halfHeight;
+    }
+
+    /**
      * Cosine of the threshold angle. If the angle between the two triangles in HeightField is
      * bigger than this, the edge is active. note that a concave edge is always inactive. Setting
      * this value too small can cause ghost collisions with edges. Setting it too big can cause
@@ -227,28 +247,6 @@ class ShapeComponent extends Component {
      */
     get hfOffset() {
         return this._hfOffset;
-    }
-
-    /**
-     * Half extent for a `SHAPE_BOX`.
-     *
-     * @returns {Vec3} Vec3 with half extent of a box collision shape.
-     * @defaultValue Vec3(0.5, 0.5, 0.5) (m per axis)
-     */
-    get halfExtent() {
-        return this._halfExtent;
-    }
-
-    /**
-     * Half-height of radius based shapes.
-     *
-     * Note: Only used by `SHAPE_CAPSULE` and `SHAPE_CYLINDER`.
-     *
-     * @returns {number} Number, representing half of the total height of the collision shape.
-     * @defaultValue 0.5 (m)
-     */
-    get halfHeight() {
-        return this._halfHeight;
     }
 
     /**
