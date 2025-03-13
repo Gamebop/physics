@@ -314,6 +314,7 @@ class JoltBackend {
         }
 
         // Make sure there are no lingering command counters before we start writing new ones.
+        outBuffer.reset();
         outBuffer.init();
 
         let ok = true;
