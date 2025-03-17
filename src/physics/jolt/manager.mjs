@@ -564,7 +564,7 @@ class JoltManager extends PhysicsManager {
                 ok = Debug.checkBool(opts.ignoreSensors);
             }
             if (useWebWorker) {
-                if (opts.immediate) {
+                if (opts?.immediate) {
                     Debug.warn('Requesting immediate query results, which is not supported when ' +
                         'running physics in a web worker.');
                 }
@@ -572,7 +572,7 @@ class JoltManager extends PhysicsManager {
                     Debug.warn('Cast ray query callback is required when using a web worker.');
                     ok = false;
                 }
-            } else if (!(opts.immediate ?? true) && !callback) {
+            } else if (!(opts?.immediate ?? true) && !callback) {
                 Debug.warn('Cast ray query callback is required when not using immediate mode.');
                 ok = false;
             }
@@ -596,7 +596,6 @@ class JoltManager extends PhysicsManager {
         cb.writeOperator(OPERATOR_QUERIER);
         cb.writeCommand(CMD_CAST_RAY);
         cb.write(callbackIndex, BUFFER_WRITE_INT32, false);
-        cb.write(useImmediate, BUFFER_WRITE_BOOL, false);
         cb.write(origin, BUFFER_WRITE_VEC32, false);
         cb.write(dir, BUFFER_WRITE_VEC32, false);
         cb.write(opts?.firstOnly, BUFFER_WRITE_BOOL);
@@ -702,7 +701,6 @@ class JoltManager extends PhysicsManager {
         cb.writeOperator(OPERATOR_QUERIER);
         cb.writeCommand(CMD_CAST_SHAPE);
         cb.write(queryIndex, BUFFER_WRITE_INT32, false);
-        cb.write(useImmediate, BUFFER_WRITE_BOOL, false);
         cb.write(position, BUFFER_WRITE_VEC32, false);
         cb.write(rotation, BUFFER_WRITE_VEC32, false);
         cb.write(dir, BUFFER_WRITE_VEC32, false);
@@ -804,7 +802,6 @@ class JoltManager extends PhysicsManager {
         cb.writeOperator(OPERATOR_QUERIER);
         cb.writeCommand(CMD_COLLIDE_POINT);
         cb.write(queryIndex, BUFFER_WRITE_INT32, false);
-        cb.write(useImmediate, BUFFER_WRITE_BOOL, false);
         cb.write(opts?.ignoreSensors, BUFFER_WRITE_BOOL);
         cb.write(opts?.bpFilterLayer, BUFFER_WRITE_UINT32);
         cb.write(opts?.objFilterLayer, BUFFER_WRITE_UINT32);
@@ -918,7 +915,6 @@ class JoltManager extends PhysicsManager {
         cb.writeOperator(OPERATOR_QUERIER);
         cb.writeCommand(CMD_COLLIDE_SHAPE_IDX);
         cb.write(queryIndex, BUFFER_WRITE_INT32, false);
-        cb.write(useImmediate, BUFFER_WRITE_BOOL, false);
         cb.write(opts?.firstOnly, BUFFER_WRITE_BOOL);
         cb.write(opts?.ignoreSensors, BUFFER_WRITE_BOOL);
         cb.write(shapeIndex, BUFFER_WRITE_UINT32, false);

@@ -166,10 +166,17 @@ class Listener {
             return true;
         };
 
-        listener.OnContactAdded = () => {};
+        listener.OnContactAdded = (character, bodyID2, subShapeID2, contactPosition, contactNormal, settings) => {};
 
-        listener.OnCharacterContactAdded = (character, otherCharacter, subShapeID2, contactPosition, contactNormal, settings) => {
-        };
+        listener.OnContactPersisted = (character, bodyID2, subShapeID2, contactPosition, contactNormal, settings) => {};
+
+        listener.OnContactRemoved = (character, bodyID2, subShapeID2) => {};
+
+        listener.OnCharacterContactAdded = (character, otherCharacter, subShapeID2, contactPosition, contactNormal, settings) => {};
+
+        listener.OnCharacterContactPersisted = (character, otherCharacter, subShapeID2, contactPosition, contactNormal, settings) => {};
+
+        listener.OnCharacterContactRemoved = (character, otherCharacterID, subShapeID2) => {};
 
         listener.OnContactSolve = (character, bodyID2, subShapeID2, cp, cn, cv, contactMaterial, characterVelocity, nv) => {
             const backend = this._backend;
@@ -235,8 +242,7 @@ class Listener {
             contacts.push(nv.GetZ());
         };
 
-        listener.OnCharacterContactSolve = (character, otherCharacter, subShapeID2, contactPosition, contactNormal, contactVelocity, contactMaterial, characterVelocity, newCharacterVelocity) => {
-        };
+        listener.OnCharacterContactSolve = (character, otherCharacter, subShapeID2, contactPosition, contactNormal, contactVelocity, contactMaterial, characterVelocity, newCharacterVelocity) => {};
 
         this._charListener = listener;
     }
