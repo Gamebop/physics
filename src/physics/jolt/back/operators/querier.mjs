@@ -92,7 +92,7 @@ class Querier {
 
         switch (command) {
             case CMD_CAST_RAY:
-                ok = this._castRay(cb);
+                ok = this._castRay(cb, false);
                 break;
 
             case CMD_CAST_SHAPE:
@@ -100,7 +100,7 @@ class Querier {
                 break;
 
             case CMD_COLLIDE_POINT:
-                ok = this._collidePoint(cb);
+                ok = this._collidePoint(cb, false);
                 break;
 
             case CMD_COLLIDE_SHAPE_IDX:
@@ -121,13 +121,13 @@ class Querier {
         const command = cb.readCommand();
         switch (command) {
             case CMD_CAST_RAY:
-                return this._castRay(cb);
+                return this._castRay(cb, true);
 
             case CMD_CAST_SHAPE:
                 return this._castShape(cb, true);
 
             case CMD_COLLIDE_POINT:
-                return this._collidePoint(cb);
+                return this._collidePoint(cb, true);
 
             case CMD_COLLIDE_SHAPE_IDX:
                 return this._collideShapeIdx(cb, true);
@@ -190,12 +190,12 @@ class Querier {
         params = undefined;
     }
 
-    _castRay(cb) {
+    _castRay(cb, immediate) {
         const backend = this._backend;
         const castSettings = this._rayCastSettings;
         const jv = this._tempVectors[1];
         const cast = this._rayCast;
-        const buffer = backend.outBuffer;
+        const buffer = immediate ? backend.immediateBuffer : backend.outBuffer;
         const tracker = backend.tracker;
         const system = backend.physicsSystem;
         const Jolt = backend.Jolt;
@@ -206,8 +206,6 @@ class Querier {
 
         const queryIndex = cb.read(BUFFER_READ_INT32);
         buffer.write(queryIndex, BUFFER_WRITE_INT32, false);
-
-        const useImmediate = cb.read(BUFFER_READ_BOOL);
 
         try {
             jv.FromBuffer(cb);
@@ -277,7 +275,7 @@ class Querier {
             return false;
         }
 
-        if (useImmediate) {
+        if (immediate) {
             return buffer;
         }
 
@@ -304,8 +302,6 @@ class Querier {
 
         const queryIndex = cb.read(BUFFER_READ_INT32);
         buffer.write(queryIndex, BUFFER_WRITE_INT32, false);
-
-        const useImmediate = cb.read(BUFFER_READ_BOOL);
 
         try {
             position.FromBuffer(cb);
@@ -407,17 +403,17 @@ class Querier {
             return false;
         }
 
-        if (useImmediate) {
+        if (immediate) {
             return buffer;
         }
 
         return true;
     }
 
-    _collidePoint(cb) {
+    _collidePoint(cb, immediate) {
         const backend = this._backend;
         const jv = this._tempVectors[1];
-        const buffer = backend.outBuffer;
+        const buffer = immediate ? backend.immediateBuffer : backend.outBuffer;
         const tracker = backend.tracker;
         const system = backend.physicsSystem;
         const Jolt = backend.Jolt;
@@ -428,8 +424,6 @@ class Querier {
 
         const queryIndex = cb.read(BUFFER_READ_INT32);
         buffer.write(queryIndex, BUFFER_WRITE_INT32, false);
-
-        const useImmediate = cb.read(BUFFER_READ_BOOL);
 
         if (!collidePointResult) {
             collidePointResult = [];
@@ -492,7 +486,7 @@ class Querier {
             buffer.write(collidePointResult[i], BUFFER_WRITE_UINT32, false);
         }
 
-        if (useImmediate) {
+        if (immediate) {
             return buffer;
         }
 
@@ -516,8 +510,6 @@ class Querier {
 
         const queryIndex = cb.read(BUFFER_READ_INT32);
         buffer.write(queryIndex, BUFFER_WRITE_INT32, false);
-
-        const useImmediate = cb.read(BUFFER_READ_BOOL);
 
         const firstOnly = cb.flag ? cb.read(BUFFER_READ_BOOL) : true;
         buffer.write(firstOnly, BUFFER_WRITE_BOOL, false);
@@ -620,7 +612,7 @@ class Querier {
             return false;
         }
 
-        if (useImmediate) {
+        if (immediate) {
             return buffer;
         }
 
