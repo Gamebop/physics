@@ -300,14 +300,42 @@ class JoltBackend {
     step(data) {
         if (this._fatalError) return;
 
+        const { buffer, meshBuffers } = data;
+        const { fixedStep, maxSkippedSteps } = this._config;
+        const now = performance.now();
+        const outBuffer = this._outBuffer;
+
+        let dt = data.dt;
+        let time = this._time;
+        let inBuffer = this._inBuffer;
+
         if ($_DEBUG) {
-            this._stepTime = performance.now();
+            this._stepTime = now;
             this._perfIndex = data.perfIndex;
         }
 
-        const { buffer, meshBuffers, dt } = data;
-        const outBuffer = this._outBuffer;
-        let inBuffer = this._inBuffer;
+        if (this._lastStamp !== 0) {
+            dt = (now - this._lastStamp) * 0.001;
+        }
+
+        time += dt;
+
+        if (time > fixedStep * maxSkippedSteps) {
+            time = fixedStep * maxSkippedSteps;
+        }
+
+        let stepsCount = 0;
+        while (time >= fixedStep) {
+            stepsCount++;
+            time -= fixedStep;
+        }
+        this._time = time;
+
+        if (this._updateCallback && stepsCount) {
+            for (let i = 0; i < stepsCount; i++) {
+                this._updateCallback?.();
+            }
+        }
 
         if (data.inBuffer) {
             outBuffer.buffer = data.inBuffer;
@@ -349,7 +377,7 @@ class JoltBackend {
         }
 
         // potentially step physics system, update motion states
-        ok = ok && this._stepPhysics(dt);
+        ok = ok && this._stepPhysics(stepsCount, time, dt);
 
         // write the collected contact events
         this._listener.write(outBuffer);
@@ -434,55 +462,38 @@ class JoltBackend {
         this.Jolt = null;
     }
 
-    _stepPhysics(dt) {
+    _stepPhysics(stepsCount, time) {
         const config = this._config;
         const fixedStep = config.fixedStep;
         const subSteps = config.subSteps;
         const jolt = this._joltInterface;
 
-        let time = this._time;
         let stepped = false;
         let ok = true;
 
-        if (this._lastStamp !== 0) {
-            dt = (performance.now() - this._lastStamp) * 0.001;
-        }
-
-        time += dt;
-
-        if (time > fixedStep * config.maxSkippedSteps) {
-            time = fixedStep * config.maxSkippedSteps;
-        }
-
-        while (ok && time >= fixedStep) {
+        for (let i = 0; i < stepsCount; i++) {
             try {
-                // Execute callbacks, if any
-                this._updateCallback?.();
-
                 // update characters before stepping
                 ok = this._stepCharacters(fixedStep);
-                // step the physics world
 
                 if (ok) {
+                    // step the physics world
                     jolt.Step(fixedStep, subSteps);
+                    stepped = true;
                 }
-                this._steps++;
-                stepped = true;
             } catch (e) {
                 if ($_DEBUG) {
                     Debug.error(e);
                 }
                 ok = false;
             }
-
-            time -= fixedStep;
         }
+
+        this._steps += stepsCount;
 
         if (ok && config.useMotionStates) {
             ok = this._updateMotionStates(time / fixedStep, stepped);
         }
-
-        this._time = time;
 
         this._lastStamp = performance.now();
 
@@ -596,6 +607,7 @@ class JoltBackend {
 
         // Reset the cursors, so we can start from the buffer beginning on the next step request
         cb.reset();
+        cb.init();
 
         return true;
     }
