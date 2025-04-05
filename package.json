@@ -27,11 +27,11 @@
         "dist/*"
     ],
     "peerDependencies": {
-        "jolt-physics": "^0.34.0",
+        "jolt-physics": "^0.35.0",
         "playcanvas": "^2.2.1"
     },
     "devDependencies": {
-        "@babel/eslint-parser": "^7.25.9",
+        "@babel/eslint-parser": "^7.27.0",
         "@eslint/js": "^9.17.0",
         "@playcanvas/eslint-config": "^2.0.8",
         "@rollup/plugin-json": "^6.1.0",
