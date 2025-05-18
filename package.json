@@ -27,8 +27,8 @@
         "dist/*"
     ],
     "peerDependencies": {
-        "jolt-physics": "^0.35.0",
-        "playcanvas": "^2.2.1"
+        "jolt-physics": "^0.36.0",
+        "playcanvas": "^2.7.5"
     },
     "devDependencies": {
         "@babel/eslint-parser": "^7.27.1",
