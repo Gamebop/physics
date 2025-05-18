@@ -567,14 +567,14 @@ class JoltInitSettings {
  * ```js
  * // load-jolt.mjs
  *
- * import { ScriptType } from 'playcanvas';
+ * import { Script } from 'playcanvas';
  * import { init } from './physics.dbg.mjs';
  *
- * export class LoadJolt extends ScriptType {
+ * export class LoadJolt extends Script {
  *     async initialize() {
  *         await init(this.app, {
  *             useSharedArrayBuffer: true,
- *             fixedStep: 1 / 45,
+ *             fixedStep: 1 / 60,
  *             useWebWorker: true
  *         });
  *
