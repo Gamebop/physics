@@ -98,7 +98,6 @@ class JoltBackend {
         this._bodyFilter = null;
         this._shapeFilter = null;
         this._bodyList = null;
-        this._updateCallback = null;
         this._idleCallback = null;
         this._groupFilterTables = [];
 
@@ -217,14 +216,6 @@ class JoltBackend {
         return this._bodyList;
     }
 
-    set updateCallback(func) {
-        this._updateCallback = func;
-    }
-
-    get updateCallback() {
-        return this._updateCallback;
-    }
-
     set idleCallback(func) {
         this._idleCallback = func;
     }
@@ -330,12 +321,6 @@ class JoltBackend {
             time -= fixedStep;
         }
         this._time = time;
-
-        if (this._updateCallback && stepsCount) {
-            for (let i = 0; i < stepsCount; i++) {
-                this._updateCallback?.();
-            }
-        }
 
         if (data.inBuffer) {
             outBuffer.buffer = data.inBuffer;
@@ -456,7 +441,6 @@ class JoltBackend {
         this._immediateBuffer?.destroy();
         this._immediateBuffer = null;
 
-        this._updateCallback = null;
         this._idleCallback = null;
 
         this.Jolt = null;
