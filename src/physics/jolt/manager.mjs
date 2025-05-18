@@ -364,44 +364,6 @@ class JoltManager extends PhysicsManager {
     }
 
     /**
-     * Sometimes it is useful to have a callback right before the physics world steps. You can set
-     * such a callback function via this method.
-     *
-     * Your given callback will be called after all commands have been executed and right before
-     * we update virtual characters and step the physics world.
-     *
-     * Note, this feature is disabled, when the backend runs in a web worker.
-     *
-     * @param {function} func - Callback function to execute before stepping the physics world.
-     */
-    addUpdateCallback(func) {
-        // TODO
-        // add support for web worker
-        if (this._config.useWebWorker) {
-            if ($_DEBUG) {
-                Debug.warn('Physics update callback is not supported when web worker is enabled.');
-            }
-            return;
-        }
-
-        this._backend.updateCallback = func;
-    }
-
-    /**
-     * Removes a callback that was set via {@link addUpdateCallback}.
-     */
-    removeUpdateCallback() {
-        if (this._config.useWebWorker) {
-            if ($_DEBUG) {
-                Debug.warn('Physics update callback is not supported when Web Worker is enabled.');
-            }
-            return;
-        }
-
-        this._backend.updateCallback = null;
-    }
-
-    /**
      * Creates a shape in the physics backend. Note, that the shape is not added to the physics
      * world after it is created, so it won't affect the simulation.
      *
