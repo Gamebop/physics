@@ -116,6 +116,7 @@ class CollideShapeResult {
 
     /**
      * Direction to move shape 2 out of collision along the shortest path (in world space).
+     * The vector is non-normalized. You can use `axis.normalize()` to get the contact normal.
      *
      * @type {Vec3}
      */
