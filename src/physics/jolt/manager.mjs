@@ -617,7 +617,7 @@ class JoltManager extends PhysicsManager {
      * @param {CastCallback | null} [callback] - A callback function that will accept the raycast
      * results.
      * @param {CastShapeSettings | null} [opts] - Settings object to customize the query.
-     * @returns {CastResult[] | null} - Returns an array of cast results (empty array if no
+     * @returns {CollideShapeResult[] | null} - Returns an array of cast results (empty array if no
      * result). Will return `null`, if not using {@link CastShapeSettings.immediate} mode.
      */
     castShape(shapeIndex, position, rotation, dir, callback = null, opts = null) {
