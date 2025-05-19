@@ -305,7 +305,6 @@ class JoltManager extends PhysicsManager {
 
         switch (command) {
             case CMD_CAST_RAY:
-            case CMD_CAST_SHAPE:
                 ResponseHandler.handleCastQuery(cb, this._queryMap);
                 break;
 
@@ -313,6 +312,7 @@ class JoltManager extends PhysicsManager {
                 ResponseHandler.handleCollidePointQuery(cb, this._queryMap);
                 break;
 
+            case CMD_CAST_SHAPE:
             case CMD_COLLIDE_SHAPE_IDX:
                 ResponseHandler.handleCollideShapeQuery(cb, this._queryMap);
                 break;
