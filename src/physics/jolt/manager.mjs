@@ -691,7 +691,7 @@ class JoltManager extends PhysicsManager {
             // skip reading operator and command
             resultsBuffer.skip(1, UINT16_SIZE + UINT8_SIZE);
 
-            return ResponseHandler.handleCastQuery(resultsBuffer, this._queryMap);
+            return ResponseHandler.handleCollideShapeQuery(resultsBuffer, this._queryMap);
         }
 
         return null;
