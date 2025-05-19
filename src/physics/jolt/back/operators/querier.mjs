@@ -18,24 +18,6 @@ function writeRayHit(cb, system, tracker, cast, calculateNormal, hit, Jolt) {
     cb.write(normal, BUFFER_WRITE_JOLTVEC32);
 }
 
-function writeShapeHit(cb, system, tracker, cast, calculateNormal, hit, Jolt) {
-    const body = system.GetBodyLockInterfaceNoLock().TryGetBody(hit.mBodyID2);
-    const transform = cast.mCenterOfMassStart;
-    const point = transform.GetTranslation();
-    const dir = cast.mDirection;
-
-    dir.Mul(hit.mFraction);
-    point.Add(dir);
-
-    const normal = calculateNormal ? body.GetWorldSpaceSurfaceNormal(hit.mSubShapeID2, point) : null;
-
-    const index = tracker.getPCID(Jolt.getPointer(body));
-    cb.write(index, BUFFER_WRITE_UINT32, false);
-    cb.write(point, BUFFER_WRITE_JOLTVEC32, false);
-    cb.write(hit.mFraction, BUFFER_WRITE_FLOAT32, false);
-    cb.write(normal, BUFFER_WRITE_JOLTVEC32);
-}
-
 function writeCollideShapeHit(cb, system, tracker, calculateNormal, hit, Jolt) {
     const body = system.GetBodyLockInterfaceNoLock().TryGetBody(hit.mBodyID2);
     const index = tracker.getPCID(Jolt.getPointer(body));
@@ -329,6 +311,8 @@ class Querier {
             if (cb.flag) castSettings.mReturnDeepestPoint = cb.read(BUFFER_READ_BOOL);
 
             const firstOnly = cb.flag ? cb.read(BUFFER_READ_BOOL) : true;
+            buffer.write(firstOnly, BUFFER_WRITE_BOOL, false);
+
             const calculateNormal = cb.flag ? cb.read(BUFFER_READ_BOOL) : false;
             const ignoreSensors = cb.flag ? cb.read(BUFFER_READ_BOOL) : false;
             const collector = firstOnly ? this._collectorShapeFirst : this._collectorShapeAll;
@@ -367,7 +351,7 @@ class Querier {
             if (firstOnly) {
                 if (collector.HadHit()) {
                     buffer.write(1, BUFFER_WRITE_UINT16, false); // hits count
-                    writeShapeHit(buffer, system, tracker, shapeCast, calculateNormal, collector.mHit, Jolt);
+                    writeCollideShapeHit(buffer, system, tracker, calculateNormal, collector.mHit, Jolt);
                 } else {
                     buffer.write(0, BUFFER_WRITE_UINT16, false); // hits count
                 }
@@ -376,7 +360,7 @@ class Querier {
                 const count = hits.size();
                 buffer.write(count, BUFFER_WRITE_UINT16, false); // hits count
                 for (let i = 0; i < count; i++) {
-                    writeShapeHit(buffer, system, tracker, shapeCast, calculateNormal, hits.at(i), Jolt);
+                    writeCollideShapeHit(buffer, system, tracker, calculateNormal, hits.at(i), Jolt);
                 }
             }
 
