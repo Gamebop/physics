@@ -26,8 +26,6 @@ function writeCollideShapeHit(cb, system, tracker, calculateNormal, hit, Jolt) {
     const body = system.GetBodyLockInterfaceNoLock().TryGetBody(hit.mBodyID2);
     const index = tracker.getPCID(Jolt.getPointer(body));
 
-    const normal = calculateNormal ? body.GetWorldSpaceSurfaceNormal(hit.mSubShapeID2, hit.mContactPointOn2) : null;
-
     cb.write(index, BUFFER_WRITE_UINT32, false);
     cb.write(hit.mContactPointOn1, BUFFER_WRITE_JOLTVEC32, false);
     cb.write(hit.mContactPointOn2, BUFFER_WRITE_JOLTVEC32, false);
@@ -35,11 +33,7 @@ function writeCollideShapeHit(cb, system, tracker, calculateNormal, hit, Jolt) {
     cb.write(hit.mPenetrationDepth, BUFFER_WRITE_FLOAT32, false);
     // collide shape query doesn't have fraction
     cb.write(hit.mFraction, BUFFER_WRITE_FLOAT32);
-    cb.write(normal, BUFFER_WRITE_JOLTVEC32);
-
-    if (normal) {
-        Jolt.destroy(normal);
-    }
+    cb.write(calculateNormal, BUFFER_WRITE_BOOL, false);
 }
 
 let collidePointResult;

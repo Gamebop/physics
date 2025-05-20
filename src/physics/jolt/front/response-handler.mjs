@@ -158,17 +158,17 @@ class CollideShapeResult {
      * @param {Vec3} axis - Collision axis.
      * @param {number} depth - Penetration depth.
      * @param {number} fraction - Cast result fraction.
-     * @param {Vec3} [normal] - Contact normal.
+     * @param {boolean} [calcNormal] - Calculate normal?
      */
-    constructor(entity, point1, point2, axis, depth, fraction, normal) {
+    constructor(entity, point1, point2, axis, depth, fraction, calcNormal) {
         this.entity = entity;
         this.point1 = point1;
         this.point2 = point2;
         this.axis = axis;
         this.depth = depth;
         this.fraction = fraction;
-        if (normal) {
-            this.normal = normal;
+        if (calcNormal) {
+            this.normal = axis.clone().mulScalar(-1).normalize();
         }
     }
 }
@@ -405,13 +405,14 @@ class ResponseHandler {
                         fromBuffer(cb),
                         cb.read(BUFFER_READ_FLOAT32),
                         cb.flag ? cb.read(BUFFER_READ_FLOAT32) : 0,
-                        cb.flag ? fromBuffer(cb) : null
+                        cb.read(BUFFER_READ_BOOL)
                     ));
                 } else {
                     cb.skip(10 * FLOAT32_SIZE);
                     if (cb.flag) {
                         cb.skip(3 * FLOAT32_SIZE);
                     }
+                    cb.skip(UINT8_SIZE);
                 }
             }
         } else {
@@ -429,13 +430,14 @@ class ResponseHandler {
                         fromBuffer(cb),
                         cb.read(BUFFER_READ_FLOAT32),
                         cb.flag ? cb.read(BUFFER_READ_FLOAT32) : 0,
-                        cb.flag ? fromBuffer(cb) : null
+                        cb.read(BUFFER_READ_BOOL)
                     ));
                 } else {
                     cb.skip(10 * FLOAT32_SIZE);
                     if (cb.flag) {
                         cb.skip(3 * FLOAT32_SIZE);
                     }
+                    cb.skip(UINT8_SIZE);
                 }
             }
         }
