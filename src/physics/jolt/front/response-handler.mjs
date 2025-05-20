@@ -428,7 +428,7 @@ class ResponseHandler {
                         fromBuffer(cb),
                         fromBuffer(cb),
                         cb.read(BUFFER_READ_FLOAT32),
-                        cb.read(BUFFER_READ_FLOAT32),
+                        cb.flag ? cb.read(BUFFER_READ_FLOAT32) : 0,
                         cb.flag ? fromBuffer(cb) : null
                     ));
                 } else {
