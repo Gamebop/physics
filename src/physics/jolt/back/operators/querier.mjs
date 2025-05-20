@@ -29,6 +29,7 @@ function writeCollideShapeHit(cb, system, tracker, calculateNormal, hit, Jolt) {
     cb.write(hit.mContactPointOn2, BUFFER_WRITE_JOLTVEC32, false);
     cb.write(hit.mPenetrationAxis, BUFFER_WRITE_JOLTVEC32, false);
     cb.write(hit.mPenetrationDepth, BUFFER_WRITE_FLOAT32, false);
+    cb.write(hit.mFraction, BUFFER_WRITE_FLOAT32, false);
     cb.write(normal, BUFFER_WRITE_JOLTVEC32);
 }
 
