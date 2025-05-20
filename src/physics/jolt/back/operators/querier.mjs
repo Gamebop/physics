@@ -38,7 +38,7 @@ function writeCollideShapeHit(cb, system, tracker, calculateNormal, hit, Jolt) {
     cb.write(normal, BUFFER_WRITE_JOLTVEC32);
 
     if (normal) {
-        Jolt.destroy(normal)
+        Jolt.destroy(normal);
     }
 }
 
