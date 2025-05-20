@@ -133,6 +133,16 @@ class CollideShapeResult {
     depth;
 
     /**
+     * This is the fraction where the shape hit the other shape:
+     * ```
+     * CenterOfMassOnHit = Start + value * (End - Start)
+     * ```
+     *
+     * @type {number}
+     */
+    fraction;
+
+    /**
      * Contact normal will be included only if the query options requested to calculate contact
      * normal. Otherwise it will be `null` (default).
      *
@@ -147,14 +157,16 @@ class CollideShapeResult {
      * @param {Vec3} point2 - Contact point 2.
      * @param {Vec3} axis - Collision axis.
      * @param {number} depth - Penetration depth.
+     * @param {number} fraction - Cast result fraction.
      * @param {Vec3} [normal] - Contact normal.
      */
-    constructor(entity, point1, point2, axis, depth, normal) {
+    constructor(entity, point1, point2, axis, depth, fraction, normal) {
         this.entity = entity;
         this.point1 = point1;
         this.point2 = point2;
         this.axis = axis;
         this.depth = depth;
+        this.fraction = fraction;
         if (normal) {
             this.normal = normal;
         }
@@ -392,6 +404,7 @@ class ResponseHandler {
                         fromBuffer(cb),
                         fromBuffer(cb),
                         cb.read(BUFFER_READ_FLOAT32),
+                        cb.read(BUFFER_READ_FLOAT32),
                         cb.flag ? fromBuffer(cb) : null
                     ));
                 } else {
@@ -414,6 +427,7 @@ class ResponseHandler {
                         fromBuffer(cb),
                         fromBuffer(cb),
                         fromBuffer(cb),
+                        cb.read(BUFFER_READ_FLOAT32),
                         cb.read(BUFFER_READ_FLOAT32),
                         cb.flag ? fromBuffer(cb) : null
                     ));
