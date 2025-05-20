@@ -521,6 +521,8 @@ class Creator {
     // convert creation methods to static methods or regular funcs
 
     _createShape(cb, meshBuffers) {
+        const backend = this._backend;
+
         // shape number
         const num = cb.read(BUFFER_READ_UINT32);
 
@@ -540,7 +542,8 @@ class Creator {
         // mark it for release, e.g. when removing a child from compound shape
         shape.needsRelease = true;
 
-        this._backend.tracker.shapeMap.set(num, shape);
+        backend.tracker.shapeMap.set(num, shape);
+        backend.Jolt.destroy(shapeSettings);
 
         return true;
     }
