@@ -157,6 +157,7 @@ class CollideShapeResult {
      * @param {Vec3} point2 - Contact point 2.
      * @param {Vec3} axis - Collision axis.
      * @param {number} depth - Penetration depth.
+     * @param {number} fraction - Cast result fraction.
      * @param {Vec3} [normal] - Contact normal.
      */
     constructor(entity, point1, point2, axis, depth, fraction, normal) {
