@@ -835,8 +835,8 @@ function addCompoundChildren(cb, parent) {
         }
 
         // Loss of precision for pos/rot (64 -> 32)
-        cb.write(component.shapePosition, BUFFER_WRITE_VEC32, false);
-        cb.write(component.shapeRotation, BUFFER_WRITE_VEC32, false);
+        cb.write(component.entity.getLocalPosition(), BUFFER_WRITE_VEC32, false);
+        cb.write(component.entity.getLocalRotation(), BUFFER_WRITE_VEC32, false);
     }
 
     return true;
