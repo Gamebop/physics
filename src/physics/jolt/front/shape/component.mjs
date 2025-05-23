@@ -795,6 +795,11 @@ class ShapeComponent extends Component {
         if (isView) {
             // byteLength = storage.byteLength;
             byteOffset = storage.byteOffset;
+        } else if (storage instanceof ArrayBuffer) {
+            // workaround, since PlayCanvas has a bug, where
+            // it assigns an ArrayBuffer directly as a storage
+            // for generated shapes, like cone.
+            byteOffset = 0;
         } else {
             // byteLength = storage.byteLength / ib.bytesPerIndex;
             byteOffset = storage.buffer.byteOffset;
