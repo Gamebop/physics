@@ -12,6 +12,8 @@ import {
 } from '../../constants.mjs';
 
 const defaultHalfExtent = new Vec3(0.5, 0.5, 0.5);
+const v1 = new Vec3();
+const q1 = new Quat();
 
 /**
  * This is a base component for other components. Most probably you don't need to use it directly,
@@ -834,9 +836,16 @@ function addCompoundChildren(cb, parent) {
             return false;
         }
 
+        const child = component.entity;
+
+        v1.copy(child.getPosition()).sub(parent.getPosition());
+        q1.copy(parent.getRotation()).invert();
+        q1.transformVector(v1, v1);
+        q1.mul(parent.getRotation());
+
         // Loss of precision for pos/rot (64 -> 32)
-        cb.write(component.entity.getLocalPosition(), BUFFER_WRITE_VEC32, false);
-        cb.write(component.entity.getLocalRotation(), BUFFER_WRITE_VEC32, false);
+        cb.write(v1, BUFFER_WRITE_VEC32, false);
+        cb.write(q1, BUFFER_WRITE_VEC32, false);
     }
 
     return true;
