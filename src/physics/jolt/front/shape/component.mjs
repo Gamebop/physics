@@ -1,4 +1,4 @@
-import { Asset, Mesh, Quat, SEMANTIC_POSITION, Vec3 } from 'playcanvas';
+import { Asset, Mesh, Quat, SEMANTIC_POSITION, Vec3, Mat4 } from 'playcanvas';
 import { Debug } from '../../debug.mjs';
 import { Component } from '../component.mjs';
 import {
@@ -14,6 +14,7 @@ import {
 const defaultHalfExtent = new Vec3(0.5, 0.5, 0.5);
 const v1 = new Vec3();
 const q1 = new Quat();
+const m1 = new Mat4();
 
 /**
  * This is a base component for other components. Most probably you don't need to use it directly,
@@ -838,14 +839,13 @@ function addCompoundChildren(cb, parent) {
 
         const child = component.entity;
 
-        v1.copy(child.getPosition()).sub(parent.getPosition());
-        q1.copy(parent.getRotation()).invert();
-        q1.transformVector(v1, v1);
-        q1.mul(parent.getRotation());
+        const localMat = m1.copy(parent.getWorldTransform()).invert().mul(child.getWorldTransform());
+        const localPos = localMat.getTranslation(v1);
+        const localRot = q1.setFromMat4(localMat);
 
         // Loss of precision for pos/rot (64 -> 32)
-        cb.write(v1, BUFFER_WRITE_VEC32, false);
-        cb.write(q1, BUFFER_WRITE_VEC32, false);
+        cb.write(localPos, BUFFER_WRITE_VEC32, false);
+        cb.write(localRot, BUFFER_WRITE_VEC32, false);
     }
 
     return true;
