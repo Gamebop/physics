@@ -817,18 +817,19 @@ class ShapeComponent extends Component {
 function addCompoundChildren(cb, parent) {
     const components = parent.findComponents('body');
     const count = components.length;
-    const childrenCount = count - 1; // -1 to exclude the parent
+    let childrenCount = count;
 
-    if ($_DEBUG && childrenCount === 0) {
+    if ($_DEBUG && childrenCount === 1) {
         Debug.warn('Trying to create a static (immutable) compound body without children shapes. Aborting.');
         return false;
     }
 
-    cb.write(childrenCount, BUFFER_WRITE_UINT32, false);
+    const offset = cb.reserveOffset(BUFFER_WRITE_UINT32);
 
     for (let i = 0; i < count; i++) {
         const component = components[i];
-        if (component.entity === parent) {
+        if (component.entity === parent || !component.isCompoundChild || component.isSensor) {
+            childrenCount--;
             continue;
         }
 
@@ -847,6 +848,8 @@ function addCompoundChildren(cb, parent) {
         cb.write(localPos, BUFFER_WRITE_VEC32, false);
         cb.write(localRot, BUFFER_WRITE_VEC32, false);
     }
+
+    cb.writeReserved(childrenCount, offset, BUFFER_WRITE_UINT32);
 
     return true;
 }
