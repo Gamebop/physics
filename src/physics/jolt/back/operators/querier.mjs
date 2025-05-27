@@ -16,10 +16,6 @@ function writeRayHit(cb, system, tracker, cast, calculateNormal, hit, Jolt) {
     cb.write(point, BUFFER_WRITE_JOLTVEC32, false);
     cb.write(hit.mFraction, BUFFER_WRITE_FLOAT32, false);
     cb.write(normal, BUFFER_WRITE_JOLTVEC32);
-
-    if (normal) {
-        Jolt.destroy(normal);
-    }
 }
 
 function writeCollideShapeHit(cb, system, tracker, calculateNormal, hit, Jolt) {
