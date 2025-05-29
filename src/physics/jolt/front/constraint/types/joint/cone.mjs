@@ -90,9 +90,9 @@ class ConeConstraint extends JointConstraint {
     write(cb) {
         super.write(cb);
 
-        cb.write(this._twistAxis1, BUFFER_WRITE_VEC32);
-        cb.write(this._twistAxis2, BUFFER_WRITE_VEC32);
-        cb.write(this._halfConeAngle, BUFFER_WRITE_FLOAT32);
+        cb.write(this._twistAxis1, BUFFER_WRITE_VEC32, false);
+        cb.write(this._twistAxis2, BUFFER_WRITE_VEC32, false);
+        cb.write(this._halfConeAngle, BUFFER_WRITE_FLOAT32, false);
     }
 }
 

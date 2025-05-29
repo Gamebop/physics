@@ -205,13 +205,13 @@ class HingeConstraint extends JointConstraint {
     write(cb) {
         super.write(cb);
 
-        cb.write(this._hingeAxis1, BUFFER_WRITE_VEC32);
-        cb.write(this._normalAxis1, BUFFER_WRITE_VEC32);
-        cb.write(this._hingeAxis2, BUFFER_WRITE_VEC32);
-        cb.write(this._normalAxis2, BUFFER_WRITE_VEC32);
-        cb.write(this._limitsMin, BUFFER_WRITE_FLOAT32);
-        cb.write(this._limitsMax, BUFFER_WRITE_FLOAT32);
-        cb.write(this._maxFrictionTorque, BUFFER_WRITE_FLOAT32);
+        cb.write(this._hingeAxis1, BUFFER_WRITE_VEC32, false);
+        cb.write(this._normalAxis1, BUFFER_WRITE_VEC32, false);
+        cb.write(this._hingeAxis2, BUFFER_WRITE_VEC32, false);
+        cb.write(this._normalAxis2, BUFFER_WRITE_VEC32, false);
+        cb.write(this._limitsMin, BUFFER_WRITE_FLOAT32, false);
+        cb.write(this._limitsMax, BUFFER_WRITE_FLOAT32, false);
+        cb.write(this._maxFrictionTorque, BUFFER_WRITE_FLOAT32, false);
 
         JointConstraint.writeSpringSettings(cb, this._limitsSpringSettings);
         JointConstraint.writeMotorSettings(cb, this._motorSettings);

@@ -236,31 +236,31 @@ class FixedConstraintSettings extends ConstraintSettings {
      * @type {boolean}
      * @defaultValue true
      */
-    _autoDetectPoint;
+    autoDetectPoint;
 
     /**
      * @type {Vec3}
      * @defaultValue Vec3(1, 0, 0)
      */
-    _axisX1;
+    axisX1;
 
     /**
      * @type {Vec3}
      * @defaultValue Vec3(1, 0, 0)
      */
-    _axisX2;
+    axisX2;
 
     /**
      * @type {Vec3}
      * @defaultValue Vec3(0, 1, 0)
      */
-    _axisY1;
+    axisY1;
 
     /**
      * @type {Vec3}
      * @defaultValue Vec3(0, 1, 0)
      */
-    _axisY2;
+    axisY2;
 }
 
 /**
@@ -552,6 +552,15 @@ class SixDOFConstraintSettings extends ConstraintSettings {
  * @category Joint Constraints
  */
 class SliderConstraintSettings extends ConstraintSettings {
+    /**
+     * If `true`, will auto-calculate and use the distance between two bodies upon creation. Only
+     * used when {@link space} is set to `CONSTRAINT_SPACE_WORLD`.
+     *
+     * @type {boolean}
+     * @defaultValue true
+     */
+    autoDetectPoint;
+
     /**
      * @type {Vec3}
      * @defaultValue Vec3(1, 0, 0)

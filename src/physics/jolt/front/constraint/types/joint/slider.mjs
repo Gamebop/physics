@@ -19,6 +19,8 @@ import { JointConstraint } from './joint-constraint.mjs';
 class SliderConstraint extends JointConstraint {
     _type = CONSTRAINT_TYPE_SLIDER;
 
+    _autoDetectPoint = true;
+
     _sliderAxis1 = Vec3.RIGHT;
 
     _sliderAxis2 = Vec3.RIGHT;
@@ -45,6 +47,7 @@ class SliderConstraint extends JointConstraint {
         if (opts.normalAxis1) this._normalAxis1 = opts.normalAxis1;
         if (opts.normalAxis2) this._normalAxis2 = opts.normalAxis2;
 
+        this._autoDetectPoint = opts.autoDetectPoint ?? this._autoDetectPoint;
         this._limitsMin = opts.limitsMin ?? this._limitsMin;
         this._limitsMax = opts.limitsMax ?? this._limitsMax;
         this._maxFrictionForce = opts.maxFrictionForce ?? this._maxFrictionForce;
@@ -204,14 +207,14 @@ class SliderConstraint extends JointConstraint {
     write(cb) {
         super.write(cb);
 
-        cb.write(this._autoDetectPoint, BUFFER_WRITE_BOOL);
-        cb.write(this._sliderAxis1, BUFFER_WRITE_VEC32);
-        cb.write(this._normalAxis1, BUFFER_WRITE_VEC32);
-        cb.write(this._sliderAxis2, BUFFER_WRITE_VEC32);
-        cb.write(this._normalAxis2, BUFFER_WRITE_VEC32);
-        cb.write(this._limitsMin, BUFFER_WRITE_FLOAT32);
-        cb.write(this._limitsMax, BUFFER_WRITE_FLOAT32);
-        cb.write(this._maxFrictionForce, BUFFER_WRITE_FLOAT32);
+        cb.write(this._autoDetectPoint, BUFFER_WRITE_BOOL, false);
+        cb.write(this._sliderAxis1, BUFFER_WRITE_VEC32, false);
+        cb.write(this._normalAxis1, BUFFER_WRITE_VEC32, false);
+        cb.write(this._sliderAxis2, BUFFER_WRITE_VEC32, false);
+        cb.write(this._normalAxis2, BUFFER_WRITE_VEC32, false);
+        cb.write(this._limitsMin, BUFFER_WRITE_FLOAT32, false);
+        cb.write(this._limitsMax, BUFFER_WRITE_FLOAT32, false);
+        cb.write(this._maxFrictionForce, BUFFER_WRITE_FLOAT32, false);
 
         JointConstraint.writeSpringSettings(cb, this._limitsSpringSettings);
         JointConstraint.writeMotorSettings(cb, this._motorSettings);
