@@ -353,15 +353,15 @@ class SwingTwistConstraint extends JointConstraint {
     write(cb) {
         super.write(cb);
 
-        cb.write(this._twistAxis1, BUFFER_WRITE_VEC32);
-        cb.write(this._planeAxis1, BUFFER_WRITE_VEC32);
-        cb.write(this._twistAxis2, BUFFER_WRITE_VEC32);
-        cb.write(this._planeAxis2, BUFFER_WRITE_VEC32);
-        cb.write(this._normalHalfConeAngle, BUFFER_WRITE_FLOAT32);
-        cb.write(this._planeHalfConeAngle, BUFFER_WRITE_FLOAT32);
-        cb.write(this._twistMinAngle, BUFFER_WRITE_FLOAT32);
-        cb.write(this._twistMaxAngle, BUFFER_WRITE_FLOAT32);
-        cb.write(this._maxFrictionTorque, BUFFER_WRITE_FLOAT32);
+        cb.write(this._twistAxis1, BUFFER_WRITE_VEC32, false);
+        cb.write(this._planeAxis1, BUFFER_WRITE_VEC32, false);
+        cb.write(this._twistAxis2, BUFFER_WRITE_VEC32, false);
+        cb.write(this._planeAxis2, BUFFER_WRITE_VEC32, false);
+        cb.write(this._normalHalfConeAngle, BUFFER_WRITE_FLOAT32, false);
+        cb.write(this._planeHalfConeAngle, BUFFER_WRITE_FLOAT32, false);
+        cb.write(this._twistMinAngle, BUFFER_WRITE_FLOAT32, false);
+        cb.write(this._twistMaxAngle, BUFFER_WRITE_FLOAT32, false);
+        cb.write(this._maxFrictionTorque, BUFFER_WRITE_FLOAT32, false);
 
         JointConstraint.writeMotorSettings(cb, this._swingMotorSettings);
         JointConstraint.writeMotorSettings(cb, this._twistMotorSettings);

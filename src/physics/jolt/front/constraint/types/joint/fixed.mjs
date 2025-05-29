@@ -81,11 +81,11 @@ class FixedConstraint extends JointConstraint {
             }
         }
 
-        cb.write(this._autoDetectPoint, BUFFER_WRITE_BOOL);
-        cb.write(this._axisX1, BUFFER_WRITE_VEC32);
-        cb.write(this._axisY1, BUFFER_WRITE_VEC32);
-        cb.write(this._axisX2, BUFFER_WRITE_VEC32);
-        cb.write(this._axisY2, BUFFER_WRITE_VEC32);
+        cb.write(this._autoDetectPoint, BUFFER_WRITE_BOOL, false);
+        cb.write(this._axisX1, BUFFER_WRITE_VEC32, false);
+        cb.write(this._axisY1, BUFFER_WRITE_VEC32, false);
+        cb.write(this._axisX2, BUFFER_WRITE_VEC32, false);
+        cb.write(this._axisY2, BUFFER_WRITE_VEC32, false);
     }
 }
 

@@ -13,13 +13,13 @@ import { createMotorSettings, createSpringSettings, setSixDOFAxes } from './util
 function createFixedConstraintSettings(Jolt, jv, cb) {
     const settings = new Jolt.FixedConstraintSettings();
 
-    if (cb.flag) settings.mPoint1 = jv.FromBuffer(cb);
-    if (cb.flag) settings.mPoint2 = jv.FromBuffer(cb);
-    if (cb.flag) settings.mAutoDetectPoint = cb.read(BUFFER_READ_BOOL);
-    if (cb.flag) settings.mAxisX1 = jv.FromBuffer(cb);
-    if (cb.flag) settings.mAxisY1 = jv.FromBuffer(cb);
-    if (cb.flag) settings.mAxisX2 = jv.FromBuffer(cb);
-    if (cb.flag) settings.mAxisY2 = jv.FromBuffer(cb);
+    settings.mPoint1 = jv.FromBuffer(cb);
+    settings.mPoint2 = jv.FromBuffer(cb);
+    settings.mAutoDetectPoint = cb.read(BUFFER_READ_BOOL);
+    settings.mAxisX1 = jv.FromBuffer(cb);
+    settings.mAxisY1 = jv.FromBuffer(cb);
+    settings.mAxisX2 = jv.FromBuffer(cb);
+    settings.mAxisY2 = jv.FromBuffer(cb);
 
     return settings;
 }
@@ -27,8 +27,8 @@ function createFixedConstraintSettings(Jolt, jv, cb) {
 function createPointConstraintSettings(Jolt, jv, cb) {
     const settings = new Jolt.PointConstraintSettings();
 
-    if (cb.flag) settings.mPoint1 = jv.FromBuffer(cb);
-    if (cb.flag) settings.mPoint2 = jv.FromBuffer(cb);
+    settings.mPoint1 = jv.FromBuffer(cb);
+    settings.mPoint2 = jv.FromBuffer(cb);
 
     return settings;
 }
@@ -53,15 +53,15 @@ function createDistanceConstraintSettings(Jolt, jv, cb) {
 function createHingeConstraintSettings(Jolt, jv, cb) {
     const settings = new Jolt.HingeConstraintSettings();
 
-    if (cb.flag) settings.mPoint1 = jv.FromBuffer(cb);
-    if (cb.flag) settings.mPoint2 = jv.FromBuffer(cb);
-    if (cb.flag) settings.mHingeAxis1 = jv.FromBuffer(cb);
-    if (cb.flag) settings.mNormalAxis1 = jv.FromBuffer(cb);
-    if (cb.flag) settings.mHingeAxis2 = jv.FromBuffer(cb);
-    if (cb.flag) settings.mNormalAxis2 = jv.FromBuffer(cb);
-    if (cb.flag) settings.mLimitsMin = cb.read(BUFFER_READ_FLOAT32);
-    if (cb.flag) settings.mLimitsMax = cb.read(BUFFER_READ_FLOAT32);
-    if (cb.flag) settings.mMaxFrictionTorque = cb.read(BUFFER_READ_FLOAT32);
+    settings.mPoint1 = jv.FromBuffer(cb);
+    settings.mPoint2 = jv.FromBuffer(cb);
+    settings.mHingeAxis1 = jv.FromBuffer(cb);
+    settings.mNormalAxis1 = jv.FromBuffer(cb);
+    settings.mHingeAxis2 = jv.FromBuffer(cb);
+    settings.mNormalAxis2 = jv.FromBuffer(cb);
+    settings.mLimitsMin = cb.read(BUFFER_READ_FLOAT32);
+    settings.mLimitsMax = cb.read(BUFFER_READ_FLOAT32);
+    settings.mMaxFrictionTorque = cb.read(BUFFER_READ_FLOAT32);
     if (cb.read(BUFFER_READ_BOOL)) {
         const springSettings = createSpringSettings(cb, Jolt);
         settings.mLimitsSpringSettings = springSettings;
@@ -79,16 +79,16 @@ function createHingeConstraintSettings(Jolt, jv, cb) {
 function createSliderConstraintSettings(Jolt, jv, cb) {
     const settings = new Jolt.SliderConstraintSettings();
 
-    if (cb.flag) settings.mPoint1 = jv.FromBuffer(cb);
-    if (cb.flag) settings.mPoint2 = jv.FromBuffer(cb);
-    if (cb.flag) settings.mAutoDetectPoint = cb.read(BUFFER_READ_BOOL);
-    if (cb.flag) settings.mSliderAxis1 = jv.FromBuffer(cb);
-    if (cb.flag) settings.mNormalAxis1 = jv.FromBuffer(cb);
-    if (cb.flag) settings.mSliderAxis2 = jv.FromBuffer(cb);
-    if (cb.flag) settings.mNormalAxis2 = jv.FromBuffer(cb);
-    if (cb.flag) settings.mLimitsMin = cb.read(BUFFER_READ_FLOAT32);
-    if (cb.flag) settings.mLimitsMax = cb.read(BUFFER_READ_FLOAT32);
-    if (cb.flag) settings.mMaxFrictionForce = cb.read(BUFFER_READ_FLOAT32);
+    settings.mPoint1 = jv.FromBuffer(cb);
+    settings.mPoint2 = jv.FromBuffer(cb);
+    settings.mAutoDetectPoint = cb.read(BUFFER_READ_BOOL);
+    settings.mSliderAxis1 = jv.FromBuffer(cb);
+    settings.mNormalAxis1 = jv.FromBuffer(cb);
+    settings.mSliderAxis2 = jv.FromBuffer(cb);
+    settings.mNormalAxis2 = jv.FromBuffer(cb);
+    settings.mLimitsMin = cb.read(BUFFER_READ_FLOAT32);
+    settings.mLimitsMax = cb.read(BUFFER_READ_FLOAT32);
+    settings.mMaxFrictionForce = cb.read(BUFFER_READ_FLOAT32);
     if (cb.read(BUFFER_READ_BOOL)) {
         const springSettings = createSpringSettings(cb, Jolt);
         settings.mLimitsSpringSettings = springSettings;
@@ -106,11 +106,11 @@ function createSliderConstraintSettings(Jolt, jv, cb) {
 function createConeConstraintSettings(Jolt, jv, cb) {
     const settings = new Jolt.ConeConstraintSettings();
 
-    if (cb.flag) settings.mPoint1 = jv.FromBuffer(cb);
-    if (cb.flag) settings.mPoint2 = jv.FromBuffer(cb);
-    if (cb.flag) settings.mTwistAxis1 = jv.FromBuffer(cb);
-    if (cb.flag) settings.mTwistAxis2 = jv.FromBuffer(cb);
-    if (cb.flag) settings.mHalfConeAngle = cb.read(BUFFER_READ_FLOAT32);
+    settings.mPoint1 = jv.FromBuffer(cb);
+    settings.mPoint2 = jv.FromBuffer(cb);
+    settings.mTwistAxis1 = jv.FromBuffer(cb);
+    settings.mTwistAxis2 = jv.FromBuffer(cb);
+    settings.mHalfConeAngle = cb.read(BUFFER_READ_FLOAT32);
 
     return settings;
 }
@@ -118,17 +118,17 @@ function createConeConstraintSettings(Jolt, jv, cb) {
 function createSwingTwistConstraintSettings(Jolt, jv, cb) {
     const settings = new Jolt.SwingTwistConstraintSettings();
 
-    if (cb.flag) settings.mPosition1 = jv.FromBuffer(cb);
-    if (cb.flag) settings.mPosition2 = jv.FromBuffer(cb);
-    if (cb.flag) settings.mTwistAxis1 = jv.FromBuffer(cb);
-    if (cb.flag) settings.mPlaneAxis1 = jv.FromBuffer(cb);
-    if (cb.flag) settings.mTwistAxis2 = jv.FromBuffer(cb);
-    if (cb.flag) settings.mPlaneAxis2 = jv.FromBuffer(cb);
-    if (cb.flag) settings.mNormalHalfConeAngle = cb.read(BUFFER_READ_FLOAT32);
-    if (cb.flag) settings.mPlaneHalfConeAngle = cb.read(BUFFER_READ_FLOAT32);
-    if (cb.flag) settings.mTwistMinAngle = cb.read(BUFFER_READ_FLOAT32);
-    if (cb.flag) settings.mTwistMaxAngle = cb.read(BUFFER_READ_FLOAT32);
-    if (cb.flag) settings.mMaxFrictionTorque = cb.read(BUFFER_READ_FLOAT32);
+    settings.mPosition1 = jv.FromBuffer(cb);
+    settings.mPosition2 = jv.FromBuffer(cb);
+    settings.mTwistAxis1 = jv.FromBuffer(cb);
+    settings.mPlaneAxis1 = jv.FromBuffer(cb);
+    settings.mTwistAxis2 = jv.FromBuffer(cb);
+    settings.mPlaneAxis2 = jv.FromBuffer(cb);
+    settings.mNormalHalfConeAngle = cb.read(BUFFER_READ_FLOAT32);
+    settings.mPlaneHalfConeAngle = cb.read(BUFFER_READ_FLOAT32);
+    settings.mTwistMinAngle = cb.read(BUFFER_READ_FLOAT32);
+    settings.mTwistMaxAngle = cb.read(BUFFER_READ_FLOAT32);
+    settings.mMaxFrictionTorque = cb.read(BUFFER_READ_FLOAT32);
     if (cb.read(BUFFER_READ_BOOL)) {
         const swingMotorSettings = createMotorSettings(cb, Jolt);
         settings.mSwingMotorSettings = swingMotorSettings;
