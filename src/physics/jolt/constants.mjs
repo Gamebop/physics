@@ -204,6 +204,7 @@ export const CMD_REMOVE_SHAPE = 63;
 export const CMD_MODIFY_SHAPE = 64;
 export const CMD_UPDATE_BIT_FILTER = 65;
 export const CMD_RESET_PHYSICS_SYSTEM = 66;
+export const CMD_SET_CUSTOM_SHAPE = 67;
 
 
 // Char Virtual 400-499

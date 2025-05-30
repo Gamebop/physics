@@ -3,7 +3,7 @@ import { Debug } from '../../debug.mjs';
 import { Component } from '../component.mjs';
 import {
     BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT32, BUFFER_WRITE_UINT8,
-    BUFFER_WRITE_VEC32, CMD_ADD_SHAPE, CMD_MODIFY_SHAPE, CMD_REMOVE_SHAPE, CMD_SET_DEBUG_DRAW, CMD_SET_DEBUG_DRAW_DEPTH, CMD_SET_SHAPE, FLOAT32_SIZE,
+    BUFFER_WRITE_VEC32, CMD_ADD_SHAPE, CMD_MODIFY_SHAPE, CMD_REMOVE_SHAPE, CMD_SET_CUSTOM_SHAPE, CMD_SET_DEBUG_DRAW, CMD_SET_DEBUG_DRAW_DEPTH, CMD_SET_SHAPE, FLOAT32_SIZE,
     OPERATOR_MODIFIER, SHAPE_BOX, SHAPE_CAPSULE, SHAPE_CONVEX_HULL, SHAPE_CYLINDER,
     SHAPE_EMPTY,
     SHAPE_HEIGHTFIELD, SHAPE_MESH, SHAPE_MUTABLE_COMPOUND, SHAPE_PLANE, SHAPE_SPHERE, SHAPE_STATIC_COMPOUND,
@@ -498,6 +498,38 @@ class ShapeComponent extends Component {
      */
     get useEntityScale() {
         return this._useEntityScale;
+    }
+
+    /**
+     * Allows changing the current shape to a custom one.
+     *
+     * Note: once set, you won't be able to destroy this shape using
+     * {@link JoltManager.destroyShape | destroyShape}. The shape will be destroyed
+     * when either the body gets destroyed, or when you change it to another shape.
+     *
+     * @param {number} shapeIndex - The index of a shape to add. It can be created by
+     * {@link JoltManager.createShape | createShape}.
+     * @example
+     * ```js
+     * const customShapeIdx = app.physics.createShape(SHAPE_SPHERE, {
+     *     radius: 2,
+     *     shapePosition: new Vec3(0, 1, 0)
+     * });
+     * entity.body.setShape(customShapeIdx);
+     * ```
+     */
+    setShape(shapeIndex) {
+        if ($_DEBUG) {
+            const ok = Debug.checkUint(shapeIndex);
+            if (!ok) {
+                return;
+            }
+        }
+
+        this.system.addCommand(
+            OPERATOR_MODIFIER, CMD_SET_CUSTOM_SHAPE, this._index,
+            shapeIndex, BUFFER_WRITE_UINT32, false
+        );
     }
 
     /**
