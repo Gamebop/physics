@@ -357,7 +357,7 @@ class JoltInitSettings {
      * experiment with your app switching tabs. The lower this number is the better.
      *
      * @type {number}
-     * @defaultValue 3
+     * @defaultValue 2
      */
     maxSkippedSteps;
 
