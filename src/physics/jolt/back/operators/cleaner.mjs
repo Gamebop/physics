@@ -74,11 +74,22 @@ class Cleaner {
         const constraints = body.constraints;
         if (constraints) {
             const constraintMap = tracker.constraintMap;
-            for (let i = 0, end = constraints.length; i < end; i++) {
-                const index = constraints[i];
+            for (let i = constraints.length; i > 0; i--) {
+                const index = constraints.pop();
                 const data = constraintMap.get(index);
                 const constraint = data.constraint;
                 const listener = constraint.listener; // vehicle
+
+                const b1constraints = data.body1?.constraints;
+                const b2constraints = data.body2?.constraints;
+
+                if (b1constraints && b1constraints !== constraints) {
+                    const idx = b1constraints.findIndex(key => key === index);
+                    if (idx >= 0) b1constraints.splice(idx, 1);
+                } else if (b2constraints) {
+                    const idx = b2constraints.findIndex(key => key === index);
+                    if (idx >= 0) b2constraints.splice(idx, 1);
+                }
 
                 constraintMap.delete(index);
                 if (listener && Jolt.getPointer(listener) !== 0) {
