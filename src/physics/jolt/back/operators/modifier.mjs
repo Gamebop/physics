@@ -14,7 +14,8 @@ import {
     CMD_SET_MOTION_TYPE, CMD_SET_OBJ_LAYER, CMD_SET_POS_STEPS, CMD_SET_RESTITUTION, CMD_SET_SHAPE,
     CMD_SET_VEL_STEPS, CMD_TOGGLE_GROUP_PAIR, CMD_UPDATE_BIT_FILTER, CMD_USE_MOTION_STATE,
     MOTION_TYPE_DYNAMIC, MOTION_TYPE_KINEMATIC, CMD_ADD_SHAPE, UINT32_SIZE, UINT8_SIZE,
-    CMD_RESET_MOTION, CMD_RESET_SLEEP_TIMER, FLOAT32_SIZE, MOTION_QUALITY_DISCRETE
+    CMD_RESET_MOTION, CMD_RESET_SLEEP_TIMER, FLOAT32_SIZE, MOTION_QUALITY_DISCRETE,
+    CMD_SET_CUSTOM_SHAPE
 } from '../../constants.mjs';
 import { Creator } from './creator.mjs';
 import { Cleaner } from './cleaner.mjs';
@@ -155,6 +156,10 @@ class Modifier {
 
             case CMD_SET_SHAPE:
                 ok = this._setShape(cb, meshBuffers);
+                break;
+
+            case CMD_SET_CUSTOM_SHAPE:
+                ok = this._setCustomShape(cb);
                 break;
 
             case CMD_ADD_SHAPE:
@@ -351,6 +356,42 @@ class Modifier {
             }
 
             const shape = shapeResult.Get();
+            const currentShape = body.GetShape();
+
+            backend.bodyInterface.SetShape(body.GetID(), shape, false /* inUpdateMassProperties */,
+                Jolt.EActivation_Activate);
+            currentShape.Release();
+
+            // If there is debug draw context, we need to reset it to view a new shape
+            Cleaner.cleanDebugDrawData(body, Jolt);
+
+        } catch (e) {
+            if ($_DEBUG) {
+                Debug.error(e);
+            }
+            return false;
+        }
+
+        return true;
+    }
+
+    _setCustomShape(cb) {
+        const backend = this._backend;
+        const Jolt = backend.Jolt;
+        const body = this._getBody(cb);
+
+        // TODO skip if no body
+
+        try {
+            const shapeIndex = cb.read(BUFFER_READ_UINT32);
+            const shape = backend.tracker.shapeMap.get(shapeIndex);
+            if ($_DEBUG) {
+                const ok = Debug.assert(!!shape, `Unable to locate shape: ${shapeIndex}`);
+                if (!ok) {
+                    return false;
+                }
+            }
+
             const currentShape = body.GetShape();
 
             backend.bodyInterface.SetShape(body.GetID(), shape, false /* inUpdateMassProperties */,
