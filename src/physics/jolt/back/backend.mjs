@@ -30,7 +30,7 @@ class JoltBackend {
             // Physics Settings
             // https://jrouwe.github.io/JoltPhysics/struct_physics_settings.html
             baumgarte: 0.2,
-            maxSkippedSteps: 1,
+            maxSkippedSteps: 2,
             bodyPairCacheCosMaxDeltaRotationDiv2: 0.9998476951563912,
             bodyPairCacheMaxDeltaPositionSq: Math.sqrt(0.001),
             contactNormalCosMaxDeltaRotation: 0.9961946980917455,
@@ -311,16 +311,16 @@ class JoltBackend {
 
         time += dt;
 
-        if (time > fixedStep * maxSkippedSteps) {
-            time = fixedStep * maxSkippedSteps;
-        }
-
         let stepsCount = 0;
         while (time >= fixedStep) {
             stepsCount++;
             time -= fixedStep;
         }
         this._time = time;
+
+        if (stepsCount > maxSkippedSteps) {
+            stepsCount =  maxSkippedSteps;
+        }
 
         if (data.inBuffer) {
             outBuffer.buffer = data.inBuffer;
