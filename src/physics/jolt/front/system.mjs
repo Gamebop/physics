@@ -60,7 +60,7 @@ class JoltComponentSystem extends ComponentSystem {
         }
     }
 
-    addComponent(entity, data = {}) {
+    addComponent(entity, data = {}, isCloning = false) {
         if ($_DEBUG) {
             const ok = Debug.verifyProperties(data, this._schema);
             if (!ok) {
@@ -77,16 +77,29 @@ class JoltComponentSystem extends ComponentSystem {
         entity[this.id] = component;
         entity.c[this.id] = component;
 
-        this.initializeComponentData(component, data);
+        this.initializeComponentData(component, data, isCloning);
 
         return component;
     }
 
-    initializeComponentData(component, data) {
+    cloneComponent(entity, clone) {
+        const data = {};
+        const schema = this._schema;
+
+        for (let i = 0; i < schema.length; i++) {
+            data[schema[i]] = entity.body[schema[i]];
+        }
+
+        const component = this.addComponent(clone, data, true);
+
+        return component;
+    }
+
+    initializeComponentData(component, data, isCloning) {
         component.enabled = true;
 
         for (const [key, value] of Object.entries(data)) {
-            if ($_DEBUG) {
+            if ($_DEBUG && !isCloning) {
                 Debug.assert(value != null, `Trying to initialize a component with invalid value for property "${key}": ${value}`, data);
             }
 
