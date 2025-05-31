@@ -3,6 +3,10 @@ import { Debug } from './jolt/debug.mjs';
 import { Dispatcher } from './dispatcher.mjs';
 import { IndexedCache } from './indexed-cache.mjs';
 
+/**
+ * @import { EventHandle } from 'playcanvas';
+ */
+
 class PhysicsManager {
     constructor(app, config = {}) {
         this._createDispatcher(config);
@@ -99,6 +103,25 @@ class PhysicsManager {
      */
     get fixedStep() {
         return this._fixedStep;
+    }
+
+    /**
+     * Sets the update event to step physics.
+     *
+     * @type {EventHandle | null}
+     */
+    set updateEvent(eventHandle) {
+        this._updateEvent?.off();
+        this._updateEvent = eventHandle;
+    }
+
+    /**
+     * Gets the update event used to step physics.
+     *
+     * @type {EventHandle | null}
+     */
+    get updateEvent() {
+        return this._updateEvent;
     }
 
     onUpdate() {
