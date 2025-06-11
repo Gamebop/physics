@@ -17,7 +17,9 @@ import {
     CMD_CLAMP_LIN_VEL, CMD_SET_VEL_STEPS, CMD_SET_POS_STEPS, CMD_ADD_ANGULAR_IMPULSE,
     CMD_ADD_TORQUE, CMD_UPDATE_BIT_FILTER, SHAPE_PLANE, OMP_CALCULATE_INERTIA, ISOMETRY_DEFAULT,
     ISOMETRY_FRONT_TO_BACK,
-    MOTION_TYPE_DYNAMIC
+    MOTION_TYPE_DYNAMIC,
+    ISOMETRY_BACK_TO_FRONT,
+    ISOMETRY_NONE
 } from '../../constants.mjs';
 
 const vec3 = new Vec3();
@@ -250,13 +252,17 @@ class BodyComponent extends ShapeComponent {
      */
     set angularVelocity(velocity) {
         if ($_DEBUG) {
+            if (this._motionType === MOTION_TYPE_STATIC) {
+                Debug.warn('Setting angular velocity on a static body has no effect.');
+                return;
+            }            
             const ok = Debug.checkVec(velocity);
             if (!ok) {
                 return;
             }
         }
 
-        if (this._angularVelocity.equals(velocity)) {
+        if (this._motionType === MOTION_TYPE_KINEMATIC && this._angularVelocity.equals(velocity)) {
             return;
         }
 
@@ -554,13 +560,17 @@ class BodyComponent extends ShapeComponent {
      */
     set linearVelocity(velocity) {
         if ($_DEBUG) {
+            if (this._motionType === MOTION_TYPE_STATIC) {
+                Debug.warn('Setting linear velocity on a static body has no effect.');
+                return;
+            }
             const ok = Debug.checkVec(velocity);
             if (!ok) {
                 return;
             }
         }
 
-        if (this._linearVelocity.equals(velocity)) {
+        if (this._motionType === MOTION_TYPE_KINEMATIC && this._linearVelocity.equals(velocity)) {
             return;
         }
 
