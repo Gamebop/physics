@@ -225,7 +225,7 @@ class CharModifier {
 
         try {
             const ok = char.SetShape(shape, backend.config.penetrationSlop * 1.5, backend.bpFilter,
-                backend.objFilter, backend.bodyFilter, backend.shapeFilter,
+                backend.objFilter, char.bodyFilter, backend.shapeFilter,
                 backend.joltInterface.GetTempAllocator());
 
             const outBuffer = backend.outBuffer;
