@@ -288,7 +288,7 @@ class JoltBackend {
         return this._dispatcher.immediateResponse(this._immediateBuffer, null);
     }
 
-    step(data) {
+    step(data, isManualStep) {
         if (this._fatalError) return;
 
         const { buffer, meshBuffers } = data;
@@ -309,17 +309,20 @@ class JoltBackend {
             dt = (now - this._lastStamp) * 0.001;
         }
 
-        time += dt;
-
         let stepsCount = 0;
-        while (time >= fixedStep) {
-            stepsCount++;
-            time -= fixedStep;
+        if (!isManualStep) {
+            time += dt;
+            while (time >= fixedStep) {
+                stepsCount++;
+                time -= fixedStep;
+            }
+            this._time = time;
+        } else {
+            stepsCount = 1;
         }
-        this._time = time;
 
         if (stepsCount > maxSkippedSteps) {
-            stepsCount =  maxSkippedSteps;
+            stepsCount = maxSkippedSteps;
         }
 
         if (data.inBuffer) {
@@ -362,7 +365,7 @@ class JoltBackend {
         }
 
         // potentially step physics system, update motion states
-        ok = ok && this._stepPhysics(stepsCount, time, dt);
+        ok = ok && this._stepPhysics(stepsCount, time, isManualStep);
 
         // write the collected contact events
         this._listener.write(outBuffer);
@@ -446,7 +449,39 @@ class JoltBackend {
         this.Jolt = null;
     }
 
-    _stepPhysics(stepsCount, time) {
+    interpolate(data) {
+        const outBuffer = this._outBuffer;
+
+        // Make sure there are no lingering command counters before we start writing new ones.
+        outBuffer.reset();
+        outBuffer.init();
+
+        this._updateMotionStates(data.alpha, data.stepped);
+
+        // write dynamic transforms to update entities
+        let ok = this._writeIsometry(outBuffer);
+
+        // write virtual characters state
+        ok = ok && this._writeCharacters(outBuffer);
+
+        // write debug draw data
+        if ($_DEBUG && !this._config.useWebWorker) {
+            // Write debug draw data
+            ok = ok && this._drawer.write(this._tracker);
+        }
+
+        // report sim results to frontend
+        ok = ok && this._send();
+
+        if (!ok) {
+            if ($_DEBUG) {
+                Debug.error('Backend fatal error :(');
+            }
+            this._fatalError = true;
+        }
+    }
+
+    _stepPhysics(stepsCount, time, isManualStep) {
         const config = this._config;
         const fixedStep = config.fixedStep;
         const subSteps = config.subSteps;
@@ -475,7 +510,7 @@ class JoltBackend {
 
         this._steps += stepsCount;
 
-        if (ok && config.useMotionStates) {
+        if (ok && !isManualStep && config.useMotionStates) {
             ok = this._updateMotionStates(time / fixedStep, stepped);
         }
 

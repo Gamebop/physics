@@ -273,7 +273,9 @@ class JoltManager extends PhysicsManager {
         super.onMessage(data);
 
         if (data.initDone) {
-            this._updateEvent = this._app.systems.on('update', this.onUpdate, this);
+            if (!this._config.manualStep) {
+                this._updateEvent = this._app.systems.on('update', this.onUpdate, this);
+            }
             if ($_DEBUG) {
                 console.log('Physics Components:', $_VERSION);
             }
