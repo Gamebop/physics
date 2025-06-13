@@ -31,7 +31,7 @@ class Dispatcher {
             case 'manual-step':
                 Dispatcher.backend?.step(data, true);
                 break;
-            
+
             case 'interpolate':
                 Dispatcher.backend?.interpolate(data);
                 break;
