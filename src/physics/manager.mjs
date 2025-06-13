@@ -23,7 +23,12 @@ class PhysicsManager {
         this._fixedStep = config.fixedStep;
         this._canDispatch = true;
         this._stepMessage = {
-            type: 'step', buffer: null, inBuffer: null, origin: 'physics-manager'
+            type: 'step',
+            buffer: null,
+            inBuffer: null,
+            origin: 'physics-manager',
+            alpha: 0,
+            stepped: false
         };
 
         if ($_DEBUG) {
@@ -124,31 +129,64 @@ class PhysicsManager {
         return this._updateEvent;
     }
 
+    /**
+     * Allows to manually step the physics, if you control the time yourself. Requires
+     * {@link JoltInitSettings.manualStep} to be `true`. Will always step once with
+     * {@link JoltInitSettings.fixedStep} size. This will update the entities positions and
+     * rotations to the same as they are in the physics world.
+     *
+     * Note: If you use {@link JoltInitSettings.useMotionStates} (`true` by default), the
+     * isometries of the entities will not be updated to the physics world positions. They will be
+     * read from their motion states. In order to update the motion state, and as a result the
+     * entity isometry, you need to call {@link interpolate}.
+     *
+     * @example
+     * ```js
+     * update(dt) {
+     *     time += dt;
+     *     const fixedStep = app.physics.fixedStep;
+     *
+     *     let stepped = false;
+     *     while (time >= fixedStep) {
+     *         app.physics.step();
+     *         time -= fixedStep;
+     *         stepped = true;
+     *     }
+     *
+     *     app.physics.interpolate(time/fixedStep, stepped);
+     * }
+     * ```
+     */
+    step() {
+        if (!this._config.manualStep) return;
+        this._stepMessage.type = 'manual-step';
+        this._stepPhysics();
+    }
+
+    /**
+     * Allows to manually interpolate the bodies when you step physics yourself. Requires
+     * {@link JoltInitSettings.manualStep} and {@link JoltInitSettings.useMotionStates} to be
+     * `true`. This will update entities positions and rotations to their interpolated
+     * representations.
+     * See {@link step} for example usage.
+     *
+     * @param {number} alpha - Fixed step fraction to interpolate to.
+     * @param {boolean} stepped - Whether to use new position and rotation of a body as a base for
+     * interpolation.
+     */
+    interpolate(alpha, stepped) {
+        if (!this._config.useMotionStates || !this._config.manualStep) return;
+
+        const msg = this._stepMessage;
+        msg.type = 'interpolate';
+        msg.alpha = alpha;
+        msg.stepped = stepped;
+        this.sendUncompressed(msg);
+    }
+
     onUpdate() {
-        if (this._paused) return;
-
-        if (!this._canDispatch) {
-            this._skipped = true;
-            return;
-        }
-
-        let index;
-        if ($_DEBUG) {
-            const startTime = performance.now();
-            index = this._perfCache.add(startTime);
-
-            this._lastIndex = index;
-
-            if (index > 50) {
-                this._paused = true;
-            }
-        }
-
-        this._canDispatch = false;
-        this._skipped = false;
-
-        this._writeIsometry();
-        this._dispatchCommands(this._frame.dt, index);
+        this._stepMessage.type = 'step';
+        this._stepPhysics();
     }
 
     sendUncompressed(msg) {
@@ -240,6 +278,33 @@ class PhysicsManager {
         this._updateEvent = null;
 
         this._app[this._config.propertyName] = null;
+    }
+
+    _stepPhysics() {
+        if (this._paused) return;
+
+        if (!this._canDispatch) {
+            this._skipped = true;
+            return;
+        }
+
+        let index;
+        if ($_DEBUG) {
+            const startTime = performance.now();
+            index = this._perfCache.add(startTime);
+
+            this._lastIndex = index;
+
+            if (index > 50) {
+                this._paused = true;
+            }
+        }
+
+        this._canDispatch = false;
+        this._skipped = false;
+
+        this._writeIsometry();
+        this._dispatchCommands(this._frame.dt, index);
     }
 
     _writeIsometry() {

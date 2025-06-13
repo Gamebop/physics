@@ -25,7 +25,15 @@ class Dispatcher {
 
         switch (data.type) {
             case 'step':
-                Dispatcher.backend?.step(data);
+                Dispatcher.backend?.step(data, false);
+                break;
+
+            case 'manual-step':
+                Dispatcher.backend?.step(data, true);
+                break;
+
+            case 'interpolate':
+                Dispatcher.backend?.interpolate(data);
                 break;
 
             case 'create-backend':
