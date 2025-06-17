@@ -381,7 +381,7 @@ class CharModifier {
 
         try {
             if (char.objFilter) {
-                Jolt.destroy(char.objFilter);
+                backend.Jolt.destroy(char.objFilter);
             }
 
             const layer = cb.read(BUFFER_READ_UINT16);
