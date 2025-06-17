@@ -68,7 +68,7 @@ class CharComponent extends ShapeComponent {
 
     _minTimeRemaining = 1.0e-4;
 
-    _objFilterLayer = OBJ_LAYER_MOVING;
+    _objLayer = OBJ_LAYER_MOVING;
 
     _pairedEntity = null;
 
@@ -516,8 +516,8 @@ class CharComponent extends ShapeComponent {
     /**
      * @param {number} layerNum - Object Filter Layer number.
      */
-    set objFilterLayer(layerNum) {
-        if (this._objFilterLayer === layerNum) {
+    set objLayer(layerNum) {
+        if (this._objLayer === layerNum) {
             return;
         }
 
@@ -528,7 +528,7 @@ class CharComponent extends ShapeComponent {
             }
         }
 
-        this._objFilterLayer = layerNum;
+        this._objLayer = layerNum;
         this.system.addCommand(
             OPERATOR_MODIFIER, CMD_CHAR_SET_OBJ_FILTER_LAYER, this._index,
             layerNum, BUFFER_WRITE_UINT16, false
@@ -541,8 +541,8 @@ class CharComponent extends ShapeComponent {
      * @type {number}
      * @defaultValue OBJ_LAYER_MOVING (1)
      */
-    get objFilterLayer() {
-        return this._objFilterLayer;
+    get objLayer() {
+        return this._objLayer;
     }
 
     /**
@@ -1121,7 +1121,7 @@ class CharComponent extends ShapeComponent {
         cb.write(this._walkStairsCosAngleForwardContact, BUFFER_WRITE_FLOAT32, false);
         cb.write(this._walkStairsStepDownExtra, BUFFER_WRITE_VEC32, false);
         cb.write(this._bpFilterLayer, BUFFER_WRITE_UINT16, false);
-        cb.write(this._objFilterLayer, BUFFER_WRITE_UINT16, false);
+        cb.write(this._objLayer, BUFFER_WRITE_UINT16, false);
         cb.write(this._group, BUFFER_WRITE_UINT32, false);
         cb.write(this._mask, BUFFER_WRITE_UINT32, false);
 
