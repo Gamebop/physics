@@ -98,7 +98,6 @@ class JoltBackend {
         this._bodyFilter = null;
         this._shapeFilter = null;
         this._bodyList = null;
-        this._idleCallback = null;
         this._groupFilterTables = [];
 
         this._lastStamp = 0;
@@ -214,14 +213,6 @@ class JoltBackend {
 
     get bodyList() {
         return this._bodyList;
-    }
-
-    set idleCallback(func) {
-        this._idleCallback = func;
-    }
-
-    get idleCallback() {
-        return this.idleCallback;
     }
 
     get immediateBuffer() {
@@ -443,8 +434,6 @@ class JoltBackend {
 
         this._immediateBuffer?.destroy();
         this._immediateBuffer = null;
-
-        this._idleCallback = null;
 
         this.Jolt = null;
     }
@@ -701,10 +690,6 @@ class JoltBackend {
 
         if (activeSoftBodiesCount > 0) {
             ok = ok && this._writeSoftBodiesVertices(activeSoftBodiesCount, system, cb);
-        }
-
-        if (!activeRigidBodiesCount && !activeSoftBodiesCount && this._idleCallback) {
-            this._idleCallback();
         }
 
         return ok;

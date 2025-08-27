@@ -322,50 +322,6 @@ class JoltManager extends PhysicsManager {
     }
 
     /**
-     * A callback function to call when all rigid and soft bodies fall asleep. It will be called
-     * every frame, while the bodies are not active.
-     *
-     * Note, that if a kinematic body has an {@link BodyComponent.isometryUpdate} set to
-     * `ISOMETRY_DEFAULT` or `ISOMETRY_FRONT_TO_BACK`, then the body will have its transforms get
-     * auto-updated in physics world every frame, preventing it from falling asleep. If you need
-     * this callback while using a kinematic body, then set its isometry update to
-     * `ISOMETRY_BACK_TO_FRONT` and control its transforms via component's move methods, e.g.
-     * {@link BodyComponent.teleport}, {@link BodyComponent.linearVelocity} etc. That will stop
-     * the frontend from sending isometry updates every frame and will rely on you setting its
-     * transforms when needed.
-     *
-     * Feature is disabled when web worker is used.
-     *
-     * @param {function} func - Callback function to execute.
-     */
-    addIdleCallback(func) {
-        // TODO
-        // add support for web worker
-        if (this._config.useWebWorker) {
-            if ($_DEBUG) {
-                Debug.warn('Physics idle callback is not supported when web worker is enabled.');
-            }
-            return;
-        }
-
-        this._backend.idleCallback = func;
-    }
-
-    /**
-     * Removes a callback that was set via {@link addIdleCallback}.
-     */
-    removeIdleCallback() {
-        if (this._config.useWebWorker) {
-            if ($_DEBUG) {
-                Debug.warn('Physics idle callback is not supported when Web Worker is enabled.');
-            }
-            return;
-        }
-
-        this._backend.idleCallback = null;
-    }
-
-    /**
      * Creates a shape in the physics backend. Note, that the shape is not added to the physics
      * world after it is created, so it won't affect the simulation.
      *
