@@ -697,6 +697,16 @@ class ShapeComponent extends Component {
             cb.write(scale, BUFFER_WRITE_VEC32, false);
         }
 
+        if ($_DEBUG) {
+            if (shape === SHAPE_BOX || shape === SHAPE_CYLINDER &&
+                (props.convexRadius > props.halfExtent.x * 2 ||
+                props.convexRadius > props.halfExtent.y * 2 ||
+                props.convexRadius > props.halfExtent.z * 2)) {
+                Debug.warn('Convex radius cannot be larger than a side of the shape');
+                return false;
+            }
+        }
+
         let ok = true;
         switch (shape) {
             case SHAPE_BOX:
