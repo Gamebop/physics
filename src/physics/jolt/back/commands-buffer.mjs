@@ -6,7 +6,6 @@ import {
     BUFFER_WRITE_UINT32, BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32, FLOAT32_SIZE, INT32_SIZE,
     UINT16_SIZE, UINT32_SIZE, UINT8_SIZE
 } from '../constants.mjs';
-import { Plane } from 'playcanvas';
 
 // TODO
 // hide from docs, after PhysicsManager stops using it directly
@@ -404,7 +403,7 @@ class CommandsBuffer {
 
     writePlane(plane) {
         if ($_DEBUG) {
-            const ok = Debug.assert(!!plane && plane instanceof Plane,
+            const ok = Debug.assert(plane && plane.normal && plane.distance,
                 'Trying to write invalid Plane instance to buffer', plane);
             if (!ok) {
                 return false;

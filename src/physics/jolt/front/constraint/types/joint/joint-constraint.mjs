@@ -1,4 +1,4 @@
-import { Entity, Vec3 } from 'playcanvas';
+import { Vec3 } from 'playcanvas';
 import { BUFFER_WRITE_UINT32, BUFFER_WRITE_UINT8, BUFFER_WRITE_VEC32, CONSTRAINT_SPACE_WORLD } from '../../../../constants.mjs';
 import { Debug } from '../../../../debug.mjs';
 import { Constraint, applyOptions } from '../constraint.mjs';
@@ -81,9 +81,9 @@ class JointConstraint extends Constraint {
 
     write(cb) {
         if ($_DEBUG) {
-            let ok = Debug.assert(this._entity1 instanceof Entity, 'Invalid entity1', this._entity1);
+            let ok = Debug.assert(this._entity1.getGuid instanceof Function, 'Invalid entity1', this._entity1);
             ok = ok && Debug.assert(!!this._entity1.body, 'Invalid entity1', this._entity1);
-            ok = ok && Debug.assert(this._entity2 instanceof Entity, 'Invalid entity2', this._entity2);
+            ok = ok && Debug.assert(this._entity2.getGuid instanceof Function, 'Invalid entity2', this._entity2);
             ok = ok && Debug.assert(!!this._entity2.body, 'Invalid entity2', this._entity2);
             ok = ok && Debug.checkVec(this._point1);
             ok = ok && Debug.checkVec(this._point2);

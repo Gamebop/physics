@@ -3,13 +3,12 @@ import {
     BUFFER_WRITE_BOOL, BUFFER_WRITE_FLOAT32, BUFFER_WRITE_UINT16, BUFFER_WRITE_UINT32, BUFFER_WRITE_UINT8,
     CMD_JNT_SET_ENABLED, CONSTRAINT_TYPE_UNDEFINED, OPERATOR_MODIFIER, SPRING_MODE_FREQUENCY
 } from '../../../constants.mjs';
-import { Curve, Vec3 } from 'playcanvas';
 
 function applyOptions(instance, opts) {
     for (const [key, val] of Object.entries(opts)) {
         const prop = `_${key}`;
         if (instance[prop] === undefined) continue;
-        if (val instanceof Vec3 || val instanceof Curve) {
+        if (val?.clone instanceof Function) {
             instance[prop] = val.clone();
         } else {
             instance[prop] = val;
