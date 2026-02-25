@@ -1,4 +1,4 @@
-import { Asset, Mesh, Quat, SEMANTIC_POSITION, Vec3, Mat4 } from 'playcanvas';
+import { Quat, SEMANTIC_POSITION, Vec3, Mat4 } from 'playcanvas';
 import { Debug } from '../../debug.mjs';
 import { Component } from '../component.mjs';
 import {
@@ -295,7 +295,7 @@ class ShapeComponent extends Component {
         }
 
         if ($_DEBUG) {
-            const ok = Debug.assert(mesh instanceof Mesh, 'Invalid mesh', mesh);
+            const ok = Debug.assert(mesh && mesh.vertexBuffer && mesh.indexBuffer, 'Invalid mesh', mesh);
             if (!ok) {
                 return;
             }
@@ -351,7 +351,7 @@ class ShapeComponent extends Component {
             let ok = false;
             if (typeof asset === 'number') {
                 ok = Debug.checkUint(asset);
-            } else if (asset instanceof Asset) {
+            } else {
                 ok = true;
             }
             if (!ok) {
@@ -637,7 +637,7 @@ class ShapeComponent extends Component {
     }
 
     getMeshes(callback) {
-        const id = this._renderAsset instanceof Asset ? this._renderAsset.id : this._renderAsset;
+        const id = typeof this._renderAsset === 'number' ? this._renderAsset : this._renderAsset.id;
         const assets = this.system.app.assets;
 
         const onAssetFullyReady = (asset) => {

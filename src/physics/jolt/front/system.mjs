@@ -1,7 +1,7 @@
 import { Debug } from '../debug.mjs';
 import { buildAccessors } from '../../util.mjs';
 import { BUFFER_WRITE_UINT32 } from '../constants.mjs';
-import { ComponentSystem, Quat, Vec3 } from 'playcanvas';
+import { ComponentSystem } from 'playcanvas';
 
 class JoltComponentSystem extends ComponentSystem {
     _store = {};
@@ -103,7 +103,7 @@ class JoltComponentSystem extends ComponentSystem {
                 Debug.assert(value != null, `Trying to initialize a component with invalid value for property "${key}": ${value}`, data);
             }
 
-            if (value instanceof Vec3 || value instanceof Quat) {
+            if (value?.clone instanceof Function) {
                 component[`_${key}`] = value.clone();
             } else {
                 component[`_${key}`] = value;
