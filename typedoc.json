@@ -1,0 +1,56 @@
+{
+    "$schema": "https://typedoc.org/schema.json",
+    "compilerOptions": {
+        "allowSyntheticDefaultImports": true,
+        "checkJs": false,
+        "lib": ["DOM"],
+        "types": ["webxr"]
+    },
+    "entryPoints": [
+        "src/index.mjs",
+    ],
+    "navigation": {
+        "includeCategories": true,
+        "includeGroups": true
+    },
+    "categorizeByGroup": true,
+    "excludeNotDocumented": true,
+    "excludeNotDocumentedKinds": [
+        "Module",
+        "Namespace",
+        "Enum",
+        "Variable",
+        "Function",
+        "Class",
+        // "Interface",
+        "Constructor",
+        "Property",
+        "Method",
+        "CallSignature",
+        "IndexSignature",
+        "ConstructorSignature",
+        "Accessor",
+        // "GetSignature",
+        "SetSignature",
+        "TypeAlias",
+        "Reference"
+    ],
+    "plugin": [
+        "typedoc-plugin-mdn-links"
+    ],
+    "githubPages": false,
+    "name": "Physics Components",
+    "out": "docs",
+    "readme": "none",
+    "externalSymbolLinkMappings": {
+        "playcanvas": {
+            "Vec3": "https://api.playcanvas.com/classes/Engine.Vec3.html",
+            "Quat": "https://api.playcanvas.com/classes/Engine.Quat.html",
+            "Color": "https://api.playcanvas.com/classes/Engine.Color.html",
+            "Application": "https://api.playcanvas.com/classes/Engine.Application.html",
+            "Entity": "https://api.playcanvas.com/classes/Engine.Entity.html",
+            "Curve": "https://api.playcanvas.com/classes/Engine.Curve.html",
+            
+        },
+    },
+}

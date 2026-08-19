@@ -5,6 +5,7 @@ import { IndexedCache } from './indexed-cache.mjs';
 
 /**
  * @import { EventHandle } from 'playcanvas';
+ * @import { JoltInitSettings } from './init.mjs';
  */
 
 class PhysicsManager {
@@ -82,7 +83,7 @@ class PhysicsManager {
     }
 
     /**
-     * @type {import('./init.mjs').JoltInitSettings}
+     * @type {JoltInitSettings}
      * @private
      */
     get config() {

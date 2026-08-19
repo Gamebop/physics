@@ -47,6 +47,7 @@
         "rollup-plugin-jscc": "^2.0.0",
         "typedoc": "^0.28.20",
         "typedoc-plugin-mdn-links": "^5.1.1",
+        "typedoc-plugin-missing-exports": "^4.1.4",
         "typescript": "^6.0.3"
     },
     "overrides": {

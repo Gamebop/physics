@@ -304,6 +304,15 @@ class JoltInitSettings {
     manifoldToleranceSq;
 
     /**
+     * If `true`, the physics simulation will not be updated automatically, and you will need to call
+     * {@link JoltManager.step} manually to advance the simulation by a fixed step.
+     *
+     * @type {boolean}
+     * @defaultValue false
+     */
+    manualStep;
+
+    /**
      * Array of non-unique integers, representing of one-to-one map of object layer to broadphase
      * layer. Each object layer can only belong to one and only one broadphase layer.
      *
